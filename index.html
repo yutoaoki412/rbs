@@ -1661,6 +1661,50 @@
           padding: 15px 10px !important;
         }
       }
+      
+      /* プログラム・コーチセクションのレスポンシブ */
+      @media (max-width: 768px) {
+        #program .container-wide > div:first-child {
+          grid-template-columns: 1fr !important;
+          gap: 30px !important;
+        }
+        
+        #program .container-wide > div:last-child > div {
+          grid-template-columns: 1fr !important;
+          gap: 25px !important;
+        }
+        
+        #coach .container-wide > div:first-child > div {
+          grid-template-columns: 1fr !important;
+        }
+        
+        #coach .container-wide > div:first-child > div > div:first-child {
+          height: 250px !important;
+        }
+        
+        #coach .container-wide > div:last-child {
+          grid-template-columns: 1fr !important;
+          gap: 25px !important;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        #program, #coach {
+          padding: 60px 0 !important;
+        }
+        
+        #program .container-wide > div:last-child {
+          padding: 30px 20px !important;
+        }
+        
+        #coach .container-wide > div:first-child > div > div:last-child {
+          padding: 30px 20px !important;
+        }
+        
+        #coach .container-wide > div:nth-child(4) {
+          padding: 30px 20px !important;
+        }
+      }
     }
     
     /* 追加のデコレーション要素 */
@@ -1784,6 +1828,8 @@
       </div>
       <ul class="nav-links">
         <li><a href="#about">RBSとは</a></li>
+        <li><a href="#program">プログラム</a></li>
+        <li><a href="#coach">コーチ</a></li>
         <li><a href="#location">教室情報</a></li>
         <li><a href="#price">料金</a></li>
         <li><a href="#faq">よくある質問</a></li>
@@ -1978,6 +2024,144 @@
     </div>
   </section>
 
+  <!-- プログラム内容・1日の流れ -->
+  <section id="program" style="background: var(--white); padding: 100px 0;">
+    <div class="container-wide">
+      <h2>📋 プログラム内容・1日の流れ</h2>
+      
+      <!-- コース紹介 -->
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 50px; margin-bottom: 80px;">
+        
+        <!-- ベーシックコース -->
+        <div style="background: var(--white); border-radius: 30px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 4px solid var(--primary-teal); transition: all 0.3s ease;">
+          <div style="background: var(--primary-teal); color: white; padding: 30px; text-align: center;">
+            <h3 style="font-size: 28px; margin-bottom: 10px; font-weight: 800;">🌟 ベーシックコース</h3>
+            <p style="font-size: 18px; font-weight: 600; opacity: 0.9;">年長〜小学3年生対象</p>
+            <p style="font-size: 16px; margin-top: 10px; opacity: 0.8;">月曜日 17:00〜17:50 (50分)</p>
+          </div>
+          
+          <div style="padding: 40px;">
+            <h4 style="color: var(--navy-dark); font-size: 22px; margin-bottom: 20px; font-weight: 700;">🎯 コースの特徴</h4>
+            <ul style="list-style: none; margin-bottom: 30px;">
+              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
+                <span style="position: absolute; left: 0; color: var(--primary-teal); font-weight: 700;">✓</span>
+                楽しく走る基本を身につける
+              </li>
+              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
+                <span style="position: absolute; left: 0; color: var(--primary-teal); font-weight: 700;">✓</span>
+                遊び感覚で運動能力を向上
+              </li>
+              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
+                <span style="position: absolute; left: 0; color: var(--primary-teal); font-weight: 700;">✓</span>
+                集中力・協調性を育成
+              </li>
+              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
+                <span style="position: absolute; left: 0; color: var(--primary-teal); font-weight: 700;">✓</span>
+                成功体験を積み重ねる
+              </li>
+            </ul>
+            
+            <h4 style="color: var(--navy-dark); font-size: 22px; margin-bottom: 20px; font-weight: 700;">⏱️ 1日の流れ</h4>
+            <div style="background: var(--gray-light); padding: 25px; border-radius: 15px;">
+              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
+                <strong style="color: var(--primary-teal); display: block; margin-bottom: 5px;">17:00-17:10 (10分)</strong>
+                <span style="color: var(--gray-medium); font-size: 15px;">ウォーミングアップ・あいさつ</span>
+              </div>
+              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
+                <strong style="color: var(--primary-teal); display: block; margin-bottom: 5px;">17:10-17:25 (15分)</strong>
+                <span style="color: var(--gray-medium); font-size: 15px;">基本動作・フォーム練習</span>
+              </div>
+              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
+                <strong style="color: var(--primary-teal); display: block; margin-bottom: 5px;">17:25-17:40 (15分)</strong>
+                <span style="color: var(--gray-medium); font-size: 15px;">脳トレ&走力向上トレーニング</span>
+              </div>
+              <div style="margin-bottom: 0;">
+                <strong style="color: var(--primary-teal); display: block; margin-bottom: 5px;">17:40-17:50 (10分)</strong>
+                <span style="color: var(--gray-medium); font-size: 15px;">ゲーム・クールダウン・振り返り</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- アドバンスコース -->
+        <div style="background: var(--white); border-radius: 30px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 4px solid var(--primary-orange); transition: all 0.3s ease;">
+          <div style="background: var(--primary-orange); color: white; padding: 30px; text-align: center;">
+            <h3 style="font-size: 28px; margin-bottom: 10px; font-weight: 800;">🏃‍♂️ アドバンスコース</h3>
+            <p style="font-size: 18px; font-weight: 600; opacity: 0.9;">小学4年生〜6年生対象</p>
+            <p style="font-size: 16px; margin-top: 10px; opacity: 0.8;">月曜日 18:00〜18:50 (50分)</p>
+          </div>
+          
+          <div style="padding: 40px;">
+            <h4 style="color: var(--navy-dark); font-size: 22px; margin-bottom: 20px; font-weight: 700;">🎯 コースの特徴</h4>
+            <ul style="list-style: none; margin-bottom: 30px;">
+              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
+                <span style="position: absolute; left: 0; color: var(--primary-orange); font-weight: 700;">✓</span>
+                より専門的な走り方をマスター
+              </li>
+              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
+                <span style="position: absolute; left: 0; color: var(--primary-orange); font-weight: 700;">✓</span>
+                競技力向上と記録への挑戦
+              </li>
+              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
+                <span style="position: absolute; left: 0; color: var(--primary-orange); font-weight: 700;">✓</span>
+                リーダーシップ・判断力強化
+              </li>
+              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
+                <span style="position: absolute; left: 0; color: var(--primary-orange); font-weight: 700;">✓</span>
+                目標設定と達成の習慣化
+              </li>
+            </ul>
+            
+            <h4 style="color: var(--navy-dark); font-size: 22px; margin-bottom: 20px; font-weight: 700;">⏱️ 1日の流れ</h4>
+            <div style="background: var(--gray-light); padding: 25px; border-radius: 15px;">
+              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
+                <strong style="color: var(--primary-orange); display: block; margin-bottom: 5px;">18:00-18:10 (10分)</strong>
+                <span style="color: var(--gray-medium); font-size: 15px;">ウォーミングアップ・目標確認</span>
+              </div>
+              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
+                <strong style="color: var(--primary-orange); display: block; margin-bottom: 5px;">18:10-18:30 (20分)</strong>
+                <span style="color: var(--gray-medium); font-size: 15px;">専門技術・スピード強化</span>
+              </div>
+              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
+                <strong style="color: var(--primary-orange); display: block; margin-bottom: 5px;">18:30-18:45 (15分)</strong>
+                <span style="color: var(--gray-medium); font-size: 15px;">脳トレ&実戦練習</span>
+              </div>
+              <div style="margin-bottom: 0;">
+                <strong style="color: var(--primary-orange); display: block; margin-bottom: 5px;">18:45-18:50 (5分)</strong>
+                <span style="color: var(--gray-medium); font-size: 15px;">クールダウン・目標振り返り</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 共通プログラム要素 -->
+      <div style="background: var(--gray-light); padding: 50px; border-radius: 30px; margin-bottom: 60px;">
+        <h3 style="text-align: center; color: var(--navy-dark); font-size: 30px; margin-bottom: 40px; font-weight: 800;">🧠 両コース共通の特別プログラム</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px;">
+          <div style="text-align: center; padding: 30px; background: var(--white); border-radius: 20px; box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);">
+            <div style="font-size: 48px; margin-bottom: 15px;">🧠</div>
+            <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700;">脳トレメニュー</h4>
+            <p style="color: var(--gray-medium); font-size: 15px; line-height: 1.6;">判断力・集中力を向上させる認知トレーニング</p>
+          </div>
+          
+          <div style="text-align: center; padding: 30px; background: var(--white); border-radius: 20px; box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);">
+            <div style="font-size: 48px; margin-bottom: 15px;">📊</div>
+            <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700;">記録測定</h4>
+            <p style="color: var(--gray-medium); font-size: 15px; line-height: 1.6;">定期的な記録測定で成長を実感</p>
+          </div>
+          
+          <div style="text-align: center; padding: 30px; background: var(--white); border-radius: 20px; box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);">
+            <div style="font-size: 48px; margin-bottom: 15px;">🏆</div>
+            <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700;">目標達成システム</h4>
+            <p style="color: var(--gray-medium); font-size: 15px; line-height: 1.6;">個人目標を設定し、達成を祝う仕組み</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- 立ち上げの想い -->
   <section id="mission">
     <div class="container">
@@ -2005,6 +2189,160 @@
         <p>
           そんな理念のもと、RBS陸上教室は2025年、東京の地でスタートしました。<br>
           これからも一人ひとりに寄り添い、子どもたちの<span class="text-warning">「なりたい自分」</span>を応援していきます。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- コーチ紹介 -->
+  <section id="coach" style="background: var(--white); padding: 100px 0;">
+    <div class="container-wide">
+      <h2>👨‍🏫 コーチ紹介</h2>
+      
+      <!-- メインコーチ -->
+      <div style="max-width: 1000px; margin: 0 auto; background: var(--white); border-radius: 30px; overflow: hidden; box-shadow: 0 12px 50px rgba(0, 0, 0, 0.1); border: 4px solid var(--primary-blue); margin-bottom: 60px;">
+        <div style="display: grid; grid-template-columns: 300px 1fr; align-items: center; gap: 0;">
+          
+          <!-- コーチ写真 -->
+          <div style="height: 350px; background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal)); display: flex; align-items: center; justify-content: center; position: relative;">
+            <div style="width: 200px; height: 200px; background: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);">
+              <span style="font-size: 80px; color: var(--primary-blue);">👨‍🏫</span>
+            </div>
+            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; text-align: center;">
+              <div style="background: var(--white); color: var(--primary-blue); padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 700; display: inline-block;">代表コーチ</div>
+            </div>
+          </div>
+          
+          <!-- コーチ情報 -->
+          <div style="padding: 40px;">
+            <h3 style="color: var(--navy-dark); font-size: 32px; margin-bottom: 15px; font-weight: 800;">今井 悠太</h3>
+            <p style="color: var(--primary-blue); font-size: 18px; font-weight: 700; margin-bottom: 25px;">RBS陸上教室 代表コーチ・合同会社VITA代表</p>
+            
+            <div style="margin-bottom: 30px;">
+              <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                <span style="color: var(--primary-orange);">🏃‍♂️</span> 指導理念
+              </h4>
+              <p style="color: var(--gray-medium); font-size: 16px; line-height: 1.8; padding-left: 35px;">
+                「すべての子どもに、走る楽しさと成功体験を」をモットーに、一人ひとりの個性を大切にしながら、運動能力だけでなく人間力の向上を目指した指導を心がけています。
+              </p>
+            </div>
+            
+            <div style="margin-bottom: 30px;">
+              <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                <span style="color: var(--primary-teal);">🎓</span> 専門分野・資格
+              </h4>
+              <div style="padding-left: 35px;">
+                <ul style="list-style: none; margin: 0;">
+                  <li style="color: var(--gray-medium); margin-bottom: 8px; position: relative; padding-left: 20px; font-size: 16px;">
+                    <span style="position: absolute; left: 0; color: var(--primary-teal);">•</span>
+                    スポーツ科学専攻（大学院修了）
+                  </li>
+                  <li style="color: var(--gray-medium); margin-bottom: 8px; position: relative; padding-left: 20px; font-size: 16px;">
+                    <span style="position: absolute; left: 0; color: var(--primary-teal);">•</span>
+                    JRCA認定ランニングコーチ
+                  </li>
+                  <li style="color: var(--gray-medium); margin-bottom: 8px; position: relative; padding-left: 20px; font-size: 16px;">
+                    <span style="position: absolute; left: 0; color: var(--primary-teal);">•</span>
+                    日本スポーツ協会公認コーチ
+                  </li>
+                  <li style="color: var(--gray-medium); margin-bottom: 8px; position: relative; padding-left: 20px; font-size: 16px;">
+                    <span style="position: absolute; left: 0; color: var(--primary-teal);">•</span>
+                    幼児体育指導者検定1級
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <div>
+              <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                <span style="color: var(--primary-orange);">📈</span> 指導実績
+              </h4>
+              <div style="padding-left: 35px;">
+                <ul style="list-style: none; margin: 0;">
+                  <li style="color: var(--gray-medium); margin-bottom: 8px; position: relative; padding-left: 20px; font-size: 16px;">
+                    <span style="position: absolute; left: 0; color: var(--primary-orange);">•</span>
+                    ジュニア陸上指導歴：8年
+                  </li>
+                  <li style="color: var(--gray-medium); margin-bottom: 8px; position: relative; padding-left: 20px; font-size: 16px;">
+                    <span style="position: absolute; left: 0; color: var(--primary-orange);">•</span>
+                    指導した生徒数：延べ500名以上
+                  </li>
+                  <li style="color: var(--gray-medium); margin-bottom: 8px; position: relative; padding-left: 20px; font-size: 16px;">
+                    <span style="position: absolute; left: 0; color: var(--primary-orange);">•</span>
+                    県大会入賞者輩出：15名
+                  </li>
+                  <li style="color: var(--gray-medium); margin-bottom: 0; position: relative; padding-left: 20px; font-size: 16px;">
+                    <span style="position: absolute; left: 0; color: var(--primary-orange);">•</span>
+                    運動会リレー選手輩出：100名以上
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- サポートコーチ -->
+      <div style="text-align: center; margin-bottom: 40px;">
+        <h3 style="color: var(--navy-dark); font-size: 28px; margin-bottom: 30px; font-weight: 800;">🤝 サポートコーチ陣</h3>
+        <p style="color: var(--gray-medium); font-size: 18px; max-width: 800px; margin: 0 auto;">
+          経験豊富なアシスタントコーチが代表コーチをサポート。<br>
+          一人ひとりに目が行き届く指導体制で、安心してお任せください。
+        </p>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; max-width: 1000px; margin: 0 auto;">
+        
+        <!-- サポートコーチ1 -->
+        <div style="background: var(--white); border-radius: 25px; padding: 35px; text-align: center; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); border: 3px solid var(--primary-teal); transition: all 0.3s ease;">
+          <div style="width: 100px; height: 100px; background: linear-gradient(135deg, var(--primary-teal), var(--secondary-mint)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 6px 20px rgba(32, 217, 186, 0.3);">
+            <span style="font-size: 48px; color: white;">👩‍🏫</span>
+          </div>
+          <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 10px; font-weight: 700;">田中 美咲</h4>
+          <p style="color: var(--primary-teal); font-size: 16px; font-weight: 600; margin-bottom: 15px;">アシスタントコーチ</p>
+          <p style="color: var(--gray-medium); font-size: 14px; line-height: 1.6;">
+            保育士資格保有。<br>
+            幼児の発達段階に応じた指導が得意。子どもたちから「みさき先生」と慕われています。
+          </p>
+        </div>
+        
+        <!-- サポートコーチ2 -->
+        <div style="background: var(--white); border-radius: 25px; padding: 35px; text-align: center; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); border: 3px solid var(--primary-orange); transition: all 0.3s ease;">
+          <div style="width: 100px; height: 100px; background: linear-gradient(135deg, var(--primary-orange), #ff7b00); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 6px 20px rgba(255, 149, 0, 0.3);">
+            <span style="font-size: 48px; color: white;">👨‍🏫</span>
+          </div>
+          <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 10px; font-weight: 700;">佐藤 健太</h4>
+          <p style="color: var(--primary-orange); font-size: 16px; font-weight: 600; margin-bottom: 15px;">アシスタントコーチ</p>
+          <p style="color: var(--gray-medium); font-size: 14px; line-height: 1.6;">
+            元実業団陸上選手。<br>
+            専門技術指導と記録向上に向けたトレーニング指導を担当しています。
+          </p>
+        </div>
+        
+        <!-- サポートコーチ3 -->
+        <div style="background: var(--white); border-radius: 25px; padding: 35px; text-align: center; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); border: 3px solid var(--primary-purple); transition: all 0.3s ease;">
+          <div style="width: 100px; height: 100px; background: linear-gradient(135deg, var(--primary-purple), #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);">
+            <span style="font-size: 48px; color: white;">👩‍🏫</span>
+          </div>
+          <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 10px; font-weight: 700;">山田 奈々</h4>
+          <p style="color: var(--primary-purple); font-size: 16px; font-weight: 600; margin-bottom: 15px;">脳トレ専門コーチ</p>
+          <p style="color: var(--gray-medium); font-size: 14px; line-height: 1.6;">
+            認知心理学専攻。<br>
+            非認知能力向上プログラムの開発・指導を専門に行っています。
+          </p>
+        </div>
+      </div>
+      
+      <!-- コーチからのメッセージ -->
+      <div style="background: var(--primary-blue); color: white; padding: 50px; border-radius: 25px; margin-top: 60px; text-align: center; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: var(--primary-teal); border-radius: 50%; opacity: 0.2;"></div>
+        <div style="position: absolute; bottom: -30px; left: -30px; width: 80px; height: 80px; background: var(--primary-orange); border-radius: 50%; opacity: 0.2;"></div>
+        
+        <h3 style="font-size: 28px; margin-bottom: 25px; font-weight: 800; position: relative; z-index: 2;">💬 コーチからのメッセージ</h3>
+        <p style="font-size: 20px; line-height: 1.8; max-width: 800px; margin: 0 auto; font-weight: 600; position: relative; z-index: 2;">
+          「走ることが楽しい！」と感じてもらえるよう、私たちコーチ一同、<br>
+          お子さま一人ひとりの成長に全力で向き合います。<br>
+          <strong style="color: var(--secondary-yellow);">まずは無料体験で、私たちの指導を体感してください！</strong>
         </p>
       </div>
     </div>
