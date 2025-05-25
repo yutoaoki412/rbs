@@ -22,844 +22,8 @@
   <meta name="twitter:image" content="images/lp-logo.png">
   
   <!-- Markdownパーサー -->
-  <script src="js/markdown-parser.js"></script>
-  
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
-      line-height: 1.7;
-      color: #2c3e50;
-      background-color: #f8fafe;
-      overflow-x: hidden;
-    }
-    
-    /* カラーパレット */
-    :root {
-      --primary-blue: #4a90e2;
-      --primary-teal: #50c8a3;
-      --primary-orange: #f5a623;
-      --primary-red: #e74c3c;
-      --primary-purple: #9b59b6;
-      --primary-pink: #e91e63;
-      --secondary-yellow: #f39c12;
-      --secondary-mint: #1abc9c;
-      --navy-dark: #2c3e50;
-      --gray-light: #f8f9fa;
-      --gray-medium: #6c757d;
-      --gray-border: #dee2e6;
-      --white: #ffffff;
-      --success: #28a745;
-      --warning: #ffc107;
-    }
-    
-    /* ヘッダー */
-    header {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      padding: 12px 0;
-      border-bottom: 3px solid var(--primary-blue);
-    }
-    
-    nav {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .logo {
-      display: flex;
-      align-items: center;
-    }
-    
-    .logo a {
-      display: flex;
-      align-items: center;
-      text-decoration: none;
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    
-    .logo a:hover {
-      transform: translateY(-3px) scale(1.02);
-    }
-    
-    .logo-image {
-      height: 100px;
-      width: auto;
-      max-width: 600px;
-      object-fit: cover;
-      object-position: center;
-      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
-    }
-    
-    .nav-links {
-      display: flex;
-      gap: 0;
-      list-style: none;
-      align-items: center;
-    }
-    
-    .nav-links li {
-      margin-right: 32px;
-      position: relative;
-    }
-    
-    .nav-links li:last-child {
-      margin-right: 0;
-      margin-left: 50px;
-    }
-    
-    .nav-links a {
-      text-decoration: none;
-      color: var(--navy-dark);
-      font-weight: 700;
-      font-size: 16px;
-      transition: color 0.3s ease;
-      position: relative;
-      padding: 12px 12px;
-      white-space: nowrap;
-      border-radius: 8px;
-      display: block;
-    }
-    
-    .nav-links a::after {
-      content: '';
-      position: absolute;
-      bottom: 2px;
-      left: 50%;
-      width: 0;
-      height: 2px;
-      background: var(--primary-blue);
-      transition: width 0.3s ease;
-      transform: translateX(-50%);
-      border-radius: 1px;
-    }
-    
-    .nav-links a:hover {
-      color: var(--primary-blue);
-    }
-    
-    .nav-links a:hover::after {
-      width: 80%;
-    }
-    
-    .nav-links .login-btn {
-      background: var(--primary-orange);
-      color: white !important;
-      padding: 14px 32px;
-      border-radius: 50px;
-      font-size: 15px;
-      font-weight: 800;
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
-      border: none;
-      box-shadow: 0 8px 25px rgba(245, 167, 35, 0.3);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .nav-links .login-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-      transition: left 0.5s;
-    }
-    
-    .nav-links .login-btn:hover {
-      background: #e6941f !important;
-      color: white !important;
-      box-shadow: 0 10px 25px rgba(245, 167, 35, 0.4);
-    }
-    
-    .nav-links .login-btn:hover::before {
-      left: 100%;
-    }
-    
-    .nav-links .login-btn::after {
-      display: none !important;
-    }
-    
-    /* メインコンテンツ */
-    main {
-      padding-top: 140px;
-      min-height: 100vh;
-    }
-    
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 0 40px;
-    }
-    
-    /* パンくずナビ */
-    .breadcrumb {
-      background: var(--white);
-      padding: 20px 30px;
-      border-radius: 15px;
-      margin-bottom: 30px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      border: 2px solid var(--gray-border);
-    }
-    
-    .breadcrumb-list {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      list-style: none;
-      font-size: 14px;
-      font-weight: 600;
-    }
-    
-    .breadcrumb-list li {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .breadcrumb-list a {
-      color: var(--primary-blue);
-      text-decoration: none;
-      transition: color 0.3s ease;
-    }
-    
-    .breadcrumb-list a:hover {
-      color: var(--primary-teal);
-    }
-    
-    .breadcrumb-list .current {
-      color: var(--gray-medium);
-    }
-    
-    .breadcrumb-separator {
-      color: var(--gray-medium);
-      font-size: 12px;
-    }
-    
-    /* 記事ヘッダー */
-    .article-header {
-      background: var(--white);
-      padding: 40px;
-      border-radius: 25px;
-      margin-bottom: 30px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-      border: 2px solid var(--gray-border);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .article-header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 6px;
-      background: var(--primary-blue);
-      border-radius: 25px 25px 0 0;
-    }
-    
-    .article-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 25px;
-      flex-wrap: wrap;
-      gap: 15px;
-    }
-    
-    .article-date {
-      font-size: 16px;
-      color: var(--gray-medium);
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .article-date::before {
-      content: '📅';
-      font-size: 14px;
-    }
-    
-    .article-category {
-      padding: 8px 20px;
-      border-radius: 25px;
-      font-size: 13px;
-      font-weight: 700;
-      color: white;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .article-category.announcement {
-      background: var(--primary-blue);
-    }
-    
-    .article-category.event {
-      background: var(--primary-teal);
-    }
-    
-    .article-category.media {
-      background: var(--primary-purple);
-    }
-    
-    .article-category.important {
-      background: var(--primary-red);
-    }
-    
-    .article-title {
-      font-size: clamp(24px, 5vw, 36px);
-      font-weight: 800;
-      color: var(--navy-dark);
-      line-height: 1.3;
-      margin-bottom: 0;
-    }
-    
-    /* 記事本文 */
-    .article-content {
-      background: var(--white);
-      padding: 50px;
-      border-radius: 25px;
-      margin-bottom: 40px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-      border: 2px solid var(--gray-border);
-    }
-    
-    .article-content h2 {
-      font-size: 28px;
-      color: var(--navy-dark);
-      margin: 40px 0 20px 0;
-      font-weight: 700;
-      position: relative;
-      padding-left: 20px;
-    }
-    
-    .article-content h2::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 4px;
-      background: var(--primary-blue);
-      border-radius: 2px;
-    }
-    
-    .article-content h2:first-child {
-      margin-top: 0;
-    }
-    
-    .article-content h3 {
-      font-size: 22px;
-      color: var(--navy-dark);
-      margin: 30px 0 15px 0;
-      font-weight: 700;
-    }
-    
-    .article-content p {
-      font-size: 16px;
-      line-height: 1.8;
-      color: var(--navy-dark);
-      margin-bottom: 20px;
-      font-weight: 500;
-    }
-    
-    .article-content ul,
-    .article-content ol {
-      margin: 20px 0;
-      padding-left: 30px;
-    }
-    
-    .article-content li {
-      font-size: 16px;
-      line-height: 1.8;
-      color: var(--navy-dark);
-      margin-bottom: 8px;
-      font-weight: 500;
-    }
-    
-    .article-content strong {
-      color: var(--primary-blue);
-      font-weight: 700;
-    }
-    
-    .article-content .highlight {
-      background: var(--secondary-yellow);
-      color: white;
-      padding: 20px 30px;
-      border-radius: 15px;
-      margin: 30px 0;
-      font-weight: 700;
-      text-align: center;
-      font-size: 18px;
-      box-shadow: 0 8px 25px rgba(243, 156, 18, 0.3);
-    }
-    
-    .article-content .info-box {
-      background: var(--gray-light);
-      padding: 25px;
-      border-radius: 15px;
-      margin: 25px 0;
-      border-left: 4px solid var(--primary-teal);
-    }
-    
-    .article-content .info-box h4 {
-      color: var(--navy-dark);
-      font-size: 18px;
-      margin-bottom: 10px;
-      font-weight: 700;
-    }
-    
-    /* SNSシェア */
-    .share-section {
-      background: var(--white);
-      padding: 30px;
-      border-radius: 20px;
-      margin-bottom: 40px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-      border: 2px solid var(--gray-border);
-      text-align: center;
-    }
-    
-    .share-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--navy-dark);
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-    
-    .share-title::before {
-      content: '📢';
-      font-size: 20px;
-    }
-    
-    .share-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      flex-wrap: wrap;
-    }
-    
-    .share-btn {
-      padding: 12px 24px;
-      border-radius: 25px;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 14px;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: white;
-    }
-    
-    .share-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-    }
-    
-    .share-btn.twitter {
-      background: #1da1f2;
-    }
-    
-    .share-btn.facebook {
-      background: #4267b2;
-    }
-    
-    .share-btn.line {
-      background: #00c300;
-    }
-    
-    .share-btn.copy {
-      background: var(--gray-medium);
-    }
-    
-    /* 関連記事 */
-    .related-articles {
-      background: var(--white);
-      padding: 40px;
-      border-radius: 25px;
-      margin-bottom: 40px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-      border: 2px solid var(--gray-border);
-    }
-    
-    .related-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--navy-dark);
-      margin-bottom: 30px;
-      text-align: center;
-      position: relative;
-      padding-bottom: 15px;
-    }
-    
-    .related-title::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80px;
-      height: 4px;
-      background: var(--primary-teal);
-      border-radius: 2px;
-    }
-    
-    .related-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 25px;
-    }
-    
-    .related-card {
-      border: 2px solid var(--gray-border);
-      border-radius: 15px;
-      overflow: hidden;
-      transition: all 0.3s ease;
-      background: var(--white);
-    }
-    
-    .related-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-      border-color: var(--primary-blue);
-    }
-    
-    .related-card-header {
-      padding: 20px;
-      border-bottom: 2px solid var(--gray-light);
-    }
-    
-    .related-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      font-size: 12px;
-    }
-    
-    .related-date {
-      color: var(--gray-medium);
-      font-weight: 600;
-    }
-    
-    .related-category {
-      padding: 4px 12px;
-      border-radius: 15px;
-      font-size: 10px;
-      font-weight: 700;
-      color: white;
-      text-transform: uppercase;
-    }
-    
-    .related-title-link {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--navy-dark);
-      text-decoration: none;
-      line-height: 1.4;
-      display: block;
-      transition: color 0.3s ease;
-    }
-    
-    .related-title-link:hover {
-      color: var(--primary-blue);
-    }
-    
-    .related-card-body {
-      padding: 15px 20px 20px;
-    }
-    
-    .related-excerpt {
-      font-size: 14px;
-      color: var(--gray-medium);
-      line-height: 1.6;
-    }
-    
-    /* ナビゲーション */
-    .article-nav {
-      display: flex;
-      justify-content: space-between;
-      gap: 20px;
-      margin-bottom: 40px;
-    }
-    
-    .nav-btn {
-      flex: 1;
-      padding: 20px;
-      background: var(--white);
-      border: 2px solid var(--gray-border);
-      border-radius: 15px;
-      text-decoration: none;
-      color: var(--navy-dark);
-      transition: all 0.3s ease;
-      text-align: center;
-      font-weight: 600;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    }
-    
-    .nav-btn:hover {
-      border-color: var(--primary-blue);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-    }
-    
-    .nav-btn.prev::before {
-      content: '← ';
-      color: var(--primary-blue);
-    }
-    
-    .nav-btn.next::after {
-      content: ' →';
-      color: var(--primary-blue);
-    }
-    
-    /* フッター */
-    footer {
-      background: var(--navy-dark);
-      color: white;
-      text-align: center;
-      padding: 60px 20px;
-      position: relative;
-      overflow: hidden;
-      margin-top: 80px;
-    }
-    
-    footer::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 8px;
-      background: var(--primary-blue);
-    }
-    
-    footer a {
-      color: white;
-      text-decoration: none;
-      margin: 0 20px;
-      transition: all 0.3s;
-      padding: 8px 16px;
-      border-radius: 25px;
-      font-weight: 600;
-      font-size: 16px;
-      display: inline-block;
-    }
-    
-    footer a:hover {
-      background: var(--primary-blue);
-      transform: translateY(-2px);
-    }
-    
-    footer p {
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .footer-links {
-      margin-bottom: 20px;
-    }
-    
-    /* モバイルメニュー */
-    .mobile-menu-btn {
-      display: none;
-      background: none;
-      border: none;
-      font-size: 32px;
-      cursor: pointer;
-      color: var(--primary-blue);
-      font-weight: 800;
-    }
-    
-    /* レスポンシブ */
-    @media (max-width: 768px) {
-      .nav-links {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: var(--white);
-        flex-direction: column;
-        padding: 20px;
-        box-shadow: 0 8px 30px rgba(30, 41, 59, 0.15);
-        border-top: 3px solid var(--primary-blue);
-        gap: 0;
-      }
-      
-      .nav-links li {
-        margin-right: 0;
-        margin-bottom: 15px;
-      }
-      
-      .nav-links li:last-child {
-        margin-left: 0;
-        margin-bottom: 0;
-      }
-      
-      .nav-links.active {
-        display: flex;
-      }
-      
-      .mobile-menu-btn {
-        display: block;
-      }
-      
-      .container {
-        padding: 0 20px;
-      }
-      
-      nav {
-        padding: 0 20px;
-      }
-      
-      .logo-image {
-        height: 80px;
-        max-width: 450px;
-      }
-      
-      main {
-        padding-top: 120px;
-      }
-      
-      .breadcrumb {
-        padding: 15px 20px;
-        margin: 0 -20px 20px;
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-      }
-      
-      .breadcrumb-list {
-        font-size: 12px;
-        gap: 5px;
-      }
-      
-      .article-header {
-        padding: 25px 20px;
-        margin: 0 -20px 20px;
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-      }
-      
-      .article-meta {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-      }
-      
-      .article-title {
-        font-size: 22px;
-      }
-      
-      .article-content {
-        padding: 30px 20px;
-        margin: 0 -20px 30px;
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-      }
-      
-      .article-content h2 {
-        font-size: 22px;
-        margin: 30px 0 15px 0;
-      }
-      
-      .article-content h3 {
-        font-size: 18px;
-      }
-      
-      .share-section,
-      .related-articles {
-        padding: 25px 20px;
-        margin: 0 -20px 30px;
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-      }
-      
-      .share-buttons {
-        gap: 10px;
-      }
-      
-      .share-btn {
-        padding: 10px 18px;
-        font-size: 13px;
-      }
-      
-      .related-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-      
-      .article-nav {
-        flex-direction: column;
-        gap: 15px;
-      }
-      
-      .nav-btn {
-        padding: 15px;
-        font-size: 14px;
-      }
-    }
-    
-    @media (max-width: 480px) {
-      .article-title {
-        font-size: 20px;
-      }
-      
-      .article-content {
-        padding: 20px 15px;
-      }
-      
-      .article-content h2 {
-        font-size: 20px;
-      }
-      
-      .article-content h3 {
-        font-size: 16px;
-      }
-      
-      .article-content p,
-      .article-content li {
-        font-size: 15px;
-      }
-      
-      .share-section,
-      .related-articles {
-        padding: 20px 15px;
-      }
-      
-      .related-card-header,
-      .related-card-body {
-        padding: 15px;
-      }
-    }
-  </style>
+  <script src="js/app/article-display.js"></script>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <!-- ヘッダー -->
@@ -1022,29 +186,33 @@
 
     // 記事データを読み込み
     async function loadArticle() {
+      const loadingContainer = document.getElementById('article-content');
+      loadingContainer.innerHTML = `<div style="text-align: center; padding: 50px;"><div style="border: 3px solid #f3f3f3; border-top: 3px solid var(--primary-blue); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>記事を読み込んでいます...</div>`;
+
       try {
-        await articleManager.loadArticles();
-        const articleId = getArticleId();
-        const article = articleManager.getArticleById(articleId);
+        // Load all published articles metadata first (for related articles, navigation)
+        // This is important to have available before trying to render related/nav components.
+        await articleManager.loadArticles(); 
         
-        if (!article) {
+        const articleId = getArticleId();
+        // Fetch the specific article with its parsed HTML content
+        const article = await articleManager.getArticleWithContentById(articleId); 
+        
+        if (!article) { // Handles not found or not published
           showNotFoundError();
           return;
         }
-
-        // Markdownコンテンツを読み込み
-        const content = await articleManager.loadArticleContent(article.file);
         
         // ページタイトルとメタデータを更新
-        updatePageMetadata(article, content);
+        updatePageMetadata(article);
         
         // 記事内容を更新
-        updateArticleContent(article, content);
+        updateArticleContent(article);
         
-        // 関連記事を生成
+        // 関連記事を生成 (uses articleManager.articles populated by loadArticles)
         generateRelatedArticles(article);
         
-        // ナビゲーションを生成
+        // ナビゲーションを生成 (uses articleManager.articles)
         generateNavigation(article);
         
       } catch (error) {
@@ -1054,27 +222,45 @@
     }
 
     // ページメタデータを更新
-    function updatePageMetadata(article, content) {
-      const textContent = content.replace(/<[^>]*>/g, '').substring(0, 150);
+    function updatePageMetadata(article) {
+      // Use article.excerpt for meta description if available, otherwise a snippet of content.
+      // The `htmlContent` is already parsed HTML, so avoid using it directly for meta description.
+      // Use raw `article.content` (markdown) for text snippet if excerpt is empty.
+      let descriptionText = article.excerpt;
+      if (!descriptionText && article.content) {
+        descriptionText = article.content.substring(0, 150).replace(/\s+/g, ' ').trim() + '...';
+      } else if (!descriptionText) {
+        descriptionText = "RBS陸上教室の最新ニュースです。"; // Fallback
+      }
       
-      document.getElementById('page-title').textContent = `${article.title} - RBS陸上教室`;
-      document.getElementById('page-description').setAttribute('content', textContent);
-      document.getElementById('og-title').setAttribute('content', article.title);
-      document.getElementById('og-description').setAttribute('content', textContent);
-      document.getElementById('twitter-title').setAttribute('content', article.title);
-      document.getElementById('twitter-description').setAttribute('content', textContent);
+      document.title = `${article.title} - RBS陸上教室`; // Updated to use document.title
+      document.getElementById('page-description').setAttribute('content', escapeHtml(descriptionText));
+      document.getElementById('og-title').setAttribute('content', escapeHtml(article.title));
+      document.getElementById('og-description').setAttribute('content', escapeHtml(descriptionText));
+      document.getElementById('twitter-title').setAttribute('content', escapeHtml(article.title));
+      document.getElementById('twitter-description').setAttribute('content', escapeHtml(descriptionText));
       document.getElementById('og-url').setAttribute('content', window.location.href);
+      // Ensure breadcrumb also uses escaped title
+      const breadcrumbTitle = document.getElementById('breadcrumb-title');
+      if (breadcrumbTitle) breadcrumbTitle.textContent = escapeHtml(article.title);
     }
 
     // 記事コンテンツを更新
-    function updateArticleContent(article, content) {
-      document.getElementById('breadcrumb-title').textContent = article.title;
+    function updateArticleContent(article) {
+      // Breadcrumb title already set in updatePageMetadata
+      // document.getElementById('breadcrumb-title').textContent = escapeHtml(article.title);
       document.getElementById('article-date').textContent = articleManager.formatDate(article.date);
-      document.getElementById('article-category').textContent = article.categoryName;
-      document.getElementById('article-category').className = `article-category ${article.category}`;
-      document.getElementById('article-category').style.background = articleManager.getCategoryColor(article.category);
-      document.getElementById('article-title').textContent = article.title;
-      document.getElementById('article-content').innerHTML = content;
+      
+      // Use categoryName from article object (from API), fallback to manager method if needed
+      const categoryName = article.categoryName || articleManager.getCategoryName(article.category);
+      const categoryEl = document.getElementById('article-category');
+      categoryEl.textContent = escapeHtml(categoryName);
+      categoryEl.className = `article-category ${escapeHtml(article.category)}`;
+      categoryEl.style.background = articleManager.getCategoryColor(article.category);
+      
+      document.getElementById('article-title').textContent = escapeHtml(article.title);
+      // Use the pre-parsed htmlContent from the article object
+      document.getElementById('article-content').innerHTML = article.htmlContent || '<p>記事のコンテンツがありません。</p>';
     }
 
     // 関連記事を生成
@@ -1082,9 +268,10 @@
       const container = document.getElementById('related-articles-container');
       if (!container || !articleManager) return;
 
-      // 現在の記事以外の記事を取得（最大2件）
+      // 現在の記事以外の記事を取得（最大2件） - ensure IDs are compared correctly (string vs number)
+      const currentArticleIdStr = String(currentArticle.id);
       const relatedArticles = articleManager.articles
-        .filter(article => article.id !== currentArticle.id)
+        .filter(article => String(article.id) !== currentArticleIdStr) 
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .slice(0, 2);
 
@@ -1120,26 +307,31 @@
       const sortedArticles = articleManager.articles
         .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-      const currentIndex = sortedArticles.findIndex(article => article.id === currentArticle.id);
+      const currentArticleIdStr = String(currentArticle.id);
+      const currentIndex = sortedArticles.findIndex(article => String(article.id) === currentArticleIdStr);
       
       let navigationHtml = '';
 
-      // 次の記事（より新しい記事）
+      // Previous Article (Older)
+      if (currentIndex < sortedArticles.length - 1 && currentIndex !== -1) {
+        const prevArticle = sortedArticles[currentIndex + 1];
+        navigationHtml += `<a href="news-detail.html?id=${prevArticle.id}" class="nav-btn prev">前の記事: ${escapeHtml(prevArticle.title)}</a>`;
+      } else {
+         navigationHtml += `<span class="nav-btn disabled prev">前の記事はありません</span>`;
+      }
+
+      // Next Article (Newer)
       if (currentIndex > 0) {
         const nextArticle = sortedArticles[currentIndex - 1];
-        navigationHtml += `<a href="news-detail.html?id=${nextArticle.id}" class="nav-btn next">次の記事</a>`;
+        navigationHtml += `<a href="news-detail.html?id=${nextArticle.id}" class="nav-btn next">次の記事: ${escapeHtml(nextArticle.title)}</a>`;
+      } else {
+        navigationHtml += `<span class="nav-btn disabled next">次の記事はありません</span>`;
       }
 
-      // 前の記事（より古い記事）
-      if (currentIndex < sortedArticles.length - 1) {
-        const prevArticle = sortedArticles[currentIndex + 1];
-        navigationHtml += `<a href="news-detail.html?id=${prevArticle.id}" class="nav-btn prev">前の記事</a>`;
-      }
-
-      // 一覧に戻るボタンは常に表示
-      navigationHtml += '<a href="news.html" class="nav-btn">一覧に戻る</a>';
-
-      container.innerHTML = navigationHtml;
+      // "Back to List" button can be styled differently or kept as part of this flow
+      const backToListBtn = `<a href="news.html" class="nav-btn" style="grid-column: 1 / -1; text-align: center; margin-top: 20px;">ニュース一覧に戻る</a>`;
+      
+      container.innerHTML = navigationHtml + backToListBtn; // Append "Back to List"
     }
 
     // HTMLエスケープ関数

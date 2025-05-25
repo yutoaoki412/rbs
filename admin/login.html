@@ -4,23 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理者ログイン - RBS陸上教室</title>
+  <link rel="stylesheet" href="../css/admin-style.css">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    /* Styles specific to login page (body background, .login-container specific adjustments) */
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
-      background: linear-gradient(135deg, #4a90e2, #50c8a3);
-      min-height: 100vh;
-      display: flex;
+      background: linear-gradient(135deg, #4a90e2, #50c8a3); /* var(--primary-blue), var(--primary-teal) */
+      display: flex; /* Overrides general body style if admin-style.css has one */
       align-items: center;
       justify-content: center;
-      color: #2c3e50;
+      min-height: 100vh;
     }
-
     .login-container {
       background: white;
       border-radius: 20px;
@@ -30,104 +23,88 @@
       max-width: 400px;
       text-align: center;
     }
-
-    .logo {
+    .login-container .logo { /* Ensure login logo style is applied if .logo is too generic */
       font-size: 28px;
       font-weight: 800;
-      color: #4a90e2;
+      color: #4a90e2; /* var(--primary-blue) */
       margin-bottom: 10px;
     }
-
-    .subtitle {
-      color: #6c757d;
+    .login-container .subtitle {
+      color: #6c757d; /* var(--gray-medium) */
       margin-bottom: 40px;
       font-size: 16px;
     }
-
-    .form-group {
-      margin-bottom: 25px;
-      text-align: left;
+    .login-container .form-group {
+      text-align: left; /* Ensure form group text is left-aligned */
     }
-
-    .form-label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: #2c3e50;
+    .login-container .form-label { /* Ensure form labels are styled as intended on login page */
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #2c3e50; /* var(--navy-dark) */
     }
-
-    .form-input {
-      width: 100%;
-      padding: 15px;
-      border: 2px solid #dee2e6;
-      border-radius: 10px;
-      font-size: 16px;
-      transition: all 0.3s ease;
+    .login-container .form-input { /* Ensure form inputs are styled as intended on login page */
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #dee2e6; /* var(--gray-border) */
+        border-radius: 10px;
+        font-size: 16px;
+        transition: all 0.3s ease;
     }
-
-    .form-input:focus {
-      outline: none;
-      border-color: #4a90e2;
-      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    .login-container .form-input:focus {
+        outline: none;
+        border-color: #4a90e2; /* var(--primary-blue) */
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
     }
-
-    .login-btn {
-      width: 100%;
-      padding: 15px;
-      background: #4a90e2;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      margin-top: 10px;
+    .login-container .login-btn { /* Ensure login button is styled as intended */
+        width: 100%;
+        padding: 15px;
+        background: #4a90e2; /* var(--primary-blue) */
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
     }
-
-    .login-btn:hover {
-      background: #357abd;
-      transform: translateY(-2px);
+    .login-container .login-btn:hover {
+        background: #357abd;
+        transform: translateY(-2px);
     }
-
-    .login-btn:disabled {
-      background: #6c757d;
-      cursor: not-allowed;
-      transform: none;
+    .login-container .login-btn:disabled {
+        background: #6c757d; /* var(--gray-medium) */
+        cursor: not-allowed;
+        transform: none;
     }
-
-    .error-message {
-      background: #f8d7da;
-      color: #721c24;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      font-size: 14px;
-      display: none;
+    .login-container .error-message { /* Ensure error message is styled as intended */
+        background: #f8d7da;
+        color: #721c24;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 14px;
+        display: none;
     }
-
-    .back-link {
-      margin-top: 30px;
-      padding-top: 20px;
-      border-top: 1px solid #dee2e6;
+    .login-container .back-link {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #dee2e6; /* var(--gray-border) */
     }
-
-    .back-link a {
-      color: #6c757d;
-      text-decoration: none;
-      font-size: 14px;
-      transition: color 0.3s ease;
+    .login-container .back-link a {
+        color: #6c757d; /* var(--gray-medium) */
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.3s ease;
     }
-
-    .back-link a:hover {
-      color: #4a90e2;
+    .login-container .back-link a:hover {
+        color: #4a90e2; /* var(--primary-blue) */
     }
-
-    .loading {
-      display: none;
-      margin-left: 10px;
+    .login-container .loading { /* Ensure loading spinner is styled as intended */
+        display: none;
+        margin-left: 10px;
     }
-
     @media (max-width: 480px) {
       .login-container {
         margin: 20px;
@@ -136,7 +113,7 @@
     }
   </style>
 </head>
-<body>
+<body class="login-page"> <!-- Added class for scoping -->
   <div class="login-container">
     <div class="logo">🏃‍♂️ RBS陸上教室</div>
     <div class="subtitle">管理者ログイン</div>
@@ -168,7 +145,7 @@
   </div>
 
   <!-- 認証システムを読み込み -->
-  <script src="../js/admin-auth.js"></script>
+  <script src="../js/admin/admin-auth.js"></script>
   
   <script>
     let adminAuth;

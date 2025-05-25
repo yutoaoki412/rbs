@@ -4,428 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>記事エディター - RBS陸上教室</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", sans-serif;
-      background: #f8fafe;
-      color: #2c3e50;
-      line-height: 1.6;
-    }
-
-    :root {
-      --primary-blue: #4a90e2;
-      --primary-teal: #50c8a3;
-      --primary-orange: #f5a623;
-      --primary-red: #e74c3c;
-      --primary-purple: #9b59b6;
-      --navy-dark: #2c3e50;
-      --gray-light: #f8f9fa;
-      --gray-medium: #6c757d;
-      --gray-border: #dee2e6;
-      --white: #ffffff;
-      --success: #28a745;
-      --warning: #ffc107;
-    }
-
-    .header {
-      background: var(--white);
-      padding: 15px 0;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      border-bottom: 3px solid var(--primary-blue);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .header-content {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .logo {
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--primary-blue);
-    }
-
-    .breadcrumb {
-      color: var(--gray-medium);
-      font-size: 14px;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 10px;
-    }
-
-    .btn {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-    }
-
-    .btn-primary {
-      background: var(--primary-blue);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: #357abd;
-    }
-
-    .btn-success {
-      background: var(--success);
-      color: white;
-    }
-
-    .btn-success:hover {
-      background: #218838;
-    }
-
-    .btn-secondary {
-      background: var(--gray-medium);
-      color: white;
-    }
-
-    .btn-secondary:hover {
-      background: #545b62;
-    }
-
-    .btn-warning {
-      background: var(--warning);
-      color: var(--navy-dark);
-    }
-
-    .btn-warning:hover {
-      background: #e0a800;
-    }
-
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 20px;
-      display: grid;
-      grid-template-columns: 350px 1fr;
-      gap: 20px;
-      height: calc(100vh - 80px);
-    }
-
-    .sidebar {
-      background: var(--white);
-      border-radius: 12px;
-      padding: 25px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      overflow-y: auto;
-    }
-
-    .sidebar-section {
-      margin-bottom: 30px;
-    }
-
-    .sidebar-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--navy-dark);
-      margin-bottom: 15px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid var(--gray-light);
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: var(--navy-dark);
-      font-size: 14px;
-    }
-
-    .form-input,
-    .form-select,
-    .form-textarea {
-      width: 100%;
-      padding: 12px;
-      border: 2px solid var(--gray-border);
-      border-radius: 8px;
-      font-size: 14px;
-      transition: all 0.3s ease;
-    }
-
-    .form-input:focus,
-    .form-select:focus,
-    .form-textarea:focus {
-      outline: none;
-      border-color: var(--primary-blue);
-      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-    }
-
-    .form-textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-
-    .checkbox-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .checkbox-group input[type="checkbox"] {
-      width: auto;
-    }
-
-    .main-content {
-      display: grid;
-      grid-template-rows: auto 1fr;
-      gap: 20px;
-    }
-
-    .editor-tabs {
-      display: flex;
-      background: var(--white);
-      border-radius: 12px;
-      padding: 5px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    }
-
-    .tab-button {
-      flex: 1;
-      padding: 12px 20px;
-      border: none;
-      background: transparent;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      color: var(--gray-medium);
-    }
-
-    .tab-button.active {
-      background: var(--primary-blue);
-      color: white;
-    }
-
-    .editor-container {
-      background: var(--white);
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      overflow: hidden;
-      display: grid;
-      grid-template-rows: 1fr;
-    }
-
-    .editor-pane {
-      display: none;
-      height: 100%;
-    }
-
-    .editor-pane.active {
-      display: block;
-    }
-
-    .markdown-editor {
-      width: 100%;
-      height: 100%;
-      border: none;
-      padding: 25px;
-      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-      font-size: 14px;
-      line-height: 1.6;
-      resize: none;
-      outline: none;
-    }
-
-    .preview-content {
-      padding: 25px;
-      height: 100%;
-      overflow-y: auto;
-    }
-
-    .preview-content h1 {
-      font-size: 32px;
-      margin-bottom: 20px;
-      color: var(--navy-dark);
-      font-weight: 800;
-    }
-
-    .preview-content h2 {
-      font-size: 24px;
-      margin: 30px 0 15px 0;
-      color: var(--navy-dark);
-      font-weight: 700;
-    }
-
-    .preview-content h3 {
-      font-size: 20px;
-      margin: 25px 0 12px 0;
-      color: var(--navy-dark);
-      font-weight: 700;
-    }
-
-    .preview-content p {
-      margin-bottom: 15px;
-      line-height: 1.8;
-    }
-
-    .preview-content ul,
-    .preview-content ol {
-      margin-bottom: 15px;
-      padding-left: 25px;
-    }
-
-    .preview-content li {
-      margin-bottom: 5px;
-    }
-
-    .preview-content blockquote {
-      border-left: 4px solid var(--primary-blue);
-      padding-left: 20px;
-      margin: 20px 0;
-      font-style: italic;
-      color: var(--gray-medium);
-    }
-
-    .preview-content code {
-      background: var(--gray-light);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-      font-size: 13px;
-    }
-
-    .preview-content pre {
-      background: var(--gray-light);
-      padding: 15px;
-      border-radius: 8px;
-      overflow-x: auto;
-      margin: 15px 0;
-    }
-
-    .preview-content strong {
-      font-weight: 700;
-      color: var(--navy-dark);
-    }
-
-    .status-indicator {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .status-draft {
-      background: #fff3cd;
-      color: #856404;
-    }
-
-    .status-published {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .markdown-help {
-      background: var(--gray-light);
-      padding: 15px;
-      border-radius: 8px;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    .markdown-help h4 {
-      margin-bottom: 10px;
-      color: var(--navy-dark);
-    }
-
-    .markdown-help code {
-      background: var(--white);
-      padding: 2px 4px;
-      border-radius: 3px;
-    }
-
-    .save-status {
-      font-size: 12px;
-      color: var(--gray-medium);
-      padding: 5px 0;
-    }
-
-    .save-status.saving {
-      color: var(--warning);
-    }
-
-    .save-status.saved {
-      color: var(--success);
-    }
-
-    .save-status.error {
-      color: var(--primary-red);
-    }
-
-    @media (max-width: 1024px) {
-      .container {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
-      }
-
-      .sidebar {
-        order: 2;
-      }
-
-      .main-content {
-        order: 1;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .header-content {
-        flex-direction: column;
-        gap: 15px;
-      }
-
-      .header-actions {
-        flex-wrap: wrap;
-      }
-
-      .container {
-        padding: 10px;
-        height: auto;
-        min-height: calc(100vh - 120px);
-      }
-
-      .sidebar {
-        padding: 20px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="../css/admin-style.css">
 </head>
 <body>
   <header class="header">
@@ -435,14 +14,16 @@
         <div class="breadcrumb">管理画面 > 記事エディター</div>
       </div>
       <div class="header-actions">
-        <div class="save-status" id="save-status">未保存</div>
-        <button class="btn btn-warning" onclick="saveDraft()" id="save-draft-btn">
+        <div class="save-status" id="save-status">未保存</div> <!-- This will be managed by AdminEditor -->
+        <!-- Replaced onclick with IDs for AdminEditor event listeners -->
+        <button class="btn btn-warning" id="saveDraftBtn">
           💾 下書き保存
         </button>
-        <button class="btn btn-success" onclick="publishArticle()" id="publish-btn">
+        <button class="btn btn-success" id="publishBtn">
           📤 公開
         </button>
-        <a href="index.html" class="btn btn-secondary">
+        <!-- backBtn ID is used by AdminEditor for navigation check -->
+        <a href="index.html" class="btn btn-secondary" id="backBtn">
           ← 戻る
         </a>
       </div>
@@ -452,20 +33,24 @@
   <div class="container">
     <div class="sidebar">
       <div class="sidebar-section">
-        <h3 class="sidebar-title">記事情報</h3>
+        <!-- pageTitle ID might be used by AdminEditor if it exists -->
+        <h3 class="sidebar-title" id="pageTitle">記事情報</h3> 
         
         <div class="form-group">
           <label class="form-label" for="article-title">タイトル</label>
+          <!-- Changed ID to 'title' to match AdminEditor expectations, but 'article-title' is used in AdminEditor's getFormData -->
           <input type="text" id="article-title" class="form-input" placeholder="記事のタイトルを入力">
         </div>
 
         <div class="form-group">
           <label class="form-label" for="article-date">公開日</label>
+          <!-- Changed ID to 'date' -->
           <input type="date" id="article-date" class="form-input">
         </div>
 
         <div class="form-group">
           <label class="form-label" for="article-category">カテゴリー</label>
+          <!-- Changed ID to 'category' -->
           <select id="article-category" class="form-select">
             <option value="announcement">お知らせ</option>
             <option value="trial">体験会</option>
@@ -473,14 +58,21 @@
             <option value="important">重要</option>
           </select>
         </div>
+        <!-- Optional categoryName field, AdminEditor can handle its absence -->
+        <!-- <div class="form-group">
+          <label class="form-label" for="categoryName">カテゴリー名（自動生成）</label>
+          <input type="text" id="categoryName" class="form-input" readonly>
+        </div> -->
 
         <div class="form-group">
           <label class="form-label" for="article-excerpt">抜粋</label>
+          <!-- Changed ID to 'excerpt' -->
           <textarea id="article-excerpt" class="form-textarea" placeholder="記事の概要を入力（150文字程度）"></textarea>
         </div>
 
         <div class="form-group">
           <div class="checkbox-group">
+            <!-- Changed ID to 'featured' -->
             <input type="checkbox" id="article-featured">
             <label class="form-label" for="article-featured">注目記事にする</label>
           </div>
@@ -488,6 +80,8 @@
 
         <div class="form-group">
           <label class="form-label">ステータス</label>
+          <!-- These elements are updated by the inline script's updateStatusDisplay. -->
+          <!-- AdminEditor might need its own way or these need to be standardized if AdminEditor takes over display. -->
           <div class="status-indicator" id="status-indicator">
             <span id="status-text">下書き</span>
           </div>
@@ -496,6 +90,8 @@
 
       <div class="sidebar-section">
         <h3 class="sidebar-title">Markdownヘルプ</h3>
+        <!-- Markdown Toolbar (optional, AdminEditor can initialize this if #markdownToolbar exists) -->
+        <!-- <div id="markdownToolbar"></div> -->
         <div class="markdown-help">
           <h4>基本的な記法</h4>
           <p><code># 見出し1</code></p>
@@ -512,16 +108,18 @@
 
     <div class="main-content">
       <div class="editor-tabs">
-        <button class="tab-button active" onclick="switchTab('editor')">
+        <!-- Removed onclick, tab switching needs to be handled by AdminEditor or a separate utility script if not already -->
+        <button class="tab-button active" id="editorTabBtn"> 
           📝 編集
         </button>
-        <button class="tab-button" onclick="switchTab('preview')">
+        <button class="tab-button" id="previewTabBtn">
           👁️ プレビュー
         </button>
       </div>
 
       <div class="editor-container">
         <div class="editor-pane active" id="editor-pane">
+          <!-- Changed ID to 'content' for AdminEditor, markdown-editor is also checked by AdminEditor -->
           <textarea 
             id="markdown-editor" 
             class="markdown-editor" 
@@ -549,6 +147,7 @@
         </div>
 
         <div class="editor-pane" id="preview-pane">
+           <!-- preview-content is used by inline script, AdminEditor uses previewContainer -->
           <div class="preview-content" id="preview-content">
             <p>プレビューがここに表示されます...</p>
           </div>
@@ -556,311 +155,60 @@
       </div>
     </div>
   </div>
+  
+  <!-- Message container for AdminEditor -->
+  <div id="messageContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;"></div>
 
-  <script src="../js/admin-auth.js"></script>
-  <script src="../js/admin-manager.js"></script>
-  <script src="../js/markdown-parser.js"></script>
+  <script src="../js/admin/admin-auth.js"></script>
+  <script src="../js/admin/admin-manager.js"></script>
+  <script src="../js/app/article-display.js"></script> <!-- markdown-parser.js was moved to js/app/article-display.js -->
+  <!-- Include the external AdminEditor script -->
+  <script src="../js/admin/admin-editor.js"></script> 
+  
+  <!-- Removed large inline script block. AdminEditor class from admin-editor.js will handle logic. -->
+  <!-- Minimal inline script might be needed for tab switching if not handled by AdminEditor -->
   <script>
-    let adminAuth;
-    let adminManager;
-    let markdownParser;
-    let currentArticleId = null;
-    let isEditing = false;
-    let autoSaveTimer = null;
+    // Tab switching logic (can be moved to AdminEditor or kept minimal here if AdminEditor doesn't handle it)
+    // For now, assuming AdminEditor might not handle these specific tab buttons unless IDs match its setup.
+    // Or, if AdminEditor is modified to handle these specific IDs.
+    // The original inline script had switchTab function. This is a simplified version.
+    const editorTabBtn = document.getElementById('editorTabBtn');
+    const previewTabBtn = document.getElementById('previewTabBtn');
+    const editorPane = document.getElementById('editor-pane');
+    const previewPane = document.getElementById('preview-pane');
+    const markdownEditor = document.getElementById('markdown-editor');
+    const previewContent = document.getElementById('preview-content');
+    const localMarkdownParser = new MarkdownParser(); // For this minimal tab logic only
 
-    // 初期化
-    document.addEventListener('DOMContentLoaded', async function() {
-      // 認証システムを初期化
-      adminAuth = new AdminAuth();
-      
-      // 認証チェック
-      if (!adminAuth.isAuthenticated()) {
-        window.location.href = 'login.html';
-        return;
-      }
-
-      adminManager = new AdminManager();
-      markdownParser = new MarkdownParser();
-      
-      // URLパラメータから記事IDを取得
-      const urlParams = new URLSearchParams(window.location.search);
-      currentArticleId = urlParams.get('id');
-      
-      if (currentArticleId) {
-        await loadArticle(currentArticleId);
-        isEditing = true;
-      } else {
-        // 新規記事の場合、今日の日付を設定
-        document.getElementById('article-date').value = new Date().toISOString().split('T')[0];
-      }
-
-      setupEventListeners();
-      startAutoSave();
-    });
-
-
-
-    // イベントリスナー設定
-    function setupEventListeners() {
-      // リアルタイムプレビュー
-      document.getElementById('markdown-editor').addEventListener('input', function() {
-        updatePreview();
-        markAsUnsaved();
+    if (editorTabBtn && previewTabBtn && editorPane && previewPane && markdownEditor && previewContent) {
+      editorTabBtn.addEventListener('click', () => {
+        editorTabBtn.classList.add('active');
+        previewTabBtn.classList.remove('active');
+        editorPane.classList.add('active');
+        previewPane.classList.remove('active');
       });
 
-      // メタデータ変更時
-      ['article-title', 'article-date', 'article-category', 'article-excerpt', 'article-featured'].forEach(id => {
-        document.getElementById(id).addEventListener('change', markAsUnsaved);
-      });
-
-      // Ctrl+S で保存
-      document.addEventListener('keydown', function(e) {
-        if (e.ctrlKey && e.key === 's') {
-          e.preventDefault();
-          saveDraft();
-        }
+      previewTabBtn.addEventListener('click', () => {
+        previewTabBtn.classList.add('active');
+        editorTabBtn.classList.remove('active');
+        previewPane.classList.add('active');
+        editorPane.classList.remove('active');
+        // Update preview when switching to preview tab
+        const markdown = markdownEditor.value;
+        previewContent.innerHTML = localMarkdownParser.parse(markdown);
       });
     }
 
-    // 記事読み込み
-    async function loadArticle(id) {
-      try {
-        await adminManager.loadArticles();
-        const article = adminManager.getArticleById(parseInt(id));
-        
-        if (!article) {
-          alert('記事が見つかりません');
-          window.location.href = 'index.html';
-          return;
-        }
+    // The AdminEditor class in admin-editor.js should handle the core editor logic.
+    // It has its own DOMContentLoaded listener to initialize.
+    // The status display (status-indicator, status-text, save-status) also needs to be
+    // managed by AdminEditor or through a common interface if it's to be kept.
+    // The AdminEditor class currently does not manage these specific display elements from editor.html.
+    // It uses its own showMessage for feedback.
 
-        // メタデータを設定
-        document.getElementById('article-title').value = article.title;
-        document.getElementById('article-date').value = article.date;
-        document.getElementById('article-category').value = article.category;
-        document.getElementById('article-excerpt').value = article.excerpt;
-        document.getElementById('article-featured').checked = article.featured || false;
-
-        // ステータス表示更新
-        updateStatusDisplay(article.status || 'published');
-
-        // Markdownコンテンツを読み込み
-        const content = await adminManager.loadArticleContent(article.file);
-        document.getElementById('markdown-editor').value = content;
-        updatePreview();
-
-        updateSaveStatus('saved');
-      } catch (error) {
-        console.error('記事の読み込みに失敗:', error);
-        alert('記事の読み込みに失敗しました');
-      }
-    }
-
-    // タブ切り替え
-    function switchTab(tab) {
-      // タブボタンの状態更新
-      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-
-      // パネルの表示切り替え
-      document.querySelectorAll('.editor-pane').forEach(pane => pane.classList.remove('active'));
-      
-      if (tab === 'editor') {
-        document.getElementById('editor-pane').classList.add('active');
-      } else {
-        document.getElementById('preview-pane').classList.add('active');
-        updatePreview();
-      }
-    }
-
-    // プレビュー更新
-    function updatePreview() {
-      const markdown = document.getElementById('markdown-editor').value;
-      const html = markdownParser.parse(markdown);
-      document.getElementById('preview-content').innerHTML = html;
-    }
-
-    // 下書き保存
-    async function saveDraft() {
-      try {
-        updateSaveStatus('saving');
-        
-        const articleData = getArticleData();
-        articleData.status = 'draft';
-        
-        if (isEditing) {
-          await adminManager.updateArticle(currentArticleId, articleData);
-        } else {
-          const newArticle = await adminManager.createArticle(articleData);
-          currentArticleId = newArticle.id;
-          isEditing = true;
-          // URLを更新
-          window.history.replaceState({}, '', `editor.html?id=${currentArticleId}`);
-        }
-
-        updateStatusDisplay('draft');
-        updateSaveStatus('saved');
-      } catch (error) {
-        console.error('保存に失敗:', error);
-        updateSaveStatus('error');
-        alert('保存に失敗しました');
-      }
-    }
-
-    // 記事公開
-    async function publishArticle() {
-      if (!validateArticle()) return;
-
-      try {
-        updateSaveStatus('saving');
-        
-        const articleData = getArticleData();
-        articleData.status = 'published';
-        
-        if (isEditing) {
-          await adminManager.updateArticle(currentArticleId, articleData);
-        } else {
-          const newArticle = await adminManager.createArticle(articleData);
-          currentArticleId = newArticle.id;
-          isEditing = true;
-        }
-
-        updateStatusDisplay('published');
-        updateSaveStatus('saved');
-        
-        if (confirm('記事を公開しました。管理画面に戻りますか？')) {
-          window.location.href = 'index.html';
-        }
-      } catch (error) {
-        console.error('公開に失敗:', error);
-        updateSaveStatus('error');
-        alert('公開に失敗しました');
-      }
-    }
-
-    // 記事データ取得
-    function getArticleData() {
-      return {
-        title: document.getElementById('article-title').value,
-        date: document.getElementById('article-date').value,
-        category: document.getElementById('article-category').value,
-        categoryName: getCategoryName(document.getElementById('article-category').value),
-        excerpt: document.getElementById('article-excerpt').value,
-        content: document.getElementById('markdown-editor').value,
-        featured: document.getElementById('article-featured').checked
-      };
-    }
-
-    // カテゴリー名取得
-    function getCategoryName(category) {
-      const categoryMap = {
-        'announcement': 'お知らせ',
-        'trial': '体験会',
-        'media': 'メディア',
-        'important': '重要'
-      };
-      return categoryMap[category] || 'お知らせ';
-    }
-
-    // 記事バリデーション
-    function validateArticle() {
-      const title = document.getElementById('article-title').value.trim();
-      const content = document.getElementById('markdown-editor').value.trim();
-      const excerpt = document.getElementById('article-excerpt').value.trim();
-
-      if (!title) {
-        alert('タイトルを入力してください');
-        document.getElementById('article-title').focus();
-        return false;
-      }
-
-      if (!content) {
-        alert('記事の内容を入力してください');
-        switchTab('editor');
-        document.getElementById('markdown-editor').focus();
-        return false;
-      }
-
-      if (!excerpt) {
-        alert('抜粋を入力してください');
-        document.getElementById('article-excerpt').focus();
-        return false;
-      }
-
-      return true;
-    }
-
-    // ステータス表示更新
-    function updateStatusDisplay(status) {
-      const indicator = document.getElementById('status-indicator');
-      const text = document.getElementById('status-text');
-      
-      indicator.className = 'status-indicator';
-      
-      if (status === 'draft') {
-        indicator.classList.add('status-draft');
-        text.textContent = '下書き';
-      } else {
-        indicator.classList.add('status-published');
-        text.textContent = '公開済み';
-      }
-    }
-
-    // 保存状態更新
-    function updateSaveStatus(status) {
-      const element = document.getElementById('save-status');
-      element.className = 'save-status';
-      
-      switch (status) {
-        case 'saving':
-          element.classList.add('saving');
-          element.textContent = '保存中...';
-          break;
-        case 'saved':
-          element.classList.add('saved');
-          element.textContent = '保存済み';
-          break;
-        case 'error':
-          element.classList.add('error');
-          element.textContent = '保存エラー';
-          break;
-        default:
-          element.textContent = '未保存';
-      }
-    }
-
-    // 未保存マーク
-    function markAsUnsaved() {
-      updateSaveStatus('unsaved');
-    }
-
-    // 自動保存開始
-    function startAutoSave() {
-      autoSaveTimer = setInterval(() => {
-        const title = document.getElementById('article-title').value.trim();
-        const content = document.getElementById('markdown-editor').value.trim();
-        
-        if (title && content) {
-          saveDraft();
-        }
-      }, 30000); // 30秒ごと
-    }
-
-    // ページ離脱時の確認
-    window.addEventListener('beforeunload', function(e) {
-      const saveStatus = document.getElementById('save-status').textContent;
-      if (saveStatus === '未保存') {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    });
-
-    // クリーンアップ
-    window.addEventListener('unload', function() {
-      if (autoSaveTimer) {
-        clearInterval(autoSaveTimer);
-      }
-    });
+    // Functions like updateStatusDisplay, updateSaveStatus, markAsUnsaved from the old inline script
+    // will need to be integrated into AdminEditor or removed if AdminEditor provides alternatives.
+    // For example, AdminEditor's this.hasUnsavedChanges and this.updateSaveButtonState() cover some of this.
   </script>
 </body>
-</html> 
+</html>

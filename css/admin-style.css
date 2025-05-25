@@ -1,0 +1,435 @@
+* {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+      line-height: 1.6;
+      color: #2c3e50;
+      background: #f8f9fa;
+    }
+
+    :root {
+      --primary-blue: #4a90e2;
+      --primary-teal: #50c8a3;
+      --primary-orange: #f5a623;
+      --primary-red: #e74c3c;
+      --navy-dark: #2c3e50;
+      --gray-light: #f8f9fa;
+      --gray-medium: #6c757d;
+      --white: #ffffff;
+      /* Added from editor.html for consistency */
+      --primary-purple: #9b59b6; 
+      --gray-border: #dee2e6;
+      --success: #28a745;
+      --warning: #ffc107;
+    }
+
+    /* Admin Header General Styles */
+    .header {
+      background: var(--white); 
+      color: var(--navy-dark); 
+      padding: 15px 0; 
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+      border-bottom: 3px solid var(--primary-blue); 
+      position: sticky; 
+      top: 0; 
+      z-index: 100; 
+    }
+
+    .header-content {
+      max-width: 1400px; 
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    /* Styles for admin/index.html header */
+    #main-content .header { /* More specific selector for admin/index.html header */
+        background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal));
+        color: white;
+        padding: 20px 0;
+    }
+     #main-content .header h1 {
+        color: white; /* Ensure h1 is white for admin/index.html */
+         font-size: 24px;
+         font-weight: 800;
+    }
+
+    /* Styles for admin/editor.html header */
+    .header .logo { 
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary-blue);
+    }
+    .header .breadcrumb { 
+      color: var(--gray-medium);
+      font-size: 14px;
+    }
+    .header-actions { /* From editor.html */
+      display: flex;
+      gap: 10px;
+    }
+
+
+    .logout-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 8px 20px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Admin Container General Styles */
+    .container { 
+      max-width: 1400px; 
+      margin: 0 auto;
+      padding: 20px; 
+    }
+    
+    /* Admin/index.html specific container styling (if #main-content is its wrapper) */
+    #main-content > .container { 
+        padding: 30px 20px; 
+        max-width: 1200px;
+    }
+    /* Admin/editor.html specific container class name */
+    .admin-editor-container.container { /* Make it more specific */
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 20px;
+      height: calc(100vh - 80px); 
+    }
+
+
+    .nav-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 30px;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-tab {
+      flex: 1;
+      padding: 15px 20px;
+      background: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--gray-medium);
+      transition: all 0.3s ease;
+      border-bottom: 3px solid transparent;
+    }
+
+    .nav-tab.active {
+      color: var(--primary-blue);
+      border-bottom-color: var(--primary-blue);
+      background: #f8f9ff;
+    }
+
+    .nav-tab:hover {
+      background: #f8f9ff;
+      color: var(--primary-blue);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .card {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+
+    .card h2 { /* This is for admin/index.html cards */
+      color: var(--navy-dark);
+      margin-bottom: 20px;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .btn {
+      padding: 10px 20px; 
+      border: none;
+      border-radius: 8px;
+      font-weight: 600; 
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex; 
+      align-items: center; 
+      gap: 8px; 
+      font-size: 14px; 
+      text-align: center; 
+    }
+
+    .btn-primary { background: var(--primary-blue); color: white; }
+    .btn-primary:hover { background: #357abd; transform: translateY(-2px); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover { background: #218838; transform: translateY(-2px); }
+    .btn-secondary { background: var(--gray-medium); color: white; }
+    .btn-secondary:hover { background: #5a6268; transform: translateY(-2px); }
+    .btn-warning { background: var(--warning); color: var(--navy-dark); }
+    .btn-warning:hover { background: #e0a800; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--navy-dark); font-size: 14px; }
+    
+    /* Combined form input styles */
+    .form-input, .form-select, .form-textarea, .form-control {
+      width: 100%;
+      padding: 12px; 
+      border: 2px solid var(--gray-border); 
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s ease; 
+    }
+    .form-control { /* Specific for admin/index.html if padding differs */
+         padding: 12px 16px;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus, .form-control:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1); 
+    }
+    .form-textarea { resize: vertical; min-height: 80px; }
+    .checkbox-group { display: flex; align-items: center; gap: 8px; }
+    .checkbox-group input[type="checkbox"] { width: auto; }
+    
+    .radio-group { display: flex; gap: 15px; flex-wrap: wrap; }
+    .radio-item { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: #f8f9fa; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+    .radio-item:hover { border-color: var(--primary-blue); background: #f0f7ff; }
+    .radio-item.selected { border-color: var(--primary-blue); background: var(--primary-blue); color: white; }
+
+    .alert { padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; }
+    .alert-success { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+    .alert-error { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+    .alert-info { background: #cce7ff; color: #004085; border: 2px solid #b3d7ff; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px; }
+    .stat-card { background: #f8f9ff; padding: 20px; border-radius: 10px; border-left: 4px solid var(--primary-blue); text-align: center; }
+    .stat-number { font-size: 32px; font-weight: 800; color: var(--primary-blue); margin-bottom: 5px; }
+    .stat-label { color: var(--gray-medium); font-size: 14px; font-weight: 600; }
+
+    .articles-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    .articles-table th, .articles-table td { padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6; }
+    .articles-table th { background: #f8f9fa; font-weight: 600; color: var(--navy-dark); }
+    .articles-table tr:hover { background: #f8f9ff; }
+    .category-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; color: white; }
+    .category-announcement { background: var(--primary-blue); }
+    .category-trial { background: var(--primary-teal); }
+    .category-media { background: var(--primary-purple); } 
+    .category-important { background: var(--primary-red); }
+    .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+    .status-published { background: #d4edda; color: #155724; } 
+    .status-draft { background: #fff3cd; color: #856404; } 
+
+    .loading { text-align: center; padding: 40px; color: var(--gray-medium); }
+    .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary-blue); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* Editor specific styles from admin/editor.html */
+    .sidebar { background: var(--white); border-radius: 12px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow-y: auto; }
+    .sidebar-section { margin-bottom: 30px; }
+    .sidebar-title { font-size: 16px; font-weight: 700; color: var(--navy-dark); margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid var(--gray-light); }
+    .main-content { display: grid; grid-template-rows: auto 1fr; gap: 20px; } 
+    .editor-tabs { display: flex; background: var(--white); border-radius: 12px; padding: 5px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .tab-button { flex: 1; padding: 12px 20px; border: none; background: transparent; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; color: var(--gray-medium); }
+    .tab-button.active { background: var(--primary-blue); color: white; }
+    .editor-container { background: var(--white); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; display: grid; grid-template-rows: 1fr; }
+    .editor-pane { display: none; height: 100%; }
+    .editor-pane.active { display: block; }
+    .markdown-editor { width: 100%; height: 100%; border: none; padding: 25px; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; font-size: 14px; line-height: 1.6; resize: none; outline: none; }
+    .preview-content { padding: 25px; height: 100%; overflow-y: auto; }
+    .preview-content h1 { font-size: 32px; margin-bottom: 20px; color: var(--navy-dark); font-weight: 800; }
+    .preview-content h2 { font-size: 24px; margin: 30px 0 15px 0; color: var(--navy-dark); font-weight: 700; text-align:left; padding-bottom:0; } 
+    .preview-content h2::after { display:none; } 
+    .preview-content h3 { font-size: 20px; margin: 25px 0 12px 0; color: var(--navy-dark); font-weight: 700; }
+    .preview-content p { margin-bottom: 15px; line-height: 1.8; }
+    .preview-content ul, .preview-content ol { margin-bottom: 15px; padding-left: 25px; }
+    .preview-content li { margin-bottom: 5px; }
+    .preview-content blockquote { border-left: 4px solid var(--primary-blue); padding-left: 20px; margin: 20px 0; font-style: italic; color: var(--gray-medium); }
+    .preview-content code { background: var(--gray-light); padding: 2px 6px; border-radius: 4px; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; font-size: 13px; }
+    .preview-content pre { background: var(--gray-light); padding: 15px; border-radius: 8px; overflow-x: auto; margin: 15px 0; }
+    .preview-content strong { font-weight: 700; color: var(--navy-dark); } 
+    .status-indicator { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    /* .status-draft, .status-published already defined */
+    .markdown-help { background: var(--gray-light); padding: 15px; border-radius: 8px; font-size: 12px; line-height: 1.5; }
+    .markdown-help h4 { margin-bottom: 10px; color: var(--navy-dark); }
+    .markdown-help code { background: var(--white); padding: 2px 4px; border-radius: 3px; }
+    .save-status { font-size: 12px; color: var(--gray-medium); padding: 5px 0; }
+    .save-status.saving { color: var(--warning); }
+    .save-status.saved { color: var(--success); }
+    .save-status.error { color: var(--primary-red); }
+
+    /* Responsive for admin areas */
+    @media (max-width: 1024px) { /* editor specific */
+      .admin-editor-container.container { grid-template-columns: 1fr; grid-template-rows: auto 1fr; } /* Make selector more specific */
+      .sidebar { order: 2; }
+      .main-content { order: 1; }
+    }
+    @media (max-width: 768px) { /* Common admin responsive */
+      .nav-tabs { flex-direction: column; } 
+      .header-content { flex-direction: column; gap: 15px; text-align: center; }
+      .container, #main-content > .container, .admin-editor-container.container { padding: 20px 15px; } 
+      .admin-editor-container.container { padding: 10px; height: auto; min-height: calc(100vh - 120px); } 
+      .card { padding: 20px; }
+      .stats-grid { grid-template-columns: 1fr; } 
+      .header-actions { flex-wrap: wrap; justify-content: center; } 
+      .sidebar { padding: 20px; } 
+    }
+/* End of admin-style.css */
+
+/* Styles from admin/login.html START */
+/* Note: Scoping body style for login page if this gets merged into a larger admin CSS. 
+   If it's a standalone admin-login.css, body can be styled directly.
+   For now, assuming it will be part of admin-style.css, so we might need to be careful.
+   However, login.html is a standalone page, so its body style is fine.
+*/
+body.login-page { /* Added a class to scope login page body styles if merged */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  background: linear-gradient(135deg, #4a90e2, #50c8a3);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2c3e50;
+}
+
+.login-container {
+  background: white;
+  border-radius: 20px;
+  padding: 50px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.login-container .logo { /* Scoped logo for login page */
+  font-size: 28px;
+  font-weight: 800;
+  color: #4a90e2;
+  margin-bottom: 10px;
+}
+
+.login-container .subtitle { /* Scoped subtitle for login page */
+  color: #6c757d;
+  margin-bottom: 40px;
+  font-size: 16px;
+}
+
+.login-container .form-group { /* Scoped form-group for login */
+  margin-bottom: 25px;
+  text-align: left;
+}
+
+.login-container .form-label { /* Scoped form-label for login */
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.login-container .form-input { /* Scoped form-input for login */
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #dee2e6;
+  border-radius: 10px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.login-container .form-input:focus { /* Scoped focus for login */
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.login-container .login-btn { /* Scoped login-btn */
+  width: 100%;
+  padding: 15px;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.login-container .login-btn:hover { /* Scoped hover for login */
+  background: #357abd;
+  transform: translateY(-2px);
+}
+
+.login-container .login-btn:disabled { /* Scoped disabled for login */
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.login-container .error-message { /* Scoped error-message for login */
+  background: #f8d7da;
+  color: #721c24;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px; /* This was margin-top in login, changed to bottom for consistency with .alert */
+  font-size: 14px;
+  display: none; /* Initially hidden */
+}
+
+.login-container .back-link { /* Scoped back-link for login */
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #dee2e6;
+}
+
+.login-container .back-link a { /* Scoped back-link a for login */
+  color: #6c757d;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.login-container .back-link a:hover { /* Scoped hover for login */
+  color: #4a90e2;
+}
+
+.login-container .loading { /* Scoped loading for login */
+  display: none; /* Initially hidden */
+  margin-left: 10px; /* From login.html */
+}
+
+@media (max-width: 480px) {
+  .login-container {
+    margin: 20px;
+    padding: 30px;
+  }
+}
+/* Styles from admin/login.html END */

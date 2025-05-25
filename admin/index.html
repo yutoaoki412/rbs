@@ -4,386 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RBS陸上教室 - 管理画面</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
-      line-height: 1.6;
-      color: #2c3e50;
-      background: #f8f9fa;
-    }
-
-    :root {
-      --primary-blue: #4a90e2;
-      --primary-teal: #50c8a3;
-      --primary-orange: #f5a623;
-      --primary-red: #e74c3c;
-      --navy-dark: #2c3e50;
-      --gray-light: #f8f9fa;
-      --gray-medium: #6c757d;
-      --white: #ffffff;
-    }
-
-    .header {
-      background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal));
-      color: white;
-      padding: 20px 0;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .header h1 {
-      font-size: 24px;
-      font-weight: 800;
-    }
-
-    .logout-btn {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      padding: 8px 20px;
-      border-radius: 20px;
-      text-decoration: none;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-
-    .logout-btn:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 30px 20px;
-    }
-
-    .nav-tabs {
-      display: flex;
-      gap: 0;
-      margin-bottom: 30px;
-      background: white;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    .nav-tab {
-      flex: 1;
-      padding: 15px 20px;
-      background: white;
-      border: none;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--gray-medium);
-      transition: all 0.3s ease;
-      border-bottom: 3px solid transparent;
-    }
-
-    .nav-tab.active {
-      color: var(--primary-blue);
-      border-bottom-color: var(--primary-blue);
-      background: #f8f9ff;
-    }
-
-    .nav-tab:hover {
-      background: #f8f9ff;
-      color: var(--primary-blue);
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    .card {
-      background: white;
-      border-radius: 15px;
-      padding: 30px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      margin-bottom: 30px;
-    }
-
-    .card h2 {
-      color: var(--navy-dark);
-      margin-bottom: 20px;
-      font-size: 20px;
-      font-weight: 700;
-    }
-
-    .btn {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-block;
-      text-align: center;
-    }
-
-    .btn-primary {
-      background: var(--primary-blue);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: #357abd;
-      transform: translateY(-2px);
-    }
-
-    .btn-success {
-      background: var(--primary-teal);
-      color: white;
-    }
-
-    .btn-success:hover {
-      background: #45b393;
-      transform: translateY(-2px);
-    }
-
-    .btn-secondary {
-      background: var(--gray-medium);
-      color: white;
-    }
-
-    .btn-secondary:hover {
-      background: #5a6268;
-      transform: translateY(-2px);
-    }
-
-    .btn-sm {
-      padding: 6px 12px;
-      font-size: 12px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: var(--navy-dark);
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 12px 16px;
-      border: 2px solid #dee2e6;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: border-color 0.3s ease;
-    }
-
-    .form-control:focus {
-      outline: none;
-      border-color: var(--primary-blue);
-    }
-
-    .radio-group {
-      display: flex;
-      gap: 15px;
-      flex-wrap: wrap;
-    }
-
-    .radio-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      background: #f8f9fa;
-      border: 2px solid #dee2e6;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .radio-item:hover {
-      border-color: var(--primary-blue);
-      background: #f0f7ff;
-    }
-
-    .radio-item.selected {
-      border-color: var(--primary-blue);
-      background: var(--primary-blue);
-      color: white;
-    }
-
-    .alert {
-      padding: 15px 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      font-weight: 600;
-    }
-
-    .alert-success {
-      background: #d4edda;
-      color: #155724;
-      border: 2px solid #c3e6cb;
-    }
-
-    .alert-error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 2px solid #f5c6cb;
-    }
-
-    .alert-info {
-      background: #cce7ff;
-      color: #004085;
-      border: 2px solid #b3d7ff;
-    }
-
-    /* 統計情報のスタイル */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin-bottom: 20px;
-    }
-
-    .stat-card {
-      background: #f8f9ff;
-      padding: 20px;
-      border-radius: 10px;
-      border-left: 4px solid var(--primary-blue);
-      text-align: center;
-    }
-
-    .stat-number {
-      font-size: 32px;
-      font-weight: 800;
-      color: var(--primary-blue);
-      margin-bottom: 5px;
-    }
-
-    .stat-label {
-      color: var(--gray-medium);
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    /* 記事一覧のスタイル */
-    .articles-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    .articles-table th,
-    .articles-table td {
-      padding: 12px;
-      text-align: left;
-      border-bottom: 1px solid #dee2e6;
-    }
-
-    .articles-table th {
-      background: #f8f9fa;
-      font-weight: 600;
-      color: var(--navy-dark);
-    }
-
-    .articles-table tr:hover {
-      background: #f8f9ff;
-    }
-
-    .category-badge {
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 600;
-      color: white;
-    }
-
-    .category-announcement { background: var(--primary-blue); }
-    .category-trial { background: var(--primary-teal); }
-    .category-media { background: #9b59b6; }
-    .category-important { background: var(--primary-red); }
-
-    .status-badge {
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .status-published {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .status-draft {
-      background: #fff3cd;
-      color: #856404;
-    }
-
-    .loading {
-      text-align: center;
-      padding: 40px;
-      color: var(--gray-medium);
-    }
-
-    .loading-spinner {
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid var(--primary-blue);
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 10px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    @media (max-width: 768px) {
-      .nav-tabs {
-        flex-direction: column;
-      }
-
-      .header-content {
-        flex-direction: column;
-        gap: 15px;
-        text-align: center;
-      }
-
-      .container {
-        padding: 20px 15px;
-      }
-
-      .card {
-        padding: 20px;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="../css/admin-style.css">
 </head>
 <body>
   <!-- ローディング画面 -->
@@ -589,8 +210,10 @@
   </div>
 
   <!-- JavaScriptファイルを読み込み -->
-  <script src="../js/admin-auth.js"></script>
-  <script src="../js/admin-manager.js"></script>
+  <script src="../js/admin/admin-auth.js"></script>
+  <script src="../js/admin/admin-manager.js"></script>
+  <!-- admin-dashboard.js is not directly referenced in the provided index.html structure, but if it were, its path would also need updating. -->
+  <!-- For example: <script src="../js/admin/admin-dashboard.js"></script> -->
 
   <script>
     // グローバル変数
@@ -895,100 +518,117 @@
       }
     }
 
-    // 現在のレッスン状況を読み込み
-    function loadCurrentStatus() {
+    // 現在のレッスン状況を読み込み (APIから)
+    async function loadCurrentStatus() {
+      console.log('APIからレッスン状況を読み込み中...');
       try {
-        const storedData = localStorage.getItem('rbs_lesson_status');
+        const response = await fetch('/api/status');
+        if (!response.ok) {
+          if (response.status === 404) {
+            console.log('レッスン状況データがAPIにありません。デフォルト値を表示します。');
+            // フォームはデフォルト値のまま or クリアする
+            // ここでは特に何もしない（HTMLのデフォルトcheckedが適用される）
+            showAlert('現在保存されているレッスン状況はありません。', 'info');
+            return;
+          }
+          const errorData = await response.json().catch(() => ({ message: response.statusText }));
+          throw new Error(`APIエラー: ${response.status} - ${errorData.message || errorData.error}`);
+        }
         
-        if (storedData) {
-          const statusData = JSON.parse(storedData);
-          console.log('保存されたレッスン状況を読み込みました:', statusData);
+        const statusData = await response.json();
+        console.log('APIからレッスン状況を読み込みました:', statusData);
+        
+        // フォームに値を設定
+        const form = document.getElementById('status-form');
+        if (form) {
+          // 全体開催状況
+          const overallRadio = form.querySelector(`input[name="overallStatus"][value="${statusData.overallStatus}"]`);
+          if (overallRadio) overallRadio.checked = true;
           
-          // フォームに値を設定
-          const form = document.getElementById('status-form');
-          if (form) {
-            // 全体開催状況
-            const overallRadio = form.querySelector(`input[name="overallStatus"][value="${statusData.overallStatus}"]`);
-            if (overallRadio) {
-              overallRadio.checked = true;
-            }
-            
-            // 全体補足メッセージ
-            const overallNote = form.querySelector('#overall-note');
-            if (overallNote) {
-              overallNote.value = statusData.overallNote || '';
-            }
-            
-            // ベーシックコース
-            if (statusData.lessons && statusData.lessons[0]) {
-              const basicRadio = form.querySelector(`input[name="basicStatus"][value="${statusData.lessons[0].status}"]`);
-              if (basicRadio) {
-                basicRadio.checked = true;
-              }
-              
+          const overallNote = form.querySelector('#overall-note');
+          if (overallNote) overallNote.value = statusData.overallNote || '';
+          
+          // 個別レッスン状況 (APIレスポンスのlessons配列を期待)
+          if (statusData.lessons && Array.isArray(statusData.lessons)) {
+            // ベーシックコース (最初のレッスンと仮定)
+            const basicLessonData = statusData.lessons.find(l => l.courseName && l.courseName.includes('ベーシック'));
+            if (basicLessonData) {
+              const basicRadio = form.querySelector(`input[name="basicStatus"][value="${basicLessonData.status}"]`);
+              if (basicRadio) basicRadio.checked = true;
               const basicNote = form.querySelector('#basic-note');
-              if (basicNote) {
-                basicNote.value = statusData.lessons[0].note || '';
-              }
+              if (basicNote) basicNote.value = basicLessonData.note || '';
             }
-            
-            // アドバンスコース
-            if (statusData.lessons && statusData.lessons[1]) {
-              const advanceRadio = form.querySelector(`input[name="advanceStatus"][value="${statusData.lessons[1].status}"]`);
-              if (advanceRadio) {
-                advanceRadio.checked = true;
-              }
-              
+
+            // アドバンスコース (次のレッスンと仮定, より堅牢なマッピングが必要な場合あり)
+            const advanceLessonData = statusData.lessons.find(l => l.courseName && l.courseName.includes('アドバンス'));
+            if (advanceLessonData) {
+              const advanceRadio = form.querySelector(`input[name="advanceStatus"][value="${advanceLessonData.status}"]`);
+              if (advanceRadio) advanceRadio.checked = true;
               const advanceNote = form.querySelector('#advance-note');
-              if (advanceNote) {
-                advanceNote.value = statusData.lessons[1].note || '';
-              }
+              if (advanceNote) advanceNote.value = advanceLessonData.note || '';
             }
           }
-        } else {
-          console.log('保存されたレッスン状況データがありません。デフォルト値を使用します。');
+          // Update radio button UI
+          setupRadioButtons();
         }
       } catch (error) {
         console.error('レッスン状況の読み込みに失敗:', error);
-        showAlert('レッスン状況の読み込みに失敗しました', 'error');
+        showAlert(`レッスン状況の読み込みに失敗しました: ${error.message}`, 'error');
       }
     }
 
-    // レッスン状況フォーム送信
+    // レッスン状況フォーム送信 (APIへ)
     async function handleStatusSubmit(e) {
       e.preventDefault();
+      const saveButton = document.getElementById('save-status-btn');
+      saveButton.disabled = true;
+      saveButton.textContent = '保存中...';
       
       try {
         const formData = new FormData(e.target);
         const statusData = {
           overallStatus: formData.get('overallStatus'),
           overallNote: formData.get('overallNote') || '',
-          lessons: [
+          lessons: [ // APIに送信するレッスンの詳細。courseNameはAPI側で設定/参照されることを期待。
             {
-              timeSlot: '17:00-17:50',
-              courseName: 'ベーシックコース（年長〜小3）',
+              id: 'basic', // 識別子、API側でこれを使って更新や作成を行う
+              courseName: 'ベーシックコース（年長〜小3）', // 参考情報として送信
               status: formData.get('basicStatus'),
               note: formData.get('basicNote') || ''
             },
             {
-              timeSlot: '18:00-18:50',
-              courseName: 'アドバンスコース（小4〜小6）',
+              id: 'advance', // 識別子
+              courseName: 'アドバンスコース（小4〜小6）', // 参考情報として送信
               status: formData.get('advanceStatus'),
               note: formData.get('advanceNote') || ''
             }
           ],
-          lastUpdated: new Date().toISOString()
+          // lastUpdatedはAPI側で設定されるべき
         };
 
-        // LocalStorageに保存
-        localStorage.setItem('rbs_lesson_status', JSON.stringify(statusData));
+        const response = await fetch('/api/status', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(statusData),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ message: response.statusText }));
+          throw new Error(`APIエラー: ${response.status} - ${errorData.message || errorData.error}`);
+        }
         
-        console.log('レッスン状況を保存しました:', statusData);
+        const result = await response.json();
+        console.log('レッスン状況をAPIに保存しました:', result);
         showAlert('✅ レッスン状況が正常に更新されました！', 'success');
         
       } catch (error) {
         console.error('保存エラー:', error);
         showAlert(`❌ 保存に失敗しました: ${error.message}`, 'error');
+      } finally {
+        saveButton.disabled = false;
+        saveButton.textContent = '💾 保存して公開';
       }
     }
 
