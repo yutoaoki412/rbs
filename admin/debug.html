@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>デバッグ - LocalStorage確認</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 20px;
+      background: #f8f9fa;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 30px;
+    }
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9ff;
+      border-radius: 8px;
+      border-left: 4px solid #4a90e2;
+    }
+    .section h2 {
+      color: #4a90e2;
+      margin-bottom: 15px;
+    }
+    pre {
+      background: #2c3e50;
+      color: #ecf0f1;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    .btn {
+      padding: 10px 20px;
+      background: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .btn:hover {
+      background: #c0392b;
+    }
+    .btn-success {
+      background: #27ae60;
+    }
+    .btn-success:hover {
+      background: #229954;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 LocalStorage デバッグ情報</h1>
+    
+    <div class="section">
+      <h2>📊 記事データ (rbs_articles_data)</h2>
+      <pre id="articles-data">読み込み中...</pre>
+    </div>
+
+    <div class="section">
+      <h2>📝 記事コンテンツ (rbs_articles_content)</h2>
+      <pre id="articles-content">読み込み中...</pre>
+    </div>
+
+    <div class="section">
+      <h2>🔐 認証セッション (rbs_admin_session)</h2>
+      <pre id="auth-session">読み込み中...</pre>
+    </div>
+
+    <div class="section">
+      <h2>🚨 操作</h2>
+      <button class="btn" onclick="clearArticlesData()">記事データをクリア</button>
+      <button class="btn" onclick="clearAllData()">全データをクリア</button>
+      <button class="btn btn-success" onclick="recreateSampleData()">サンプルデータを再作成</button>
+      <button class="btn btn-success" onclick="location.reload()">ページを更新</button>
+    </div>
+
+    <div class="section">
+      <h2>📋 全LocalStorageキー</h2>
+      <pre id="all-keys">読み込み中...</pre>
+    </div>
+  </div>
+
+  <script src="../js/admin-manager.js"></script>
+  <script>
+    function displayData() {
+      // 記事データ
+      const articlesData = localStorage.getItem('rbs_articles_data');
+      document.getElementById('articles-data').textContent = 
+        articlesData ? JSON.stringify(JSON.parse(articlesData), null, 2) : 'データなし';
+
+      // 記事コンテンツ
+      const articlesContent = localStorage.getItem('rbs_articles_content');
+      document.getElementById('articles-content').textContent = 
+        articlesContent ? JSON.stringify(JSON.parse(articlesContent), null, 2) : 'データなし';
+
+      // 認証セッション
+      const authSession = localStorage.getItem('rbs_admin_session');
+      document.getElementById('auth-session').textContent = 
+        authSession ? JSON.stringify(JSON.parse(authSession), null, 2) : 'データなし';
+
+      // 全キー
+      const allKeys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        allKeys.push({
+          key: key,
+          size: value ? value.length : 0,
+          preview: value ? value.substring(0, 100) + (value.length > 100 ? '...' : '') : 'null'
+        });
+      }
+      document.getElementById('all-keys').textContent = JSON.stringify(allKeys, null, 2);
+    }
+
+    function clearArticlesData() {
+      if (confirm('記事データを削除しますか？')) {
+        localStorage.removeItem('rbs_articles_data');
+        localStorage.removeItem('rbs_articles_content');
+        alert('記事データを削除しました');
+        displayData();
+      }
+    }
+
+    function clearAllData() {
+      if (confirm('全てのLocalStorageデータを削除しますか？')) {
+        localStorage.clear();
+        alert('全データを削除しました');
+        displayData();
+      }
+    }
+
+    async function recreateSampleData() {
+      if (confirm('サンプルデータを再作成しますか？')) {
+        const adminManager = new AdminManager();
+        adminManager.createSampleArticles();
+        alert('サンプルデータを再作成しました');
+        displayData();
+      }
+    }
+
+    // 初期表示
+    displayData();
+  </script>
+</body>
+</html> 
