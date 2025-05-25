@@ -2124,6 +2124,34 @@
         padding: 40px 30px;
       }
       
+      /* 料金項目のモバイル対応 */
+      .price-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 20px;
+      }
+      
+      .price-label {
+        font-size: 14px;
+        white-space: normal;
+        line-height: 1.4;
+      }
+      
+      .price-amount {
+        font-size: 24px;
+        white-space: normal;
+        align-self: flex-end;
+      }
+      
+      .price-amount small {
+        font-size: 14px;
+      }
+      
+      .price-body {
+        padding: 30px 20px;
+      }
+      
       .features {
         gap: 30px;
       }
@@ -2282,11 +2310,29 @@
       }
       
       .price-amount {
-        font-size: 22px;
+        font-size: 20px;
+      }
+      
+      .price-amount small {
+        font-size: 12px;
       }
       
       .fee-amount {
         font-size: 28px;
+      }
+      
+      /* 料金項目の480px以下対応 */
+      .price-item {
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+      
+      .price-label {
+        font-size: 13px;
+      }
+      
+      .price-body {
+        padding: 25px 15px;
       }
       
       .feature-card,
@@ -2973,55 +3019,55 @@
   </section>
 
   <!-- コーチ紹介 -->
-  <section id="coach" style="background: var(--white); padding: 100px 0;">
+  <section id="coach" style="background: var(--white); padding: 80px 0;">
     <div class="container-wide">
-      <h2>コーチ紹介</h2>
+      <h2 style="margin-bottom: 50px;">コーチ紹介</h2>
       
       <!-- メインコーチ -->
-      <div style="max-width: 1000px; margin: 0 auto; background: var(--white); border-radius: 30px; overflow: hidden; box-shadow: 0 12px 50px rgba(0, 0, 0, 0.1); border: 4px solid var(--primary-blue); margin-bottom: 60px;">
+      <div style="max-width: 950px; margin: 0 auto; background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 3px solid var(--primary-blue); margin-bottom: 50px;">
         <div class="coach-grid">
           
           <!-- コーチ写真 -->
-          <div style="height: 350px; background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal)); display: flex; align-items: center; justify-content: center; position: relative;">
-            <div style="width: 200px; height: 200px; background: url('images/coach-portrait.png') center/cover; border-radius: 50%; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); border: 4px solid var(--white);"></div>
-            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; text-align: center;">
-              <div style="background: var(--white); color: var(--primary-blue); padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 700; display: inline-block;">代表コーチ</div>
+          <div style="height: 240px; background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal)); display: flex; align-items: center; justify-content: center; position: relative;">
+            <div style="width: 140px; height: 140px; background: url('images/coach-portrait.png') center/cover; border-radius: 50%; box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2); border: 3px solid var(--white);"></div>
+            <div style="position: absolute; bottom: 12px; left: 12px; right: 12px; text-align: center;">
+              <div style="background: var(--white); color: var(--primary-blue); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-block;">代表コーチ</div>
             </div>
           </div>
           
           <!-- コーチ情報 -->
-          <div style="padding: 40px;">
-            <h3 style="color: var(--navy-dark); font-size: 32px; margin-bottom: 15px; font-weight: 800;">今井 悠太</h3>
-            <p style="color: var(--primary-blue); font-size: 18px; font-weight: 700; margin-bottom: 25px;">RBS陸上教室 代表コーチ・合同会社VITA代表</p>
+          <div style="padding: 25px;">
+            <h3 style="color: var(--navy-dark); font-size: 26px; margin-bottom: 8px; font-weight: 800;">今井 悠太</h3>
+            <p style="color: var(--primary-blue); font-size: 15px; font-weight: 700; margin-bottom: 18px;">RBS陸上教室 代表コーチ・合同会社VITA代表</p>
             
-            <div style="margin-bottom: 30px;">
-              <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
-                <span style="width: 8px; height: 8px; background: var(--gradient-2); border-radius: 50%; box-shadow: 0 0 10px rgba(245, 87, 108, 0.5);"></span> 指導理念
+            <div style="margin-bottom: 16px;">
+              <h4 style="color: var(--navy-dark); font-size: 16px; margin-bottom: 8px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                <span style="width: 5px; height: 5px; background: var(--primary-teal); border-radius: 50%;"></span> 指導理念
               </h4>
-              <p style="color: var(--gray-medium); font-size: 16px; line-height: 1.8; padding-left: 35px;">
-                「すべての子どもに、走る楽しさと成功体験を」をモットーに、一人ひとりの個性を大切にしながら、運動能力だけでなく人間力の向上を目指した指導を心がけています。
+              <p style="color: var(--gray-medium); font-size: 13px; line-height: 1.5; padding-left: 16px;">
+                「すべての子どもに、走る楽しさと成功体験を」をモットーに、一人ひとりの個性を大切にした指導を心がけています。
               </p>
             </div>
             
-            <div style="margin-bottom: 30px;">
-              <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
-                <span style="width: 8px; height: 8px; background: var(--gradient-3); border-radius: 50%; box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);"></span> 専門分野・資格
+            <div style="margin-bottom: 16px;">
+              <h4 style="color: var(--navy-dark); font-size: 16px; margin-bottom: 8px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                <span style="width: 5px; height: 5px; background: var(--primary-blue); border-radius: 50%;"></span> 専門分野・資格
               </h4>
-              <div style="padding-left: 35px;">
+              <div style="padding-left: 16px;">
                 <ul style="list-style: none; margin: 0;">
-                  <li style="color: var(--gray-medium); margin-bottom: 8px; position: relative; padding-left: 20px; font-size: 16px;">
+                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
                     <span style="position: absolute; left: 0; color: var(--primary-teal);">•</span>
                     スポーツ科学専攻（大学院修了）
                   </li>
-                  <li style="color: var(--gray-medium); margin-bottom: 8px; position: relative; padding-left: 20px; font-size: 16px;">
+                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
                     <span style="position: absolute; left: 0; color: var(--primary-teal);">•</span>
                     JRCA認定ランニングコーチ
                   </li>
-                  <li style="color: var(--gray-medium); margin-bottom: 8px; position: relative; padding-left: 20px; font-size: 16px;">
+                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
                     <span style="position: absolute; left: 0; color: var(--primary-teal);">•</span>
                     日本スポーツ協会公認コーチ
                   </li>
-                  <li style="color: var(--gray-medium); margin-bottom: 8px; position: relative; padding-left: 20px; font-size: 16px;">
+                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
                     <span style="position: absolute; left: 0; color: var(--primary-teal);">•</span>
                     幼児体育指導者検定1級
                   </li>
@@ -3030,24 +3076,24 @@
             </div>
             
             <div>
-              <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
-                <span style="width: 8px; height: 8px; background: var(--gradient-2); border-radius: 50%; box-shadow: 0 0 10px rgba(245, 87, 108, 0.5);"></span> 指導実績
+              <h4 style="color: var(--navy-dark); font-size: 16px; margin-bottom: 8px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                <span style="width: 5px; height: 5px; background: var(--primary-orange); border-radius: 50%;"></span> 指導実績
               </h4>
-              <div style="padding-left: 35px;">
+              <div style="padding-left: 16px;">
                 <ul style="list-style: none; margin: 0;">
-                  <li style="color: var(--gray-medium); margin-bottom: 8px; position: relative; padding-left: 20px; font-size: 16px;">
+                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
                     <span style="position: absolute; left: 0; color: var(--primary-orange);">•</span>
                     ジュニア陸上指導歴：8年
                   </li>
-                  <li style="color: var(--gray-medium); margin-bottom: 8px; position: relative; padding-left: 20px; font-size: 16px;">
+                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
                     <span style="position: absolute; left: 0; color: var(--primary-orange);">•</span>
                     指導した生徒数：延べ500名以上
                   </li>
-                  <li style="color: var(--gray-medium); margin-bottom: 8px; position: relative; padding-left: 20px; font-size: 16px;">
+                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
                     <span style="position: absolute; left: 0; color: var(--primary-orange);">•</span>
                     県大会入賞者輩出：15名
                   </li>
-                  <li style="color: var(--gray-medium); margin-bottom: 0; position: relative; padding-left: 20px; font-size: 16px;">
+                  <li style="color: var(--gray-medium); margin-bottom: 0; position: relative; padding-left: 12px; font-size: 13px;">
                     <span style="position: absolute; left: 0; color: var(--primary-orange);">•</span>
                     運動会リレー選手輩出：100名以上
                   </li>
