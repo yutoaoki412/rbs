@@ -66,6 +66,17 @@
       align-items: center;
     }
     
+    .logo a {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    
+    .logo a:hover {
+      transform: translateY(-2px);
+    }
+    
     .logo-image {
       height: 100px;
       width: auto;
@@ -158,6 +169,14 @@
       font-weight: 800;
     }
     
+    /* ヒーローセクション内のh1はダークカラー */
+    #hero h1 {
+      color: #1a202c;
+      font-weight: 800;
+    }
+    
+
+    
     h2 {
       font-size: clamp(28px, 5vw, 42px);
       text-align: center;
@@ -187,49 +206,85 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: url('images/hero-image.png');
-      background-size: contain;
-      background-position: center center;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
       text-align: center;
       position: relative;
       width: 100%;
       margin-bottom: 0;
+      overflow: hidden;
+      /* フォールバック背景画像 */
+      background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), 
+                  linear-gradient(135deg, var(--primary-blue), var(--primary-teal));
+      background-size: cover;
+      background-position: center;
+    }
+
+    #hero-video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+    }
+
+    #hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        rgba(0, 0, 0, 0.3), 
+        rgba(0, 0, 0, 0.1), 
+        rgba(0, 0, 0, 0.3)
+      );
+      z-index: 2;
     }
     
     .hero-content {
       max-width: 800px;
       margin: 0 auto;
       position: relative;
-      z-index: 2;
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 20px;
-      padding: 60px 50px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      z-index: 10;
+      padding: 50px 40px;
+      text-align: center;
+      /* ガラスモーフィズム効果（軽量版） */
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12),
+                  0 8px 25px rgba(0, 0, 0, 0.08),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.5);
     }
     
-    /* backdrop-filterが使えない場合のフォールバック */
-    @supports not (backdrop-filter: blur(10px)) {
+    /* ガラス効果のフォールバック */
+    @supports not (backdrop-filter: blur(12px)) {
       .hero-content {
-        background: rgba(255, 255, 255, 0.98);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.35);
+        border: 2px solid rgba(255, 255, 255, 0.5);
       }
     }
     
     .hero-badge {
       font-size: 18px;
       color: var(--white);
-      font-weight: 600;
+      font-weight: 700;
       margin-bottom: 30px;
       display: inline-block;
-      padding: 12px 24px;
-      background: var(--primary-blue);
-      border-radius: 30px;
-      box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
+      padding: 15px 30px;
+      background: rgba(66, 133, 244, 0.9);
+      border-radius: 50px;
+      box-shadow: 0 6px 20px rgba(66, 133, 244, 0.25),
+                  0 3px 10px rgba(0, 0, 0, 0.08),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.4);
       letter-spacing: 0.5px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
     }
     
     .hero-description {
@@ -238,15 +293,15 @@
     
     .hero-description p {
       font-size: 22px;
-      color: var(--navy-dark);
+      color: #2d3748;
       line-height: 1.8;
-      font-weight: 500;
-      max-width: 900px;
+      font-weight: 600;
+      max-width: 700px;
       margin: 0 auto;
     }
     
     .hero-description strong {
-      color: var(--primary-blue);
+      color: #2563eb;
       font-weight: 700;
     }
     
@@ -265,8 +320,8 @@
     .cta-message {
       font-size: 20px;
       margin-bottom: 30px;
-      font-weight: 600;
-      color: var(--navy-dark);
+      font-weight: 700;
+      color: #2d3748;
       max-width: 600px;
       margin-left: auto;
       margin-right: auto;
@@ -274,31 +329,38 @@
     }
     
     .cta-message strong {
-      color: var(--primary-teal);
+      color: #0891b2;
       font-weight: 700;
     }
     
     /* ボタン */
     .btn-primary {
       display: inline-block;
-      padding: 18px 50px;
+      padding: 20px 55px;
       background: linear-gradient(135deg, var(--primary-orange), #ff7b00);
       color: white;
       text-decoration: none;
       border-radius: 50px;
       font-size: 20px;
-      font-weight: 700;
+      font-weight: 800;
       transition: all 0.3s ease;
-      box-shadow: 0 6px 25px rgba(255, 149, 0, 0.4);
+      box-shadow: 0 8px 25px rgba(255, 149, 0, 0.35),
+                  0 4px 12px rgba(0, 0, 0, 0.15),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.4);
       position: relative;
-      border: none;
+      border: 1px solid rgba(255, 255, 255, 0.5);
       letter-spacing: 0.5px;
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
     }
     
     .btn-primary:hover {
       transform: translateY(-3px);
-      box-shadow: 0 10px 35px rgba(255, 149, 0, 0.5);
+      box-shadow: 0 15px 35px rgba(255, 149, 0, 0.5),
+                  0 8px 20px rgba(0, 0, 0, 0.25),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.4);
       background: linear-gradient(135deg, #ff7b00, var(--primary-orange));
+      border-color: rgba(255, 255, 255, 0.6);
     }
     
     .btn-primary:active {
@@ -1411,7 +1473,7 @@
       .price-tables,
       .reason-list,
       .features {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
       }
       
       .price-tables {
@@ -1420,7 +1482,7 @@
       }
       
       .location-content {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
       }
       
       .cta-features {
@@ -1438,19 +1500,19 @@
       }
       
       .hero-content {
-        padding: 40px 20px;
-        margin: 0 20px;
-        backdrop-filter: none;
-        background: rgba(255, 255, 255, 0.95) !important;
-        max-width: 90% !important;
+        padding: 40px 25px;
+        margin: 0 15px;
+        max-width: 95% !important;
+        border-radius: 25px;
       }
       
       #hero {
-        background-attachment: scroll;
-        background-size: cover !important;
-        background-position: center center !important;
         padding: 120px 0 100px;
         min-height: 90vh !important;
+      }
+
+      #hero-video {
+        object-fit: cover;
       }
       
       .hero-content h1 {
@@ -1537,6 +1599,40 @@
       .status-header:hover {
         margin: 0 15px;
       }
+      
+      /* プログラム・コーチセクションのモバイル対応 */
+      .program-grid {
+        grid-template-columns: 1fr !important;
+        gap: 30px !important;
+      }
+      
+      .common-programs {
+        grid-template-columns: 1fr !important;
+        gap: 25px !important;
+      }
+      
+      .coach-grid {
+        grid-template-columns: 1fr !important;
+        gap: 30px !important;
+      }
+      
+      .program-body {
+        padding: 30px 25px;
+      }
+      
+      /* About セクションの4列グリッドをモバイルで2列に */
+      #about [style*="grid-template-columns: repeat(4, 1fr)"] {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 20px !important;
+      }
+      
+      #about [style*="height: 160px"] {
+        height: 120px !important;
+      }
+      
+      #about [style*="padding: 20px"] {
+        padding: 15px !important;
+      }
     }
     
     @media (max-width: 480px) {
@@ -1556,19 +1652,19 @@
       }
       
       .hero-content {
-        padding: 30px 15px;
+        padding: 35px 20px;
         margin: 0 10px;
-        backdrop-filter: none;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-        background: rgba(255, 255, 255, 0.98) !important;
         max-width: 95% !important;
+        border-radius: 20px;
       }
       
       #hero {
-        background-size: cover !important;
-        background-position: center center !important;
         min-height: 85vh !important;
         padding: 100px 0 80px !important;
+      }
+
+      #hero-video {
+        object-fit: cover;
       }
       
       .status-banner {
@@ -1625,72 +1721,46 @@
         margin-top: 15px;
       }
       
-      /* About セクションのレスポンシブ */
+      /* About セクションの更に小さいスクリーン用 */
       #about [style*="grid-template-columns: repeat(4, 1fr)"] {
-        grid-template-columns: 1fr 1fr !important;
-        gap: 20px !important;
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
       }
       
       #about [style*="height: 160px"] {
-        height: 120px !important;
+        height: 100px !important;
       }
       
-      #about [style*="padding: 20px"] {
-        padding: 15px !important;
+      #about [style*="padding: 15px"] {
+        padding: 10px !important;
       }
       
-      /* さらに小さいスクリーン用 */
-      @media (max-width: 480px) {
-        #about [style*="grid-template-columns: repeat(4, 1fr)"] {
-          grid-template-columns: 1fr !important;
-          gap: 15px !important;
-        }
-        
-        #about [style*="height: 160px"] {
-          height: 100px !important;
-        }
-        
-        #about [style*="padding: 15px"] {
-          padding: 10px !important;
-        }
+      /* プログラム・コーチセクションの小さいスクリーン対応 */
+      #program, #coach {
+        padding: 60px 0;
       }
       
-
-      
-
-      
-      @media (max-width: 768px) {
-        .program-grid {
-          grid-template-columns: 1fr;
-          gap: 30px;
-        }
-        
-        .common-programs {
-          grid-template-columns: 1fr;
-          gap: 25px;
-        }
-        
-        .coach-grid {
-          grid-template-columns: 1fr;
-        }
-        
-        .program-body {
-          padding: 30px 25px;
-        }
+      .program-body {
+        padding: 25px 20px;
       }
       
-      @media (max-width: 480px) {
-        #program, #coach {
-          padding: 60px 0;
-        }
-        
-        .program-body {
-          padding: 25px 20px;
-        }
-        
-        .coach-grid > div:last-child {
-          padding: 30px 20px;
-        }
+      .coach-grid > div:last-child {
+        padding: 30px 20px;
+      }
+      
+      .program-grid {
+        grid-template-columns: 1fr !important;
+        gap: 25px !important;
+      }
+      
+      .common-programs {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+      }
+      
+      .coach-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
       }
     }
     
@@ -1813,6 +1883,14 @@
       margin-bottom: 80px;
     }
     
+    /* プログラムグリッドのモバイル対応を確実にする */
+    @media (max-width: 768px) {
+      .program-grid {
+        grid-template-columns: 1fr !important;
+        gap: 30px !important;
+      }
+    }
+    
     .program-card {
       background: var(--white);
       border-radius: 30px;
@@ -1850,11 +1928,33 @@
       gap: 30px;
     }
     
+    /* コモンプログラムのホバー効果 */
+    .common-programs > div:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    /* コモンプログラムのモバイル対応 */
+    @media (max-width: 768px) {
+      .common-programs {
+        grid-template-columns: 1fr !important;
+        gap: 25px !important;
+      }
+    }
+    
     .coach-grid {
       display: grid;
       grid-template-columns: 300px 1fr;
       align-items: center;
       gap: 0;
+    }
+    
+    /* コーチグリッドのモバイル対応 */
+    @media (max-width: 768px) {
+      .coach-grid {
+        grid-template-columns: 1fr !important;
+        gap: 30px !important;
+      }
     }
   </style>
 </head>
@@ -1863,7 +1963,9 @@
   <header>
     <nav>
       <div class="logo">
-        <img src="images/lp-logo.png" alt="RBS陸上教室 Running & Brain School" class="logo-image">
+        <a href="#hero" onclick="scrollToTop(event)">
+          <img src="images/lp-logo.png" alt="RBS陸上教室 Running & Brain School" class="logo-image">
+        </a>
       </div>
       <ul class="nav-links">
         <li><a href="#about">RBSとは</a></li>
@@ -1881,10 +1983,18 @@
 
   <!-- ヒーローセクション -->
   <section id="hero">
+    <video id="hero-video" autoplay muted loop playsinline>
+      <source src="images/hero-movie.mp4" type="video/mp4">
+      お使いのブラウザは動画再生に対応していません。
+    </video>
     <div class="hero-content">
-      <h1>走力×非認知能力を育てる<br><span class="text-primary">次世代型陸上教室</span></h1>
+      <div class="hero-badge">🏃‍♂️ 年長〜小6対象 🏃‍♀️</div>
+      <h1>走って学ぶ！<br><span class="text-primary">RBS陸上教室</span></h1>
+      <div class="hero-description">
+        <p>運動と脳トレを組み合わせた独自メソッドで<br><strong>走力</strong>と<strong>非認知能力</strong>を同時に育成</p>
+      </div>
       <div class="hero-cta">
-        <p class="cta-message">まずは<strong>無料体験</strong>でお子さまの変化を体感してください</p>
+        <p class="cta-message">楽しく走って<strong>心も体も</strong>たくましく成長！</p>
         <a href="#cta" class="btn-primary">無料体験に申し込む</a>
       </div>
     </div>
@@ -1959,28 +2069,48 @@
           さらに<strong>集中力・判断力・挑戦心</strong>を一緒に育てるプログラムだから、運動会やスポーツだけでなく、日々の学習や生活面でも<strong style="color: var(--primary-teal);">前向きに挑戦できる子</strong>へと成長します。
         </p>
         
-        <!-- 写真ギャラリー -->
+        <!-- 動画ギャラリー -->
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; margin: 60px 0; position: relative; z-index: 2; max-width: 1200px; margin-left: auto; margin-right: auto;">
           <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 3px solid var(--primary-teal); transition: all 0.3s ease;">
-            <div style="height: 160px; background: url('images/about/rbsAbout_pic_01.jpg') center/cover;"></div>
+            <div style="height: 160px; position: relative; overflow: hidden;">
+              <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
+                <source src="images/about/start&dash.mp4" type="video/mp4">
+              </video>
+              <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
+            </div>
             <div style="padding: 20px;">
               <p style="color: var(--navy-dark); font-weight: 700; font-size: 15px; line-height: 1.4; margin: 0;">スタート&ダッシュ<br>基本フォーム習得</p>
             </div>
           </div>
           <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 3px solid var(--primary-orange); transition: all 0.3s ease;">
-            <div style="height: 160px; background: url('images/about/rbsAbout_pic_02.jpg') center/cover;"></div>
+            <div style="height: 160px; position: relative; overflow: hidden;">
+              <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
+                <source src="images/about/brain-training.mp4" type="video/mp4">
+              </video>
+              <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
+            </div>
             <div style="padding: 20px;">
               <p style="color: var(--navy-dark); font-weight: 700; font-size: 15px; line-height: 1.4; margin: 0;">脳トレ＆判断力<br>集中力向上</p>
             </div>
           </div>
           <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 3px solid var(--primary-blue); transition: all 0.3s ease;">
-            <div style="height: 160px; background: url('images/about/rbsAbout_pic_03.jpg') center/cover;"></div>
+            <div style="height: 160px; position: relative; overflow: hidden;">
+              <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
+                <source src="images/about/teamwork-build.mp4" type="video/mp4">
+              </video>
+              <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
+            </div>
             <div style="padding: 20px;">
               <p style="color: var(--navy-dark); font-weight: 700; font-size: 15px; line-height: 1.4; margin: 0;">チームワーク<br>協調性育成</p>
             </div>
           </div>
           <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 3px solid var(--primary-purple); transition: all 0.3s ease;">
-            <div style="height: 160px; background: url('images/about/rbsAbout_pic_04.jpg') center/cover;"></div>
+            <div style="height: 160px; position: relative; overflow: hidden;">
+              <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
+                <source src="images/about/confidence-build.mp4" type="video/mp4">
+              </video>
+              <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
+            </div>
             <div style="padding: 20px;">
               <p style="color: var(--navy-dark); font-weight: 700; font-size: 15px; line-height: 1.4; margin: 0;">自信&成功体験<br>挑戦心の育成</p>
             </div>
@@ -2173,22 +2303,43 @@
         <h3 style="text-align: center; color: var(--navy-dark); font-size: 30px; margin-bottom: 40px; font-weight: 800;">🧠 両コース共通の特別プログラム</h3>
         
         <div class="common-programs">
-          <div style="text-align: center; padding: 30px; background: var(--white); border-radius: 20px; box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);">
-            <div style="font-size: 48px; margin-bottom: 15px;">🧠</div>
-            <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700;">脳トレメニュー</h4>
-            <p style="color: var(--gray-medium); font-size: 15px; line-height: 1.6;">判断力・集中力を向上させる認知トレーニング</p>
+          <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); border: 4px solid var(--primary-teal); transition: all 0.3s ease;">
+            <div style="height: 160px; position: relative; overflow: hidden;">
+              <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
+                <source src="images/program/brain-training.mp4" type="video/mp4">
+              </video>
+              <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
+            </div>
+            <div style="padding: 20px; text-align: center;">
+              <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700;">脳トレメニュー</h4>
+              <p style="color: var(--gray-medium); font-size: 15px; line-height: 1.6;">判断力・集中力を向上させる認知トレーニング</p>
+            </div>
           </div>
           
-          <div style="text-align: center; padding: 30px; background: var(--white); border-radius: 20px; box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);">
-            <div style="font-size: 48px; margin-bottom: 15px;">📊</div>
-            <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700;">記録測定</h4>
-            <p style="color: var(--gray-medium); font-size: 15px; line-height: 1.6;">定期的な記録測定で成長を実感</p>
+          <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); border: 4px solid var(--primary-blue); transition: all 0.3s ease;">
+            <div style="height: 160px; position: relative; overflow: hidden;">
+              <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
+                <source src="images/program/record-measurement.mp4" type="video/mp4">
+              </video>
+              <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
+            </div>
+            <div style="padding: 20px; text-align: center;">
+              <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700;">記録測定</h4>
+              <p style="color: var(--gray-medium); font-size: 15px; line-height: 1.6;">定期的な記録測定で成長を実感</p>
+            </div>
           </div>
           
-          <div style="text-align: center; padding: 30px; background: var(--white); border-radius: 20px; box-shadow: 0 6px 30px rgba(0, 0, 0, 0.08);">
-            <div style="font-size: 48px; margin-bottom: 15px;">🏆</div>
-            <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700;">目標達成システム</h4>
-            <p style="color: var(--gray-medium); font-size: 15px; line-height: 1.6;">個人目標を設定し、達成を祝う仕組み</p>
+          <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); border: 4px solid var(--primary-orange); transition: all 0.3s ease;">
+            <div style="height: 160px; position: relative; overflow: hidden;">
+              <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
+                <source src="images/program/goal-achievement.mp4" type="video/mp4">
+              </video>
+              <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
+            </div>
+            <div style="padding: 20px; text-align: center;">
+              <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700;">目標達成システム</h4>
+              <p style="color: var(--gray-medium); font-size: 15px; line-height: 1.6;">個人目標を設定し、達成を祝う仕組み</p>
+            </div>
           </div>
         </div>
       </div>
@@ -2238,9 +2389,7 @@
           
           <!-- コーチ写真 -->
           <div style="height: 350px; background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal)); display: flex; align-items: center; justify-content: center; position: relative;">
-            <div style="width: 200px; height: 200px; background: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);">
-              <span style="font-size: 80px; color: var(--primary-blue);">👨‍🏫</span>
-            </div>
+            <div style="width: 200px; height: 200px; background: url('images/coach-portrait.png') center/cover; border-radius: 50%; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); border: 4px solid var(--white);"></div>
             <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; text-align: center;">
               <div style="background: var(--white); color: var(--primary-blue); padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 700; display: inline-block;">代表コーチ</div>
             </div>
@@ -2678,6 +2827,23 @@
       navLinks.classList.toggle('active');
     }
 
+    // ページトップへスクロール
+    function scrollToTop(event) {
+      event.preventDefault();
+      
+      // モバイルメニューを閉じる
+      const navLinks = document.querySelector('.nav-links');
+      if (navLinks.classList.contains('active')) {
+        navLinks.classList.remove('active');
+      }
+      
+      // ページトップへスムーススクロール
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+
     // ナビゲーションリンク全体にクリックイベントを追加（外部リンク用）
     document.querySelectorAll('.nav-links a').forEach(link => {
       link.addEventListener('click', function() {
@@ -2771,14 +2937,78 @@
     // ページロード時のヒーローアニメーションと位置調整
     window.addEventListener('load', function() {
       const heroContent = document.querySelector('.hero-content');
+      const heroVideo = document.querySelector('#hero-video');
+      
       heroContent.style.opacity = '0';
       heroContent.style.transform = 'translateY(50px)';
       
-      setTimeout(() => {
-        heroContent.style.transition = 'opacity 1.2s ease-out, transform 1.2s ease-out';
-        heroContent.style.opacity = '1';
-        heroContent.style.transform = 'translateY(0)';
-      }, 200);
+      // 動画の読み込み完了後にアニメーション開始
+      if (heroVideo) {
+        // 動画が正常に読み込まれた場合
+        heroVideo.addEventListener('loadeddata', function() {
+          setTimeout(() => {
+            heroContent.style.transition = 'opacity 1.2s ease-out, transform 1.2s ease-out';
+            heroContent.style.opacity = '1';
+            heroContent.style.transform = 'translateY(0)';
+          }, 200);
+        });
+        
+        // 動画読み込みを試行し、エラーの場合は即座にフォールバック
+        heroVideo.load();
+        
+        // 動画エラー時のフォールバック
+        heroVideo.addEventListener('error', function() {
+          console.log('動画の読み込みでエラーが発生しました。グラデーション背景を使用します。');
+          heroVideo.style.display = 'none';
+          // グラデーション背景はすでにCSSで設定済み
+          // 動画エラー時もアニメーションを開始
+          setTimeout(() => {
+            heroContent.style.transition = 'opacity 1.2s ease-out, transform 1.2s ease-out';
+            heroContent.style.opacity = '1';
+            heroContent.style.transform = 'translateY(0)';
+          }, 200);
+        });
+        
+        // 動画が1秒以内に読み込まれない場合はフォールバック
+        setTimeout(() => {
+          if (heroVideo.readyState === 0) {
+            console.log('動画の読み込みがタイムアウトしました。');
+            heroVideo.style.display = 'none';
+            setTimeout(() => {
+              heroContent.style.transition = 'opacity 1.2s ease-out, transform 1.2s ease-out';
+              heroContent.style.opacity = '1';
+              heroContent.style.transform = 'translateY(0)';
+            }, 200);
+          }
+        }, 1000);
+        
+        // モバイルでのバッテリー節約のため、画面外では動画を停止
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              heroVideo.play();
+            } else {
+              heroVideo.pause();
+            }
+          });
+        });
+        observer.observe(heroVideo);
+        
+        // ページ非表示時には動画を停止
+        document.addEventListener('visibilitychange', function() {
+          if (document.hidden) {
+            heroVideo.pause();
+          } else {
+            heroVideo.play();
+          }
+        });
+      } else {
+        setTimeout(() => {
+          heroContent.style.transition = 'opacity 1.2s ease-out, transform 1.2s ease-out';
+          heroContent.style.opacity = '1';
+          heroContent.style.transform = 'translateY(0)';
+        }, 200);
+      }
       
       // 初期のスティッキーバナー位置設定
       const header = document.querySelector('header');
