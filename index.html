@@ -2241,6 +2241,31 @@
       #about [style*="padding: 20px"] {
         padding: 15px !important;
       }
+      
+      /* FAQのモバイル対応 */
+      .faq-question {
+        padding: 20px 20px 20px 60px;
+        font-size: 16px;
+      }
+      
+      .faq-question::before {
+        left: 20px;
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+      }
+      
+      .faq-answer {
+        padding: 0 20px;
+      }
+      
+      .faq-item.active .faq-answer {
+        padding: 20px 20px 25px 60px;
+      }
+      
+      .faq-answer p {
+        font-size: 14px;
+      }
     }
     
     @media (max-width: 480px) {
@@ -2418,6 +2443,36 @@
       .coach-grid {
         grid-template-columns: 1fr !important;
         gap: 20px !important;
+      }
+      
+      /* FAQ 480px以下対応 */
+      .faq-question {
+        padding: 15px 15px 15px 50px;
+        font-size: 15px;
+      }
+      
+      .faq-question::before {
+        left: 15px;
+        width: 20px;
+        height: 20px;
+        font-size: 11px;
+      }
+      
+      .faq-answer {
+        padding: 0 15px;
+      }
+      
+      .faq-item.active .faq-answer {
+        padding: 15px 15px 20px 50px;
+      }
+      
+      .faq-answer p {
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      
+      .faq-icon {
+        font-size: 20px;
       }
     }
     
