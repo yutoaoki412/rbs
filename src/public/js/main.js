@@ -140,18 +140,54 @@ function initializeNewsSection() {
   
   if (!newsContainer) return;
   
-  // 簡単なニュース表示（実際のデータがない場合のフォールバック）
+  // 既に記事が表示されているかチェック
   setTimeout(() => {
     const loadingElement = newsContainer.querySelector('.loading-news');
-    if (loadingElement) {
-      loadingElement.innerHTML = `
-        <div style="text-align: center; padding: 40px; color: var(--gray-medium);">
-          <p style="font-size: 16px; font-weight: 600;">最新のニュースは準備中です</p>
-          <p style="font-size: 14px; margin-top: 10px;">詳細は<a href="news.html" style="color: var(--primary-blue);">ニュースページ</a>をご確認ください</p>
-        </div>
-      `;
+    const existingNewsCards = newsContainer.querySelectorAll('.news-card');
+    
+    // 既に記事が表示されている場合はフォールバック表示をしない
+    if (existingNewsCards.length > 0) {
+      console.log('記事が既に表示されています。フォールバック表示をスキップします。');
+      return;
     }
-  }, 2000);
+    
+    // ローディング要素が残っている場合のみフォールバック表示
+    if (loadingElement) {
+      // 管理画面のデータが存在するかチェック
+      const adminData = localStorage.getItem('rbs_articles_data');
+      let hasPublishedArticles = false;
+      
+      if (adminData) {
+        try {
+          const articles = JSON.parse(adminData);
+          hasPublishedArticles = articles.some(article => article.status === 'published');
+        } catch (error) {
+          console.warn('記事データの解析に失敗:', error);
+        }
+      }
+      
+      if (hasPublishedArticles) {
+        // 管理画面で公開記事があるのに表示されていない場合はエラー表示
+        loadingElement.innerHTML = `
+          <div style="text-align: center; padding: 40px; color: var(--primary-red);">
+            <p style="font-size: 16px; font-weight: 600;">記事の読み込みでエラーが発生しました</p>
+            <p style="font-size: 14px; margin-top: 10px;">
+              管理画面で記事が作成されていますが、表示に失敗しています。<br>
+              開発者ツールのコンソールをご確認ください。
+            </p>
+          </div>
+        `;
+      } else {
+        // 記事が存在しない場合の通常表示
+        loadingElement.innerHTML = `
+          <div style="text-align: center; padding: 40px; color: var(--gray-medium);">
+            <p style="font-size: 16px; font-weight: 600;">お知らせはまだありません</p>
+            <p style="font-size: 14px; margin-top: 10px;">管理画面から記事を作成・公開してください</p>
+          </div>
+        `;
+      }
+    }
+  }, 3000); // 他の処理が完了するまで少し時間を置く
 }
 
 /**
