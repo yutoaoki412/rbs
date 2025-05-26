@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RBS陸上教室 - 走力×非認知能力を育てる</title>
+  <meta name="description" content="年長〜小6向け陸上教室。走力だけでなく集中力・判断力・挑戦心も育てる独自プログラム。Running & Brain Schoolで運動も勉強も前向きに！無料体験実施中">
+  <meta name="keywords" content="大泉学園 陸上教室, 練馬区 かけっこ教室, 子ども 運動教室, RBS陸上教室">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <link rel="stylesheet" href="styles/layout.css">
+  <link rel="stylesheet" href="styles/responsive.css">
+</head>
+<body>
+  <!-- ヘッダー -->
+  <header class="header">
+    <nav class="nav container">
+      <div class="logo">
+        <a href="#hero" onclick="scrollToTop(event)">
+          <img src="images/lp-logo.png" alt="RBS陸上教室 Running & Brain School" class="logo-image">
+        </a>
+      </div>
+      <ul class="nav-links">
+        <li><a href="#about">RBSとは</a></li>
+        <li><a href="#program">プログラム</a></li>
+        <li><a href="#coach">コーチ</a></li>
+        <li><a href="#location">教室情報</a></li>
+        <li><a href="#price">料金</a></li>
+        <li><a href="#faq">よくある質問</a></li>
+        <li><a href="#news">NEWS</a></li>
+        <li><a href="https://hacomono.jp/" class="login-btn" target="_blank">会員ログイン</a></li>
+      </ul>
+      <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+    </nav>
+  </header>
+
+  <!-- ヒーローセクション -->
+  <section id="hero">
+    <video id="hero-video" autoplay muted loop playsinline>
+      <source src="images/hero-movie.mp4" type="video/mp4">
+      お使いのブラウザは動画再生に対応していません。
+    </video>
+    <div class="hero-content">
+      <div class="hero-badge">年長〜小6対象</div>
+      <h1>走って学ぶ！<br><span style="color: var(--primary-teal);">RBS陸上教室</span></h1>
+      <div class="hero-description">
+        <p>運動と脳トレを組み合わせた独自メソッドで<br><strong>走力</strong>と<strong>非認知能力</strong>を同時に育成</p>
+      </div>
+      <div class="hero-cta">
+        <p class="cta-message">楽しく走って<strong>心も体も</strong>たくましく成長！</p>
+        <a href="#cta" class="btn-primary">無料体験に申し込む</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 本日の開催状況 -->
+  <section id="today-status" class="status-banner">
+    <div class="container">
+      <div class="status-header" onclick="toggleStatus()">
+        <div class="status-info">
+          <span class="status-icon"></span>
+          <span class="status-text">本日のレッスン開催状況</span>
+          <span class="status-indicator running">開催中</span>
+        </div>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="status-content">
+        <div class="status-details">
+          <div class="status-item">
+            <div class="time-slot">
+              <strong>17:00-17:50</strong>
+              <span class="course-name">ベーシックコース（年長〜小3）</span>
+            </div>
+            <div class="status-badge running">開催中</div>
+          </div>
+          <div class="status-item">
+            <div class="time-slot">
+              <strong>18:00-18:50</strong>
+              <span class="course-name">アドバンスコース（小4〜小6）</span>
+            </div>
+            <div class="status-badge scheduled">予定通り開催</div>
+          </div>
+          <!-- 全体開催状況は管理画面で設定された場合のみ表示 -->
+          <div class="last-updated">
+            最終更新: 今日 15:30
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RBSとは -->
+  <section id="about">
+    <div class="container-wide">
+      <!-- RBS陸上教室とは -->
+      <div style="text-align: center; margin-bottom: 80px; position: relative; overflow: hidden;">
+        <!-- 装飾的な背景要素 -->
+        <div style="position: absolute; top: 8%; left: 3%; width: 100px; height: 100px; background: var(--primary-teal); border-radius: 50%; opacity: 0.08; transform: rotate(45deg);"></div>
+        <div style="position: absolute; top: 12%; right: 5%; width: 80px; height: 80px; background: var(--primary-orange); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); opacity: 0.08;"></div>
+        <div style="position: absolute; bottom: 15%; left: 8%; width: 70px; height: 70px; background: var(--primary-blue); transform: rotate(45deg); opacity: 0.08;"></div>
+        <div style="position: absolute; bottom: 20%; right: 3%; width: 90px; height: 90px; background: var(--primary-purple); border-radius: 50%; opacity: 0.06;"></div>
+        
+        <h2 style="font-size: clamp(32px, 6vw, 52px); color: var(--primary-blue); margin-bottom: 20px; position: relative; z-index: 2; font-weight: 800;">RBS陸上教室とは</h2>
+        
+        <p style="font-size: clamp(18px, 3vw, 26px); color: var(--navy-dark); margin-bottom: 15px; font-weight: 600; position: relative; z-index: 2;">
+          運動と脳トレを掛け合わせた独自メソッドで開発！
+        </p>
+        
+        <p style="font-size: clamp(16px, 2.5vw, 22px); color: var(--gray-medium); margin-bottom: 40px; position: relative; z-index: 2;">
+          <strong>「足が速くなりたい」「運動が得意になりたい」</strong>そんなお子さまの願いを叶える<br>
+          <strong>走力向上</strong>と<strong>非認知能力開発</strong>を融合した
+        </p>
+        
+        <div style="display: inline-block; background: var(--secondary-yellow); color: white; padding: 18px 50px; border-radius: 50px; font-size: clamp(20px, 4vw, 32px); font-weight: 800; margin-bottom: 60px; box-shadow: 0 8px 30px rgba(243, 156, 18, 0.4); position: relative; z-index: 2; overflow: hidden;">
+          <span style="position: relative; z-index: 2;">次世代型陸上教室</span>
+          <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent); animation: shimmer 3s infinite;"></div>
+        </div>
+        
+        <p style="font-size: clamp(16px, 2.5vw, 20px); color: var(--gray-medium); margin-bottom: 40px; position: relative; z-index: 2; max-width: 900px; margin-left: auto; margin-right: auto;">
+          さらに<strong>集中力・判断力・挑戦心</strong>を一緒に育てるプログラムだから、運動会やスポーツだけでなく、日々の学習や生活面でも<strong style="color: var(--primary-teal);">前向きに挑戦できる子</strong>へと成長します。
+        </p>
+        
+        <!-- 動画ギャラリー -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; margin: 60px 0; position: relative; z-index: 2; max-width: 1200px; margin-left: auto; margin-right: auto;">
+          <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 3px solid var(--primary-teal); transition: all 0.3s ease;">
+            <div style="height: 160px; position: relative; overflow: hidden;">
+              <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
+                <source src="images/about/start&dash.mp4" type="video/mp4">
+              </video>
+              <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
+            </div>
+            <div style="padding: 20px;">
+              <p style="color: var(--navy-dark); font-weight: 700; font-size: 15px; line-height: 1.4; margin: 0;">スタート&ダッシュ<br>基本フォーム習得</p>
+            </div>
+          </div>
+          <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 3px solid var(--primary-orange); transition: all 0.3s ease;">
+            <div style="height: 160px; position: relative; overflow: hidden;">
+              <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
+                <source src="images/about/brain-training.mp4" type="video/mp4">
+              </video>
+              <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
+            </div>
+            <div style="padding: 20px;">
+              <p style="color: var(--navy-dark); font-weight: 700; font-size: 15px; line-height: 1.4; margin: 0;">脳トレ＆判断力<br>集中力向上</p>
+            </div>
+          </div>
+          <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 3px solid var(--primary-blue); transition: all 0.3s ease;">
+            <div style="height: 160px; position: relative; overflow: hidden;">
+              <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
+                <source src="images/about/teamwork-build.mp4" type="video/mp4">
+              </video>
+              <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
+            </div>
+            <div style="padding: 20px;">
+              <p style="color: var(--navy-dark); font-weight: 700; font-size: 15px; line-height: 1.4; margin: 0;">チームワーク<br>協調性育成</p>
+            </div>
+          </div>
+          <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 3px solid var(--primary-purple); transition: all 0.3s ease;">
+            <div style="height: 160px; position: relative; overflow: hidden;">
+              <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
+                <source src="images/about/confidence-build.mp4" type="video/mp4">
+              </video>
+              <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
+            </div>
+            <div style="padding: 20px;">
+              <p style="color: var(--navy-dark); font-weight: 700; font-size: 15px; line-height: 1.4; margin: 0;">自信&成功体験<br>挑戦心の育成</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 3つの特徴 -->
+      <h3 style="text-align: center; font-size: clamp(28px, 5vw, 42px); color: var(--navy-dark); margin-bottom: 60px; font-weight: 800; position: relative;">
+        RBS陸上教室の3つの特徴
+        <span style="position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); width: 100px; height: 6px; background: var(--primary-blue); border-radius: 3px;"></span>
+      </h3>
+      <div class="features">
+        <div class="feature-card animate-on-scroll">
+          <span class="feature-number">1</span>
+          <h3>どんなスポーツにも活きる<br>「走りの土台」を育てる陸上教室</h3>
+          <p>
+            スタート・ダッシュ・加速・トップスピード・リズム・フォーム改善など、
+            あらゆるスポーツに必要な<strong>"走りのスキル"</strong>を、専門的な指導で徹底的に磨きます。<br>
+            将来どんなスポーツを選んでも活きる<span class="text-primary">「運動の土台」</span>が自然と身につきます。
+          </p>
+        </div>
+        <div class="feature-card animate-on-scroll">
+          <span class="feature-number">2</span>
+          <h3><span class="text-success">"集中力・判断力・挑戦心"</span>を育てる<br>非認知能力開発プログラム</h3>
+          <p>
+            21世紀を生きる子どもたちに欠かせない「考える力」「やり抜く力」「他人と協力する力」などを、
+            運動と脳トレを組み合わせた独自メソッドで伸ばします。<br>
+            「走りが速くなる」だけでなく、<strong>学習面や日常生活にも良い変化</strong>が現れます。
+          </p>
+        </div>
+        <div class="feature-card animate-on-scroll">
+          <span class="feature-number">3</span>
+          <h3>1人ひとりに寄り添う<br><span class="text-warning">"密着型パーソナルスクール"</span></h3>
+          <p>
+            1クラス最大20名の少人数制。お子さまの個性や成長ペースに合わせて、経験豊富なコーチが毎回しっかり観察＆声かけしながら丁寧に指導します。<br>
+            さらに、別途オプション（有料）で「自宅でできるトレーニング動画」も配信。<br>
+            <strong>「うちの子に合わせてくれている」という実感と安心感</strong>が得られます。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- なぜジュニア期に -->
+  <section id="why-junior">
+    <div class="container-wide">
+      <h2>RBS陸上教室がジュニア期におすすめな理由</h2>
+      <div class="why-junior-content">
+        <div class="reason-list">
+          <div class="reason-item animate-on-scroll">
+            <h4>「走る力」はすべてのスポーツの基本！</h4>
+            <p>サッカー・野球・バスケなど、すべての競技の土台となる<span class="text-primary">運動能力</span>を高められます。</p>
+          </div>
+          <div class="reason-item animate-on-scroll">
+            <h4>自分のペースで成長できる個人競技だから、比べずに続けやすい</h4>
+            <p>自分の目標に向かってコツコツ頑張る<span class="text-success">習慣</span>が育ちます。</p>
+          </div>
+          <div class="reason-item animate-on-scroll">
+            <h4>シンプルで始めやすいから、運動が苦手な子も安心</h4>
+            <p>専門的な技術がなくてもOK。<span class="text-highlight">「できた！」の成功体験</span>が積み重なります。</p>
+          </div>
+          <div class="reason-item animate-on-scroll">
+            <h4>道具いらずで、気軽にスタートできる</h4>
+            <p>特別な準備は不要。手軽に始められて、<span class="text-warning">習い事が初めて</span>のご家庭にもぴったりです。</p>
+          </div>
+        </div>
+        <div class="bottom-message animate-on-scroll">
+          ジュニア期こそ「正しい走り方」を学び、<br>
+          運動の楽しさと自信を手に入れるチャンス！<br>
+          RBS陸上教室は、お子さまの"はじめてのスポーツ"にも最適です。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- プログラム内容・1日の流れ -->
+  <section id="program" style="background: var(--white); padding: 100px 0;">
+    <div class="container-wide">
+      <h2>プログラム内容・1日の流れ</h2>
+      
+      <!-- コース紹介 -->
+      <div class="program-grid">
+        
+        <!-- ベーシックコース -->
+        <div class="program-card">
+          <div class="program-header">
+            <h3 style="font-size: 28px; margin-bottom: 10px; font-weight: 800;">ベーシックコース</h3>
+            <p style="font-size: 18px; font-weight: 600; opacity: 0.9;">年長〜小学3年生対象</p>
+            <p style="font-size: 16px; margin-top: 10px; opacity: 0.8;">月曜日 17:00〜17:50 (50分)</p>
+          </div>
+          
+          <div class="program-body">
+            <h4 style="color: var(--navy-dark); font-size: 22px; margin-bottom: 20px; font-weight: 700;">🎯 コースの特徴</h4>
+            <ul style="list-style: none; margin-bottom: 30px;">
+              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
+                <span style="position: absolute; left: 0; color: var(--primary-teal); font-weight: 700;">✓</span>
+                楽しく走る基本を身につける
+              </li>
+              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
+                <span style="position: absolute; left: 0; color: var(--primary-teal); font-weight: 700;">✓</span>
+                遊び感覚で運動能力を向上
+              </li>
+              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
+                <span style="position: absolute; left: 0; color: var(--primary-teal); font-weight: 700;">✓</span>
+                集中力・協調性を育成
+              </li>
+              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
+                <span style="position: absolute; left: 0; color: var(--primary-teal); font-weight: 700;">✓</span>
+                成功体験を積み重ねる
+              </li>
+            </ul>
+            
+            <h4 style="color: var(--navy-dark); font-size: 22px; margin-bottom: 20px; font-weight: 700;">⏱️ 1日の流れ</h4>
+            <div style="background: var(--gray-light); padding: 25px; border-radius: 15px;">
+              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
+                <strong style="color: var(--primary-teal); display: block; margin-bottom: 5px;">17:00-17:10 (10分)</strong>
+                <span style="color: var(--gray-medium); font-size: 15px;">ウォーミングアップ・あいさつ</span>
+              </div>
+              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
+                <strong style="color: var(--primary-teal); display: block; margin-bottom: 5px;">17:10-17:25 (15分)</strong>
+                <span style="color: var(--gray-medium); font-size: 15px;">基本動作・フォーム練習</span>
+              </div>
+              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
+                <strong style="color: var(--primary-teal); display: block; margin-bottom: 5px;">17:25-17:40 (15分)</strong>
+                <span style="color: var(--gray-medium); font-size: 15px;">脳トレ&走力向上トレーニング</span>
+              </div>
+              <div style="margin-bottom: 0;">
+                <strong style="color: var(--primary-teal); display: block; margin-bottom: 5px;">17:40-17:50 (10分)</strong>
+                <span style="color: var(--gray-medium); font-size: 15px;">ゲーム・クールダウン・振り返り</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- アドバンスコース -->
+        <div class="program-card advanced">
+          <div class="program-header">
+            <h3 style="font-size: 28px; margin-bottom: 10px; font-weight: 800;">アドバンスコース</h3>
+            <p style="font-size: 18px; font-weight: 600; opacity: 0.9;">小学4年生〜6年生対象</p>
+            <p style="font-size: 16px; margin-top: 10px; opacity: 0.8;">月曜日 18:00〜18:50 (50分)</p>
+          </div>
+          
+          <div class="program-body">
+            <h4 style="color: var(--navy-dark); font-size: 22px; margin-bottom: 20px; font-weight: 700;">🎯 コースの特徴</h4>
+            <ul style="list-style: none; margin-bottom: 30px;">
+              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
+                <span style="position: absolute; left: 0; color: var(--primary-orange); font-weight: 700;">✓</span>
+                より専門的な走り方をマスター
+              </li>
+              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
+                <span style="position: absolute; left: 0; color: var(--primary-orange); font-weight: 700;">✓</span>
+                競技力向上と記録への挑戦
+              </li>
+              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
+                <span style="position: absolute; left: 0; color: var(--primary-orange); font-weight: 700;">✓</span>
+                リーダーシップ・判断力強化
+              </li>
+              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
+                <span style="position: absolute; left: 0; color: var(--primary-orange); font-weight: 700;">✓</span>
+                目標設定と達成の習慣化
+              </li>
+            </ul>
+            
+            <h4 style="color: var(--navy-dark); font-size: 22px; margin-bottom: 20px; font-weight: 700;">⏱️ 1日の流れ</h4>
+            <div style="background: var(--gray-light); padding: 25px; border-radius: 15px;">
+              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
+                <strong style="color: var(--primary-orange); display: block; margin-bottom: 5px;">18:00-18:10 (10分)</strong>
+                <span style="color: var(--gray-medium); font-size: 15px;">ウォーミングアップ・目標確認</span>
+              </div>
+              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
+                <strong style="color: var(--primary-orange); display: block; margin-bottom: 5px;">18:10-18:30 (20分)</strong>
+                <span style="color: var(--gray-medium); font-size: 15px;">専門技術・スピード強化</span>
+              </div>
+              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
+                <strong style="color: var(--primary-orange); display: block; margin-bottom: 5px;">18:30-18:45 (15分)</strong>
+                <span style="color: var(--gray-medium); font-size: 15px;">脳トレ&実戦練習</span>
+              </div>
+              <div style="margin-bottom: 0;">
+                <strong style="color: var(--primary-orange); display: block; margin-bottom: 5px;">18:45-18:50 (5分)</strong>
+                <span style="color: var(--gray-medium); font-size: 15px;">クールダウン・目標振り返り</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 共通プログラム要素 -->
+      <div style="background: var(--gray-light); padding: 50px; border-radius: 30px; margin-bottom: 60px;">
+        <h3 style="text-align: center; color: var(--navy-dark); font-size: 30px; margin-bottom: 40px; font-weight: 800;">両コース共通の特別プログラム</h3>
+        
+        <div class="common-programs">
+          <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); border: 4px solid var(--primary-teal); transition: all 0.3s ease;">
+            <div style="height: 160px; position: relative; overflow: hidden;">
+              <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
+                <source src="images/program/brain-training.mp4" type="video/mp4">
+              </video>
+              <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
+            </div>
+            <div style="padding: 20px; text-align: center;">
+              <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700;">脳トレメニュー</h4>
+              <p style="color: var(--gray-medium); font-size: 15px; line-height: 1.6;">判断力・集中力を向上させる認知トレーニング</p>
+            </div>
+          </div>
+          
+          <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); border: 4px solid var(--primary-blue); transition: all 0.3s ease;">
+            <div style="height: 160px; position: relative; overflow: hidden;">
+              <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
+                <source src="images/program/record-measurement.mp4" type="video/mp4">
+              </video>
+              <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
+            </div>
+            <div style="padding: 20px; text-align: center;">
+              <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700;">記録測定</h4>
+              <p style="color: var(--gray-medium); font-size: 15px; line-height: 1.6;">定期的な記録測定で成長を実感</p>
+            </div>
+          </div>
+          
+          <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); border: 4px solid var(--primary-orange); transition: all 0.3s ease;">
+            <div style="height: 160px; position: relative; overflow: hidden;">
+              <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
+                <source src="images/program/goal-achievement.mp4" type="video/mp4">
+              </video>
+              <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
+            </div>
+            <div style="padding: 20px; text-align: center;">
+              <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700;">目標達成システム</h4>
+              <p style="color: var(--gray-medium); font-size: 15px; line-height: 1.6;">個人目標を設定し、達成を祝う仕組み</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- コーチ紹介 */
+  <section id="coach">
+    <div class="container">
+      <h2>コーチ紹介</h2>
+      <div class="coach-grid">
+        <img src="images/coach-profile.jpg" alt="メインコーチ" class="coach-image">
+        <div class="coach-info">
+          <h3>田中 健太郎</h3>
+          <p class="coach-title">メインコーチ / 元実業団選手</p>
+          <p>
+            大学時代は陸上競技部で短距離を専門とし、実業団でも活躍。引退後は子どもたちの指導に情熱を注ぎ、
+            これまで1000人以上の子どもたちを指導してきました。
+          </p>
+          <p>
+            「走ることの楽しさを伝えながら、子どもたち一人ひとりの可能性を引き出すこと」をモットーに、
+            丁寧で分かりやすい指導を心がけています。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 教室情報 -->
+  <section id="location">
+    <div class="container-wide">
+      <h2>教室開催地</h2>
+      <div class="location-content">
+        <div class="location-info card-base">
+          <h3>RBS陸上教室 大泉学園校</h3>
+          <div class="info-item">
+            <strong>開催日</strong>
+            <span>毎週月曜日</span>
+          </div>
+          <div class="info-item">
+            <strong>場所</strong>
+            <span>練馬区立大泉中央公園（陸上エリア）</span>
+          </div>
+          <div class="info-item access-item">
+            <strong>アクセス</strong>
+            <span>西武池袋線「大泉学園駅」より徒歩約15分</span>
+          </div>
+          <div class="course-schedule">
+            <h4>対象コースと時間割</h4>
+            <div class="course-item">
+              <strong>ベーシックコース（年長〜小3対象）</strong><br>
+              17:00〜17:50
+            </div>
+            <div class="course-item">
+              <strong>アドバンスコース（小4〜小6対象）</strong><br>
+              18:00〜18:50
+            </div>
+          </div>
+          <div class="weather-notice">
+            雨天等による開催中止は、レッスン開始1時間半前までに<br>
+            「本日のレッスン開催状況」でお知らせします。
+          </div>
+        </div>
+        <div class="map-wrapper">
+          <iframe
+            src="https://maps.google.com/maps?q=練馬区大泉学園町９丁目４−３&t=&z=16&ie=UTF8&iwloc=&output=embed"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+    <!-- 料金 -->
+  <section id="price">
+    <div class="container-wide">
+      <h2>料金プラン</h2>
+      <div class="price-tables">
+        <div class="price-card">
+          <div class="price-header">
+            <h3>ベーシック 🌟</h3>
+            <p>（年長〜小3）</p>
+          </div>
+          <div class="price-body">
+            <div class="price-item">
+              <span class="price-label">週1回コース<br>月4回・60分/回</span>
+              <span class="price-amount">¥8,800<small>/月（税込）</small></span>
+            </div>
+            <div class="price-item">
+              <span class="price-label">週2回コース<br>月8回・60分/回</span>
+              <span class="price-amount">¥14,200<small>/月（税込）</small></span>
+            </div>
+          </div>
+        </div>
+        <div class="price-card">
+          <div class="price-header">
+            <h3>アドバンス 🏃‍♂️</h3>
+            <p>（小4〜小6）</p>
+          </div>
+          <div class="price-body">
+            <div class="price-item">
+              <span class="price-label">週1回コース<br>月4回・60分/回</span>
+              <span class="price-amount">¥8,800<small>/月（税込）</small></span>
+            </div>
+            <div class="price-item">
+              <span class="price-label">週2回コース<br>月8回・60分/回</span>
+              <span class="price-amount">¥14,200<small>/月（税込）</small></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="entry-fees">
+        <h4>💰 初期費用</h4>
+        <div class="fee-item">
+          <span class="fee-label">入会金</span>
+          <span class="fee-amount">¥13,200</span>
+        </div>
+        <div class="fee-item">
+          <span class="fee-label">年会費</span>
+          <span class="fee-amount">¥9,900</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="container">
+      <h2>よくあるご質問</h2>
+      <div class="faq-list">
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Q1. レッスンではどのような内容を行いますか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            <p>
+              RBS陸上教室では、「走る・跳ぶ・投げる」といった陸上競技の基本動作を中心に、遊び感覚も取り入れたトレーニングを通じて自然と運動能力を高めていきます。短距離を中心に、他の球技にも活きるトレーニングを楽しく体験しながら基礎を習得できるカリキュラムです。<br><br>
+              また、非認知能力（挑戦する力・集中力・協調性など）を育むプログラムも導入しており、競技力だけでなく人間力の向上にも力を入れています。少人数制クラスで、一人ひとりの成長に寄り添った丁寧な指導を行っています。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Q2. 無料体験は可能ですか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            <p>
+              はい、<span class="text-success">無料体験レッスン</span>を随時受け付けております。体験をご希望の方は、当教室のウェブサイトにてお申し込みください。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Q3. 他の陸上クラブとの違いは何ですか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            <p>
+              RBS陸上教室は、単なる技術指導だけでなく、子どもたちの<span class="text-primary">非認知能力</span>（自己肯定感、協調性、課題解決能力など）を育むことにも重点を置いています。また、個々の成長に合わせた指導を行い、子どもたち一人ひとりの可能性を最大限に引き出します。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Q4. 持ち物は何が必要ですか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            <p>
+              運動に適した服装、運動に適したシューズ、飲み物（給水用）をご持参ください。また、屋内施設を利用する場合は、室内履きが必要となることがありますので、事前にご確認ください。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Q5. 欠席した場合、振替はできますか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            <p>
+              はい、月に<span class="text-warning">1回まで</span>他のクラスへの振替が可能です。また、天候不良など教室側の都合でレッスンが中止となった場合は、別日に振替を行います。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Q6. 雨天時のレッスン開催についてはどうなりますか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            <p>
+              屋外でのレッスンの場合、雨天時は中止となることがあります。レッスンの開催可否は、開始<span class="text-highlight">1時間半前まで</span>に当教室のウェブサイトの「本日のレッスン開催状況」セクションにてお知らせいたします。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Q7. 休会は可能ですか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            <p>
+              はい、休会をご希望の場合は、休会される<span class="text-warning">前月の20日まで</span>にご申告ください。休会は月単位で承っており、復帰月を事前にお知らせいただく必要があります。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Q8. 月謝の支払い方法は？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            <p>
+              基本的には<span class="text-primary">自動口座引き落とし</span>をお願いしております。一部の教室では、銀行振込など他の支払い方法にも対応しておりますので、詳細はお問い合わせください。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Q9. 何歳から参加できますか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            <p>
+              当教室では、<span class="text-success">年長から</span>ご参加いただけます。体験レッスンは、該当年度の4月1日時点で年長を迎えているお子様が対象となります。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            Q10. 保護者の見学は可能ですか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            <p>
+              はい、レッスンの<span class="text-primary">見学は可能</span>です。お子様が緊張している場合など、保護者の方が一緒に参加いただくこともできますので、ご相談ください。
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+    <!-- CTA -->
+  <section id="cta">
+    <div class="container">
+      <h2>無料体験レッスン受付中！</h2>
+      <div class="cta-content">
+        <p>
+          まずは<span class="text-highlight">無料体験</span>で、RBS陸上教室の楽しさを体感してください。<br>
+          お子様の「走るって楽しい！」「できた！」の瞬間を一緒に見つけましょう。
+        </p>
+        <div class="cta-features">
+          <div class="cta-feature">手ぶらでOK</div>
+          <div class="cta-feature">初心者大歓迎</div>
+          <div class="cta-feature">少人数制で安心</div>
+        </div>
+        <div class="booking-frame">
+          <h3 style="color: var(--navy-dark); margin-bottom: 25px; font-size: 28px;">無料体験予約フォーム</h3>
+          <p style="font-size: 20px; margin-bottom: 25px; font-weight: 600;">
+            下記よりご希望の日程をお選びください
+          </p>
+          <div style="background: var(--gray-light); padding: 50px; border-radius: 15px; color: var(--gray-medium); text-align: center;">
+            <p style="font-size: 18px; font-weight: 600;">hacomono予約システムがここに表示されます</p>
+            <p style="font-size: 16px; margin-top: 25px; color: var(--primary-blue);">
+              ※実際の運用時はhacomonoの埋め込みコードに置き換えてください
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEWS -->
+  <section id="news">
+    <div class="container">
+      <h2>NEWS</h2>
+      <div class="news-list" id="news-list">
+        <!-- ニュース記事は動的に生成されます -->
+        <div class="loading-news" style="text-align: center; padding: 40px; color: var(--gray-medium);">
+          <div style="margin-bottom: 15px;">
+            <div style="border: 2px solid #f3f3f3; border-top: 2px solid var(--primary-blue); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+          </div>
+          <p style="font-size: 16px; font-weight: 600;">ニュースを読み込み中...</p>
+        </div>
+      </div>
+      
+      <!-- ニュース一覧へのリンク -->
+      <div style="text-align: center; margin-top: 40px;">
+        <a href="news.html" style="display: inline-block; padding: 16px 40px; background: var(--primary-blue); color: white; text-decoration: none; border-radius: 50px; font-size: 18px; font-weight: 700; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);">
+          ニュース一覧を見る
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 会社概要 -->
+  <section id="company">
+    <div class="container">
+      <h2>会社概要</h2>
+      <div class="company-info">
+        <table class="company-table">
+          <tr>
+            <th>会社名</th>
+            <td><strong>合同会社VITA（VITA,LLC）</strong></td>
+          </tr>
+          <tr>
+            <th>所在地</th>
+            <td>〒356-0051 埼玉県ふじみ野市駒西1-9-18</td>
+          </tr>
+          <tr>
+            <th>設立</th>
+            <td>2023年9月1日</td>
+          </tr>
+          <tr>
+            <th>代表</th>
+            <td><strong>今井 悠太</strong></td>
+          </tr>
+        </table>
+        <div class="company-philosophy">
+          <h4>企業理念</h4>
+          <p>健康と成長をデザインする</p>
+        </div>
+        <h4 style="margin-top: 40px; margin-bottom: 20px; color: var(--navy-dark); font-size: 20px; font-weight: 700;">事業内容</h4>
+        <ul class="business-list">
+          <li>RBS陸上教室の企画・運営</li>
+          <li>FBK methodの企画・運営</li>
+          <li>企業向け健康セミナーの実施</li>
+          <li>各種スクールの企画・運営</li>
+          <li>教室・トレーニングコンサルティング</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- フッター -->
+  <footer>
+    <div class="footer-links">
+      <a href="#about">RBSとは</a>
+      <a href="#program">プログラム</a>
+      <a href="#location">教室情報</a>
+      <a href="#price">料金</a>
+      <a href="news.html">ニュース</a>
+    </div>
+    <p>&copy; 2024 RBS陸上教室. All rights reserved.</p>
+  </footer>
+
+  <!-- JavaScript -->
+  <script src="js/markdown-parser.js"></script>
+  <script src="status-updater.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- 構造化データ (SEO) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SportsActivityLocation",
+    "name": "RBS陸上教室 大泉学園校",
+    "description": "大泉学園の年長〜小6向け陸上教室。走力だけでなく集中力・判断力・挑戦心も育てる独自プログラム。",
+    "url": "https://rbs-sportas.jp",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "大泉中央公園",
+      "addressLocality": "練馬区",
+      "addressRegion": "東京都",
+      "addressCountry": "JP"
+    },
+    "openingHours": "Mo 17:00-18:50",
+    "priceRange": "¥8,800-¥14,200"
+  }
+  </script>
+</body>
+</html> 

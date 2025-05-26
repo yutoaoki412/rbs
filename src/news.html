@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEWS - RBS陸上教室</title>
+  <meta name="description" content="RBS陸上教室の最新ニュース・お知らせ一覧。体験会情報、メディア掲載、教室の最新情報をお届けします。">
+  <meta name="keywords" content="RBS陸上教室 ニュース, 大泉学園 陸上教室 お知らせ, 体験会情報">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+      line-height: 1.7;
+      color: #2c3e50;
+      background-color: #f8fafe;
+      overflow-x: hidden;
+    }
+    
+    /* カラーパレット */
+    :root {
+      --primary-blue: #4a90e2;
+      --primary-teal: #50c8a3;
+      --primary-orange: #f5a623;
+      --primary-red: #e74c3c;
+      --primary-purple: #9b59b6;
+      --primary-pink: #e91e63;
+      --secondary-yellow: #f39c12;
+      --secondary-mint: #1abc9c;
+      --navy-dark: #2c3e50;
+      --gray-light: #f8f9fa;
+      --gray-medium: #6c757d;
+      --gray-border: #dee2e6;
+      --white: #ffffff;
+      --success: #28a745;
+      --warning: #ffc107;
+    }
+    
+    /* ヘッダー */
+    header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      padding: 12px 0;
+      border-bottom: 3px solid var(--primary-blue);
+    }
+    
+    nav {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+    }
+    
+    .logo a {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .logo a:hover {
+      transform: translateY(-3px) scale(1.02);
+    }
+    
+    .logo-image {
+      height: 100px;
+      width: auto;
+      max-width: 600px;
+      object-fit: cover;
+      object-position: center;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 0;
+      list-style: none;
+      align-items: center;
+    }
+    
+    .nav-links li {
+      margin-right: 32px;
+      position: relative;
+    }
+    
+    .nav-links li:last-child {
+      margin-right: 0;
+      margin-left: 50px;
+    }
+    
+    .nav-links a {
+      text-decoration: none;
+      color: var(--navy-dark);
+      font-weight: 700;
+      font-size: 16px;
+      transition: color 0.3s ease;
+      position: relative;
+      padding: 12px 12px;
+      white-space: nowrap;
+      border-radius: 8px;
+      display: block;
+    }
+    
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background: var(--primary-blue);
+      transition: width 0.3s ease;
+      transform: translateX(-50%);
+      border-radius: 1px;
+    }
+    
+    .nav-links a:hover {
+      color: var(--primary-blue);
+    }
+    
+    .nav-links a:hover::after {
+      width: 80%;
+    }
+    
+    .nav-links .login-btn {
+      background: var(--primary-orange);
+      color: white !important;
+      padding: 14px 32px;
+      border-radius: 50px;
+      font-size: 15px;
+      font-weight: 800;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      border: none;
+      box-shadow: 0 8px 25px rgba(245, 167, 35, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .nav-links .login-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.5s;
+    }
+    
+    .nav-links .login-btn:hover {
+      background: #e6941f !important;
+      color: white !important;
+      box-shadow: 0 10px 25px rgba(245, 167, 35, 0.4);
+    }
+    
+    .nav-links .login-btn:hover::before {
+      left: 100%;
+    }
+    
+    .nav-links .login-btn::after {
+      display: none !important;
+    }
+    
+    /* メインコンテンツ */
+    main {
+      padding-top: 140px;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+    
+    /* ページヘッダー */
+    .page-header {
+      text-align: center;
+      margin-bottom: 60px;
+      position: relative;
+      padding: 60px 0;
+      background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal));
+      color: white;
+      border-radius: 30px;
+      overflow: hidden;
+    }
+    
+    .page-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      animation: shimmer 4s infinite;
+    }
+    
+    @keyframes shimmer {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+    
+    .page-header h1 {
+      font-size: clamp(36px, 6vw, 48px);
+      margin-bottom: 20px;
+      font-weight: 900;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .page-header p {
+      font-size: clamp(16px, 3vw, 20px);
+      opacity: 0.9;
+      position: relative;
+      z-index: 2;
+      font-weight: 600;
+    }
+    
+    /* フィルター */
+    .news-filters {
+      background: var(--white);
+      padding: 30px;
+      border-radius: 20px;
+      margin-bottom: 40px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+      border: 2px solid var(--gray-border);
+    }
+    
+    .filter-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--navy-dark);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .filter-title::before {
+      content: '🔍';
+      font-size: 20px;
+    }
+    
+    .filter-buttons {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .filter-btn {
+      padding: 12px 24px;
+      border: 2px solid var(--gray-border);
+      background: var(--white);
+      color: var(--gray-medium);
+      border-radius: 25px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .filter-btn:hover {
+      border-color: var(--primary-blue);
+      color: var(--primary-blue);
+      transform: translateY(-2px);
+    }
+    
+    .filter-btn.active {
+      background: var(--primary-blue);
+      color: white;
+      border-color: var(--primary-blue);
+      box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+    }
+    
+    /* ニュース一覧 */
+    .news-grid {
+      display: grid;
+      gap: 30px;
+      margin-bottom: 60px;
+    }
+    
+    .news-card {
+      background: var(--white);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+      position: relative;
+    }
+    
+    .news-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+      border-color: var(--primary-blue);
+    }
+    
+    .news-card-header {
+      padding: 25px 30px 20px;
+      border-bottom: 2px solid var(--gray-light);
+    }
+    
+    .news-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .news-date {
+      font-size: 16px;
+      color: var(--gray-medium);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .news-date::before {
+      content: '📅';
+      font-size: 14px;
+    }
+    
+    .news-category {
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .news-category.announcement {
+      background: var(--primary-blue);
+    }
+    
+    .news-category.event {
+      background: var(--primary-teal);
+    }
+    
+    .news-category.media {
+      background: var(--primary-purple);
+    }
+    
+    .news-category.important {
+      background: var(--primary-red);
+    }
+    
+    .news-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--navy-dark);
+      line-height: 1.4;
+      margin-bottom: 0;
+    }
+    
+    .news-card-body {
+      padding: 20px 30px 30px;
+    }
+    
+    .news-excerpt {
+      color: var(--gray-medium);
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    
+    .news-read-more {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--primary-blue);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    
+    .news-read-more:hover {
+      color: var(--primary-teal);
+      transform: translateX(5px);
+    }
+    
+    .news-read-more::after {
+      content: '→';
+      transition: transform 0.3s ease;
+    }
+    
+    .news-read-more:hover::after {
+      transform: translateX(3px);
+    }
+    
+    /* ページネーション */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 60px 0;
+    }
+    
+    .pagination a,
+    .pagination span {
+      padding: 12px 16px;
+      border: 2px solid var(--gray-border);
+      background: var(--white);
+      color: var(--gray-medium);
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      min-width: 48px;
+      text-align: center;
+    }
+    
+    .pagination a:hover {
+      border-color: var(--primary-blue);
+      color: var(--primary-blue);
+      transform: translateY(-2px);
+    }
+    
+    .pagination .current {
+      background: var(--primary-blue);
+      color: white;
+      border-color: var(--primary-blue);
+      box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+    }
+    
+    .pagination .disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .pagination .disabled:hover {
+      transform: none;
+      border-color: var(--gray-border);
+      color: var(--gray-medium);
+    }
+    
+    /* 検索結果表示 */
+    .search-results {
+      background: var(--gray-light);
+      padding: 20px 30px;
+      border-radius: 15px;
+      margin-bottom: 30px;
+      border-left: 4px solid var(--primary-blue);
+    }
+    
+    .search-results-text {
+      color: var(--navy-dark);
+      font-weight: 600;
+      font-size: 16px;
+    }
+    
+    /* フッター */
+    footer {
+      background: var(--navy-dark);
+      color: white;
+      text-align: center;
+      padding: 60px 20px;
+      position: relative;
+      overflow: hidden;
+      margin-top: 80px;
+    }
+    
+    footer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: var(--primary-blue);
+    }
+    
+    footer a {
+      color: white;
+      text-decoration: none;
+      margin: 0 20px;
+      transition: all 0.3s;
+      padding: 8px 16px;
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 16px;
+      display: inline-block;
+    }
+    
+    footer a:hover {
+      background: var(--primary-blue);
+      transform: translateY(-2px);
+    }
+    
+    footer p {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .footer-links {
+      margin-bottom: 20px;
+    }
+    
+    /* モバイルメニュー */
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 32px;
+      cursor: pointer;
+      color: var(--primary-blue);
+      font-weight: 800;
+    }
+    
+    /* レスポンシブ */
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--white);
+        flex-direction: column;
+        padding: 20px;
+        box-shadow: 0 8px 30px rgba(30, 41, 59, 0.15);
+        border-top: 3px solid var(--primary-blue);
+        gap: 0;
+      }
+      
+      .nav-links li {
+        margin-right: 0;
+        margin-bottom: 15px;
+      }
+      
+      .nav-links li:last-child {
+        margin-left: 0;
+        margin-bottom: 0;
+      }
+      
+      .nav-links.active {
+        display: flex;
+      }
+      
+      .mobile-menu-btn {
+        display: block;
+      }
+      
+      .container {
+        padding: 0 20px;
+      }
+      
+      nav {
+        padding: 0 20px;
+      }
+      
+      .logo-image {
+        height: 80px;
+        max-width: 450px;
+      }
+      
+      main {
+        padding-top: 120px;
+      }
+      
+      .page-header {
+        padding: 40px 20px;
+        margin: 0 -20px 40px;
+        border-radius: 0;
+      }
+      
+      .news-filters {
+        padding: 20px;
+        margin: 0 -20px 30px;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+      }
+      
+      .filter-buttons {
+        gap: 10px;
+      }
+      
+      .filter-btn {
+        padding: 10px 18px;
+        font-size: 13px;
+      }
+      
+      .news-card-header,
+      .news-card-body {
+        padding: 20px;
+      }
+      
+      .news-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      
+      .news-title {
+        font-size: 18px;
+      }
+      
+      .pagination {
+        gap: 5px;
+        margin: 40px 0;
+      }
+      
+      .pagination a,
+      .pagination span {
+        padding: 10px 12px;
+        font-size: 14px;
+        min-width: 40px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .page-header h1 {
+        font-size: 28px;
+      }
+      
+      .page-header p {
+        font-size: 16px;
+      }
+      
+      .news-card-header,
+      .news-card-body {
+        padding: 15px;
+      }
+      
+      .news-title {
+        font-size: 16px;
+      }
+      
+      .news-excerpt {
+        font-size: 14px;
+      }
+      
+      .filter-btn {
+        padding: 8px 14px;
+        font-size: 12px;
+      }
+    }
+    
+    /* ローディングアニメーション */
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- ヘッダー -->
+  <header>
+    <nav>
+      <div class="logo">
+        <a href="index.html">
+          <img src="images/lp-logo.png" alt="RBS陸上教室 Running & Brain School" class="logo-image">
+        </a>
+      </div>
+      <ul class="nav-links">
+        <li><a href="index.html#about">RBSとは</a></li>
+        <li><a href="index.html#program">プログラム</a></li>
+        <li><a href="index.html#coach">コーチ</a></li>
+        <li><a href="index.html#location">教室情報</a></li>
+        <li><a href="index.html#price">料金</a></li>
+        <li><a href="index.html#faq">よくある質問</a></li>
+        <li><a href="news.html">NEWS</a></li>
+        <li><a href="https://hacomono.jp/" class="login-btn" target="_blank">会員ログイン</a></li>
+      </ul>
+      <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container">
+      <!-- ページヘッダー -->
+      <div class="page-header">
+        <h1>NEWS</h1>
+        <p>RBS陸上教室の最新情報をお届けします</p>
+      </div>
+
+      <!-- フィルター -->
+      <div class="news-filters">
+        <div class="filter-title">カテゴリーで絞り込み</div>
+        <div class="filter-buttons">
+          <a href="news.html" class="filter-btn active">すべて</a>
+          <a href="news.html?category=announcement" class="filter-btn">お知らせ</a>
+          <a href="news.html?category=event" class="filter-btn">体験会</a>
+          <a href="news.html?category=media" class="filter-btn">メディア</a>
+          <a href="news.html?category=important" class="filter-btn">重要</a>
+        </div>
+      </div>
+
+      <!-- 検索結果表示 -->
+      <div class="search-results" style="display: none;">
+        <div class="search-results-text">
+          <span id="search-count">0</span>件の記事が見つかりました
+        </div>
+      </div>
+
+      <!-- ニュース一覧 -->
+      <div class="news-grid">
+        <!-- 記事は動的に生成されます -->
+        <div class="loading-message" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--gray-medium);">
+          <div style="margin-bottom: 20px;">
+            <div style="border: 3px solid #f3f3f3; border-top: 3px solid var(--primary-blue); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+          </div>
+          <p style="font-size: 18px; font-weight: 600;">記事を読み込み中...</p>
+        </div>
+      </div>
+
+      <!-- ページネーション -->
+      <div class="pagination">
+        <a href="#" class="disabled">‹ 前へ</a>
+        <span class="current">1</span>
+        <a href="news.html?page=2">2</a>
+        <a href="news.html?page=3">3</a>
+        <span>...</span>
+        <a href="news.html?page=5">5</a>
+        <a href="news.html?page=2">次へ ›</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- フッター -->
+  <footer>
+    <div class="footer-links">
+      <a href="/terms">特定商取引法に基づく表記</a>
+      <a href="/privacy">プライバシーポリシー</a>
+      <a href="https://hacomono.jp/" target="_blank">会員ログイン</a>
+    </div>
+    <p>© 2025 合同会社VITA. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // 記事管理システムのインスタンス
+    const articleManager = new ArticleManager();
+
+    // モバイルメニュー切り替え
+    function toggleMobileMenu() {
+      const navLinks = document.querySelector('.nav-links');
+      navLinks.classList.toggle('active');
+    }
+
+    // 記事一覧を動的に生成
+    async function loadAndDisplayArticles() {
+      try {
+        await articleManager.loadArticles();
+        displayArticles();
+        setupFiltering();
+      } catch (error) {
+        console.error('記事の読み込みに失敗しました:', error);
+        showErrorMessage();
+      }
+    }
+
+    // 記事を表示
+    function displayArticles() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const category = urlParams.get('category') || 'all';
+      
+      const filteredArticles = articleManager.filterByCategory(category);
+      const newsGrid = document.querySelector('.news-grid');
+      
+      // 既存の記事をクリア
+      newsGrid.innerHTML = '';
+      
+      // 記事がない場合
+      if (filteredArticles.length === 0) {
+        newsGrid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--gray-medium);">
+            <p style="font-size: 18px; font-weight: 600;">該当する記事が見つかりませんでした。</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // 記事カードを生成
+      filteredArticles.forEach(article => {
+        const articleCard = createArticleCard(article);
+        newsGrid.appendChild(articleCard);
+      });
+      
+      // 検索結果表示を更新
+      updateSearchResults(filteredArticles.length, category);
+      
+      // アニメーション効果を適用
+      applyAnimations();
+    }
+
+    // 記事カードを作成
+    function createArticleCard(article) {
+      const card = document.createElement('article');
+      card.className = 'news-card';
+      card.setAttribute('data-category', article.category);
+      
+      const categoryColor = articleManager.getCategoryColor(article.category);
+      
+      card.innerHTML = `
+        <div class="news-card-header">
+          <div class="news-meta">
+            <div class="news-date">${articleManager.formatDate(article.date)}</div>
+            <div class="news-category ${article.category}" style="background: ${categoryColor};">
+              ${article.categoryName}
+            </div>
+          </div>
+          <h2 class="news-title">${article.title}</h2>
+        </div>
+        <div class="news-card-body">
+          <p class="news-excerpt">${article.excerpt}</p>
+          <a href="news-detail.html?id=${article.id}" class="news-read-more">続きを読む</a>
+        </div>
+      `;
+      
+      return card;
+    }
+
+    // 検索結果表示を更新
+    function updateSearchResults(count, category) {
+      const searchResults = document.querySelector('.search-results');
+      const searchCount = document.getElementById('search-count');
+      
+      if (category !== 'all') {
+        searchResults.style.display = 'block';
+        searchCount.textContent = count;
+      } else {
+        searchResults.style.display = 'none';
+      }
+    }
+
+    // フィルタリング機能をセットアップ
+    function setupFiltering() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const category = urlParams.get('category') || 'all';
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      
+      // フィルターボタンのアクティブ状態を更新
+      filterBtns.forEach(btn => {
+        btn.classList.remove('active');
+        const btnHref = btn.getAttribute('href');
+        if ((category === 'all' && btnHref === 'news.html') || 
+            (category !== 'all' && btnHref.includes(`category=${category}`))) {
+          btn.classList.add('active');
+        }
+      });
+    }
+
+    // アニメーション効果を適用
+    function applyAnimations() {
+      const newsCards = document.querySelectorAll('.news-card');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+          if (entry.isIntersecting) {
+            setTimeout(() => {
+              entry.target.style.opacity = '1';
+              entry.target.style.transform = 'translateY(0)';
+            }, index * 100);
+            observer.unobserve(entry.target);
+          }
+        });
+      }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      });
+
+      newsCards.forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(card);
+      });
+    }
+
+    // エラーメッセージを表示
+    function showErrorMessage() {
+      const newsGrid = document.querySelector('.news-grid');
+      newsGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--primary-red);">
+          <p style="font-size: 18px; font-weight: 600;">記事の読み込みに失敗しました。</p>
+          <p style="margin-top: 10px;">しばらく時間をおいてから再度お試しください。</p>
+        </div>
+      `;
+    }
+
+
+
+    // デバッグ機能（開発時のみ）
+    function debugArticleManager() {
+      if (articleManager.debugInfo) {
+        articleManager.debugInfo();
+      }
+      console.log('現在表示中の記事:', articleManager.articles);
+    }
+
+    // ページロード時に記事を読み込み
+    document.addEventListener('DOMContentLoaded', function() {
+      loadAndDisplayArticles();
+      
+      // デバッグ情報を出力（開発時のみ）
+      setTimeout(() => {
+        debugArticleManager();
+      }, 1000);
+    });
+
+    // ナビゲーションリンクのクリック時にモバイルメニューを閉じる
+    document.querySelectorAll('.nav-links a').forEach(link => {
+      link.addEventListener('click', function() {
+        const navLinks = document.querySelector('.nav-links');
+        if (navLinks.classList.contains('active')) {
+          navLinks.classList.remove('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html> 
