@@ -69,7 +69,7 @@ class ArticleManager {
     this.categories = {
       'all': 'すべて',
       'announcement': 'お知らせ',
-      'trial': '体験会',
+      'event': '体験会',
       'media': 'メディア',
       'important': '重要'
     };
@@ -131,28 +131,52 @@ class ArticleManager {
   /**
    * 特定の記事のMarkdownを読み込み
    */
-  async loadArticleContent(filename) {
+  async loadArticleContent(articleIdOrFilename) {
     try {
       // 管理画面のデータから読み込み
       if (this.adminManager) {
-        const content = await this.adminManager.loadArticleContent(filename);
+        const content = await this.adminManager.loadArticleContent(articleIdOrFilename);
         return this.parser.parse(content);
       }
 
-      // LocalStorageから記事のコンテンツを読み込み（管理画面で作成されたもののみ）
-      const contentData = JSON.parse(localStorage.getItem('rbs_articles_content') || '{}');
-      const article = this.articles.find(a => a.file === filename);
+      // LocalStorageから記事のコンテンツを読み込み（管理画面で作成されたもの）
+      let article = null;
+      let articleId = null;
       
-      if (article && contentData[article.id]) {
-        return this.parser.parse(contentData[article.id]);
+      // articleIdOrFilenameが数値または数値文字列の場合はIDとして処理
+      if (!isNaN(articleIdOrFilename)) {
+        articleId = parseInt(articleIdOrFilename);
+        article = this.articles.find(a => a.id === articleId);
+      } else {
+        // 文字列の場合はファイル名として処理（下位互換性のため）
+        article = this.articles.find(a => a.file === articleIdOrFilename);
+        if (article) {
+          articleId = article.id;
+        }
       }
 
-      // 管理画面で作成されていない記事の場合はエラーを返す
-      console.warn('管理画面で作成されていない記事です:', filename);
-      return '<p>この記事は管理画面で作成されていないため、表示できません。</p>';
+      if (!article) {
+        console.warn('記事が見つかりません:', articleIdOrFilename);
+        return '<p>記事が見つかりませんでした。</p>';
+      }
+
+      // まず記事データのcontentフィールドをチェック（管理画面で作成された記事）
+      if (article.content) {
+        return this.parser.parse(article.content);
+      }
+
+      // 下位互換性のため、別途保存されたコンテンツデータもチェック
+      const contentData = JSON.parse(localStorage.getItem('rbs_articles_content') || '{}');
+      if (contentData[articleId]) {
+        return this.parser.parse(contentData[articleId]);
+      }
+
+      // コンテンツが見つからない場合
+      console.warn('記事のコンテンツが見つかりません:', articleIdOrFilename);
+      return '<div class="empty-content"><h3>記事内容がありません</h3><p>この記事のコンテンツが正しく保存されていません。管理画面から記事を編集してください。</p></div>';
     } catch (error) {
       console.error('記事の読み込みに失敗しました:', error);
-      return '<p>記事の読み込みに失敗しました。</p>';
+      return '<div class="error-content"><h3>記事の読み込みに失敗しました</h3><p>しばらく時間をおいてから再度お試しください。</p></div>';
     }
   }
 
@@ -205,7 +229,7 @@ class ArticleManager {
   getCategoryColor(category) {
     const colors = {
       'announcement': 'var(--primary-blue)',
-      'trial': 'var(--primary-teal)',
+      'event': 'var(--primary-teal)',
       'media': 'var(--primary-purple)',
       'important': 'var(--primary-red)'
     };
@@ -257,6 +281,72 @@ class ArticleManager {
     console.log('記事一覧:', this.articles);
     console.log('LocalStorage記事データ:', localStorage.getItem('rbs_articles_data'));
     console.log('LocalStorageコンテンツデータ:', localStorage.getItem('rbs_articles_content'));
+    
+    // 各記事の詳細情報
+    this.articles.forEach((article, index) => {
+      console.log(`記事${index + 1}:`, {
+        id: article.id,
+        title: article.title,
+        category: article.category,
+        status: article.status,
+        hasContent: !!article.content,
+        contentLength: article.content ? article.content.length : 0,
+        excerpt: article.excerpt || 'なし',
+        date: article.date
+      });
+    });
+    
+    // 公開済み記事のカウント
+    const publishedCount = this.articles.filter(a => a.status === 'published').length;
+    const draftCount = this.articles.filter(a => a.status === 'draft').length;
+    console.log('公開済み記事:', publishedCount, '件');
+    console.log('下書き記事:', draftCount, '件');
+    
     console.log('================================');
+  }
+
+  /**
+   * 管理画面データとの同期状況をチェック
+   */
+  checkDataSync() {
+    try {
+      const adminData = localStorage.getItem('rbs_articles_data');
+      const contentData = localStorage.getItem('rbs_articles_content');
+      
+      console.log('=== データ同期チェック ===');
+      
+      if (!adminData) {
+        console.warn('管理画面データが見つかりません。管理画面から記事を作成してください。');
+        return false;
+      }
+      
+      const articles = JSON.parse(adminData);
+      const publishedArticles = articles.filter(a => a.status === 'published');
+      
+      console.log('管理画面総記事数:', articles.length);
+      console.log('公開済み記事数:', publishedArticles.length);
+      console.log('下書き記事数:', articles.filter(a => a.status === 'draft').length);
+      
+      // コンテンツの整合性チェック
+      if (contentData) {
+        const content = JSON.parse(contentData);
+        const contentIds = Object.keys(content);
+        console.log('コンテンツデータ:', contentIds.length, '件');
+        
+        // 記事データとコンテンツデータの整合性
+        publishedArticles.forEach(article => {
+          const hasContent = article.content || content[article.id];
+          if (!hasContent) {
+            console.warn('コンテンツが見つからない記事:', article.title, '(ID:', article.id, ')');
+          }
+        });
+      }
+      
+      console.log('=======================');
+      return true;
+    } catch (error) {
+      console.error('データ同期チェックでエラー:', error);
+      return false;
+    }
   }
 } 

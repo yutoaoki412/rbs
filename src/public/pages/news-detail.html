@@ -212,8 +212,8 @@
           return;
         }
 
-        // Markdownコンテンツを読み込み
-        const content = await articleManager.loadArticleContent(article.file);
+        // 記事のコンテンツを読み込み（IDを使用）
+        const content = await articleManager.loadArticleContent(article.id);
         
         // ページタイトルとメタデータを更新
         updatePageMetadata(article, content);
@@ -329,8 +329,6 @@
       return div.innerHTML;
     }
 
-
-
     // 記事が見つからない場合のエラー表示
     function showNotFoundError() {
       document.getElementById('article-content').innerHTML = `
@@ -398,6 +396,9 @@
       
       if (articleManager && articleManager.debugInfo) {
         articleManager.debugInfo();
+      }
+      if (articleManager && articleManager.checkDataSync) {
+        articleManager.checkDataSync();
       }
       console.log('================================');
     }

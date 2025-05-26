@@ -6,7 +6,7 @@
 function createTestData() {
   const sampleArticles = [
     {
-      id: 'article_001',
+      id: 1001,
       title: '春の体験会開催のお知らせ',
       category: 'event',
       status: 'published',
@@ -17,7 +17,7 @@ function createTestData() {
       updatedAt: '2024-03-15T10:00:00.000Z'
     },
     {
-      id: 'article_002',
+      id: 1002,
       title: '3月の練習成果報告',
       category: 'announcement',
       status: 'published',
@@ -28,73 +28,68 @@ function createTestData() {
       updatedAt: '2024-03-20T14:30:00.000Z'
     },
     {
-      id: 'article_003',
+      id: 1003,
       title: '新しいトレーニング器具導入',
       category: 'announcement',
       status: 'published',
       summary: 'より効果的なトレーニングのため、新しい器具を導入しました。',
-      content: '# 新しいトレーニング器具\n\n練習の質向上のため、以下の器具を導入しました。\n\n- ハードル\n- ミニコーン\n- ラダー',
+      content: '# 新しいトレーニング器具\n\n練習の質向上のため、以下の器具を導入しました。\n\n- ハードル\n- ミニコーン\n- ラダー\n\n**導入の効果**\n\nこれらの器具により、より専門的で効果的なトレーニングが可能になります。',
       date: '2024-03-22',
       createdAt: '2024-03-22T09:15:00.000Z',
       updatedAt: '2024-03-22T09:15:00.000Z'
     },
     {
-      id: 'article_004',
+      id: 1004,
       title: 'ゴールデンウィーク期間の練習について',
       category: 'important',
       status: 'published',
       summary: 'ゴールデンウィーク期間中の練習スケジュールをお知らせします。',
-      content: '# GW期間の練習スケジュール\n\nゴールデンウィーク期間中の練習は以下の通りです。\n\n## 通常練習日\n- 5月3日（祝）: 通常通り\n- 5月4日（祝）: 通常通り\n\n## 休講日\n- 5月5日（祝）: お休み',
+      content: '# GW期間の練習スケジュール\n\nゴールデンウィーク期間中の練習は以下の通りです。\n\n## 通常練習日\n- 5月3日（祝）: 通常通り\n- 5月4日（祝）: 通常通り\n\n## 休講日\n- 5月5日（祝）: お休み\n\n変更がある場合は別途お知らせいたします。',
       date: '2024-04-01',
       createdAt: '2024-04-01T16:45:00.000Z',
       updatedAt: '2024-04-01T16:45:00.000Z'
     },
     {
-      id: 'article_005',
+      id: 1005,
       title: '春季大会参加者募集',
       category: 'event',
       status: 'draft',
       summary: '春季陸上大会への参加者を募集しています。',
-      content: '# 春季大会参加募集\n\n春季陸上大会への参加者を募集します。\n\n## 大会詳細\n- 日程: 5月15日（土）\n- 場所: 市営陸上競技場\n- 対象: 小学4年生以上',
+      content: '# 春季大会参加募集\n\n春季陸上大会への参加者を募集します。\n\n## 大会詳細\n- 日程: 5月15日（土）\n- 場所: 市営陸上競技場\n- 対象: 小学4年生以上\n\n参加希望者は事前にお申し込みください。',
       date: '2024-04-05',
       createdAt: '2024-04-05T11:20:00.000Z',
       updatedAt: '2024-04-05T11:20:00.000Z'
     },
     {
-      id: 'article_006',
+      id: 1006,
       title: 'メディア出演のお知らせ',
       category: 'media',
       status: 'draft',
       summary: '地元テレビ局の取材を受けることになりました。',
-      content: '# メディア出演\n\n地元テレビ局「○○TV」の取材を受けることになりました。\n\n放送予定日などは決まり次第お知らせします。',
+      content: '# メディア出演\n\n地元テレビ局「○○TV」の取材を受けることになりました。\n\n## 取材内容\n- RBS陸上教室の特徴\n- 子どもたちの成長の様子\n- コーチインタビュー\n\n放送予定日などは決まり次第お知らせします。',
       date: '2024-04-08',
       createdAt: '2024-04-08T13:00:00.000Z',
       updatedAt: '2024-04-08T13:00:00.000Z'
     }
   ];
 
-  const contentData = {
-    'article_001': '# 春の体験会開催\n\n新年度の体験会を4月に開催します。\n\n## 日程\n- 4月10日（土）\n- 4月17日（土）\n\n## 対象\n- 年長〜小学6年生\n\n詳細はお問い合わせください。',
-    'article_002': '# 3月の練習成果\n\n子どもたちの頑張りをご報告します。\n\n## ベーシックコース\n- 全員が50m走のタイムを向上\n\n## アドバンスコース\n- 技術面で大幅な向上を確認',
-    'article_003': '# 新しいトレーニング器具\n\n練習の質向上のため、以下の器具を導入しました。\n\n- ハードル\n- ミニコーン\n- ラダー',
-    'article_004': '# GW期間の練習スケジュール\n\nゴールデンウィーク期間中の練習は以下の通りです。\n\n## 通常練習日\n- 5月3日（祝）: 通常通り\n- 5月4日（祝）: 通常通り\n\n## 休講日\n- 5月5日（祝）: お休み',
-    'article_005': '# 春季大会参加募集\n\n春季陸上大会への参加者を募集します。\n\n## 大会詳細\n- 日程: 5月15日（土）\n- 場所: 市営陸上競技場\n- 対象: 小学4年生以上',
-    'article_006': '# メディア出演\n\n地元テレビ局「○○TV」の取材を受けることになりました。\n\n放送予定日などは決まり次第お知らせします。'
-  };
-
-  // LocalStorageにデータを保存
+  // 記事データを保存
   localStorage.setItem('rbs_articles_data', JSON.stringify(sampleArticles));
+  
+  // 記事コンテンツを別途保存（下位互換性のため）
+  const contentData = {};
+  sampleArticles.forEach(article => {
+    if (article.content) {
+      contentData[article.id] = article.content;
+    }
+  });
   localStorage.setItem('rbs_articles_content', JSON.stringify(contentData));
 
-  console.log('テストデータを作成しました:');
-  console.log('- 記事数:', sampleArticles.length);
-  console.log('- 公開済み:', sampleArticles.filter(a => a.status === 'published').length);
-  console.log('- 下書き:', sampleArticles.filter(a => a.status === 'draft').length);
-  console.log('- 今月の記事:', sampleArticles.filter(a => {
-    const articleMonth = new Date(a.createdAt).getMonth();
-    const currentMonth = new Date().getMonth();
-    return articleMonth === currentMonth;
-  }).length);
+  console.log('テストデータを作成しました：');
+  console.log('- 記事データ:', sampleArticles.length, '件');
+  console.log('- 公開済み:', sampleArticles.filter(a => a.status === 'published').length, '件');
+  console.log('- 下書き:', sampleArticles.filter(a => a.status === 'draft').length, '件');
+  console.log('- コンテンツデータ:', Object.keys(contentData).length, '件');
 }
 
 /**
@@ -103,12 +98,12 @@ function createTestData() {
 function clearTestData() {
   // 既存のテストデータのIDを定義
   const testArticleIds = [
-    'article_001',
-    'article_002', 
-    'article_003',
-    'article_004',
-    'article_005',
-    'article_006'
+    1001,
+    1002, 
+    1003,
+    1004,
+    1005,
+    1006
   ];
 
   try {
@@ -161,12 +156,12 @@ function clearTestData() {
  */
 function hasTestData() {
   const testArticleIds = [
-    'article_001',
-    'article_002', 
-    'article_003',
-    'article_004',
-    'article_005',
-    'article_006'
+    1001,
+    1002, 
+    1003,
+    1004,
+    1005,
+    1006
   ];
 
   try {
@@ -183,12 +178,12 @@ function hasTestData() {
  */
 function hasRealArticles() {
   const testArticleIds = [
-    'article_001',
-    'article_002', 
-    'article_003',
-    'article_004',
-    'article_005',
-    'article_006'
+    1001,
+    1002, 
+    1003,
+    1004,
+    1005,
+    1006
   ];
 
   try {

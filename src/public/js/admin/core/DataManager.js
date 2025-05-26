@@ -235,7 +235,15 @@ export class DataManager extends EventEmitter {
         this.data.articles.unshift(articleData);
       }
 
+      // 記事データを保存
       await this.saveData('articles');
+      
+      // 記事コンテンツを別途保存（下位互換性のため）
+      if (articleData.content) {
+        const contentData = JSON.parse(localStorage.getItem(this.storageKeys.articlesContent) || '{}');
+        contentData[articleData.id] = articleData.content;
+        localStorage.setItem(this.storageKeys.articlesContent, JSON.stringify(contentData));
+      }
       
       this.emit('dataChanged', 'articles', this.data.articles);
       this.emit('articleSaved', articleData);
@@ -265,7 +273,15 @@ export class DataManager extends EventEmitter {
       const article = this.data.articles[index];
       this.data.articles.splice(index, 1);
       
+      // 記事データを保存
       await this.saveData('articles');
+      
+      // 記事コンテンツも削除（下位互換性のため）
+      const contentData = JSON.parse(localStorage.getItem(this.storageKeys.articlesContent) || '{}');
+      if (contentData[id]) {
+        delete contentData[id];
+        localStorage.setItem(this.storageKeys.articlesContent, JSON.stringify(contentData));
+      }
       
       this.emit('dataChanged', 'articles', this.data.articles);
       this.emit('articleDeleted', article);

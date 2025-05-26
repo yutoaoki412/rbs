@@ -765,7 +765,7 @@
       
       <!-- ニュース一覧へのリンク -->
       <div style="text-align: center; margin-top: 40px;">
-        <a href="news.html" style="display: inline-block; padding: 16px 40px; background: var(--primary-blue); color: white; text-decoration: none; border-radius: 50px; font-size: 18px; font-weight: 700; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);">
+        <a href="pages/news.html" style="display: inline-block; padding: 16px 40px; background: var(--primary-blue); color: white; text-decoration: none; border-radius: 50px; font-size: 18px; font-weight: 700; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);">
           ニュース一覧を見る
         </a>
       </div>
@@ -825,6 +825,7 @@
 
   <!-- JavaScript -->
   <script src="../js/config.js"></script>
+  <script src="../js/markdown-parser.js"></script>
   <script src="../components/StatusBanner.js"></script>
   <script type="module" src="../js/main.js"></script>
   
@@ -865,6 +866,17 @@
     
     // ナビゲーションのスムーススクロール（フォールバック）
     document.addEventListener('DOMContentLoaded', function() {
+      // StatusBannerの初期化
+      if (typeof StatusBanner !== 'undefined') {
+        const statusBanner = new StatusBanner();
+        statusBanner.insertIntoPage();
+        statusBanner.startAutoUpdate();
+      }
+      
+      // ニュース記事の読み込み
+      loadAndDisplayNews();
+      
+      // ナビゲーションのスムーススクロール
       const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
       
       navLinks.forEach(link => {
@@ -884,14 +896,113 @@
           }
         });
       });
-      
-      // StatusBannerの初期化
-      if (typeof StatusBanner !== 'undefined') {
-        const statusBanner = new StatusBanner();
-        statusBanner.insertIntoPage();
-        statusBanner.startAutoUpdate();
-      }
     });
+
+    // ニュース記事の読み込みと表示
+    async function loadAndDisplayNews() {
+      try {
+        const articleManager = new ArticleManager();
+        await articleManager.loadArticles();
+        
+        // デバッグ情報を出力（開発時）
+        console.log('=== index.html ニュース読み込み ===');
+        console.log('読み込まれた記事数:', articleManager.articles.length);
+        if (articleManager.checkDataSync) {
+          articleManager.checkDataSync();
+        }
+        
+        // 公開済みの記事を最新順で取得（最大3件）
+        const latestArticles = articleManager.articles
+          .filter(article => article.status === 'published')
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .slice(0, 3);
+        
+        console.log('表示対象記事数:', latestArticles.length);
+        console.log('=====================================');
+        
+        const newsContainer = document.getElementById('news-list');
+        
+        if (latestArticles.length === 0) {
+          newsContainer.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; color: var(--gray-medium);">
+              <p style="font-size: 18px; font-weight: 600;">お知らせはまだありません</p>
+              <p style="font-size: 16px; margin-top: 10px;">新しいお知らせをお待ちください。</p>
+            </div>
+          `;
+          return;
+        }
+        
+        // ニュースカードを生成
+        const newsCardsHTML = latestArticles.map(article => `
+          <div class="news-card" style="background: var(--white); border-radius: 15px; padding: 25px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); margin-bottom: 20px; transition: all 0.3s ease; border-left: 4px solid ${articleManager.getCategoryColor(article.category)};">
+            <div class="news-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+              <div class="news-meta">
+                <div class="news-date" style="color: var(--gray-medium); font-size: 14px; font-weight: 600;">${articleManager.formatDate(article.date)}</div>
+                <div class="news-category" style="display: inline-block; background: ${articleManager.getCategoryColor(article.category)}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-top: 5px;">
+                  ${article.categoryName}
+                </div>
+              </div>
+            </div>
+            <h3 class="news-title" style="color: var(--navy-dark); font-size: 20px; font-weight: 700; margin-bottom: 12px; line-height: 1.4;">
+              ${escapeHtml(article.title)}
+            </h3>
+            <p class="news-excerpt" style="color: var(--gray-medium); font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+              ${escapeHtml(article.excerpt || article.summary || '')}
+            </p>
+            <a href="pages/news-detail.html?id=${article.id}" class="news-link" style="color: var(--primary-blue); font-weight: 700; text-decoration: none; font-size: 16px; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease;">
+              続きを読む
+              <span style="transition: transform 0.3s ease;">→</span>
+            </a>
+          </div>
+        `).join('');
+        
+        newsContainer.innerHTML = newsCardsHTML;
+        
+        // ホバーエフェクトを追加
+        document.querySelectorAll('.news-card').forEach(card => {
+          card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.boxShadow = '0 12px 40px rgba(0, 0, 0, 0.15)';
+          });
+          
+          card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.1)';
+          });
+        });
+        
+        // リンクのホバーエフェクト
+        document.querySelectorAll('.news-link').forEach(link => {
+          link.addEventListener('mouseenter', function() {
+            const arrow = this.querySelector('span');
+            if (arrow) arrow.style.transform = 'translateX(5px)';
+          });
+          
+          link.addEventListener('mouseleave', function() {
+            const arrow = this.querySelector('span');
+            if (arrow) arrow.style.transform = 'translateX(0)';
+          });
+        });
+        
+      } catch (error) {
+        console.error('ニュース記事の読み込みに失敗しました:', error);
+        const newsContainer = document.getElementById('news-list');
+        newsContainer.innerHTML = `
+          <div style="text-align: center; padding: 60px 20px; color: var(--primary-red);">
+            <p style="font-size: 18px; font-weight: 600;">お知らせの読み込みに失敗しました</p>
+            <p style="font-size: 16px; margin-top: 10px;">しばらく時間をおいてから再度お試しください。</p>
+          </div>
+        `;
+      }
+    }
+
+    // HTMLエスケープ関数
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
   </script>
 
   <!-- 構造化データ (SEO) -->

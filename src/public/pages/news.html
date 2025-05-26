@@ -271,6 +271,9 @@
       if (articleManager.debugInfo) {
         articleManager.debugInfo();
       }
+      if (articleManager.checkDataSync) {
+        articleManager.checkDataSync();
+      }
       console.log('現在表示中の記事:', articleManager.articles);
     }
 
