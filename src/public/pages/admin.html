@@ -256,7 +256,7 @@
                 </select>
               </div>
             </div>
-            <div id="news-list-container" class="list-content">
+            <div id="news-list" class="list-content">
               <!-- 記事一覧がここに表示される -->
             </div>
           </div>
@@ -306,46 +306,94 @@
             <div class="courses-grid">
               <div class="course-card">
                 <div class="course-header">
-                  <h3>ベーシックコース（17:00-17:50）</h3>
+                  <h3>キッズコース</h3>
                 </div>
                 <div class="course-content">
+                  <h4>体験会</h4>
                   <div class="status-buttons">
-                    <button class="status-btn active" data-status="normal">
-                      <i class="fas fa-play"></i> 開催中
-                    </button>
-                    <button class="status-btn" data-status="scheduled">
-                      <i class="fas fa-clock"></i> 開催予定
-                    </button>
-                    <button class="status-btn" data-status="cancelled">
+                    <input type="radio" name="キッズ-体験会" value="実施" id="kids-trial-active">
+                    <label for="kids-trial-active" class="status-btn">
+                      <i class="fas fa-play"></i> 実施
+                    </label>
+                    <input type="radio" name="キッズ-体験会" value="中止" id="kids-trial-cancelled">
+                    <label for="kids-trial-cancelled" class="status-btn">
                       <i class="fas fa-times"></i> 中止
-                    </button>
+                    </label>
+                    <input type="radio" name="キッズ-体験会" value="TBD" id="kids-trial-tbd" checked>
+                    <label for="kids-trial-tbd" class="status-btn">
+                      <i class="fas fa-clock"></i> 未定
+                    </label>
                   </div>
                   <div class="form-group">
                     <label>補足メッセージ</label>
-                    <textarea id="basic-message" class="form-textarea small" placeholder="例：時間変更あり"></textarea>
+                    <textarea id="キッズ-体験会-note" class="form-textarea small" placeholder="例：時間変更あり"></textarea>
+                  </div>
+                  
+                  <h4>通常レッスン</h4>
+                  <div class="status-buttons">
+                    <input type="radio" name="キッズ-通常レッスン" value="実施" id="kids-lesson-active">
+                    <label for="kids-lesson-active" class="status-btn">
+                      <i class="fas fa-play"></i> 実施
+                    </label>
+                    <input type="radio" name="キッズ-通常レッスン" value="中止" id="kids-lesson-cancelled">
+                    <label for="kids-lesson-cancelled" class="status-btn">
+                      <i class="fas fa-times"></i> 中止
+                    </label>
+                    <input type="radio" name="キッズ-通常レッスン" value="TBD" id="kids-lesson-tbd" checked>
+                    <label for="kids-lesson-tbd" class="status-btn">
+                      <i class="fas fa-clock"></i> 未定
+                    </label>
+                  </div>
+                  <div class="form-group">
+                    <label>補足メッセージ</label>
+                    <textarea id="キッズ-通常レッスン-note" class="form-textarea small" placeholder="例：時間変更あり"></textarea>
                   </div>
                 </div>
               </div>
               
               <div class="course-card">
                 <div class="course-header">
-                  <h3>アドバンスコース（18:00-18:50）</h3>
+                  <h3>ジュニアコース</h3>
                 </div>
                 <div class="course-content">
+                  <h4>体験会</h4>
                   <div class="status-buttons">
-                    <button class="status-btn" data-status="normal">
-                      <i class="fas fa-play"></i> 開催中
-                    </button>
-                    <button class="status-btn active" data-status="scheduled">
-                      <i class="fas fa-clock"></i> 開催予定
-                    </button>
-                    <button class="status-btn" data-status="cancelled">
+                    <input type="radio" name="ジュニア-体験会" value="実施" id="junior-trial-active">
+                    <label for="junior-trial-active" class="status-btn">
+                      <i class="fas fa-play"></i> 実施
+                    </label>
+                    <input type="radio" name="ジュニア-体験会" value="中止" id="junior-trial-cancelled">
+                    <label for="junior-trial-cancelled" class="status-btn">
                       <i class="fas fa-times"></i> 中止
-                    </button>
+                    </label>
+                    <input type="radio" name="ジュニア-体験会" value="TBD" id="junior-trial-tbd" checked>
+                    <label for="junior-trial-tbd" class="status-btn">
+                      <i class="fas fa-clock"></i> 未定
+                    </label>
                   </div>
                   <div class="form-group">
                     <label>補足メッセージ</label>
-                    <textarea id="advance-message" class="form-textarea small" placeholder="例：時間変更あり"></textarea>
+                    <textarea id="ジュニア-体験会-note" class="form-textarea small" placeholder="例：時間変更あり"></textarea>
+                  </div>
+                  
+                  <h4>通常レッスン</h4>
+                  <div class="status-buttons">
+                    <input type="radio" name="ジュニア-通常レッスン" value="実施" id="junior-lesson-active">
+                    <label for="junior-lesson-active" class="status-btn">
+                      <i class="fas fa-play"></i> 実施
+                    </label>
+                    <input type="radio" name="ジュニア-通常レッスン" value="中止" id="junior-lesson-cancelled">
+                    <label for="junior-lesson-cancelled" class="status-btn">
+                      <i class="fas fa-times"></i> 中止
+                    </label>
+                    <input type="radio" name="ジュニア-通常レッスン" value="TBD" id="junior-lesson-tbd" checked>
+                    <label for="junior-lesson-tbd" class="status-btn">
+                      <i class="fas fa-clock"></i> 未定
+                    </label>
+                  </div>
+                  <div class="form-group">
+                    <label>補足メッセージ</label>
+                    <textarea id="ジュニア-通常レッスン-note" class="form-textarea small" placeholder="例：時間変更あり"></textarea>
                   </div>
                 </div>
               </div>
@@ -385,7 +433,24 @@
           <div class="setting-group">
             <h3><i class="fas fa-download"></i> データエクスポート</h3>
             <p>記事データやレッスン履歴のエクスポート</p>
-            <button class="btn btn-outline">データをエクスポート</button>
+            <button class="btn btn-outline" onclick="exportData()">データをエクスポート</button>
+          </div>
+          
+          <div class="setting-group">
+            <h3><i class="fas fa-flask"></i> 開発・テスト</h3>
+            <p>テストデータの管理と開発用機能</p>
+            <div class="setting-actions">
+              <button class="btn btn-warning" onclick="clearTestDataWithConfirm()" id="clear-test-data-btn">
+                <i class="fas fa-trash-alt"></i> テストデータを削除
+              </button>
+              <button class="btn btn-outline" onclick="createTestDataManually()">
+                <i class="fas fa-plus"></i> テストデータを再作成
+              </button>
+            </div>
+            <small class="setting-note">
+              <i class="fas fa-info-circle"></i>
+              テストデータは開発・デモ用のサンプル記事です。実際の運用時は削除することをお勧めします。
+            </small>
           </div>
         </div>
       </section>
@@ -393,65 +458,24 @@
   </div>
 
   <!-- モーダル -->
-  <div id="preview-modal" class="modal">
+  <div id="modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 id="modal-title">プレビュー</h3>
+        <h3>プレビュー</h3>
         <button class="modal-close" onclick="closeModal()">
           <i class="fas fa-times"></i>
         </button>
       </div>
-      <div class="modal-body" id="modal-body">
+      <div class="modal-body">
         <!-- プレビュー内容がここに表示される -->
       </div>
     </div>
   </div>
 
-  <!-- JavaScript -->
-  <script src="../js/config.js"></script>
-  <script src="../utils/helpers.js"></script>
-  <script src="../components/CommonHeader.js"></script>
-  <script src="../components/CommonFooter.js"></script>
-  <script src="../components/PageManager.js"></script>
-  <script src="../js/markdown-parser.js"></script>
-  <script src="../js/admin-auth.js"></script>
-  <script src="../js/admin-debug.js"></script>
-  <script src="../js/admin.js"></script>
+  <!-- テストデータ（開発環境用） -->
+  <script src="../js/test-data.js"></script>
   
-  <script>
-    // 管理画面の初期化
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('DOM読み込み完了 - 管理画面初期化開始');
-      
-      try {
-        // AdminAuthクラスの確認
-        if (typeof AdminAuth === 'undefined') {
-          console.error('AdminAuthクラスが読み込まれていません');
-          alert('認証システムの読み込みに失敗しました。ページを再読み込みしてください。');
-          return;
-        }
-        
-        // AdminManagerクラスの確認
-        if (typeof AdminManager === 'undefined') {
-          console.error('AdminManagerクラスが読み込まれていません');
-          alert('管理システムの読み込みに失敗しました。ページを再読み込みしてください。');
-          return;
-        }
-        
-        console.log('必要なクラスが読み込まれています');
-        
-        // AdminManager インスタンス作成
-        window.adminManager = new AdminManager();
-        console.log('AdminManager インスタンス作成完了');
-        
-        // 初期化実行
-        window.adminManager.init();
-        
-      } catch (error) {
-        console.error('管理画面初期化中に予期しないエラー:', error);
-        alert('管理画面の初期化に失敗しました: ' + error.message);
-      }
-    });
-  </script>
+  <!-- JavaScript -->
+  <script type="module" src="../js/admin.js"></script>
 </body>
 </html> 

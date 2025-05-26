@@ -90,12 +90,21 @@ class ArticleManager {
         return this.articles;
       }
 
-      // LocalStorageから管理者データを確認
+      // LocalStorageから管理者データを確認（管理画面で作成されたデータのみ使用）
       const adminData = localStorage.getItem('rbs_articles_data');
       if (adminData) {
         try {
           const allArticles = JSON.parse(adminData);
+          // 公開済みの記事のみをフィルタリング
           this.articles = allArticles.filter(article => article.status === 'published');
+          
+          // 記事データを正規化（表示用フィールドの追加）
+          this.articles = this.articles.map(article => ({
+            ...article,
+            categoryName: this.getCategoryName(article.category),
+            excerpt: article.summary || article.content?.substring(0, 150) + '...' || ''
+          }));
+          
           console.log('LocalStorageから記事データを読み込み:', this.articles.length, '件（全', allArticles.length, '件中）');
           
           // データの整合性をチェック
@@ -108,20 +117,8 @@ class ArticleManager {
         }
       }
 
-      // フォールバック: 元のJSONファイルから読み込み
-      try {
-        const response = await fetch('articles/articles.json');
-        if (response.ok) {
-          this.articles = await response.json();
-          console.log('articles.jsonから記事データを読み込み:', this.articles.length, '件');
-          return this.articles;
-        }
-      } catch (fetchError) {
-        console.warn('articles.jsonの読み込みに失敗:', fetchError);
-      }
-
-      // すべて失敗した場合は空配列を返す
-      console.warn('記事データが見つかりません');
+      // 管理画面で作成された記事がない場合は空配列を返す
+      console.log('管理画面で作成された記事がありません。新しい記事を作成してください。');
       this.articles = [];
       return this.articles;
     } catch (error) {
@@ -142,7 +139,7 @@ class ArticleManager {
         return this.parser.parse(content);
       }
 
-      // LocalStorageから読み込み
+      // LocalStorageから記事のコンテンツを読み込み（管理画面で作成されたもののみ）
       const contentData = JSON.parse(localStorage.getItem('rbs_articles_content') || '{}');
       const article = this.articles.find(a => a.file === filename);
       
@@ -150,10 +147,9 @@ class ArticleManager {
         return this.parser.parse(contentData[article.id]);
       }
 
-      // フォールバック: 元のファイルから読み込み
-      const response = await fetch(`articles/${filename}`);
-      const markdown = await response.text();
-      return this.parser.parse(markdown);
+      // 管理画面で作成されていない記事の場合はエラーを返す
+      console.warn('管理画面で作成されていない記事です:', filename);
+      return '<p>この記事は管理画面で作成されていないため、表示できません。</p>';
     } catch (error) {
       console.error('記事の読み込みに失敗しました:', error);
       return '<p>記事の読み込みに失敗しました。</p>';

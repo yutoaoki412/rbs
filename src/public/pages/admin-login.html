@@ -11,171 +11,154 @@
   <link rel="stylesheet" href="../styles/base.css">
   <link rel="stylesheet" href="../styles/common.css">
   <link rel="stylesheet" href="../styles/components.css">
-  <link rel="stylesheet" href="../styles/login.css">
+  <link rel="stylesheet" href="../styles/admin.css">
   
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+  
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="login-page">
-  <!-- ログインコンテナ -->
-  <div class="login-container">
-    <div class="login-card">
-      <!-- ロゴとタイトル -->
-      <div class="login-header">
-        <div class="logo">
-          <img src="../images/lp-logo.png" alt="RBS陸上教室" class="logo-image">
-        </div>
-        <h1 class="login-title">管理者ログイン</h1>
-        <p class="login-subtitle">RBS陸上教室 管理画面</p>
-      </div>
+<body class="admin-layout">
+  <!-- ヘッダー -->
+  <header class="admin-header">
+    <div class="header-left">
+      <i class="fas fa-running admin-logo-icon"></i>
+      <span class="admin-logo-text">RBS陸上教室 管理画面</span>
+    </div>
+    <div class="header-right">
+      <a href="index.html" class="back-link">
+        <i class="fas fa-arrow-left"></i>
+        サイトに戻る
+      </a>
+    </div>
+  </header>
 
-      <!-- エラーメッセージ -->
-      <div id="error-message" class="error-message" style="display: none;">
-        <div class="error-content">
-          <span class="error-icon">⚠️</span>
-          <span class="error-text"></span>
-        </div>
-      </div>
-
-      <!-- ログインフォーム -->
-      <form id="login-form" class="login-form">
-        <div class="form-group">
-          <label for="password" class="form-label">
-            <span class="label-text">パスワード</span>
-            <span class="required">*</span>
-          </label>
-          <div class="password-input-wrapper">
-            <input 
-              type="password" 
-              id="password" 
-              class="form-input password-input" 
-              placeholder="管理者パスワードを入力してください"
-              required 
-              autocomplete="current-password"
-            >
-            <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">
-              <span id="password-toggle-icon">👁️</span>
-            </button>
+  <!-- メインコンテンツ -->
+  <div class="admin-container">
+    <main class="admin-main login-main">
+      <!-- ログインセクション -->
+      <section class="admin-section active">
+        <!-- ログインカード -->
+        <div class="login-card widget">
+          <div class="section-header">
+            <h1><i class="fas fa-sign-in-alt"></i> 管理者ログイン</h1>
           </div>
+
+          <!-- エラーメッセージ -->
+          <div id="error-message" class="admin-notification error" style="display: none; margin-bottom: 1.5rem;">
+            <div class="notification-content">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span class="error-text"></span>
+            </div>
+          </div>
+
+          <!-- 成功メッセージ -->
+          <div id="success-message" class="admin-notification success" style="display: none; margin-bottom: 1.5rem;">
+            <div class="notification-content">
+              <i class="fas fa-check-circle"></i>
+              <span>ログインしました。管理画面に移動します...</span>
+            </div>
+          </div>
+
+          <!-- ログインフォーム -->
+          <form id="login-form" class="login-form">
+            <div class="form-group">
+              <label for="password" class="form-label">
+                <i class="fas fa-lock"></i> パスワード
+              </label>
+              <div class="password-input-wrapper">
+                <input 
+                  type="password" 
+                  id="password" 
+                  class="form-input" 
+                  placeholder="管理者パスワードを入力してください"
+                  required 
+                  autocomplete="current-password"
+                >
+                <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">
+                  <i id="password-toggle-icon" class="fas fa-eye"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary login-btn" id="login-btn">
+                <span class="btn-text">
+                  <i class="fas fa-sign-in-alt"></i>
+                  ログイン
+                </span>
+                <span class="btn-loading" id="btn-loading" style="display: none;">
+                  <i class="fas fa-spinner fa-spin"></i>
+                  認証中...
+                </span>
+              </button>
+            </div>
+          </form>
         </div>
-
-        <button type="submit" class="login-btn" id="login-btn">
-          <span class="btn-text">ログイン</span>
-          <span class="btn-loading" id="btn-loading" style="display: none;">
-            <span class="loading-spinner"></span>
-            認証中...
-          </span>
-        </button>
-      </form>
-
-      <!-- フッターリンク -->
-      <div class="login-footer">
-        <a href="index.html" class="back-link">
-          <span class="back-icon">←</span>
-          サイトに戻る
-        </a>
-      </div>
-    </div>
-
-    <!-- 背景装飾 -->
-    <div class="bg-decoration">
-      <div class="decoration-circle circle-1"></div>
-      <div class="decoration-circle circle-2"></div>
-      <div class="decoration-circle circle-3"></div>
-    </div>
+      </section>
+    </main>
   </div>
 
   <!-- JavaScript -->
   <script src="../js/config.js"></script>
-  <script src="../js/admin-auth.js"></script>
   
-  <script>
-    // グローバル変数
+  <script type="module">
+    import { AdminAuth } from '../js/admin/core/AdminAuth.js';
+
     let isLoading = false;
 
-    // ページ初期化
     document.addEventListener('DOMContentLoaded', function() {
-      console.log('ログインページを初期化中...');
-      
-      // 既にログイン済みの場合は管理画面にリダイレクト
       if (checkExistingAuth()) {
-        console.log('既にログイン済み - 管理画面にリダイレクト');
         window.location.href = 'admin.html';
         return;
       }
-
-      // フォームイベントリスナーの設定
       setupEventListeners();
-      
-      // パスワードフィールドにフォーカス
       document.getElementById('password').focus();
-      
-      console.log('ログインページの初期化完了');
     });
 
-    // 既存の認証状態をチェック
     function checkExistingAuth() {
       const adminAuth = new AdminAuth();
       return adminAuth.isAuthenticated();
     }
 
-    // イベントリスナーの設定
     function setupEventListeners() {
-      // フォーム送信
       document.getElementById('login-form').addEventListener('submit', handleLogin);
-      
-      // パスワードフィールドでのEnterキー
       document.getElementById('password').addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && !isLoading) {
           e.preventDefault();
           handleLogin(e);
         }
       });
-
-      // パスワード入力時のエラークリア
       document.getElementById('password').addEventListener('input', function() {
         hideError();
+        hideSuccess();
       });
     }
 
-    // ログイン処理
     async function handleLogin(e) {
       e.preventDefault();
-      
       if (isLoading) return;
 
       const password = document.getElementById('password').value.trim();
-      
-      // バリデーション
       if (!password) {
         showError('パスワードを入力してください');
         return;
       }
 
-      // ローディング状態に設定
       setLoadingState(true);
       hideError();
+      hideSuccess();
 
       try {
-        // 少し遅延を追加してUXを向上
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // AdminAuthシステムを使用した認証処理
+        await new Promise(resolve => setTimeout(resolve, 500)); 
         const adminAuth = new AdminAuth();
         const result = await adminAuth.login(password);
         
         if (result.success) {
-          // ログイン成功
-          console.log('ログイン成功');
-          
-          // 成功メッセージを表示してからリダイレクト
           showSuccessAndRedirect();
         } else {
-          // ログイン失敗
-          console.log('ログイン失敗:', result.message);
           showError(result.message);
-          
-          // パスワードフィールドをクリア
           document.getElementById('password').value = '';
           document.getElementById('password').focus();
         }
@@ -187,7 +170,6 @@
       }
     }
 
-    // ローディング状態の制御
     function setLoadingState(loading) {
       isLoading = loading;
       const loginBtn = document.getElementById('login-btn');
@@ -198,73 +180,58 @@
         loginBtn.disabled = true;
         btnText.style.display = 'none';
         btnLoading.style.display = 'flex';
-        loginBtn.classList.add('loading');
+        loginBtn.classList.add('loading'); 
       } else {
         loginBtn.disabled = false;
-        btnText.style.display = 'block';
+        btnText.style.display = 'flex'; 
         btnLoading.style.display = 'none';
         loginBtn.classList.remove('loading');
       }
     }
 
-    // エラーメッセージの表示
     function showError(message) {
       const errorElement = document.getElementById('error-message');
       const errorText = errorElement.querySelector('.error-text');
-      
       errorText.textContent = message;
       errorElement.style.display = 'block';
-      
-      // アニメーション効果
-      errorElement.style.opacity = '0';
-      errorElement.style.transform = 'translateY(-10px)';
-      
-      setTimeout(() => {
-        errorElement.style.transition = 'all 0.3s ease';
-        errorElement.style.opacity = '1';
-        errorElement.style.transform = 'translateY(0)';
-      }, 10);
+      hideSuccess();
     }
 
-    // エラーメッセージの非表示
     function hideError() {
       const errorElement = document.getElementById('error-message');
       errorElement.style.display = 'none';
     }
 
-    // 成功メッセージを表示してリダイレクト
+    function showSuccess() {
+        const successElement = document.getElementById('success-message');
+        successElement.style.display = 'block';
+        hideError();
+    }
+
+    function hideSuccess() {
+        const successElement = document.getElementById('success-message');
+        successElement.style.display = 'none';
+    }
+
     function showSuccessAndRedirect() {
-      const errorElement = document.getElementById('error-message');
-      const errorIcon = errorElement.querySelector('.error-icon');
-      const errorText = errorElement.querySelector('.error-text');
-      
-      // 成功スタイルに変更
-      errorElement.className = 'success-message';
-      errorIcon.textContent = '✅';
-      errorText.textContent = 'ログインしました。管理画面に移動します...';
-      errorElement.style.display = 'block';
-      
-      // 1.5秒後にリダイレクト
+      showSuccess();
       setTimeout(() => {
         window.location.href = 'admin.html';
       }, 1500);
     }
 
-    // パスワード表示/非表示の切り替え
     function togglePasswordVisibility() {
       const passwordInput = document.getElementById('password');
       const toggleIcon = document.getElementById('password-toggle-icon');
-      
       if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
-        toggleIcon.textContent = '🙈';
+        toggleIcon.className = 'fas fa-eye-slash';
       } else {
         passwordInput.type = 'password';
-        toggleIcon.textContent = '👁️';
+        toggleIcon.className = 'fas fa-eye';
       }
     }
 
-    // セキュリティ: ページ離脱時にフォームをクリア
     window.addEventListener('beforeunload', function() {
       const passwordField = document.getElementById('password');
       if (passwordField) {
@@ -272,13 +239,338 @@
       }
     });
 
-    // キーボードショートカット
     document.addEventListener('keydown', function(e) {
-      // Escape キーでエラーを非表示
       if (e.key === 'Escape') {
         hideError();
+        hideSuccess();
       }
     });
   </script>
+
+  <!-- テストデータ（開発環境用） -->
+  <script src="../js/test-data.js"></script>
+
+  <style>
+    body.admin-layout {
+      background: var(--admin-gray-50); /* admin.css の背景色に統一 */
+      /* login.css の背景グラデーションは不使用 */
+    }
+
+    .login-main {
+      margin-left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - var(--admin-header-height));
+      padding: 2rem;
+      position: relative;
+    }
+
+    .login-card {
+      max-width: 420px; /* login.css の max-width に近い値に調整 */
+      width: 100%;
+      margin: 2rem auto;
+      padding: 2.5rem 2rem; /* login.css のパディングを参考に調整 */
+      background: var(--admin-white); /* admin.css のウィジェット背景色 */
+      border: 1px solid var(--admin-gray-200); /* admin.css のボーダー */
+      border-radius: var(--admin-border-radius); /* admin.css の角丸 */
+      box-shadow: var(--admin-shadow-lg); /* admin.css の大きな影を適用 */
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px; /* 少し高さを調整 */
+      background: var(--admin-primary);
+      border-radius: var(--admin-border-radius) var(--admin-border-radius) 0 0;
+    }
+
+    .login-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .section-header h1 {
+      color: var(--admin-gray-900); /* admin.css の見出し色 */
+      font-size: 1.625rem; /* login.css のタイトルサイズに近い値 */
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.025em;
+    }
+
+    .section-header h1 i {
+      color: var(--admin-primary);
+      margin-right: 0.5rem;
+      font-size: 1.375rem; /* アイコンサイズ調整 */
+    }
+
+    .login-form {
+      /* login.css には space-y のような直接的な定義はないため、form-group の margin で調整 */
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem; /* login.css に近いマージン */
+    }
+
+    .form-label {
+      display: block; /* login.css の .form-label は flex だが、アイコンがない場合は block で十分 */
+      font-weight: 600;
+      color: var(--admin-gray-700); /* admin.css のラベル色 */
+      margin-bottom: 0.625rem; /* login.css に近いマージン */
+      font-size: 0.875rem; /* admin.css のフォントサイズを参考 */
+    }
+
+    .form-label i {
+      color: var(--admin-primary);
+      margin-right: 0.5rem;
+      width: 16px;
+    }
+
+    .password-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .password-input-wrapper .form-input {
+      width: 100%;
+      padding: 0.875rem 3rem 0.875rem 1rem; /* login.css のパディングを参考に調整 */
+      border: 1px solid var(--admin-gray-300); /* admin.css の入力フィールドボーダー */
+      border-radius: var(--admin-border-radius-sm); /* admin.css の角丸 */
+      font-size: 0.9375rem; /* login.css と admin.css の中間的なサイズ */
+      background: var(--admin-white);
+      transition: var(--admin-transition);
+      outline: none;
+    }
+
+    .password-input-wrapper .form-input:focus {
+      border-color: var(--admin-primary);
+      background: var(--admin-white);
+      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1); /* admin-primary の実際のRGB値 */
+    }
+
+    .password-input-wrapper .form-input::placeholder {
+      color: var(--admin-gray-500); /* admin.css のプレースホルダー色 */
+      font-weight: 400;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 0.75rem;
+      background: none;
+      border: none;
+      color: var(--admin-gray-500);
+      cursor: pointer;
+      padding: 0.5rem;
+      font-size: 1.1rem;
+      border-radius: 6px;
+      transition: var(--admin-transition);
+    }
+
+    .password-toggle:hover {
+      color: var(--admin-primary);
+      background: var(--admin-gray-100);
+    }
+
+    .password-toggle:focus-visible {
+      outline: 2px solid var(--admin-primary);
+      outline-offset: 2px;
+    }
+
+    .form-actions {
+      margin-top: 1.75rem; /* login.css の .login-form の margin-bottom に近い値 */
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 0.875rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: var(--admin-border-radius-sm);
+      border: none;
+      background: var(--admin-primary); /* admin.css のプライマリボタン色 */
+      color: var(--admin-white);
+      cursor: pointer;
+      transition: var(--admin-transition);
+      box-shadow: var(--admin-shadow);
+      display: flex; /* 中央揃えのため */
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .login-btn:hover:not(:disabled) {
+      background: var(--admin-primary-dark); /* admin.css のホバー色 */
+      transform: translateY(-1px);
+      box-shadow: var(--admin-shadow-lg);
+    }
+
+    .login-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      background: var(--admin-gray-300);
+      color: var(--admin-gray-500);
+      transform: none;
+      box-shadow: none;
+    }
+
+    .login-btn:focus-visible {
+      outline: 2px solid var(--admin-primary);
+      outline-offset: 2px;
+    }
+
+    /* .btn-text, .btn-loading は .login-btn に統合 */
+
+    .admin-notification {
+      border-radius: var(--admin-border-radius-sm);
+      padding: 1rem 1.25rem;
+      font-weight: 500;
+      border: 1px solid;
+      margin-bottom: 1.5rem; /* login.css のマージンを適用 */
+    }
+
+    .admin-notification.error {
+      background: rgba(239, 68, 68, 0.1); /* admin-error をベースにした背景色 */
+      border-color: rgba(239, 68, 68, 0.2);
+      color: var(--admin-error);
+    }
+
+    .admin-notification.success {
+      background: rgba(34, 197, 94, 0.1); /* admin-success をベースにした背景色 */
+      border-color: rgba(34, 197, 94, 0.2);
+      color: var(--admin-success);
+    }
+
+    .notification-content {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .notification-content i {
+      font-size: 1.1rem;
+    }
+
+    /* ヘッダー内の「サイトに戻る」ボタンのスタイル調整 */
+    .admin-header .back-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--admin-gray-100);
+      color: var(--admin-gray-700);
+      border: 1px solid var(--admin-gray-300);
+      border-radius: var(--admin-border-radius-sm);
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: var(--admin-transition);
+      box-shadow: var(--admin-shadow);
+    }
+    
+    .admin-header .back-link:hover {
+      background: var(--admin-gray-200);
+      border-color: var(--admin-gray-500);
+      color: var(--admin-primary);
+      transform: translateY(-1px);
+      box-shadow: var(--admin-shadow-lg);
+    }
+
+    .admin-header .back-link:focus-visible {
+      outline: 2px solid var(--admin-primary);
+      outline-offset: 2px;
+    }
+
+    /* ヘッダー自体のスタイル (admin.css と共通) */
+    .admin-header {
+      /* admin.css の .admin-header と共通のスタイルが適用される前提 */
+      /* ただし、ログイン画面専用の調整があればここに追加 */
+      /* 今回は login.css のようなヘッダー中央ロゴ等はないため、現状維持 */
+    }
+
+    .admin-logo-icon {
+      /* admin.css のスタイルを継承 */
+    }
+
+    .admin-logo-text {
+      /* admin.css のスタイルを継承 */
+    }
+
+    /* ローディング状態の改善 (login.css には .loading-spinner があるが、既存実装をベースに調整) */
+    .login-btn.loading .btn-text {
+        display: none;
+    }
+    .login-btn.loading .btn-loading {
+        display: flex; /* 初期状態は display: none だが、JSで変更される */
+    }
+
+    .btn-loading .fa-spinner {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* レスポンシブデザイン */
+    @media (max-width: 768px) {
+      .login-main {
+        padding: 1rem;
+      }
+      
+      .login-card {
+        padding: 2rem 1.5rem;
+        border-radius: var(--admin-border-radius); /* モバイルでも統一感を出す */
+        margin: 1rem;
+      }
+      
+      .section-header h1 {
+        font-size: 1.5rem;
+      }
+      
+      .admin-header {
+        padding: 0 1rem;
+      }
+      
+      .admin-logo-text {
+        display: none;
+      }
+
+      .admin-header .back-link {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .login-card {
+        margin: 0.5rem;
+        padding: 1.5rem 1rem;
+      }
+      
+      .section-header {
+        margin-bottom: 1.5rem; /* モバイルでの間隔調整 */
+      }
+       .password-input-wrapper .form-input {
+        padding: 0.75rem 2.5rem 0.75rem 0.75rem; /* モバイルでのパディング調整 */
+      }
+      .login-btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.9375rem;
+      }
+    }
+  </style>
 </body>
 </html> 

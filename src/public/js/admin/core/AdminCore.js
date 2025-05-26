@@ -74,10 +74,12 @@ export class AdminCore extends EventEmitter {
     try {
       // 認証システム
       this.auth = new AdminAuth();
+      await this.auth.init();
       this.modules.set('auth', this.auth);
       
       // データ管理
       this.dataManager = new DataManager();
+      await this.dataManager.init();
       this.modules.set('dataManager', this.dataManager);
       
       // UI管理
@@ -99,6 +101,9 @@ export class AdminCore extends EventEmitter {
   setupModuleConnections() {
     // データマネージャーにUIマネージャーを設定
     this.dataManager.setUIManager(this.uiManager);
+    
+    // UIマネージャーにDataManagerのイベントを設定
+    this.uiManager.setupDataManagerEvents(this.dataManager);
     
     // 各モジュールにエラーハンドラーを設定
     this.modules.forEach(module => {
@@ -125,6 +130,13 @@ export class AdminCore extends EventEmitter {
    */
   async initUI() {
     await this.uiManager.init();
+    
+    // UI初期化完了後、ダッシュボードが初期タブの場合は初期化を実行
+    if (this.uiManager.currentTab === 'dashboard') {
+      this.logger.debug('初期タブがダッシュボードのため、初期化を実行します');
+      this.uiManager.initializeDashboard();
+    }
+    
     this.logger.info('UI初期化完了');
   }
 

@@ -147,9 +147,13 @@
       
       // 記事がない場合
       if (filteredArticles.length === 0) {
+        const message = category === 'all' 
+          ? '記事がまだ公開されていません。管理画面から記事を作成・公開してください。'
+          : '該当するカテゴリーの記事が見つかりませんでした。';
+        
         newsGrid.innerHTML = `
           <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--gray-medium);">
-            <p style="font-size: 18px; font-weight: 600;">該当する記事が見つかりませんでした。</p>
+            <p style="font-size: 18px; font-weight: 600;">${message}</p>
           </div>
         `;
         return;
