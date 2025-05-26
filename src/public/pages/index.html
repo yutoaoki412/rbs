@@ -825,6 +825,7 @@
 
   <!-- JavaScript -->
   <script src="../js/config.js"></script>
+  <script src="../components/StatusBanner.js"></script>
   <script type="module" src="../js/main.js"></script>
   
   <!-- フォールバック JavaScript -->
@@ -883,6 +884,13 @@
           }
         });
       });
+      
+      // StatusBannerの初期化
+      if (typeof StatusBanner !== 'undefined') {
+        const statusBanner = new StatusBanner();
+        statusBanner.insertIntoPage();
+        statusBanner.startAutoUpdate();
+      }
     });
   </script>
 

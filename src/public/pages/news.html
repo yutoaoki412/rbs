@@ -104,6 +104,7 @@
   <script src="../utils/helpers.js"></script>
   <script src="../components/CommonHeader.js"></script>
   <script src="../components/CommonFooter.js"></script>
+  <script src="../components/StatusBanner.js"></script>
   <script src="../components/PageManager.js"></script>
   <script src="../js/markdown-parser.js"></script>
   <script src="../components/NewsCard.js"></script>
@@ -271,6 +272,13 @@
 
     // ページロード時に記事を読み込み
     document.addEventListener('DOMContentLoaded', function() {
+      // StatusBannerの初期化
+      if (typeof StatusBanner !== 'undefined') {
+        const statusBanner = new StatusBanner();
+        statusBanner.insertIntoPage();
+        statusBanner.startAutoUpdate();
+      }
+      
       // ページマネージャーを初期化
       pageManager.init().then(() => {
         loadAndDisplayArticles();

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理画面 - RBS陸上教室</title>
+  <meta name="description" content="RBS陸上教室の管理画面">
+  <meta name="robots" content="noindex, nofollow">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/common.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/admin.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+  
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="admin-layout">
+  <!-- ヘッダー -->
+  <header class="admin-header">
+    <div class="header-left">
+      <i class="fas fa-running admin-logo-icon"></i>
+      <span class="admin-logo-text">RBS陸上教室 管理画面</span>
+    </div>
+    <div class="header-right">
+      <button class="logout-btn" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i>
+        ログアウト
+      </button>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <div class="admin-container">
+    <!-- サイドバー -->
+    <aside class="admin-sidebar">
+      <nav class="sidebar-nav">
+        <div class="nav-item active" data-tab="dashboard">
+          <i class="fas fa-chart-bar"></i>
+          <span>ダッシュボード</span>
+        </div>
+        <div class="nav-item" data-tab="news-management">
+          <i class="fas fa-newspaper"></i>
+          <span>記事管理</span>
+        </div>
+        <div class="nav-item" data-tab="lesson-status">
+          <i class="fas fa-calendar-check"></i>
+          <span>レッスン状況</span>
+        </div>
+        <div class="nav-item" data-tab="settings">
+          <i class="fas fa-cog"></i>
+          <span>設定</span>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- メインエリア -->
+    <main class="admin-main">
+      <!-- ダッシュボード -->
+      <section id="dashboard" class="admin-section active">
+        <div class="section-header">
+          <h1><i class="fas fa-chart-bar"></i> ダッシュボード</h1>
+        </div>
+        
+        <!-- 統計カード -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-newspaper"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number" id="total-articles">0</div>
+              <div class="stat-label">総記事数</div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon published">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number" id="published-articles">0</div>
+              <div class="stat-label">公開済み</div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon draft">
+              <i class="fas fa-edit"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number" id="draft-articles">0</div>
+              <div class="stat-label">下書き</div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon current-month">
+              <i class="fas fa-calendar"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number" id="current-month-articles">0</div>
+              <div class="stat-label">今月の記事</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 最近の記事 -->
+        <div class="dashboard-widgets">
+          <div class="widget">
+            <div class="widget-header">
+              <h2><i class="fas fa-newspaper"></i> 最近の記事</h2>
+            </div>
+            <div class="widget-content">
+              <div id="recent-articles">
+                <div class="empty-state">
+                  記事がありません
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- クイックアクション -->
+          <div class="widget quick-actions">
+            <div class="widget-header">
+              <h2><i class="fas fa-bolt"></i> クイックアクション</h2>
+            </div>
+            <div class="widget-content">
+              <div class="action-buttons">
+                <button class="action-btn primary" onclick="switchToTab('news-management')">
+                  <i class="fas fa-plus"></i>
+                  新しい記事を作成
+                </button>
+                <button class="action-btn success" onclick="switchToTab('lesson-status')">
+                  <i class="fas fa-calendar-check"></i>
+                  レッスン状況を更新
+                </button>
+                <button class="action-btn secondary" onclick="window.open('index.html', '_blank')">
+                  <i class="fas fa-external-link-alt"></i>
+                  サイトを確認
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 記事管理 -->
+      <section id="news-management" class="admin-section">
+        <div class="section-header">
+          <h1><i class="fas fa-newspaper"></i> 記事管理</h1>
+        </div>
+        
+        <div class="management-layout">
+          <!-- 記事エディター -->
+          <div class="editor-panel">
+            <div class="panel-header">
+              <h2 id="editor-title">新規記事作成</h2>
+              <div class="panel-actions">
+                <button class="btn btn-outline" onclick="clearNewsEditor()">
+                  <i class="fas fa-times"></i> クリア
+                </button>
+                <button class="btn btn-primary" onclick="saveNews()">
+                  <i class="fas fa-save"></i> 保存
+                </button>
+                <button class="btn btn-success" onclick="publishNews()">
+                  <i class="fas fa-globe"></i> 公開
+                </button>
+              </div>
+            </div>
+            
+            <div class="editor-form">
+              <input type="hidden" id="news-id">
+              
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="news-title">
+                    <i class="fas fa-heading"></i> タイトル
+                  </label>
+                  <input type="text" id="news-title" class="form-input" placeholder="記事のタイトルを入力">
+                </div>
+                <div class="form-group">
+                  <label for="news-category">
+                    <i class="fas fa-tags"></i> カテゴリー
+                  </label>
+                  <select id="news-category" class="form-select">
+                    <option value="announcement">お知らせ</option>
+                    <option value="event">体験会</option>
+                    <option value="media">メディア</option>
+                    <option value="important">重要</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="news-date">
+                    <i class="fas fa-calendar"></i> 公開日
+                  </label>
+                  <input type="date" id="news-date" class="form-input">
+                </div>
+                <div class="form-group">
+                  <label for="news-status">
+                    <i class="fas fa-eye"></i> ステータス
+                  </label>
+                  <select id="news-status" class="form-select">
+                    <option value="draft">下書き</option>
+                    <option value="published">公開</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="news-summary">
+                  <i class="fas fa-align-left"></i> 概要
+                </label>
+                <textarea id="news-summary" class="form-textarea" placeholder="記事の概要を入力"></textarea>
+              </div>
+              
+              <div class="form-group">
+                <label for="news-content">
+                  <i class="fas fa-file-alt"></i> 本文
+                </label>
+                <div class="editor-toolbar">
+                  <button type="button" class="toolbar-btn" onclick="insertMarkdown('**', '**')" title="太字">
+                    <i class="fas fa-bold"></i>
+                  </button>
+                  <button type="button" class="toolbar-btn" onclick="insertMarkdown('## ', '')" title="見出し">
+                    <i class="fas fa-heading"></i>
+                  </button>
+                  <button type="button" class="toolbar-btn" onclick="insertMarkdown('- ', '')" title="リスト">
+                    <i class="fas fa-list"></i>
+                  </button>
+                  <button type="button" class="toolbar-btn" onclick="previewNews()" title="プレビュー">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+                <textarea id="news-content" class="form-textarea editor-content" placeholder="記事の本文をMarkdown形式で入力"></textarea>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 記事一覧 -->
+          <div class="list-panel">
+            <div class="panel-header">
+              <h2>記事一覧</h2>
+              <div class="panel-filters">
+                <select id="news-filter" class="form-select" onchange="filterNewsList()">
+                  <option value="all">すべて</option>
+                  <option value="published">公開中</option>
+                  <option value="draft">下書き</option>
+                </select>
+              </div>
+            </div>
+            <div id="news-list-container" class="list-content">
+              <!-- 記事一覧がここに表示される -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- レッスン状況 -->
+      <section id="lesson-status" class="admin-section">
+        <div class="section-header">
+          <h1><i class="fas fa-calendar-check"></i> レッスン開催状況</h1>
+        </div>
+        
+        <div class="lesson-panel">
+          <div class="panel-header">
+            <h2>本日の開催状況</h2>
+            <div class="status-display">
+              <div class="status-item">
+                <input type="radio" id="status-normal" name="global-status" value="normal" checked>
+                <label for="status-normal">開催中</label>
+              </div>
+              <div class="status-item">
+                <input type="radio" id="status-scheduled" name="global-status" value="scheduled">
+                <label for="status-scheduled">開催予定</label>
+              </div>
+              <div class="status-item">
+                <input type="radio" id="status-cancelled" name="global-status" value="cancelled">
+                <label for="status-cancelled">中止</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="lesson-form">
+            <div class="form-group">
+              <label for="lesson-date">
+                <i class="fas fa-calendar"></i> 対象日
+              </label>
+              <input type="date" id="lesson-date" class="form-input">
+            </div>
+            
+            <div class="form-group">
+              <label for="global-message">
+                <i class="fas fa-comment"></i> 補足メッセージ（任意）
+              </label>
+              <textarea id="global-message" class="form-textarea" placeholder="例：雨天のため室内で実施"></textarea>
+            </div>
+            
+            <div class="courses-grid">
+              <div class="course-card">
+                <div class="course-header">
+                  <h3>ベーシックコース（17:00-17:50）</h3>
+                </div>
+                <div class="course-content">
+                  <div class="status-buttons">
+                    <button class="status-btn active" data-status="normal">
+                      <i class="fas fa-play"></i> 開催中
+                    </button>
+                    <button class="status-btn" data-status="scheduled">
+                      <i class="fas fa-clock"></i> 開催予定
+                    </button>
+                    <button class="status-btn" data-status="cancelled">
+                      <i class="fas fa-times"></i> 中止
+                    </button>
+                  </div>
+                  <div class="form-group">
+                    <label>補足メッセージ</label>
+                    <textarea id="basic-message" class="form-textarea small" placeholder="例：時間変更あり"></textarea>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="course-card">
+                <div class="course-header">
+                  <h3>アドバンスコース（18:00-18:50）</h3>
+                </div>
+                <div class="course-content">
+                  <div class="status-buttons">
+                    <button class="status-btn" data-status="normal">
+                      <i class="fas fa-play"></i> 開催中
+                    </button>
+                    <button class="status-btn active" data-status="scheduled">
+                      <i class="fas fa-clock"></i> 開催予定
+                    </button>
+                    <button class="status-btn" data-status="cancelled">
+                      <i class="fas fa-times"></i> 中止
+                    </button>
+                  </div>
+                  <div class="form-group">
+                    <label>補足メッセージ</label>
+                    <textarea id="advance-message" class="form-textarea small" placeholder="例：時間変更あり"></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-actions">
+              <button class="btn btn-success" onclick="updateLessonStatus()">
+                <i class="fas fa-save"></i> 保存して公開
+              </button>
+              <button class="btn btn-outline" onclick="previewLessonStatus()">
+                <i class="fas fa-eye"></i> プレビュー
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 設定 -->
+      <section id="settings" class="admin-section">
+        <div class="section-header">
+          <h1><i class="fas fa-cog"></i> 設定</h1>
+        </div>
+        
+        <div class="settings-panel">
+          <div class="setting-group">
+            <h3><i class="fas fa-instagram"></i> Instagram管理</h3>
+            <p>Instagram投稿の管理とリンク設定</p>
+            <button class="btn btn-primary">Instagram設定</button>
+          </div>
+          
+          <div class="setting-group">
+            <h3><i class="fas fa-bell"></i> 通知設定</h3>
+            <p>レッスン状況やニュース公開時の通知設定</p>
+            <button class="btn btn-primary">通知設定</button>
+          </div>
+          
+          <div class="setting-group">
+            <h3><i class="fas fa-download"></i> データエクスポート</h3>
+            <p>記事データやレッスン履歴のエクスポート</p>
+            <button class="btn btn-outline">データをエクスポート</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- モーダル -->
+  <div id="preview-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">プレビュー</h3>
+        <button class="modal-close" onclick="closeModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <!-- プレビュー内容がここに表示される -->
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="../js/config.js"></script>
+  <script src="../utils/helpers.js"></script>
+  <script src="../components/CommonHeader.js"></script>
+  <script src="../components/CommonFooter.js"></script>
+  <script src="../components/PageManager.js"></script>
+  <script src="../js/markdown-parser.js"></script>
+  <script src="../js/admin-auth.js"></script>
+  <script src="../js/admin-debug.js"></script>
+  <script src="../js/admin.js"></script>
+  
+  <script>
+    // 管理画面の初期化
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM読み込み完了 - 管理画面初期化開始');
+      
+      try {
+        // AdminAuthクラスの確認
+        if (typeof AdminAuth === 'undefined') {
+          console.error('AdminAuthクラスが読み込まれていません');
+          alert('認証システムの読み込みに失敗しました。ページを再読み込みしてください。');
+          return;
+        }
+        
+        // AdminManagerクラスの確認
+        if (typeof AdminManager === 'undefined') {
+          console.error('AdminManagerクラスが読み込まれていません');
+          alert('管理システムの読み込みに失敗しました。ページを再読み込みしてください。');
+          return;
+        }
+        
+        console.log('必要なクラスが読み込まれています');
+        
+        // AdminManager インスタンス作成
+        window.adminManager = new AdminManager();
+        console.log('AdminManager インスタンス作成完了');
+        
+        // 初期化実行
+        window.adminManager.init();
+        
+      } catch (error) {
+        console.error('管理画面初期化中に予期しないエラー:', error);
+        alert('管理画面の初期化に失敗しました: ' + error.message);
+      }
+    });
+  </script>
+</body>
+</html> 
