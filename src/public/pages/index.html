@@ -8,18 +8,19 @@
   <meta name="keywords" content="大泉学園 陸上教室, 練馬区 かけっこ教室, 子ども 運動教室, RBS陸上教室">
   
   <!-- CSS -->
-  <link rel="stylesheet" href="styles/base.css">
-  <link rel="stylesheet" href="styles/components.css">
-  <link rel="stylesheet" href="styles/layout.css">
-  <link rel="stylesheet" href="styles/responsive.css">
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/common.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/layout.css">
+  <link rel="stylesheet" href="../styles/responsive.css">
 </head>
-<body>
+<body class="page-index">
   <!-- ヘッダー -->
   <header class="header">
     <nav class="nav container">
       <div class="logo">
-        <a href="#hero" onclick="scrollToTop(event)">
-          <img src="images/lp-logo.png" alt="RBS陸上教室 Running & Brain School" class="logo-image">
+        <a href="#hero">
+          <img src="../images/lp-logo.png" alt="RBS陸上教室 Running & Brain School" class="logo-image">
         </a>
       </div>
       <ul class="nav-links">
@@ -32,14 +33,14 @@
         <li><a href="#news">NEWS</a></li>
         <li><a href="https://hacomono.jp/" class="login-btn" target="_blank">会員ログイン</a></li>
       </ul>
-      <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+      <button class="mobile-menu-btn" aria-expanded="false" aria-controls="nav-links">☰</button>
     </nav>
   </header>
 
   <!-- ヒーローセクション -->
   <section id="hero">
     <video id="hero-video" autoplay muted loop playsinline>
-      <source src="images/hero-movie.mp4" type="video/mp4">
+      <source src="../images/hero-movie.mp4" type="video/mp4">
       お使いのブラウザは動画再生に対応していません。
     </video>
     <div class="hero-content">
@@ -58,22 +59,22 @@
   <!-- 本日の開催状況 -->
   <section id="today-status" class="status-banner">
     <div class="container">
-      <div class="status-header" onclick="toggleStatus()">
+      <div class="status-header" onclick="toggleStatusContent()" style="cursor: pointer;">
         <div class="status-info">
           <span class="status-icon"></span>
           <span class="status-text">本日のレッスン開催状況</span>
-          <span class="status-indicator running">開催中</span>
+          <span class="status-indicator scheduled">開催予定</span>
         </div>
         <span class="toggle-icon">▼</span>
       </div>
-      <div class="status-content">
+      <div class="status-content" style="display: none;">
         <div class="status-details">
           <div class="status-item">
             <div class="time-slot">
               <strong>17:00-17:50</strong>
               <span class="course-name">ベーシックコース（年長〜小3）</span>
             </div>
-            <div class="status-badge running">開催中</div>
+            <div class="status-badge scheduled">予定通り開催</div>
           </div>
           <div class="status-item">
             <div class="time-slot">
@@ -82,9 +83,8 @@
             </div>
             <div class="status-badge scheduled">予定通り開催</div>
           </div>
-          <!-- 全体開催状況は管理画面で設定された場合のみ表示 -->
           <div class="last-updated">
-            最終更新: 今日 15:30
+            最終更新: 読み込み中...
           </div>
         </div>
       </div>
@@ -127,7 +127,7 @@
           <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 3px solid var(--primary-teal); transition: all 0.3s ease;">
             <div style="height: 160px; position: relative; overflow: hidden;">
               <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
-                <source src="images/about/start&dash.mp4" type="video/mp4">
+                <source src="../images/about/start&dash.mp4" type="video/mp4">
               </video>
               <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
             </div>
@@ -138,7 +138,7 @@
           <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 3px solid var(--primary-orange); transition: all 0.3s ease;">
             <div style="height: 160px; position: relative; overflow: hidden;">
               <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
-                <source src="images/about/brain-training.mp4" type="video/mp4">
+                <source src="../images/about/brain-training.mp4" type="video/mp4">
               </video>
               <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
             </div>
@@ -149,7 +149,7 @@
           <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 3px solid var(--primary-blue); transition: all 0.3s ease;">
             <div style="height: 160px; position: relative; overflow: hidden;">
               <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
-                <source src="images/about/teamwork-build.mp4" type="video/mp4">
+                <source src="../images/about/teamwork-build.mp4" type="video/mp4">
               </video>
               <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
             </div>
@@ -160,7 +160,7 @@
           <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 3px solid var(--primary-purple); transition: all 0.3s ease;">
             <div style="height: 160px; position: relative; overflow: hidden;">
               <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
-                <source src="images/about/confidence-build.mp4" type="video/mp4">
+                <source src="../images/about/confidence-build.mp4" type="video/mp4">
               </video>
               <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
             </div>
@@ -197,11 +197,10 @@
         </div>
         <div class="feature-card animate-on-scroll">
           <span class="feature-number">3</span>
-          <h3>1人ひとりに寄り添う<br><span class="text-warning">"密着型パーソナルスクール"</span></h3>
+          <h3>少人数制で一人ひとりに<br>寄り添う<span class="text-warning">丁寧な指導</span></h3>
           <p>
-            1クラス最大20名の少人数制。お子さまの個性や成長ペースに合わせて、経験豊富なコーチが毎回しっかり観察＆声かけしながら丁寧に指導します。<br>
-            さらに、別途オプション（有料）で「自宅でできるトレーニング動画」も配信。<br>
-            <strong>「うちの子に合わせてくれている」という実感と安心感</strong>が得られます。
+            最大8名の少人数制だから、お子様一人ひとりの個性や成長段階に合わせた指導が可能です。<br>
+            「できた！」の成功体験を積み重ねながら、<strong>自信と挑戦心</strong>を育てていきます。
           </p>
         </div>
       </div>
@@ -359,7 +358,7 @@
           <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); border: 4px solid var(--primary-teal); transition: all 0.3s ease;">
             <div style="height: 160px; position: relative; overflow: hidden;">
               <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
-                <source src="images/program/brain-training.mp4" type="video/mp4">
+                <source src="../images/program/brain-training.mp4" type="video/mp4">
               </video>
               <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
             </div>
@@ -372,7 +371,7 @@
           <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); border: 4px solid var(--primary-blue); transition: all 0.3s ease;">
             <div style="height: 160px; position: relative; overflow: hidden;">
               <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
-                <source src="images/program/record-measurement.mp4" type="video/mp4">
+                <source src="../images/program/record-measurement.mp4" type="video/mp4">
               </video>
               <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
             </div>
@@ -385,7 +384,7 @@
           <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); border: 4px solid var(--primary-orange); transition: all 0.3s ease;">
             <div style="height: 160px; position: relative; overflow: hidden;">
               <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
-                <source src="images/program/goal-achievement.mp4" type="video/mp4">
+                <source src="../images/program/goal-achievement.mp4" type="video/mp4">
               </video>
               <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
             </div>
@@ -399,24 +398,103 @@
     </div>
   </section>
 
-  <!-- コーチ紹介 */
-  <section id="coach">
-    <div class="container">
-      <h2>コーチ紹介</h2>
-      <div class="coach-grid">
-        <img src="images/coach-profile.jpg" alt="メインコーチ" class="coach-image">
-        <div class="coach-info">
-          <h3>田中 健太郎</h3>
-          <p class="coach-title">メインコーチ / 元実業団選手</p>
-          <p>
-            大学時代は陸上競技部で短距離を専門とし、実業団でも活躍。引退後は子どもたちの指導に情熱を注ぎ、
-            これまで1000人以上の子どもたちを指導してきました。
-          </p>
-          <p>
-            「走ることの楽しさを伝えながら、子どもたち一人ひとりの可能性を引き出すこと」をモットーに、
-            丁寧で分かりやすい指導を心がけています。
-          </p>
+  <!-- コーチ紹介 -->
+  <section id="coach" style="background: var(--white); padding: 80px 0;">
+    <div class="container-wide">
+      <h2 style="margin-bottom: 50px;">コーチ紹介</h2>
+      
+      <!-- メインコーチ -->
+      <div style="max-width: 950px; margin: 0 auto; background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 3px solid var(--primary-blue); margin-bottom: 50px;">
+        <div class="coach-grid">
+          
+          <!-- コーチ写真 -->
+          <div style="height: 240px; background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal)); display: flex; align-items: center; justify-content: center; position: relative;">
+            <div style="width: 140px; height: 140px; background: url('../images/coach-portrait.png') center/cover; border-radius: 50%; box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2); border: 3px solid var(--white);"></div>
+            <div style="position: absolute; bottom: 12px; left: 12px; right: 12px; text-align: center;">
+              <div style="background: var(--white); color: var(--primary-blue); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-block;">代表コーチ</div>
+            </div>
+          </div>
+          
+          <!-- コーチ情報 -->
+          <div style="padding: 25px;">
+            <h3 style="color: var(--navy-dark); font-size: 26px; margin-bottom: 8px; font-weight: 800;">今井 悠太</h3>
+            <p style="color: var(--primary-blue); font-size: 15px; font-weight: 700; margin-bottom: 18px;">RBS陸上教室 代表コーチ・合同会社VITA代表</p>
+            
+            <div style="margin-bottom: 16px;">
+              <h4 style="color: var(--navy-dark); font-size: 16px; margin-bottom: 8px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                <span style="width: 5px; height: 5px; background: var(--primary-teal); border-radius: 50%;"></span> 指導理念
+              </h4>
+              <p style="color: var(--gray-medium); font-size: 13px; line-height: 1.6; padding-left: 16px;">
+                「すべての子どもに、走る楽しさと成功体験を」をモットーに、一人ひとりの個性を大切にしながら、運動能力だけでなく人間力の向上を目指した指導を心がけています。
+              </p>
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+              <h4 style="color: var(--navy-dark); font-size: 16px; margin-bottom: 8px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                <span style="width: 5px; height: 5px; background: var(--primary-blue); border-radius: 50%;"></span> 専門分野・資格
+              </h4>
+              <div style="padding-left: 16px;">
+                <ul style="list-style: none; margin: 0;">
+                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
+                    <span style="position: absolute; left: 0; color: var(--primary-teal);">•</span>
+                    スポーツ科学専攻（大学院修了）
+                  </li>
+                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
+                    <span style="position: absolute; left: 0; color: var(--primary-teal);">•</span>
+                    JRCA認定ランニングコーチ
+                  </li>
+                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
+                    <span style="position: absolute; left: 0; color: var(--primary-teal);">•</span>
+                    日本スポーツ協会公認コーチ
+                  </li>
+                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
+                    <span style="position: absolute; left: 0; color: var(--primary-teal);">•</span>
+                    幼児体育指導者検定1級
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <div>
+              <h4 style="color: var(--navy-dark); font-size: 16px; margin-bottom: 8px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                <span style="width: 5px; height: 5px; background: var(--primary-orange); border-radius: 50%;"></span> 指導実績
+              </h4>
+              <div style="padding-left: 16px;">
+                <ul style="list-style: none; margin: 0;">
+                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
+                    <span style="position: absolute; left: 0; color: var(--primary-orange);">•</span>
+                    ジュニア陸上指導歴：8年
+                  </li>
+                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
+                    <span style="position: absolute; left: 0; color: var(--primary-orange);">•</span>
+                    指導した生徒数：延べ500名以上
+                  </li>
+                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
+                    <span style="position: absolute; left: 0; color: var(--primary-orange);">•</span>
+                    県大会入賞者輩出：15名
+                  </li>
+                  <li style="color: var(--gray-medium); margin-bottom: 0; position: relative; padding-left: 12px; font-size: 13px;">
+                    <span style="position: absolute; left: 0; color: var(--primary-orange);">•</span>
+                    運動会リレー選手輩出：100名以上
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
+      
+      <!-- コーチからのメッセージ -->
+      <div style="background: var(--primary-blue); color: white; padding: 50px; border-radius: 25px; margin-top: 60px; text-align: center; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: var(--primary-teal); border-radius: 50%; opacity: 0.2;"></div>
+        <div style="position: absolute; bottom: -30px; left: -30px; width: 80px; height: 80px; background: var(--primary-orange); border-radius: 50%; opacity: 0.2;"></div>
+        
+        <h3 style="font-size: 28px; margin-bottom: 25px; font-weight: 800; position: relative; z-index: 2;">コーチからのメッセージ</h3>
+        <p style="font-size: 20px; line-height: 1.8; max-width: 800px; margin: 0 auto; font-weight: 600; position: relative; z-index: 2;">
+          「走ることが楽しい！」と感じてもらえるよう、私たちコーチ一同、<br>
+          お子さま一人ひとりの成長に全力で向き合います。<br>
+          <strong style="color: var(--secondary-yellow);">まずは無料体験で、私たちの指導を体感してください！</strong>
+        </p>
       </div>
     </div>
   </section>
@@ -468,7 +546,7 @@
     </div>
   </section>
 
-    <!-- 料金 -->
+  <!-- 料金 -->
   <section id="price">
     <div class="container-wide">
       <h2>料金プラン</h2>
@@ -527,7 +605,7 @@
       <h2>よくあるご質問</h2>
       <div class="faq-list">
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question" onclick="toggleFaq(this)">
+          <div class="faq-question">
             Q1. レッスンではどのような内容を行いますか？
             <span class="faq-icon">+</span>
           </div>
@@ -539,7 +617,7 @@
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question" onclick="toggleFaq(this)">
+          <div class="faq-question">
             Q2. 無料体験は可能ですか？
             <span class="faq-icon">+</span>
           </div>
@@ -550,7 +628,7 @@
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question" onclick="toggleFaq(this)">
+          <div class="faq-question">
             Q3. 他の陸上クラブとの違いは何ですか？
             <span class="faq-icon">+</span>
           </div>
@@ -561,7 +639,7 @@
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question" onclick="toggleFaq(this)">
+          <div class="faq-question">
             Q4. 持ち物は何が必要ですか？
             <span class="faq-icon">+</span>
           </div>
@@ -572,7 +650,7 @@
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question" onclick="toggleFaq(this)">
+          <div class="faq-question">
             Q5. 欠席した場合、振替はできますか？
             <span class="faq-icon">+</span>
           </div>
@@ -583,7 +661,7 @@
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question" onclick="toggleFaq(this)">
+          <div class="faq-question">
             Q6. 雨天時のレッスン開催についてはどうなりますか？
             <span class="faq-icon">+</span>
           </div>
@@ -594,7 +672,7 @@
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question" onclick="toggleFaq(this)">
+          <div class="faq-question">
             Q7. 休会は可能ですか？
             <span class="faq-icon">+</span>
           </div>
@@ -605,7 +683,7 @@
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question" onclick="toggleFaq(this)">
+          <div class="faq-question">
             Q8. 月謝の支払い方法は？
             <span class="faq-icon">+</span>
           </div>
@@ -616,7 +694,7 @@
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question" onclick="toggleFaq(this)">
+          <div class="faq-question">
             Q9. 何歳から参加できますか？
             <span class="faq-icon">+</span>
           </div>
@@ -627,7 +705,7 @@
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question" onclick="toggleFaq(this)">
+          <div class="faq-question">
             Q10. 保護者の見学は可能ですか？
             <span class="faq-icon">+</span>
           </div>
@@ -641,7 +719,7 @@
     </div>
   </section>
 
-    <!-- CTA -->
+  <!-- CTA -->
   <section id="cta">
     <div class="container">
       <h2>無料体験レッスン受付中！</h2>
@@ -746,9 +824,67 @@
   </footer>
 
   <!-- JavaScript -->
-  <script src="js/markdown-parser.js"></script>
-  <script src="status-updater.js"></script>
-  <script src="js/app.js"></script>
+  <script src="../js/config.js"></script>
+  <script type="module" src="../js/main.js"></script>
+  
+  <!-- フォールバック JavaScript -->
+  <script>
+    // StatusBanner のクリック機能（フォールバック）
+    function toggleStatusContent() {
+      const statusContent = document.querySelector('.status-content');
+      const toggleIcon = document.querySelector('.toggle-icon');
+      
+      if (!statusContent || !toggleIcon) return;
+      
+      const isHidden = statusContent.style.display === 'none' || 
+                      getComputedStyle(statusContent).display === 'none';
+      
+      if (isHidden) {
+        // 展開
+        statusContent.style.display = 'block';
+        statusContent.style.maxHeight = '0';
+        statusContent.style.opacity = '0';
+        
+        requestAnimationFrame(() => {
+          statusContent.style.maxHeight = statusContent.scrollHeight + 'px';
+          statusContent.style.opacity = '1';
+          toggleIcon.textContent = '▲';
+        });
+      } else {
+        // 折りたたみ
+        statusContent.style.maxHeight = '0';
+        statusContent.style.opacity = '0';
+        toggleIcon.textContent = '▼';
+        
+        setTimeout(() => {
+          statusContent.style.display = 'none';
+        }, 300);
+      }
+    }
+    
+    // ナビゲーションのスムーススクロール（フォールバック）
+    document.addEventListener('DOMContentLoaded', function() {
+      const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
+      
+      navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          const targetId = this.getAttribute('href');
+          const targetElement = document.querySelector(targetId);
+          
+          if (targetElement) {
+            const headerHeight = 120;
+            const targetPosition = targetElement.offsetTop - headerHeight;
+            
+            window.scrollTo({
+              top: targetPosition,
+              behavior: 'smooth'
+            });
+          }
+        });
+      });
+    });
+  </script>
 
   <!-- 構造化データ (SEO) -->
   <script type="application/ld+json">

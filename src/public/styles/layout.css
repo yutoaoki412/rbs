@@ -1407,4 +1407,197 @@ footer p {
   color: var(--gray-medium);
   margin-top: 20px;
   font-weight: var(--font-weight-medium);
+}
+
+/* 動画ギャラリー */
+.video-gallery {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-lg);
+  margin: 60px 0;
+  position: relative;
+  z-index: 2;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.video-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  border: 3px solid var(--primary-teal);
+  transition: var(--transition-normal);
+}
+
+.video-card:nth-child(2) {
+  border-color: var(--primary-orange);
+}
+
+.video-card:nth-child(3) {
+  border-color: var(--primary-blue);
+}
+
+.video-card:nth-child(4) {
+  border-color: var(--primary-purple);
+}
+
+.video-card-media {
+  height: 160px;
+  position: relative;
+  overflow: hidden;
+}
+
+.video-card video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));
+}
+
+.video-card-content {
+  padding: var(--spacing-md);
+}
+
+.video-card-title {
+  color: var(--navy-dark);
+  font-weight: var(--font-weight-bold);
+  font-size: 15px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* 装飾的な背景要素 */
+.decorative-shapes {
+  position: relative;
+  overflow: hidden;
+}
+
+.decorative-shape {
+  position: absolute;
+  opacity: 0.08;
+}
+
+.decorative-shape--circle-teal {
+  top: 8%;
+  left: 3%;
+  width: 100px;
+  height: 100px;
+  background: var(--primary-teal);
+  border-radius: 50%;
+  transform: rotate(45deg);
+}
+
+.decorative-shape--triangle-orange {
+  top: 12%;
+  right: 5%;
+  width: 80px;
+  height: 80px;
+  background: var(--primary-orange);
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.decorative-shape--square-blue {
+  bottom: 15%;
+  left: 8%;
+  width: 70px;
+  height: 70px;
+  background: var(--primary-blue);
+  transform: rotate(45deg);
+}
+
+.decorative-shape--circle-purple {
+  bottom: 20%;
+  right: 3%;
+  width: 90px;
+  height: 90px;
+  background: var(--primary-purple);
+  border-radius: 50%;
+  opacity: 0.06;
+}
+
+/* セクションタイトル */
+.section-title {
+  font-size: clamp(32px, 6vw, 52px);
+  color: var(--primary-blue);
+  margin-bottom: var(--spacing-md);
+  position: relative;
+  z-index: 2;
+  font-weight: var(--font-weight-black);
+}
+
+.section-subtitle {
+  font-size: clamp(18px, 3vw, 26px);
+  color: var(--navy-dark);
+  margin-bottom: 15px;
+  font-weight: var(--font-weight-bold);
+  position: relative;
+  z-index: 2;
+}
+
+.section-description {
+  font-size: clamp(16px, 2.5vw, 22px);
+  color: var(--gray-medium);
+  margin-bottom: var(--spacing-xl);
+  position: relative;
+  z-index: 2;
+}
+
+.section-description strong {
+  font-weight: var(--font-weight-bold);
+}
+
+/* 特徴バッジ */
+.feature-badge {
+  display: inline-block;
+  background: var(--secondary-yellow);
+  color: var(--white);
+  padding: 18px var(--spacing-xl);
+  border-radius: var(--radius-full);
+  font-size: clamp(20px, 4vw, 32px);
+  font-weight: var(--font-weight-black);
+  margin-bottom: 60px;
+  box-shadow: 0 8px 30px rgba(243, 156, 18, 0.4);
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.feature-badge::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 3s infinite;
+}
+
+/* 特徴セクションタイトル */
+.features-title {
+  text-align: center;
+  font-size: clamp(28px, 5vw, 42px);
+  color: var(--navy-dark);
+  margin-bottom: 60px;
+  font-weight: var(--font-weight-black);
+  position: relative;
+}
+
+.features-title::after {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 6px;
+  background: var(--primary-blue);
+  border-radius: var(--radius-xs);
 } 

@@ -10,22 +10,47 @@
   
   /* CSS変数 - デザインシステム */
   :root {
-    /* カラーパレット */
-    --primary-blue: #4a90e2;
-    --primary-teal: #50c8a3;
-    --primary-orange: #f5a623;
-    --primary-red: #e74c3c;
-    --primary-purple: #9b59b6;
-    --primary-pink: #e91e63;
-    --secondary-yellow: #f39c12;
-    --secondary-mint: #1abc9c;
-    --navy-dark: #2c3e50;
-    --gray-light: #f8f9fa;
-    --gray-medium: #6c757d;
-    --gray-border: #dee2e6;
-    --white: #ffffff;
-    --success: #28a745;
-    --warning: #ffc107;
+    /* カラーパレット - プライマリ */
+    --color-primary-blue: #4a90e2;
+    --color-primary-teal: #50c8a3;
+    --color-primary-orange: #f5a623;
+    --color-primary-red: #e74c3c;
+    --color-primary-purple: #9b59b6;
+    --color-primary-pink: #e91e63;
+    
+    /* カラーパレット - セカンダリ */
+    --color-secondary-yellow: #f39c12;
+    --color-secondary-mint: #1abc9c;
+    
+    /* カラーパレット - ニュートラル */
+    --color-navy-dark: #2c3e50;
+    --color-gray-light: #f8f9fa;
+    --color-gray-medium: #6c757d;
+    --color-gray-border: #dee2e6;
+    --color-white: #ffffff;
+    
+    /* カラーパレット - ステート */
+    --color-success: #28a745;
+    --color-warning: #ffc107;
+    --color-error: #dc3545;
+    --color-info: #17a2b8;
+    
+    /* 後方互換性のためのエイリアス */
+    --primary-blue: var(--color-primary-blue);
+    --primary-teal: var(--color-primary-teal);
+    --primary-orange: var(--color-primary-orange);
+    --primary-red: var(--color-primary-red);
+    --primary-purple: var(--color-primary-purple);
+    --primary-pink: var(--color-primary-pink);
+    --secondary-yellow: var(--color-secondary-yellow);
+    --secondary-mint: var(--color-secondary-mint);
+    --navy-dark: var(--color-navy-dark);
+    --gray-light: var(--color-gray-light);
+    --gray-medium: var(--color-gray-medium);
+    --gray-border: var(--color-gray-border);
+    --white: var(--color-white);
+    --success: var(--color-success);
+    --warning: var(--color-warning);
   
     /* フォント */
     --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
@@ -41,16 +66,19 @@
     --spacing-md: 24px;
     --spacing-lg: 32px;
     --spacing-xl: 48px;
-    --spacing-xxl: 64px;
+    --spacing-2xl: 64px;
   
     /* ボーダー半径 */
+    --radius-xs: 4px;
     --radius-sm: 8px;
     --radius-md: 15px;
     --radius-lg: 25px;
     --radius-xl: 30px;
-    --radius-round: 50px;
+    --radius-full: 50px;
+    --radius-round: var(--radius-full);
   
     /* シャドウ */
+    --shadow-xs: 0 2px 8px rgba(0, 0, 0, 0.05);
     --shadow-sm: 0 4px 20px rgba(0, 0, 0, 0.08);
     --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 15px 50px rgba(0, 0, 0, 0.1);
@@ -84,7 +112,7 @@
   .container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 0 40px;
+    padding: 0 var(--spacing-xl);
   }
   
   .container-wide {
@@ -104,7 +132,7 @@
   h1 {
     font-size: clamp(36px, 7vw, 56px);
     line-height: 1.2;
-    margin-bottom: 30px;
+    margin-bottom: var(--spacing-lg);
     color: var(--navy-dark);
     font-weight: var(--font-weight-heavy);
     letter-spacing: -0.02em;
@@ -130,7 +158,7 @@
     width: 120px;
     height: 8px;
     background: var(--primary-blue);
-    border-radius: 4px;
+    border-radius: var(--radius-xs);
   }
   
   /* ユーティリティクラス */
@@ -146,7 +174,7 @@
   .text-highlight {
     background: var(--secondary-yellow);
     color: var(--navy-dark);
-    padding: 2px 8px;
+    padding: 2px var(--spacing-xs);
     border-radius: var(--radius-sm);
     font-weight: var(--font-weight-bold);
   }

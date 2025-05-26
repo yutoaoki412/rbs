@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEWS - RBS陸上教室</title>
+  <meta name="description" content="RBS陸上教室の最新ニュース・お知らせ一覧。体験会情報、メディア掲載、教室の最新情報をお届けします。">
+  <meta name="keywords" content="RBS陸上教室 ニュース, 大泉学園 陸上教室 お知らせ, 体験会情報">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/common.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/layout.css">
+  <link rel="stylesheet" href="../styles/responsive.css">
+  <link rel="stylesheet" href="../styles/news.css">
+</head>
+<body class="page-news">
+  <!-- ヘッダー -->
+  <header>
+    <nav>
+      <div class="logo">
+        <a href="index.html">
+          <img src="../images/lp-logo.png" alt="RBS陸上教室 Running & Brain School" class="logo-image">
+        </a>
+      </div>
+      <ul class="nav-links">
+        <li><a href="index.html#about">RBSとは</a></li>
+        <li><a href="index.html#program">プログラム</a></li>
+        <li><a href="index.html#coach">コーチ</a></li>
+        <li><a href="index.html#location">教室情報</a></li>
+        <li><a href="index.html#price">料金</a></li>
+        <li><a href="index.html#faq">よくある質問</a></li>
+        <li><a href="news.html">NEWS</a></li>
+        <li><a href="https://hacomono.jp/" class="login-btn" target="_blank">会員ログイン</a></li>
+      </ul>
+      <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+    </nav>
+  </header>
+
+  <main>
+    <div class="container">
+      <!-- ページヘッダー -->
+      <div class="page-header">
+        <h1>NEWS</h1>
+        <p>RBS陸上教室の最新情報をお届けします</p>
+      </div>
+
+      <!-- フィルター -->
+      <div class="news-filters">
+        <div class="filter-title">カテゴリーで絞り込み</div>
+        <div class="filter-buttons">
+          <a href="news.html" class="filter-btn active">すべて</a>
+          <a href="news.html?category=announcement" class="filter-btn">お知らせ</a>
+          <a href="news.html?category=event" class="filter-btn">体験会</a>
+          <a href="news.html?category=media" class="filter-btn">メディア</a>
+          <a href="news.html?category=important" class="filter-btn">重要</a>
+        </div>
+      </div>
+
+      <!-- 検索結果表示 -->
+      <div class="search-results" style="display: none;">
+        <div class="search-results-text">
+          <span id="search-count">0</span>件の記事が見つかりました
+        </div>
+      </div>
+
+      <!-- ニュース一覧 -->
+      <div class="news-grid">
+        <!-- 記事は動的に生成されます -->
+        <div class="loading-message" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--gray-medium);">
+          <div style="margin-bottom: 20px;">
+            <div style="border: 3px solid #f3f3f3; border-top: 3px solid var(--primary-blue); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+          </div>
+          <p style="font-size: 18px; font-weight: 600;">記事を読み込み中...</p>
+        </div>
+      </div>
+
+      <!-- ページネーション -->
+      <div class="pagination">
+        <a href="#" class="disabled">‹ 前へ</a>
+        <span class="current">1</span>
+        <a href="news.html?page=2">2</a>
+        <a href="news.html?page=3">3</a>
+        <span>...</span>
+        <a href="news.html?page=5">5</a>
+        <a href="news.html?page=2">次へ ›</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- フッター -->
+  <footer>
+    <div class="footer-links">
+      <a href="/terms">特定商取引法に基づく表記</a>
+      <a href="/privacy">プライバシーポリシー</a>
+      <a href="https://hacomono.jp/" target="_blank">会員ログイン</a>
+    </div>
+    <p>© 2025 合同会社VITA. All rights reserved.</p>
+  </footer>
+
+  <!-- JavaScript -->
+  <script src="../js/config.js"></script>
+  <script src="../utils/helpers.js"></script>
+  <script src="../components/CommonHeader.js"></script>
+  <script src="../components/CommonFooter.js"></script>
+  <script src="../components/PageManager.js"></script>
+  <script src="../js/markdown-parser.js"></script>
+  <script src="../components/NewsCard.js"></script>
+  
+  <script>
+    // 記事管理システムのインスタンス
+    const articleManager = new ArticleManager();
+
+    // ページマネージャーを初期化
+    const pageManager = new PageManager('news');
+
+    // モバイルメニュー切り替え
+    function toggleMobileMenu() {
+      const navLinks = document.querySelector('.nav-links');
+      navLinks.classList.toggle('active');
+    }
+
+    // 記事一覧を動的に生成
+    async function loadAndDisplayArticles() {
+      try {
+        await articleManager.loadArticles();
+        displayArticles();
+        setupFiltering();
+      } catch (error) {
+        console.error('記事の読み込みに失敗しました:', error);
+        showErrorMessage();
+      }
+    }
+
+    // 記事を表示
+    function displayArticles() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const category = urlParams.get('category') || 'all';
+      
+      const filteredArticles = articleManager.filterByCategory(category);
+      const newsGrid = document.querySelector('.news-grid');
+      
+      // 既存の記事をクリア
+      newsGrid.innerHTML = '';
+      
+      // 記事がない場合
+      if (filteredArticles.length === 0) {
+        newsGrid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--gray-medium);">
+            <p style="font-size: 18px; font-weight: 600;">該当する記事が見つかりませんでした。</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // 記事カードを生成
+      filteredArticles.forEach(article => {
+        const articleCard = createArticleCard(article);
+        newsGrid.appendChild(articleCard);
+      });
+      
+      // 検索結果表示を更新
+      updateSearchResults(filteredArticles.length, category);
+      
+      // アニメーション効果を適用
+      applyAnimations();
+    }
+
+    // 記事カードを作成
+    function createArticleCard(article) {
+      const card = document.createElement('article');
+      card.className = 'news-card';
+      card.setAttribute('data-category', article.category);
+      
+      const categoryColor = articleManager.getCategoryColor(article.category);
+      
+      card.innerHTML = `
+        <div class="news-card-header">
+          <div class="news-meta">
+            <div class="news-date">${articleManager.formatDate(article.date)}</div>
+            <div class="news-category ${article.category}" style="background: ${categoryColor};">
+              ${article.categoryName}
+            </div>
+          </div>
+          <h2 class="news-title">${article.title}</h2>
+        </div>
+        <div class="news-card-body">
+          <p class="news-excerpt">${article.excerpt}</p>
+          <a href="news-detail.html?id=${article.id}" class="news-read-more">続きを読む</a>
+        </div>
+      `;
+      
+      return card;
+    }
+
+    // 検索結果表示を更新
+    function updateSearchResults(count, category) {
+      const searchResults = document.querySelector('.search-results');
+      const searchCount = document.getElementById('search-count');
+      
+      if (category !== 'all') {
+        searchResults.style.display = 'block';
+        searchCount.textContent = count;
+      } else {
+        searchResults.style.display = 'none';
+      }
+    }
+
+    // フィルタリング機能をセットアップ
+    function setupFiltering() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const category = urlParams.get('category') || 'all';
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      
+      // フィルターボタンのアクティブ状態を更新
+      filterBtns.forEach(btn => {
+        btn.classList.remove('active');
+        const btnHref = btn.getAttribute('href');
+        if ((category === 'all' && btnHref === 'news.html') || 
+            (category !== 'all' && btnHref.includes(`category=${category}`))) {
+          btn.classList.add('active');
+        }
+      });
+    }
+
+    // アニメーション効果を適用
+    function applyAnimations() {
+      const newsCards = document.querySelectorAll('.news-card');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+          if (entry.isIntersecting) {
+            setTimeout(() => {
+              entry.target.style.opacity = '1';
+              entry.target.style.transform = 'translateY(0)';
+            }, index * 100);
+            observer.unobserve(entry.target);
+          }
+        });
+      }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      });
+
+      newsCards.forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(card);
+      });
+    }
+
+    // エラーメッセージを表示
+    function showErrorMessage() {
+      const newsGrid = document.querySelector('.news-grid');
+      newsGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--primary-red);">
+          <p style="font-size: 18px; font-weight: 600;">記事の読み込みに失敗しました。</p>
+          <p style="margin-top: 10px;">しばらく時間をおいてから再度お試しください。</p>
+        </div>
+      `;
+    }
+
+    // デバッグ機能（開発時のみ）
+    function debugArticleManager() {
+      if (articleManager.debugInfo) {
+        articleManager.debugInfo();
+      }
+      console.log('現在表示中の記事:', articleManager.articles);
+    }
+
+    // ページロード時に記事を読み込み
+    document.addEventListener('DOMContentLoaded', function() {
+      // ページマネージャーを初期化
+      pageManager.init().then(() => {
+        loadAndDisplayArticles();
+        
+        // デバッグ情報を出力（開発時のみ）
+        setTimeout(() => {
+          debugArticleManager();
+        }, 1000);
+      });
+    });
+
+    // ナビゲーションリンクのクリック時にモバイルメニューを閉じる
+    document.querySelectorAll('.nav-links a').forEach(link => {
+      link.addEventListener('click', function() {
+        const navLinks = document.querySelector('.nav-links');
+        if (navLinks.classList.contains('active')) {
+          navLinks.classList.remove('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html> 
