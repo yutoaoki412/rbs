@@ -1022,6 +1022,18 @@
   transform: translateY(-1px);
 }
 
+.btn.btn-secondary {
+  background: var(--admin-gray-500);
+  color: var(--admin-white);
+  border: 1px solid var(--admin-gray-500);
+}
+
+.btn.btn-secondary:hover {
+  background: var(--admin-gray-700);
+  border-color: var(--admin-gray-700);
+  transform: translateY(-1px);
+}
+
 /* レスポンシブ */
 @media (max-width: 1024px) {
   .admin-sidebar {
@@ -1136,6 +1148,16 @@
   color: var(--admin-white);
 }
 
+.admin-notification.warning {
+  background: var(--admin-warning);
+  color: var(--admin-white);
+}
+
+.admin-notification.info {
+  background: var(--admin-primary);
+  color: var(--admin-white);
+}
+
 .notification-content {
   display: flex;
   align-items: center;
@@ -1177,6 +1199,79 @@
     transform: translateX(0);
     opacity: 1;
   }
+}
+
+/* レッスン状況表示 */
+.status-indicator {
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.status-indicator.scheduled {
+  background: var(--admin-success);
+  color: var(--admin-white);
+}
+
+.status-indicator.cancelled {
+  background: var(--admin-error);
+  color: var(--admin-white);
+}
+
+.status-indicator.indoor {
+  background: var(--admin-warning);
+  color: var(--admin-white);
+}
+
+.status-indicator.postponed {
+  background: var(--admin-secondary);
+  color: var(--admin-white);
+}
+
+.status-indicator.error {
+  background: var(--admin-gray-500);
+  color: var(--admin-white);
+}
+
+.normal-status {
+  text-align: center;
+  padding: 20px;
+  color: var(--admin-success);
+  font-weight: 600;
+}
+
+.error-status {
+  text-align: center;
+  padding: 20px;
+  color: var(--admin-error);
+}
+
+.global-message {
+  background: var(--admin-gray-100);
+  padding: 15px;
+  border-radius: var(--admin-border-radius-sm);
+  margin-bottom: 15px;
+  border-left: 4px solid var(--admin-primary);
+}
+
+.course-message {
+  background: var(--admin-gray-50);
+  padding: 10px;
+  border-radius: var(--admin-border-radius-sm);
+  margin-top: 8px;
+  font-size: 0.875rem;
+  color: var(--admin-gray-700);
+}
+
+.last-updated {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--admin-gray-500);
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--admin-gray-200);
 }
 
 /* スクロールバー */

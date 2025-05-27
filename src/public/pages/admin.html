@@ -274,16 +274,20 @@
             <h2>本日の開催状況</h2>
             <div class="status-display">
               <div class="status-item">
-                <input type="radio" id="status-normal" name="global-status" value="normal" checked>
-                <label for="status-normal">開催中</label>
-              </div>
-              <div class="status-item">
-                <input type="radio" id="status-scheduled" name="global-status" value="scheduled">
-                <label for="status-scheduled">開催予定</label>
+                <input type="radio" id="status-scheduled" name="global-status" value="scheduled" checked>
+                <label for="status-scheduled">通常開催</label>
               </div>
               <div class="status-item">
                 <input type="radio" id="status-cancelled" name="global-status" value="cancelled">
                 <label for="status-cancelled">中止</label>
+              </div>
+              <div class="status-item">
+                <input type="radio" id="status-indoor" name="global-status" value="indoor">
+                <label for="status-indoor">室内開催</label>
+              </div>
+              <div class="status-item">
+                <input type="radio" id="status-postponed" name="global-status" value="postponed">
+                <label for="status-postponed">延期</label>
               </div>
             </div>
           </div>
@@ -293,7 +297,7 @@
               <label for="lesson-date">
                 <i class="fas fa-calendar"></i> 対象日
               </label>
-              <input type="date" id="lesson-date" class="form-input">
+              <input type="date" id="lesson-date" class="form-input" value="">
             </div>
             
             <div class="form-group">
@@ -306,105 +310,60 @@
             <div class="courses-grid">
               <div class="course-card">
                 <div class="course-header">
-                  <h3>キッズコース</h3>
+                  <h3>ベーシックコース</h3>
+                  <p>年長〜小3対象 / 17:00-17:50</p>
                 </div>
                 <div class="course-content">
-                  <h4>体験会</h4>
                   <div class="status-buttons">
-                    <input type="radio" name="キッズ-体験会" value="実施" id="kids-trial-active">
-                    <label for="kids-trial-active" class="status-btn">
-                      <i class="fas fa-play"></i> 実施
+                    <input type="radio" name="basic-lesson" value="開催" id="basic-lesson-active" checked>
+                    <label for="basic-lesson-active" class="status-btn">
+                      <i class="fas fa-play"></i> 開催
                     </label>
-                    <input type="radio" name="キッズ-体験会" value="中止" id="kids-trial-cancelled">
-                    <label for="kids-trial-cancelled" class="status-btn">
+                    <input type="radio" name="basic-lesson" value="中止" id="basic-lesson-cancelled">
+                    <label for="basic-lesson-cancelled" class="status-btn">
                       <i class="fas fa-times"></i> 中止
-                    </label>
-                    <input type="radio" name="キッズ-体験会" value="TBD" id="kids-trial-tbd" checked>
-                    <label for="kids-trial-tbd" class="status-btn">
-                      <i class="fas fa-clock"></i> 未定
                     </label>
                   </div>
                   <div class="form-group">
                     <label>補足メッセージ</label>
-                    <textarea id="キッズ-体験会-note" class="form-textarea small" placeholder="例：時間変更あり"></textarea>
-                  </div>
-                  
-                  <h4>通常レッスン</h4>
-                  <div class="status-buttons">
-                    <input type="radio" name="キッズ-通常レッスン" value="実施" id="kids-lesson-active">
-                    <label for="kids-lesson-active" class="status-btn">
-                      <i class="fas fa-play"></i> 実施
-                    </label>
-                    <input type="radio" name="キッズ-通常レッスン" value="中止" id="kids-lesson-cancelled">
-                    <label for="kids-lesson-cancelled" class="status-btn">
-                      <i class="fas fa-times"></i> 中止
-                    </label>
-                    <input type="radio" name="キッズ-通常レッスン" value="TBD" id="kids-lesson-tbd" checked>
-                    <label for="kids-lesson-tbd" class="status-btn">
-                      <i class="fas fa-clock"></i> 未定
-                    </label>
-                  </div>
-                  <div class="form-group">
-                    <label>補足メッセージ</label>
-                    <textarea id="キッズ-通常レッスン-note" class="form-textarea small" placeholder="例：時間変更あり"></textarea>
+                    <textarea id="basic-lesson-note" class="form-textarea small" placeholder="例：雨天のため室内で実施"></textarea>
                   </div>
                 </div>
               </div>
               
               <div class="course-card">
                 <div class="course-header">
-                  <h3>ジュニアコース</h3>
+                  <h3>アドバンスコース</h3>
+                  <p>小4〜小6対象 / 18:00-18:50</p>
                 </div>
                 <div class="course-content">
-                  <h4>体験会</h4>
                   <div class="status-buttons">
-                    <input type="radio" name="ジュニア-体験会" value="実施" id="junior-trial-active">
-                    <label for="junior-trial-active" class="status-btn">
-                      <i class="fas fa-play"></i> 実施
+                    <input type="radio" name="advance-lesson" value="開催" id="advance-lesson-active" checked>
+                    <label for="advance-lesson-active" class="status-btn">
+                      <i class="fas fa-play"></i> 開催
                     </label>
-                    <input type="radio" name="ジュニア-体験会" value="中止" id="junior-trial-cancelled">
-                    <label for="junior-trial-cancelled" class="status-btn">
+                    <input type="radio" name="advance-lesson" value="中止" id="advance-lesson-cancelled">
+                    <label for="advance-lesson-cancelled" class="status-btn">
                       <i class="fas fa-times"></i> 中止
-                    </label>
-                    <input type="radio" name="ジュニア-体験会" value="TBD" id="junior-trial-tbd" checked>
-                    <label for="junior-trial-tbd" class="status-btn">
-                      <i class="fas fa-clock"></i> 未定
                     </label>
                   </div>
                   <div class="form-group">
                     <label>補足メッセージ</label>
-                    <textarea id="ジュニア-体験会-note" class="form-textarea small" placeholder="例：時間変更あり"></textarea>
-                  </div>
-                  
-                  <h4>通常レッスン</h4>
-                  <div class="status-buttons">
-                    <input type="radio" name="ジュニア-通常レッスン" value="実施" id="junior-lesson-active">
-                    <label for="junior-lesson-active" class="status-btn">
-                      <i class="fas fa-play"></i> 実施
-                    </label>
-                    <input type="radio" name="ジュニア-通常レッスン" value="中止" id="junior-lesson-cancelled">
-                    <label for="junior-lesson-cancelled" class="status-btn">
-                      <i class="fas fa-times"></i> 中止
-                    </label>
-                    <input type="radio" name="ジュニア-通常レッスン" value="TBD" id="junior-lesson-tbd" checked>
-                    <label for="junior-lesson-tbd" class="status-btn">
-                      <i class="fas fa-clock"></i> 未定
-                    </label>
-                  </div>
-                  <div class="form-group">
-                    <label>補足メッセージ</label>
-                    <textarea id="ジュニア-通常レッスン-note" class="form-textarea small" placeholder="例：時間変更あり"></textarea>
+                    <textarea id="advance-lesson-note" class="form-textarea small" placeholder="例：雨天のため室内で実施"></textarea>
                   </div>
                 </div>
               </div>
             </div>
             
             <div class="form-actions">
-              <button class="btn btn-success" onclick="updateLessonStatus()">
-                <i class="fas fa-save"></i> 保存して公開
+              <button class="btn btn-secondary" onclick="loadLessonStatusToForm()">
+                <i class="fas fa-download"></i> 現在の状況を読み込み
               </button>
               <button class="btn btn-outline" onclick="previewLessonStatus()">
                 <i class="fas fa-eye"></i> プレビュー
+              </button>
+              <button class="btn btn-success" onclick="updateLessonStatus()">
+                <i class="fas fa-save"></i> 保存して公開
               </button>
             </div>
           </div>
@@ -475,7 +434,22 @@
   <!-- テストデータ（開発環境用） -->
   <script src="../js/test-data.js"></script>
   
+    <!-- レッスン状況管理システム -->
+  <script src="../js/lesson-status-manager.js"></script>
+  
   <!-- JavaScript -->
   <script type="module" src="../js/admin.js"></script>
+  
+  <!-- 管理画面初期化スクリプト -->
+  <script>
+    // 今日の日付をデフォルトで設定
+    document.addEventListener('DOMContentLoaded', function() {
+      const lessonDateField = document.getElementById('lesson-date');
+      if (lessonDateField) {
+        const today = new Date().toISOString().split('T')[0];
+        lessonDateField.value = today;
+      }
+    });
+  </script>
 </body>
 </html> 

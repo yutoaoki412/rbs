@@ -61,30 +61,16 @@
     <div class="container">
       <div class="status-header" onclick="toggleStatusContent()" style="cursor: pointer;">
         <div class="status-info">
-          <span class="status-icon"></span>
+          <span class="status-icon" id="status-icon"></span>
           <span class="status-text">本日のレッスン開催状況</span>
-          <span class="status-indicator scheduled">開催予定</span>
+          <span class="status-indicator" id="global-status-indicator">読み込み中...</span>
         </div>
         <span class="toggle-icon">▼</span>
       </div>
       <div class="status-content" style="display: none;">
-        <div class="status-details">
-          <div class="status-item">
-            <div class="time-slot">
-              <strong>17:00-17:50</strong>
-              <span class="course-name">ベーシックコース（年長〜小3）</span>
-            </div>
-            <div class="status-badge scheduled">予定通り開催</div>
-          </div>
-          <div class="status-item">
-            <div class="time-slot">
-              <strong>18:00-18:50</strong>
-              <span class="course-name">アドバンスコース（小4〜小6）</span>
-            </div>
-            <div class="status-badge scheduled">予定通り開催</div>
-          </div>
-          <div class="last-updated">
-            最終更新: 読み込み中...
+        <div class="status-details" id="status-details">
+          <div class="loading-status">
+            <p>レッスン状況を読み込み中...</p>
           </div>
         </div>
       </div>
@@ -826,6 +812,7 @@
   <!-- JavaScript -->
   <script src="../js/config.js"></script>
   <script src="../js/markdown-parser.js"></script>
+  <script src="../js/lesson-status-manager.js"></script>
   <script src="../components/StatusBanner.js"></script>
   <script src="../js/test-data.js"></script>
   
@@ -864,14 +851,45 @@
       }
     }
     
+    // レッスン状況管理システムの初期化
+    let lessonStatusManager;
+    
     // ナビゲーションのスムーススクロール（フォールバック）
     document.addEventListener('DOMContentLoaded', function() {
-      // StatusBannerの初期化
-      if (typeof StatusBanner !== 'undefined') {
-        const statusBanner = new StatusBanner();
-        statusBanner.insertIntoPage();
-        statusBanner.startAutoUpdate();
+      // LessonStatusManagerの初期化
+      if (typeof LessonStatusManager !== 'undefined') {
+        lessonStatusManager = new LessonStatusManager();
+        lessonStatusManager.init();
+        
+        // レッスン状況を読み込み
+        loadLessonStatus();
+        
+        // レッスン状況更新イベントのリスナー
+        window.addEventListener('lessonStatusUpdated', function(event) {
+          console.log('レッスン状況が更新されました:', event.detail);
+          loadLessonStatus();
+        });
+        
+        // ストレージ変更イベントのリスナー（他のタブでの更新を検知）
+        window.addEventListener('storage', function(event) {
+          if (event.key === 'rbs_lesson_status') {
+            console.log('他のタブでレッスン状況が更新されました');
+            loadLessonStatus();
+          }
+        });
+        
+        // 定期的にレッスン状況をチェック（管理画面での変更を確実に反映）
+        setInterval(() => {
+          loadLessonStatus();
+        }, 5000); // 5秒ごとにチェック
       }
+      
+      // StatusBannerは使用しない（元のUIを保持するため）
+      // if (typeof StatusBanner !== 'undefined') {
+      //   const statusBanner = new StatusBanner();
+      //   statusBanner.insertIntoPage();
+      //   statusBanner.startAutoUpdate();
+      // }
       
       // ニュース記事の読み込み
       loadAndDisplayNews();
@@ -904,6 +922,23 @@
         }
       }, 1000);
       
+      // 開発環境用：レッスン状況テスト関数
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        window.testLessonStatus = function() {
+          console.log('=== レッスン状況テスト ===');
+          if (lessonStatusManager) {
+            const currentStatus = lessonStatusManager.getLessonStatus();
+            console.log('現在の状況:', currentStatus);
+            console.log('通常開催判定:', lessonStatusManager.isNormalStatus(currentStatus));
+          } else {
+            console.error('LessonStatusManagerが利用できません');
+          }
+        };
+        
+        console.log('💡 開発環境用関数が利用可能です:');
+        console.log('- testLessonStatus(): 現在のレッスン状況を確認');
+      }
+      
       // 開発環境でのデータ確認とテストデータ作成
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') {
         const hasData = localStorage.getItem('rbs_articles_data');
@@ -922,6 +957,161 @@
         }
       }
     });
+
+    // レッスン状況の読み込みと表示
+    function loadLessonStatus() {
+      if (!lessonStatusManager) {
+        console.warn('⚠️ LessonStatusManagerが初期化されていません');
+        return;
+      }
+      
+      try {
+        const statusData = lessonStatusManager.getLessonStatus();
+        console.log('📊 レッスン状況データを読み込み:', statusData);
+        
+        // 通常開催の場合は詳細を非表示にする
+        if (lessonStatusManager.isNormalStatus(statusData)) {
+          console.log('✅ 通常開催のため、標準表示を使用');
+          hideStatusDetails();
+          updateGlobalStatusDisplay(statusData, true); // 通常開催として表示
+        } else {
+          console.log('⚠️ 特別な状況のため、詳細表示を使用');
+          // グローバルステータス表示を更新
+          updateGlobalStatusDisplay(statusData, false);
+          
+          // 詳細ステータス表示を更新
+          updateDetailedStatusDisplay(statusData);
+        }
+        
+      } catch (error) {
+        console.error('❌ レッスン状況の読み込みに失敗:', error);
+        showStatusError();
+      }
+    }
+
+    // グローバルステータス表示を更新
+    function updateGlobalStatusDisplay(statusData, isNormal = false) {
+      const statusIcon = document.getElementById('status-icon');
+      const globalStatusIndicator = document.getElementById('global-status-indicator');
+      
+      if (statusIcon && globalStatusIndicator) {
+        if (isNormal) {
+          statusIcon.textContent = '';
+          globalStatusIndicator.textContent = '開催予定';
+          globalStatusIndicator.className = 'status-indicator scheduled';
+        } else {
+          statusIcon.textContent = lessonStatusManager.getStatusIcon(statusData.globalStatus);
+          globalStatusIndicator.textContent = lessonStatusManager.getStatusText(statusData.globalStatus);
+          globalStatusIndicator.className = `status-indicator ${statusData.globalStatus}`;
+        }
+      }
+    }
+
+    // 詳細ステータス表示を更新（元のUIスタイルを保持）
+    function updateDetailedStatusDisplay(statusData) {
+      const statusDetails = document.getElementById('status-details');
+      if (!statusDetails) return;
+      
+      let html = '';
+      
+      // グローバルメッセージがある場合は表示
+      if (statusData.globalMessage) {
+        html += `
+          <div class="global-message">
+            <p><strong>お知らせ:</strong> ${escapeHtml(statusData.globalMessage)}</p>
+          </div>
+        `;
+      }
+      
+      // コース別ステータス（元のUIスタイルを保持）
+      Object.values(statusData.courses).forEach(course => {
+        const statusText = lessonStatusManager.getStatusText(course.status);
+        const statusColor = lessonStatusManager.getStatusColor(course.status);
+        
+        html += `
+          <div class="status-item">
+            <div class="time-slot">
+              <strong>${course.time}</strong>
+              <span class="course-name">${course.name}</span>
+            </div>
+            <div class="status-badge ${course.status}" style="background-color: ${statusColor};">
+              ${statusText}
+            </div>
+          </div>
+        `;
+        
+        // コース別メッセージがある場合は表示
+        if (course.message) {
+          html += `
+            <div class="course-message">
+              <p>${escapeHtml(course.message)}</p>
+            </div>
+          `;
+        }
+      });
+      
+      // 最終更新時刻
+      if (statusData.lastUpdated) {
+        const lastUpdated = new Date(statusData.lastUpdated);
+        html += `
+          <div class="last-updated">
+            最終更新: ${lastUpdated.toLocaleString('ja-JP')}
+          </div>
+        `;
+      }
+      
+      statusDetails.innerHTML = html;
+    }
+
+    // ステータス詳細を非表示（元のUIスタイルを保持）
+    function hideStatusDetails() {
+      const statusDetails = document.getElementById('status-details');
+      if (statusDetails) {
+        statusDetails.innerHTML = `
+          <div class="status-item">
+            <div class="time-slot">
+              <strong>17:00-17:50</strong>
+              <span class="course-name">ベーシックコース（年長〜小3）</span>
+            </div>
+            <div class="status-badge scheduled">
+              開催予定
+            </div>
+          </div>
+          <div class="status-item">
+            <div class="time-slot">
+              <strong>18:00-18:50</strong>
+              <span class="course-name">アドバンスコース（小4〜小6）</span>
+            </div>
+            <div class="status-badge scheduled">
+              開催予定
+            </div>
+          </div>
+          <div class="last-updated">
+            本日は通常通り開催いたします
+          </div>
+        `;
+      }
+    }
+
+    // ステータスエラー表示
+    function showStatusError() {
+      const statusDetails = document.getElementById('status-details');
+      const globalStatusIndicator = document.getElementById('global-status-indicator');
+      
+      if (statusDetails) {
+        statusDetails.innerHTML = `
+          <div class="error-status">
+            <p>レッスン状況の読み込みに失敗しました。</p>
+            <p>しばらく時間をおいてから再度お試しください。</p>
+          </div>
+        `;
+      }
+      
+      if (globalStatusIndicator) {
+        globalStatusIndicator.textContent = 'エラー';
+        globalStatusIndicator.className = 'status-indicator error';
+      }
+    }
 
     // ニュース記事の読み込みと表示
     async function loadAndDisplayNews() {

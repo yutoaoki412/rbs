@@ -48,6 +48,14 @@ function setupGlobalFunctions() {
   window.switchToTab = (tabName) => {
     if (adminInstance && adminInstance.uiManager) {
       adminInstance.uiManager.switchTab(tabName);
+      
+      // レッスン状況タブが開かれた時の処理
+      if (tabName === 'lesson-status' && typeof LessonStatusManager !== 'undefined') {
+        setTimeout(() => {
+          loadLessonStatusToForm();
+          console.log('📋 レッスン状況タブが開かれました - 現在の状況を読み込み中');
+        }, 100);
+      }
     }
   };
   
@@ -123,10 +131,27 @@ function setupGlobalFunctions() {
   };
   
   window.editNews = (id) => {
-    if (adminInstance && adminInstance.dataManager) {
+    if (adminInstance && adminInstance.dataManager && adminInstance.uiManager) {
       const article = adminInstance.dataManager.getArticles().find(a => a.id === id);
       if (article) {
-        populateNewsForm(article);
+        // 記事管理タブに切り替え
+        adminInstance.uiManager.switchTab('news-management');
+        
+        // 少し遅延してからフォームに入力（タブ切り替えのアニメーションを待つ）
+        setTimeout(() => {
+          populateNewsForm(article);
+          
+          // 成功通知を表示
+          adminInstance.uiManager.showNotification('info', `「${article.title}」の編集を開始しました`);
+          
+          // タイトルフィールドにフォーカス
+          const titleField = document.getElementById('news-title');
+          if (titleField) {
+            titleField.focus();
+          }
+        }, 100);
+      } else {
+        adminInstance.uiManager.showNotification('error', '記事が見つかりません');
       }
     }
   };
@@ -173,11 +198,35 @@ function setupGlobalFunctions() {
   window.updateLessonStatus = async () => {
     if (adminInstance && adminInstance.dataManager) {
       try {
-        const statusData = getLessonStatusFormData();
-        await adminInstance.dataManager.updateLessonStatus(statusData);
-        adminInstance.uiManager.showNotification('success', 'レッスン状況を更新しました');
+        const formData = getLessonStatusFormData();
+        console.log('📝 管理画面フォームデータ:', formData);
+        
+        // LessonStatusManagerを使用してデータを統一的に管理
+        if (typeof LessonStatusManager !== 'undefined') {
+          const lessonStatusManager = new LessonStatusManager();
+          const convertedData = lessonStatusManager.convertFromAdminForm(formData);
+          console.log('🔄 変換後データ:', convertedData);
+          
+          const result = lessonStatusManager.saveLessonStatus(convertedData);
+          
+          if (result.success) {
+            adminInstance.uiManager.showNotification('success', 'レッスン状況を更新しました');
+            
+            // 保存成功後、少し遅延してから再度イベントを発火（確実に反映させるため）
+            setTimeout(() => {
+              lessonStatusManager.dispatchStatusUpdateEvent(result.data);
+            }, 100);
+            
+            console.log('✅ レッスン状況が正常に保存されました:', result.data);
+          } else {
+            throw new Error(result.error);
+          }
+        } else {
+          throw new Error('LessonStatusManagerが利用できません');
+        }
       } catch (error) {
-        adminInstance.uiManager.showNotification('error', '更新に失敗しました');
+        console.error('レッスン状況更新エラー:', error);
+        adminInstance.uiManager.showNotification('error', '更新に失敗しました: ' + error.message);
       }
     }
   };
@@ -217,7 +266,26 @@ function setupGlobalFunctions() {
   
   // フィルター関連
   window.filterNewsList = () => {
-    // フィルター機能の実装
+    if (adminInstance && adminInstance.dataManager && adminInstance.uiManager) {
+      const filterSelect = document.getElementById('news-filter');
+      if (!filterSelect) return;
+      
+      const filterValue = filterSelect.value;
+      let articles;
+      
+      // フィルター値に応じて記事を取得
+      if (filterValue === 'all') {
+        articles = adminInstance.dataManager.getArticles();
+      } else {
+        articles = adminInstance.dataManager.getArticles({ status: filterValue });
+      }
+      
+      // UIManagerを使って記事一覧を更新
+      adminInstance.uiManager.displayNewsList(articles);
+      
+      // デバッグ情報を出力
+      console.log(`記事フィルター適用: ${filterValue} -> ${articles.length}件表示`);
+    }
   };
   
   window.filterInstagramList = () => {
@@ -240,6 +308,28 @@ function setupGlobalFunctions() {
       adminInstance.dataManager.exportData();
     }
   };
+
+  // レッスン状況をフォームに読み込み
+  window.loadLessonStatusToForm = () => {
+    if (typeof LessonStatusManager !== 'undefined') {
+      try {
+        const lessonStatusManager = new LessonStatusManager();
+        const statusData = lessonStatusManager.getLessonStatus();
+        
+        console.log('管理画面にレッスン状況を読み込み:', statusData);
+        lessonStatusManager.populateAdminForm(statusData);
+        
+        if (adminInstance && adminInstance.uiManager) {
+          adminInstance.uiManager.showNotification('info', 'レッスン状況を読み込みました');
+        }
+      } catch (error) {
+        console.error('レッスン状況の読み込みに失敗:', error);
+        if (adminInstance && adminInstance.uiManager) {
+          adminInstance.uiManager.showNotification('error', 'レッスン状況の読み込みに失敗しました');
+        }
+      }
+    }
+  };
 }
 
 /**
@@ -258,22 +348,26 @@ function getNewsFormData() {
 }
 
 function getLessonStatusFormData() {
-  const courses = ['キッズ', 'ジュニア'];
-  const lessonTypes = ['体験会', '通常レッスン'];
+  const courses = ['basic', 'advance'];
   const statusData = {};
   
   courses.forEach(course => {
-    statusData[course] = {};
-    lessonTypes.forEach(lessonType => {
-      const statusInput = document.querySelector(`input[name="${course}-${lessonType}"]:checked`);
-      const noteTextarea = document.getElementById(`${course}-${lessonType}-note`);
-      
-      statusData[course][lessonType] = {
-        status: statusInput?.value || 'TBD',
-        note: noteTextarea?.value || ''
-      };
-    });
+    const statusInput = document.querySelector(`input[name="${course}-lesson"]:checked`);
+    const noteTextarea = document.getElementById(`${course}-lesson-note`);
+    
+    statusData[course] = {
+      status: statusInput?.value || '開催',
+      note: noteTextarea?.value || ''
+    };
   });
+  
+  // グローバルメッセージも含める
+  const globalMessage = document.getElementById('global-message')?.value || '';
+  statusData.globalMessage = globalMessage;
+  
+  // 対象日も含める
+  const lessonDate = document.getElementById('lesson-date')?.value || new Date().toISOString().split('T')[0];
+  statusData.date = lessonDate;
   
   return statusData;
 }
@@ -290,13 +384,40 @@ function getInstagramFormData() {
  * フォーム操作関数
  */
 function populateNewsForm(article) {
-  if (document.getElementById('news-id')) document.getElementById('news-id').value = article.id || '';
-  if (document.getElementById('news-title')) document.getElementById('news-title').value = article.title || '';
-  if (document.getElementById('news-category')) document.getElementById('news-category').value = article.category || 'announcement';
-  if (document.getElementById('news-date')) document.getElementById('news-date').value = article.date || '';
-  if (document.getElementById('news-summary')) document.getElementById('news-summary').value = article.summary || '';
-  if (document.getElementById('news-content')) document.getElementById('news-content').value = article.content || '';
-  if (document.getElementById('news-featured')) document.getElementById('news-featured').checked = article.featured || false;
+  // デバッグ情報（開発時のみ）
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    console.log('記事データをフォームに入力中:', article);
+  }
+  
+  // 各フィールドに値を設定
+  const fields = [
+    { id: 'news-id', value: article.id || '', type: 'value' },
+    { id: 'news-title', value: article.title || '', type: 'value' },
+    { id: 'news-category', value: article.category || 'announcement', type: 'value' },
+    { id: 'news-date', value: article.date || article.createdAt?.split('T')[0] || '', type: 'value' },
+    { id: 'news-summary', value: article.summary || '', type: 'value' },
+    { id: 'news-content', value: article.content || '', type: 'value' },
+    { id: 'news-featured', value: article.featured || false, type: 'checked' }
+  ];
+  
+  fields.forEach(field => {
+    const element = document.getElementById(field.id);
+    if (element) {
+      if (field.type === 'checked') {
+        element.checked = field.value;
+      } else {
+        element.value = field.value;
+      }
+    } else {
+      console.warn(`フォーム要素が見つかりません: ${field.id}`);
+    }
+  });
+  
+  // ステータスフィールドがある場合は設定
+  const statusField = document.getElementById('news-status');
+  if (statusField) {
+    statusField.value = article.status || 'draft';
+  }
   
   // エディタのタイトルを更新
   const editorTitle = document.getElementById('editor-title');
@@ -347,26 +468,26 @@ function generatePreviewContent(article) {
 }
 
 function generateLessonStatusPreview(statusData) {
-  const courses = ['キッズ', 'ジュニア'];
-  const lessonTypes = ['体験会', '通常レッスン'];
+  const courses = [
+    { key: 'basic', name: 'ベーシックコース（年長〜小3）', time: '17:00-17:50' },
+    { key: 'advance', name: 'アドバンスコース（小4〜小6）', time: '18:00-18:50' }
+  ];
   
   let html = '<div class="lesson-status-preview">';
   
   courses.forEach(course => {
-    html += `<h3>${course}コース</h3>`;
-    lessonTypes.forEach(lessonType => {
-      const lesson = statusData[course]?.[lessonType];
-      if (lesson) {
-        const statusLabel = getStatusLabel(lesson.status);
-        html += `
-          <div class="lesson-item">
-            <strong>${lessonType}:</strong> 
-            <span class="status status-${lesson.status}">${statusLabel}</span>
-            ${lesson.note ? `<p class="note">${escapeHtml(lesson.note)}</p>` : ''}
-          </div>
-        `;
-      }
-    });
+    const lesson = statusData[course.key];
+    if (lesson) {
+      const statusLabel = getStatusLabel(lesson.status);
+      html += `
+        <div class="lesson-item">
+          <h3>${course.name}</h3>
+          <p><strong>時間:</strong> ${course.time}</p>
+          <p><strong>状況:</strong> <span class="status status-${lesson.status}">${statusLabel}</span></p>
+          ${lesson.note ? `<p class="note"><strong>補足:</strong> ${escapeHtml(lesson.note)}</p>` : ''}
+        </div>
+      `;
+    }
   });
   
   html += '</div>';
@@ -419,9 +540,8 @@ function getCategoryLabel(category) {
 
 function getStatusLabel(status) {
   const labels = {
-    実施: '実施',
-    中止: '中止',
-    TBD: '未定'
+    開催: '開催',
+    中止: '中止'
   };
   return labels[status] || status;
 }

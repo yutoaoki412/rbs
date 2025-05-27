@@ -307,7 +307,18 @@ export class UIManager extends EventEmitter {
     // 統計情報の更新
     dataManager.on('dataChanged', (type, data) => {
       if (type === 'articles') {
-        this.displayNewsList(data);
+        // 現在のフィルター状態を考慮して記事一覧を更新
+        const filterSelect = document.getElementById('news-filter');
+        const currentFilter = filterSelect ? filterSelect.value : 'all';
+        
+        let filteredArticles;
+        if (currentFilter === 'all') {
+          filteredArticles = data;
+        } else {
+          filteredArticles = dataManager.getArticles({ status: currentFilter });
+        }
+        
+        this.displayNewsList(filteredArticles);
         const stats = dataManager.getStats();
         this.updateStats(stats);
       }
@@ -335,6 +346,17 @@ export class UIManager extends EventEmitter {
     this.on('requestNewsList', () => {
       const articles = dataManager.getArticles();
       this.displayNewsList(articles);
+      
+      // フィルターの初期化
+      const filterSelect = document.getElementById('news-filter');
+      if (filterSelect && filterSelect.value !== 'all') {
+        // フィルターが設定されている場合は、そのフィルターを適用
+        const filterValue = filterSelect.value;
+        const filteredArticles = filterValue === 'all' 
+          ? articles 
+          : dataManager.getArticles({ status: filterValue });
+        this.displayNewsList(filteredArticles);
+      }
     });
   }
 
@@ -414,13 +436,24 @@ export class UIManager extends EventEmitter {
    * 記事リストの表示
    */
   displayNewsList(articles) {
-    if (!this.elements.newsList) return;
+    if (!this.elements.newsList) {
+      this.logger.warn('記事リスト要素が見つかりません');
+      return;
+    }
+
+    this.logger.debug(`記事リストを表示: ${articles.length}件`);
 
     if (articles.length === 0) {
+      const filterSelect = document.getElementById('news-filter');
+      const currentFilter = filterSelect ? filterSelect.value : 'all';
+      const message = currentFilter === 'all' 
+        ? '記事がありません' 
+        : `${this.getFilterLabel(currentFilter)}の記事がありません`;
+      
       this.elements.newsList.innerHTML = `
         <div class="empty-state">
           <i class="fas fa-newspaper"></i>
-          <p>記事がありません</p>
+          <p>${message}</p>
         </div>
       `;
       return;
@@ -780,6 +813,15 @@ export class UIManager extends EventEmitter {
       important: '重要'
     };
     return labels[category] || category;
+  }
+
+  getFilterLabel(filter) {
+    const labels = {
+      all: 'すべて',
+      published: '公開中',
+      draft: '下書き'
+    };
+    return labels[filter] || filter;
   }
 
   /**

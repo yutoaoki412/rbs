@@ -1401,6 +1401,91 @@ footer p {
   color: white;
 }
 
+.status-badge.indoor {
+  background: var(--secondary-yellow);
+  color: white;
+}
+
+.status-badge.postponed {
+  background: var(--primary-blue);
+  color: white;
+}
+
+.status-badge.error {
+  background: var(--primary-red);
+  color: white;
+}
+
+.global-message {
+  background: rgba(74, 144, 226, 0.1);
+  border-left: 4px solid var(--primary-blue);
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+}
+
+.global-message p {
+  margin: 0;
+  color: var(--navy-dark);
+  font-weight: 600;
+}
+
+.course-message {
+  background: rgba(255, 193, 7, 0.1);
+  border-left: 3px solid var(--secondary-yellow);
+  padding: 10px 15px;
+  margin-top: 10px;
+  border-radius: 6px;
+}
+
+.course-message p {
+  margin: 0;
+  color: var(--gray-medium);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.loading-status {
+  text-align: center;
+  padding: 30px;
+  color: var(--gray-medium);
+}
+
+.error-status {
+  text-align: center;
+  padding: 30px;
+  color: var(--primary-red);
+}
+
+.error-status p {
+  margin: 5px 0;
+}
+
+.status-indicator.scheduled {
+  background: var(--success);
+  color: var(--white);
+}
+
+.status-indicator.cancelled {
+  background: var(--primary-red);
+  color: var(--white);
+}
+
+.status-indicator.indoor {
+  background: var(--secondary-yellow);
+  color: var(--white);
+}
+
+.status-indicator.postponed {
+  background: var(--primary-blue);
+  color: var(--white);
+}
+
+.status-indicator.error {
+  background: var(--primary-red);
+  color: var(--white);
+}
+
 .last-updated {
   text-align: right;
   font-size: 14px;
