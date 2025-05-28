@@ -267,11 +267,13 @@ main {
   box-shadow: 0 8px 25px rgba(33, 150, 243, 0.3);
 }
 
-.filter-btn.active {
-  background: var(--primary-blue);
-  color: white;
+.filter-btn.active,
+.filter-btn.active:hover {
+  background: var(--primary-blue) !important;
+  color: white !important;
   border-color: var(--primary-dark);
   box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+  transform: translateY(-2px);
 }
 
 /* ニュース一覧 */

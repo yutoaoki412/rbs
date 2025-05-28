@@ -7,11 +7,11 @@
   <!-- OGP設定は動的に更新されます -->
   
   <!-- 基本CSS -->
-  <link rel="stylesheet" href="../styles/base.css">
-  <link rel="stylesheet" href="../styles/common.css">
-  <link rel="stylesheet" href="../styles/components.css">
-  <link rel="stylesheet" href="../styles/layout.css">
-  <link rel="stylesheet" href="../styles/responsive.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/common.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/responsive.css">
   <!-- ページ固有のCSSは自動読み込みされます -->
 </head>
 <body class="page-news-detail">
@@ -170,14 +170,14 @@
       updateOGPTag('description', textContent);
       updateOGPTag('type', 'article');
       updateOGPTag('url', window.location.href);
-      updateOGPTag('image', '../images/lp-logo.png');
+      updateOGPTag('image', '../assets/images/lp-logo.png');
       updateOGPTag('site_name', 'RBS陸上教室');
       
       // Twitter Cardタグを動的に作成・更新
       updateTwitterTag('card', 'summary_large_image');
       updateTwitterTag('title', article.title);
       updateTwitterTag('description', textContent);
-      updateTwitterTag('image', '../images/lp-logo.png');
+      updateTwitterTag('image', '../assets/images/lp-logo.png');
     }
 
     // メタタグ更新ヘルパー関数

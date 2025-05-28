@@ -10,9 +10,9 @@ class PageTemplate {
       keywords: 'RBS,陸上教室,Running,Brain,School,子ども,スポーツ',
       bodyClass: 'page-default',
       includedCSS: [
-        '../styles/base.css',
-        '../styles/shared.css',
-        '../styles/responsive.css'
+        '../css/base.css',
+        '../css/shared.css',
+        '../css/responsive.css'
       ],
       includedJS: [
         '../js/core/config/config.js',
@@ -47,7 +47,7 @@ class PageTemplate {
   <meta name="robots" content="index, follow">
   
   <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
   
   <!-- CSS -->
 ${mergedConfig.includedCSS.map(css => `  <link rel="stylesheet" href="${css}">`).join('\n')}
@@ -327,7 +327,7 @@ ${cardsHTML}
         pageSubtitle: 'RBS陸上教室の最新情報をお届けします',
         bodyClass: 'page-news',
         pageId: 'news',
-        pageSpecificCSS: '../styles/news.css',
+        pageSpecificCSS: '../css/news.css',
         hasStatusBanner: false
       },
       
@@ -337,7 +337,7 @@ ${cardsHTML}
         description: 'RBS陸上教室の管理画面',
         bodyClass: 'admin-layout',
         pageId: 'admin',
-        pageSpecificCSS: '../styles/admin.css',
+        pageSpecificCSS: '../css/admin.css',
         hasHeader: false,
         hasFooter: false,
         hasPageHeader: false

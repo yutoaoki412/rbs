@@ -107,7 +107,7 @@ class PageGenerator {
           title: pageTitle,
           description: pageDescription,
           type: 'website',
-          image: '../images/lp-logo.png'
+          image: '../assets/images/lp-logo.png'
         }
       },
       customCSS,
@@ -166,28 +166,28 @@ class PageGenerator {
         pageTitle: 'お問い合わせ',
         pageDescription: 'RBS陸上教室へのお問い合わせはこちらから',
         keywords: 'RBS陸上教室, お問い合わせ, 連絡先',
-        customCSS: ['../styles/contact.css'],
+        customCSS: ['../css/contact.css'],
         customJS: ['../js/contact-form.js']
       },
       'about-coach': {
         pageTitle: 'コーチ紹介',
         pageDescription: 'RBS陸上教室のコーチ陣をご紹介します',
         keywords: 'RBS陸上教室, コーチ, 指導者, プロフィール',
-        customCSS: ['../styles/coach.css'],
+        customCSS: ['../css/coach.css'],
         customJS: []
       },
       'trial-lesson': {
         pageTitle: '無料体験レッスン',
         pageDescription: 'RBS陸上教室の無料体験レッスンのお申し込み',
         keywords: 'RBS陸上教室, 無料体験, 体験レッスン, 申し込み',
-        customCSS: ['../styles/trial.css'],
+        customCSS: ['../css/trial.css'],
         customJS: ['../js/trial-form.js']
       },
       'gallery': {
         pageTitle: 'ギャラリー',
         pageDescription: 'RBS陸上教室の活動風景をご覧ください',
         keywords: 'RBS陸上教室, ギャラリー, 写真, 活動風景',
-        customCSS: ['../styles/gallery.css'],
+        customCSS: ['../css/gallery.css'],
         customJS: ['../js/gallery.js']
       }
     };
@@ -223,7 +223,7 @@ function generatePageExample() {
     pageTitle: 'カスタムページ',
     pageDescription: 'これはカスタムページの例です',
     keywords: 'カスタム, ページ, 例',
-    customCSS: ['../styles/custom.css'],
+    customCSS: ['../css/custom.css'],
     customJS: ['../js/custom.js'],
     content: `
       <section class="custom-section">

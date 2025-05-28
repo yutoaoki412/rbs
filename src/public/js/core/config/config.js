@@ -22,7 +22,7 @@ const RBSConfig = {
     defaultMetadata: {
       siteName: 'RBS陸上教室',
       baseUrl: 'https://rbs-sportas.jp',
-      ogImage: '../images/lp-logo.png'
+      ogImage: '../assets/images/lp-logo.png'
     }
   },
 

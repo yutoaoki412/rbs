@@ -12,6 +12,7 @@
   :root {
     /* カラーパレット - プライマリ */
     --color-primary-blue: #4a90e2;
+    --color-primary-blue-dark: #357abd;
     --color-primary-teal: #50c8a3;
     --color-primary-orange: #f5a623;
     --color-primary-red: #e74c3c;
@@ -24,6 +25,7 @@
     
     /* カラーパレット - ニュートラル */
     --color-navy-dark: #2c3e50;
+    --color-text-dark: #2c3e50;
     --color-gray-light: #f8f9fa;
     --color-gray-medium: #6c757d;
     --color-gray-border: #dee2e6;
@@ -37,6 +39,8 @@
     
     /* 後方互換性のためのエイリアス */
     --primary-blue: var(--color-primary-blue);
+    --primary-blue-dark: var(--color-primary-blue-dark);
+    --primary-dark: var(--color-primary-blue-dark);
     --primary-teal: var(--color-primary-teal);
     --primary-orange: var(--color-primary-orange);
     --primary-red: var(--color-primary-red);
@@ -45,6 +49,7 @@
     --secondary-yellow: var(--color-secondary-yellow);
     --secondary-mint: var(--color-secondary-mint);
     --navy-dark: var(--color-navy-dark);
+    --text-dark: var(--color-text-dark);
     --gray-light: var(--color-gray-light);
     --gray-medium: var(--color-gray-medium);
     --gray-border: var(--color-gray-border);

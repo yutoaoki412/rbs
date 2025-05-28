@@ -15,7 +15,7 @@ const PAGE_CONFIGS = {
         title: 'RBS陸上教室 - 走力×非認知能力を育てる',
         description: '年長〜小6向け陸上教室。走力だけでなく集中力・判断力・挑戦心も育てる独自プログラム。',
         type: 'website',
-        image: '../images/lp-logo.png'
+        image: '../assets/images/lp-logo.png'
       }
     },
     structuredData: {
@@ -49,10 +49,10 @@ const PAGE_CONFIGS = {
         title: 'NEWS - RBS陸上教室',
         description: 'RBS陸上教室の最新ニュース・お知らせ一覧',
         type: 'website',
-        image: '../images/lp-logo.png'
+        image: '../assets/images/lp-logo.png'
       }
     },
-    customCSS: ['../styles/news.css'],
+    customCSS: ['../css/news.css'],
     customJS: [
       '../js/markdown-parser.js',
       '../components/NewsCard.js'
@@ -71,10 +71,10 @@ const PAGE_CONFIGS = {
         title: 'RBS陸上教室 - NEWS詳細',
         description: 'RBS陸上教室のニュース詳細ページ',
         type: 'article',
-        image: '../images/lp-logo.png'
+        image: '../assets/images/lp-logo.png'
       }
     },
-    customCSS: ['../styles/news-detail.css'],
+    customCSS: ['../css/news-detail.css'],
     customJS: [
       '../js/markdown-parser.js',
       '../components/NewsCard.js'
@@ -93,10 +93,10 @@ const PAGE_CONFIGS = {
         title: '管理画面 - RBS陸上教室',
         description: 'RBS陸上教室の管理画面',
         type: 'website',
-        image: '../images/lp-logo.png'
+        image: '../assets/images/lp-logo.png'
       }
     },
-    customCSS: ['../styles/admin.css'],
+    customCSS: ['../css/admin.css'],
     customJS: [
       '../js/admin.js',
       '../components/AdminComponents.js'
@@ -112,7 +112,7 @@ const PAGE_CONFIGS = {
       description: 'RBS陸上教室の管理画面ログイン',
       keywords: 'RBS陸上教室, 管理画面, ログイン'
     },
-    customCSS: ['../styles/admin-login.css'],
+    customCSS: ['../css/admin-login.css'],
     customJS: ['../js/admin-login.js']
   }
 };

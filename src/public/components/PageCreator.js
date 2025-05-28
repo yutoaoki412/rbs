@@ -20,13 +20,13 @@ class PageCreator {
       bodyClass: 'page-contact',
       pageId: 'contact',
       includedCSS: [
-        '../styles/base.css',
-        '../styles/common.css',
-        '../styles/components.css',
-        '../styles/layout.css',
-        '../styles/shared.css',
-        '../styles/form-components.css',
-        '../styles/responsive.css'
+        '../css/base.css',
+        '../css/common.css',
+        '../css/components.css',
+        '../css/layout.css',
+        '../css/shared.css',
+        '../css/form-components.css',
+        '../css/responsive.css'
       ],
       content: this.generateContactFormContent()
     };
@@ -47,13 +47,13 @@ class PageCreator {
       bodyClass: 'page-trial',
       pageId: 'trial',
       includedCSS: [
-        '../styles/base.css',
-        '../styles/common.css',
-        '../styles/components.css',
-        '../styles/layout.css',
-        '../styles/shared.css',
-        '../styles/form-components.css',
-        '../styles/responsive.css'
+        '../css/base.css',
+        '../css/common.css',
+        '../css/components.css',
+        '../css/layout.css',
+        '../css/shared.css',
+        '../css/form-components.css',
+        '../css/responsive.css'
       ],
       content: this.generateTrialFormContent()
     };
@@ -74,12 +74,12 @@ class PageCreator {
       bodyClass: 'page-gallery',
       pageId: 'gallery',
       includedCSS: [
-        '../styles/base.css',
-        '../styles/common.css',
-        '../styles/components.css',
-        '../styles/layout.css',
-        '../styles/shared.css',
-        '../styles/responsive.css'
+        '../css/base.css',
+        '../css/common.css',
+        '../css/components.css',
+        '../css/layout.css',
+        '../css/shared.css',
+        '../css/responsive.css'
       ],
       content: this.generateGalleryContent()
     };
@@ -100,12 +100,12 @@ class PageCreator {
       bodyClass: 'page-events',
       pageId: 'events',
       includedCSS: [
-        '../styles/base.css',
-        '../styles/common.css',
-        '../styles/components.css',
-        '../styles/layout.css',
-        '../styles/shared.css',
-        '../styles/responsive.css'
+        '../css/base.css',
+        '../css/common.css',
+        '../css/components.css',
+        '../css/layout.css',
+        '../css/shared.css',
+        '../css/responsive.css'
       ],
       content: this.generateEventsContent()
     };
@@ -126,12 +126,12 @@ class PageCreator {
       bodyClass: 'page-faq',
       pageId: 'faq',
       includedCSS: [
-        '../styles/base.css',
-        '../styles/common.css',
-        '../styles/components.css',
-        '../styles/layout.css',
-        '../styles/shared.css',
-        '../styles/responsive.css'
+        '../css/base.css',
+        '../css/common.css',
+        '../css/components.css',
+        '../css/layout.css',
+        '../css/shared.css',
+        '../css/responsive.css'
       ],
       content: this.generateFAQContent()
     };
@@ -152,13 +152,13 @@ class PageCreator {
       pageId: 'news-detail',
       hasStatusBanner: false,
       includedCSS: [
-        '../styles/base.css',
-        '../styles/common.css',
-        '../styles/components.css',
-        '../styles/layout.css',
-        '../styles/shared.css',
-        '../styles/news.css',
-        '../styles/responsive.css'
+        '../css/base.css',
+        '../css/common.css',
+        '../css/components.css',
+        '../css/layout.css',
+        '../css/shared.css',
+        '../css/news.css',
+        '../css/responsive.css'
       ],
       content: this.generateNewsDetailContent()
     };
@@ -337,7 +337,7 @@ class PageCreator {
 
         <div class="gallery-grid" id="gallery-grid">
           <div class="gallery-item" data-category="lesson">
-            <img src="../images/gallery/lesson1.jpg" alt="レッスンの様子1">
+            <img src="../assets/images/gallery/lesson1.jpg" alt="レッスンの様子1">
             <div class="gallery-overlay">
               <h3>基本フォーム練習</h3>
               <p>正しいフォームを身につけます</p>
@@ -345,7 +345,7 @@ class PageCreator {
           </div>
           
           <div class="gallery-item" data-category="lesson">
-            <img src="../images/gallery/lesson2.jpg" alt="レッスンの様子2">
+            <img src="../assets/images/gallery/lesson2.jpg" alt="レッスンの様子2">
             <div class="gallery-overlay">
               <h3>スタート練習</h3>
               <p>素早いスタートを目指します</p>
@@ -353,7 +353,7 @@ class PageCreator {
           </div>
           
           <div class="gallery-item" data-category="event">
-            <img src="../images/gallery/event1.jpg" alt="イベントの様子1">
+            <img src="../assets/images/gallery/event1.jpg" alt="イベントの様子1">
             <div class="gallery-overlay">
               <h3>体験会</h3>
               <p>多くの子どもたちが参加</p>
@@ -361,7 +361,7 @@ class PageCreator {
           </div>
           
           <div class="gallery-item" data-category="achievement">
-            <img src="../images/gallery/achievement1.jpg" alt="成果発表">
+            <img src="../assets/images/gallery/achievement1.jpg" alt="成果発表">
             <div class="gallery-overlay">
               <h3>タイム測定</h3>
               <p>成長を実感できる瞬間</p>

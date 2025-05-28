@@ -9,15 +9,15 @@
   <meta name="robots" content="index, follow">
   
   <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
   
   <!-- CSS - 元のシステムを維持 -->
-  <link rel="stylesheet" href="../styles/base.css">
-  <link rel="stylesheet" href="../styles/common.css">
-  <link rel="stylesheet" href="../styles/components.css">
-  <link rel="stylesheet" href="../styles/layout.css">
-  <link rel="stylesheet" href="../styles/news.css">
-  <link rel="stylesheet" href="../styles/responsive.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/common.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/news.css">
+  <link rel="stylesheet" href="../css/responsive.css">
 </head>
 <body class="page-news">
   <!-- ヘッダーは動的に読み込まれます -->
@@ -34,31 +34,31 @@
       </div>
 
       <!-- ニュース一覧 -->
-      <div class="news-section-new">
-        <!-- フィルター -->
-        <div class="filter-title-new">カテゴリーで絞り込み</div>
-        <div class="news-filters-new">
-          <a href="news.html" class="filter-btn-new active" data-category="all">すべて</a>
-          <a href="news.html?category=announcement" class="filter-btn-new" data-category="announcement">お知らせ</a>
-          <a href="news.html?category=event" class="filter-btn-new" data-category="event">体験会</a>
-          <a href="news.html?category=media" class="filter-btn-new" data-category="media">メディア</a>
-          <a href="news.html?category=important" class="filter-btn-new" data-category="important">重要</a>
+      <!-- フィルター -->
+      <div class="news-filters">
+        <div class="filter-title">カテゴリーで絞り込み</div>
+        <div class="filter-buttons">
+          <a href="news.html" class="filter-btn active" data-category="all">すべて</a>
+          <a href="news.html?category=announcement" class="filter-btn" data-category="announcement">お知らせ</a>
+          <a href="news.html?category=event" class="filter-btn" data-category="event">体験会</a>
+          <a href="news.html?category=media" class="filter-btn" data-category="media">メディア</a>
+          <a href="news.html?category=important" class="filter-btn" data-category="important">重要</a>
         </div>
+      </div>
 
-        <!-- 検索結果表示 -->
-        <div class="search-results-new" id="search-results" style="display: none;">
-          <div class="search-results-text">
-            <span id="search-count">0</span>件の記事が見つかりました
-          </div>
+      <!-- 検索結果表示 -->
+      <div class="search-results" id="search-results" style="display: none;">
+        <div class="search-results-text">
+          <span id="search-count">0</span>件の記事が見つかりました
         </div>
+      </div>
 
-        <!-- ニュース一覧 -->
-        <div class="news-grid-new" id="news-grid">
-          <!-- 初期表示：ローディング -->
-          <div class="loading-message">
-            <div class="loading-spinner"></div>
-            <p>記事を読み込み中...</p>
-          </div>
+      <!-- ニュース一覧 -->
+      <div class="news-grid" id="news-grid">
+        <!-- 初期表示：ローディング -->
+        <div class="loading-message">
+          <div class="loading-spinner"></div>
+          <p>記事を読み込み中...</p>
         </div>
       </div>
     </div>
@@ -91,7 +91,7 @@
     // 記事カードを作成
     function createArticleCard(article) {
       const card = document.createElement('article');
-      card.className = 'news-card-new';
+      card.className = 'news-card';
       card.setAttribute('data-category', article.category);
       
       card.innerHTML = `
@@ -180,16 +180,71 @@
 
     // フィルタリング機能をセットアップ
     function setupFiltering() {
-      const filterButtons = document.querySelectorAll('.filter-btn-new');
+      const filterButtons = document.querySelectorAll('.filter-btn');
       
-      // 現在のカテゴリーボタンをアクティブに
+      // 既存のイベントリスナーをクリア（重複防止）
       filterButtons.forEach(btn => {
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+      });
+      
+      // 新しいボタン要素を再取得
+      const newFilterButtons = document.querySelectorAll('.filter-btn');
+      
+      // 現在のカテゴリーに基づいてアクティブ状態を設定
+      updateActiveButton(newFilterButtons);
+      
+      // 各ボタンにクリックイベントを追加
+      newFilterButtons.forEach(btn => {
+        btn.addEventListener('click', handleFilterClick);
+      });
+    }
+
+    // アクティブボタンを更新
+    function updateActiveButton(buttons) {
+      console.log('アクティブボタン更新 - 現在のカテゴリー:', currentCategory); // デバッグ用
+      buttons.forEach(btn => {
         btn.classList.remove('active');
         const btnCategory = btn.getAttribute('data-category');
+        console.log('ボタンカテゴリー:', btnCategory, 'アクティブ:', btnCategory === currentCategory); // デバッグ用
         if (btnCategory === currentCategory) {
           btn.classList.add('active');
+          console.log('アクティブクラス追加:', btn); // デバッグ用
         }
       });
+    }
+
+    // フィルタークリックハンドラー
+    function handleFilterClick(e) {
+      e.preventDefault();
+      
+      const clickedCategory = this.getAttribute('data-category');
+      console.log('フィルタークリック:', clickedCategory, '現在:', currentCategory); // デバッグ用
+      
+      // カテゴリーが変更された場合のみ処理
+      if (clickedCategory !== currentCategory) {
+        // カテゴリーを更新
+        currentCategory = clickedCategory;
+        console.log('カテゴリー更新:', currentCategory); // デバッグ用
+        
+        // アクティブ状態を更新
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        updateActiveButton(filterButtons);
+        
+        // URLを更新
+        updateURL(currentCategory);
+        
+        // 記事を再表示
+        displayArticles();
+      }
+    }
+
+    // URL更新
+    function updateURL(category) {
+      const newUrl = category === 'all' 
+        ? 'news.html' 
+        : `news.html?category=${category}`;
+      window.history.pushState({category: category}, '', newUrl);
     }
 
     // ユーティリティ関数
@@ -221,7 +276,9 @@
 
     // ページ初期化
     document.addEventListener('DOMContentLoaded', function() {
+      // 初期カテゴリーを設定
       currentCategory = getCurrentCategory();
+      console.log('初期カテゴリー:', currentCategory); // デバッグ用
       
       if (typeof PageInitializer !== 'undefined') {
         PageInitializer.init({
@@ -231,12 +288,26 @@
         });
       }
       
-      setupFiltering();
+      // フィルタリング機能を初期化
+      setTimeout(() => {
+        setupFiltering();
+      }, 100);
+      
+      // ブラウザの戻る/進むボタンに対応
+      window.addEventListener('popstate', function(event) {
+        currentCategory = getCurrentCategory();
+        console.log('popstate - カテゴリー変更:', currentCategory); // デバッグ用
+        setupFiltering();
+        if (articleManager) {
+          displayArticles();
+        }
+      });
       
       // 記事管理システムの初期化を待つ
       const initArticleSystem = () => {
         if (window.articleManager) {
           articleManager = window.articleManager;
+          console.log('記事管理システム初期化完了'); // デバッグ用
           displayArticles();
         } else {
           setTimeout(initArticleSystem, 100);
