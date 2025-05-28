@@ -45,7 +45,7 @@ async function initializeAdmin() {
  */
 function setupGlobalFunctions() {
   // タブ切り替え
-  window.switchToTab = (tabName) => {
+  window.switchTab = (tabName) => {
     if (adminInstance && adminInstance.uiManager) {
       adminInstance.uiManager.switchTab(tabName);
       
@@ -66,70 +66,51 @@ function setupGlobalFunctions() {
     }
   };
 
-  // テストデータ管理
-  window.clearTestDataWithConfirm = () => {
-    if (typeof clearTestData === 'function') {
-      if (confirm('テストデータを削除しますか？\n\n削除されるもの:\n- 春の体験会開催のお知らせ\n- 3月の練習成果報告\n- 新しいトレーニング器具導入\n- ゴールデンウィーク期間の練習について\n- 春季大会参加者募集\n- メディア出演のお知らせ\n\n実際に作成した記事は削除されません。')) {
-        const result = clearTestData();
-        if (result.success) {
-          if (adminInstance && adminInstance.uiManager) {
-            adminInstance.uiManager.showNotification('success', `テストデータを削除しました（${result.deletedCount}件）`);
-          }
-        } else {
-          if (adminInstance && adminInstance.uiManager) {
-            adminInstance.uiManager.showNotification('error', 'テストデータの削除に失敗しました');
-          }
-        }
+  // フォームクリア
+  window.clearNewsForm = () => {
+    const form = document.getElementById('news-form');
+    if (form) {
+      form.reset();
+      
+      // エディターの内容もクリア
+      const contentEditor = document.getElementById('news-content');
+      if (contentEditor) {
+        contentEditor.value = '';
       }
-    } else {
-      console.error('clearTestData関数が見つかりません');
+      
+      // フォーム状態をリセット
+      form.removeAttribute('data-editing-id');
+      
+      // 送信ボタンのテキストを元に戻す
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.textContent = '記事を作成';
+      }
     }
   };
 
-  window.createTestDataManually = () => {
-    if (typeof createTestData === 'function') {
-      if (confirm('テストデータを作成しますか？\n\n既存のテストデータがある場合は置き換えられます。')) {
-        createTestData();
-        if (adminInstance && adminInstance.uiManager) {
-          adminInstance.uiManager.showNotification('success', 'テストデータを作成しました');
-        }
-        // ページをリロードしてUIを更新
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
-      }
-    } else {
-      console.error('createTestData関数が見つかりません');
-    }
-  };
-  
-  // ニュース関連
-  window.saveNews = async () => {
-    if (adminInstance && adminInstance.dataManager) {
-      try {
-        const formData = getNewsFormData();
-        await adminInstance.dataManager.saveArticle(formData, false);
-        adminInstance.uiManager.showNotification('success', '記事を保存しました');
-        adminInstance.uiManager.clearFormChanges('news-form');
-      } catch (error) {
-        adminInstance.uiManager.showNotification('error', '保存に失敗しました');
+  // 記事フォームの自動保存機能
+  window.autoSaveNews = () => {
+    const form = document.getElementById('news-form');
+    if (form) {
+      const formData = new FormData(form);
+      const articleData = {
+        title: formData.get('title'),
+        category: formData.get('category'),
+        summary: formData.get('summary'),
+        content: formData.get('content'),
+        status: 'draft'
+      };
+      
+      // 何かしらの入力がある場合のみ自動保存
+      if (articleData.title || articleData.content) {
+        localStorage.setItem('rbs_news_draft', JSON.stringify(articleData));
+        console.log('記事の自動保存を実行しました');
       }
     }
   };
-  
-  window.publishNews = async () => {
-    if (adminInstance && adminInstance.dataManager) {
-      try {
-        const formData = getNewsFormData();
-        await adminInstance.dataManager.saveArticle(formData, true);
-        adminInstance.uiManager.showNotification('success', '記事を公開しました');
-        adminInstance.uiManager.clearFormChanges('news-form');
-      } catch (error) {
-        adminInstance.uiManager.showNotification('error', '公開に失敗しました');
-      }
-    }
-  };
-  
+
+  // 記事管理関連の関数
   window.editNews = (id) => {
     if (adminInstance && adminInstance.dataManager && adminInstance.uiManager) {
       const article = adminInstance.dataManager.getArticles().find(a => a.id === id);
@@ -172,28 +153,47 @@ function setupGlobalFunctions() {
   window.clearNewsEditor = () => {
     clearNewsForm();
   };
-  
-  window.previewNews = (articleId = null) => {
-    if (adminInstance && adminInstance.uiManager) {
-      let articleData;
-      
-      if (articleId) {
-        // 指定されたIDの記事をプレビュー
-        articleData = adminInstance.dataManager.getArticles().find(a => a.id === articleId);
-        if (!articleData) {
-          adminInstance.uiManager.showNotification('error', '記事が見つかりません');
-          return;
-        }
-      } else {
-        // フォームの内容をプレビュー
-        articleData = getNewsFormData();
-      }
-      
-      const previewContent = generatePreviewContent(articleData);
-      adminInstance.uiManager.showModal('記事プレビュー', previewContent);
+
+  // 記事の検索とフィルタリング
+  window.filterNews = (status) => {
+    if (adminInstance && adminInstance.dataManager && adminInstance.uiManager) {
+      const articles = adminInstance.dataManager.getArticles({ status: status === 'all' ? undefined : status });
+      adminInstance.uiManager.displayNewsList(articles);
     }
   };
-  
+
+  // 記事のプレビュー機能
+  window.previewNews = (id) => {
+    if (adminInstance && adminInstance.dataManager) {
+      const article = adminInstance.dataManager.getArticles().find(a => a.id === id);
+      if (article) {
+        // 新しいタブでプレビューを開く
+        const previewUrl = `../pages/news-detail.html?id=${article.id}`;
+        window.open(previewUrl, '_blank');
+      }
+    }
+  };
+
+  // 記事の公開・非公開切り替え
+  window.toggleNewsStatus = async (id) => {
+    if (adminInstance && adminInstance.dataManager) {
+      try {
+        const article = adminInstance.dataManager.getArticles().find(a => a.id === id);
+        if (article) {
+          const newStatus = article.status === 'published' ? 'draft' : 'published';
+          article.status = newStatus;
+          
+          await adminInstance.dataManager.saveArticle(article, newStatus === 'published');
+          
+          const statusText = newStatus === 'published' ? '公開' : '下書き';
+          adminInstance.uiManager.showNotification('success', `記事を${statusText}に変更しました`);
+        }
+      } catch (error) {
+        adminInstance.uiManager.showNotification('error', 'ステータス変更に失敗しました');
+      }
+    }
+  };
+
   // レッスン状況関連
   window.updateLessonStatus = async () => {
     if (adminInstance && adminInstance.dataManager) {

@@ -3,54 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title id="page-title">記事詳細 - RBS陸上教室</title>
-  <meta name="description" id="page-description" content="RBS陸上教室の記事詳細ページです">
-  <meta name="keywords" content="RBS陸上教室, 陸上教室, お知らせ">
+  <!-- メタデータは自動設定されます -->
+  <!-- OGP設定は動的に更新されます -->
   
-  <!-- OGP設定 -->
-  <meta property="og:title" id="og-title" content="記事詳細">
-  <meta property="og:description" id="og-description" content="RBS陸上教室の記事詳細ページです">
-  <meta property="og:type" content="article">
-  <meta property="og:url" id="og-url" content="">
-  <meta property="og:image" content="../images/lp-logo.png">
-  <meta property="og:site_name" content="RBS陸上教室">
-  
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" id="twitter-title" content="記事詳細">
-  <meta name="twitter:description" id="twitter-description" content="RBS陸上教室の記事詳細ページです">
-  <meta name="twitter:image" content="../images/lp-logo.png">
-  
-  <!-- CSS -->
+  <!-- 基本CSS -->
   <link rel="stylesheet" href="../styles/base.css">
   <link rel="stylesheet" href="../styles/common.css">
   <link rel="stylesheet" href="../styles/components.css">
   <link rel="stylesheet" href="../styles/layout.css">
   <link rel="stylesheet" href="../styles/responsive.css">
-  <link rel="stylesheet" href="../styles/news-detail.css">
+  <!-- ページ固有のCSSは自動読み込みされます -->
 </head>
 <body class="page-news-detail">
-  <!-- ヘッダー -->
-  <header>
-    <nav>
-      <div class="logo">
-        <a href="index.html">
-          <img src="../images/lp-logo.png" alt="RBS陸上教室 Running & Brain School" class="logo-image">
-        </a>
-      </div>
-      <ul class="nav-links">
-        <li><a href="index.html#about">RBSとは</a></li>
-        <li><a href="index.html#program">プログラム</a></li>
-        <li><a href="index.html#coach">コーチ</a></li>
-        <li><a href="index.html#location">教室情報</a></li>
-        <li><a href="index.html#price">料金</a></li>
-        <li><a href="index.html#faq">よくある質問</a></li>
-        <li><a href="news.html">NEWS</a></li>
-        <li><a href="https://hacomono.jp/" class="login-btn" target="_blank">会員ログイン</a></li>
-      </ul>
-      <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
-    </nav>
-  </header>
+  <!-- ヘッダーは動的に読み込まれます -->
 
   <main>
     <div class="container">
@@ -116,17 +81,20 @@
     </div>
   </main>
 
-  <!-- フッター -->
-  <footer>
-    <div class="footer-links">
-      <a href="/terms">特定商取引法に基づく表記</a>
-      <a href="/privacy">プライバシーポリシー</a>
-      <a href="https://hacomono.jp/" target="_blank">会員ログイン</a>
-    </div>
-    <p>© 2025 合同会社VITA. All rights reserved.</p>
-  </footer>
+  <!-- フッターは動的に読み込まれます -->
 
-  <!-- JavaScript -->
+  <!-- 基本JavaScript -->
+  <script src="../js/core/config/config.js"></script>
+  <script src="../js/core/utils/helpers.js"></script>
+  
+  <!-- コンポーネントシステム -->
+  <script src="../components/TemplateLoader.js"></script>
+  <script src="../components/CommonHeader.js"></script>
+  <script src="../components/CommonFooter.js"></script>
+  <script src="../components/PageInitializer.js"></script>
+  <script src="../js/page-configs.js"></script>
+  
+  <!-- ページ固有のJavaScript -->
   <script src="../js/markdown-parser.js"></script>
   
   <script>
@@ -134,16 +102,10 @@
     let articleManager = null;
     let currentArticle = null;
 
-    // モバイルメニューの切り替え
-    function toggleMobileMenu() {
-      const navLinks = document.querySelector('.nav-links');
-      navLinks.classList.toggle('active');
-    }
-
     // URLパラメータから記事IDを取得
     function getArticleId() {
       const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('id') || '1';
+      return urlParams.get('id');
     }
 
     // 記事を表示
@@ -160,22 +122,27 @@
         categoryElement.textContent = getCategoryName(article.category);
         categoryElement.className = `article-category ${article.category}`;
         
-        // 記事本文を読み込み・表示
+        // 記事本文を表示
         const contentElement = document.getElementById('article-content');
         
         if (article.content) {
-          // 記事データにcontentがある場合（管理画面で作成された記事）
+          // 管理画面で作成された記事のコンテンツを表示
           contentElement.innerHTML = articleManager.parser.parse(article.content);
         } else {
-          // コンテンツを別途読み込む
-          const content = await articleManager.loadArticleContent(article.id);
-          contentElement.innerHTML = content;
+          // コンテンツが見つからない場合
+          contentElement.innerHTML = `
+            <div class="empty-content">
+              <h3>記事内容がありません</h3>
+              <p>この記事のコンテンツが正しく保存されていません。管理画面から記事を編集してください。</p>
+              <a href="admin.html" class="btn-secondary">管理画面へ</a>
+            </div>
+          `;
         }
         
         // メタデータを更新
         updateMetadata(article);
         
-        // シェアセクションとナビゲーションを表示
+        // シェアセクションを表示
         document.getElementById('share-section').style.display = 'block';
         
         // 関連記事を表示
@@ -189,20 +156,64 @@
 
     // メタデータを更新
     function updateMetadata(article) {
-      const textContent = (article.content || article.excerpt || article.summary || '').replace(/<[^>]*>/g, '').substring(0, 150);
+      const textContent = (article.content || article.summary || '').replace(/<[^>]*>/g, '').substring(0, 150);
       
-      document.getElementById('page-title').textContent = `${article.title} - RBS陸上教室`;
-      document.getElementById('page-description').setAttribute('content', textContent);
-      document.getElementById('og-title').setAttribute('content', article.title);
-      document.getElementById('og-description').setAttribute('content', textContent);
-      document.getElementById('twitter-title').setAttribute('content', article.title);
-      document.getElementById('twitter-description').setAttribute('content', textContent);
-      document.getElementById('og-url').setAttribute('content', window.location.href);
+      // ページタイトルを更新
+      document.title = `${article.title} - RBS陸上教室`;
+      
+      // メタタグを動的に作成・更新
+      updateMetaTag('description', textContent);
+      updateMetaTag('keywords', 'RBS陸上教室, 陸上教室, お知らせ');
+      
+      // OGPタグを動的に作成・更新
+      updateOGPTag('title', article.title);
+      updateOGPTag('description', textContent);
+      updateOGPTag('type', 'article');
+      updateOGPTag('url', window.location.href);
+      updateOGPTag('image', '../images/lp-logo.png');
+      updateOGPTag('site_name', 'RBS陸上教室');
+      
+      // Twitter Cardタグを動的に作成・更新
+      updateTwitterTag('card', 'summary_large_image');
+      updateTwitterTag('title', article.title);
+      updateTwitterTag('description', textContent);
+      updateTwitterTag('image', '../images/lp-logo.png');
+    }
+
+    // メタタグ更新ヘルパー関数
+    function updateMetaTag(name, content) {
+      let meta = document.querySelector(`meta[name="${name}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.name = name;
+        document.head.appendChild(meta);
+      }
+      meta.content = content;
+    }
+
+    function updateOGPTag(property, content) {
+      let meta = document.querySelector(`meta[property="og:${property}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute('property', `og:${property}`);
+        document.head.appendChild(meta);
+      }
+      meta.content = content;
+    }
+
+    function updateTwitterTag(name, content) {
+      let meta = document.querySelector(`meta[name="twitter:${name}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.name = `twitter:${name}`;
+        document.head.appendChild(meta);
+      }
+      meta.content = content;
     }
 
     // 関連記事を表示
     function displayRelatedArticles(currentArticle) {
-      if (!articleManager || !articleManager.articles) return;
+      if (!articleManager?.articles) return;
 
       // 現在の記事以外の記事を取得（最大3件）
       const relatedArticles = articleManager.articles
@@ -226,7 +237,7 @@
             <a href="news-detail.html?id=${article.id}" class="related-title-link">${escapeHtml(article.title)}</a>
           </div>
           <div class="related-card-body">
-            <p class="related-excerpt">${escapeHtml((article.excerpt || article.summary || '').substring(0, 100))}...</p>
+            <p class="related-excerpt">${escapeHtml((article.summary || '').substring(0, 100))}...</p>
           </div>
         </div>
       `).join('');
@@ -295,9 +306,23 @@
         <div class="error-message">
           <h3>コンテンツエラー</h3>
           <p>記事の内容を表示できませんでした。</p>
-          <p>管理画面から記事の内容を確認してください。</p>
+          <a href="admin.html" class="btn-secondary">管理画面で確認</a>
         </div>
       `;
+    }
+
+    function showInvalidIdError() {
+      const contentElement = document.getElementById('article-content');
+      contentElement.innerHTML = `
+        <div class="error-message">
+          <h3>無効なURLです</h3>
+          <p>記事IDが指定されていません。正しいURLでアクセスしてください。</p>
+          <a href="news.html" class="btn-primary">ニュース一覧に戻る</a>
+        </div>
+      `;
+      
+      document.getElementById('article-title').textContent = '無効なURL';
+      document.getElementById('breadcrumb-title').textContent = '無効なURL';
     }
 
     // SNSシェア機能
@@ -338,10 +363,17 @@
       try {
         const articleId = getArticleId();
         
+        // 記事IDが指定されていない場合
+        if (!articleId) {
+          console.warn('記事IDが指定されていません');
+          showInvalidIdError();
+          return;
+        }
+        
         // ArticleManagerのインスタンスを作成
         articleManager = new ArticleManager();
         
-        // 記事データを読み込み
+        // 管理画面からの記事データを読み込み
         await articleManager.loadArticles();
         
         console.log('記事データ読み込み完了:', articleManager.articles.length, '件');
@@ -372,18 +404,23 @@
     document.addEventListener('DOMContentLoaded', function() {
       console.log('記事詳細ページを初期化中...');
       
-      // 記事詳細読み込み開始
-      loadArticleDetail();
-
-      // ナビゲーションリンクのクリック時にモバイルメニューを閉じる
-      document.querySelectorAll('.nav-links a').forEach(link => {
-        link.addEventListener('click', function() {
-          const navLinks = document.querySelector('.nav-links');
-          if (navLinks.classList.contains('active')) {
-            navLinks.classList.remove('active');
+      // ページ初期化完了を待つ
+      if (window.PAGE_CONFIGS) {
+        // ページ初期化完了後に記事詳細読み込み開始
+        setTimeout(() => {
+          loadArticleDetail();
+        }, 100);
+      } else {
+        // PAGE_CONFIGSが読み込まれるまで待つ
+        const checkInitialization = () => {
+          if (window.PAGE_CONFIGS) {
+            loadArticleDetail();
+          } else {
+            setTimeout(checkInitialization, 50);
           }
-        });
-      });
+        };
+        checkInitialization();
+      }
     });
   </script>
 </body>

@@ -946,21 +946,8 @@
         console.warn('⚠️ initializeApp関数が見つかりません');
       }
       
-      // 開発環境でのデータ確認とテストデータ作成
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') {
-        const hasData = localStorage.getItem('rbs_articles_data');
-        if (!hasData) {
-          console.log('🔧 開発環境でLocalStorageにデータがないため、テストデータを作成します');
-          if (typeof createTestData === 'function') {
-            createTestData();
-            setTimeout(() => {
-              loadAndDisplayNews();
-            }, 500);
-          } else {
-            console.warn('⚠️ test-data.jsが読み込まれていません');
-          }
-        }
-      }
+      // 記事の読み込みを実行
+      loadAndDisplayNews();
     });
 
     // レッスン状況の読み込みと表示
@@ -1121,86 +1108,48 @@
     // ニュース記事の読み込みと表示
     async function loadAndDisplayNews() {
       try {
-        console.log('🔧 loadAndDisplayNews 開始');
+        console.log('ニュース記事を読み込み中...');
         
         // ArticleManagerの存在確認
         if (typeof ArticleManager === 'undefined') {
-          console.error('❌ ArticleManagerが定義されていません');
           throw new Error('ArticleManagerが定義されていません');
         }
-        console.log('✅ ArticleManagerは定義されています');
         
         const articleManager = new ArticleManager();
-        console.log('✅ ArticleManagerインスタンスを作成しました');
         
-        // LocalStorageの内容を事前確認
-        const rawData = localStorage.getItem('rbs_articles_data');
-        console.log('📦 LocalStorage生データ:', rawData);
-        
-        if (rawData) {
-          try {
-            const parsedData = JSON.parse(rawData);
-            console.log('📊 解析済みデータ:', parsedData);
-            console.log('📊 全記事数:', parsedData.length);
-            console.log('📊 公開済み記事数:', parsedData.filter(a => a.status === 'published').length);
-          } catch (parseError) {
-            console.error('❌ データ解析エラー:', parseError);
-          }
-        } else {
-          console.warn('⚠️ LocalStorageにデータがありません');
-        }
-        
+        // 管理画面からの記事データを読み込み
         await articleManager.loadArticles();
-        console.log('✅ articleManager.loadArticles()完了');
         
-        // デバッグ情報を出力（開発時）
-        console.log('=== index.html ニュース読み込み ===');
-        console.log('読み込まれた記事数:', articleManager.articles.length);
-        console.log('記事配列の内容:', articleManager.articles);
-        
-        if (articleManager.checkDataSync) {
-          articleManager.checkDataSync();
-        }
+        console.log('記事データ読み込み完了:', articleManager.articles.length, '件');
         
         // 公開済みの記事を最新順で取得（最大3件）
         const latestArticles = articleManager.articles
-          .filter(article => {
-            console.log(`記事フィルタリング - ${article.title}: status=${article.status}`);
-            return article.status === 'published';
-          })
+          .filter(article => article.status === 'published')
           .sort((a, b) => new Date(b.date) - new Date(a.date))
           .slice(0, 3);
         
-        console.log('表示対象記事数:', latestArticles.length);
-        console.log('表示対象記事:', latestArticles);
-        console.log('=====================================');
-        
         const newsContainer = document.getElementById('news-list');
-        console.log('✅ newsContainerを取得:', newsContainer);
         
         if (latestArticles.length === 0) {
-          console.log('⚠️ 表示する記事がありません');
           newsContainer.innerHTML = `
             <div style="text-align: center; padding: 60px 20px; color: var(--gray-medium);">
               <p style="font-size: 18px; font-weight: 600;">お知らせはまだありません</p>
-              <p style="font-size: 16px; margin-top: 10px;">新しいお知らせをお待ちください。</p>
+              <p style="font-size: 16px; margin-top: 10px;">管理画面から記事を作成・公開してください。</p>
+              <a href="admin.html" class="btn-secondary" style="margin-top: 20px; display: inline-block;">管理画面へ</a>
             </div>
           `;
           return;
         }
         
-        console.log('🎨 ニュースカードHTML生成開始');
-        
         // ニュースカードを生成
-        const newsCardsHTML = latestArticles.map((article, index) => {
-          console.log(`記事${index + 1}のHTML生成:`, article.title);
+        const newsCardsHTML = latestArticles.map(article => {
           return `
           <div class="news-card" style="background: var(--white); border-radius: 12px; padding: 18px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); margin-bottom: 16px; transition: all 0.3s ease; border-left: 4px solid ${articleManager.getCategoryColor(article.category)};">
             <div class="news-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
               <div class="news-meta">
                 <div class="news-date" style="background: var(--primary-blue); color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: 600; display: inline-block;">${articleManager.formatDate(article.date)}</div>
                 <div class="news-category" style="display: inline-block; background: ${articleManager.getCategoryColor(article.category)}; color: white; padding: 3px 10px; border-radius: 15px; font-size: 11px; font-weight: 700; margin-top: 4px;">
-                  ${article.categoryName}
+                  ${articleManager.getCategoryName(article.category)}
                 </div>
               </div>
             </div>
@@ -1208,9 +1157,9 @@
               ${escapeHtml(article.title)}
             </h3>
             <p class="news-excerpt" style="color: var(--gray-medium); font-size: 14px; line-height: 1.5; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-              ${escapeHtml(article.excerpt || article.summary || '')}
+              ${escapeHtml(article.summary || article.excerpt || '')}
             </p>
-                         <a href="news-detail.html?id=${article.id}" class="news-link" style="color: var(--primary-blue); font-weight: 700; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s ease;">
+            <a href="news-detail.html?id=${article.id}" class="news-link" style="color: var(--primary-blue); font-weight: 700; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s ease;">
               続きを読む
               <span style="transition: transform 0.3s ease;">→</span>
             </a>
@@ -1218,14 +1167,7 @@
         `;
         }).join('');
         
-        console.log('🎨 HTML生成完了、文字数:', newsCardsHTML.length);
-        
         newsContainer.innerHTML = newsCardsHTML;
-        console.log('✅ newsContainerにHTMLを設定しました');
-        
-        // 実際に表示されているかチェック
-        const insertedCards = newsContainer.querySelectorAll('.news-card');
-        console.log('✅ 挿入されたニュースカード数:', insertedCards.length);
         
         // ホバーエフェクトを追加
         document.querySelectorAll('.news-card').forEach(card => {
@@ -1253,7 +1195,7 @@
           });
         });
         
-        console.log('🎉 loadAndDisplayNews 完了');
+        console.log('ニュース記事表示完了:', latestArticles.length, '件');
       } catch (error) {
         console.error('ニュース記事の読み込みに失敗しました:', error);
         const newsContainer = document.getElementById('news-list');

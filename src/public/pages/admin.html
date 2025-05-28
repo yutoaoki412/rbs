@@ -394,23 +394,6 @@
             <p>記事データやレッスン履歴のエクスポート</p>
             <button class="btn btn-outline" onclick="exportData()">データをエクスポート</button>
           </div>
-          
-          <div class="setting-group">
-            <h3><i class="fas fa-flask"></i> 開発・テスト</h3>
-            <p>テストデータの管理と開発用機能</p>
-            <div class="setting-actions">
-              <button class="btn btn-warning" onclick="clearTestDataWithConfirm()" id="clear-test-data-btn">
-                <i class="fas fa-trash-alt"></i> テストデータを削除
-              </button>
-              <button class="btn btn-outline" onclick="createTestDataManually()">
-                <i class="fas fa-plus"></i> テストデータを再作成
-              </button>
-            </div>
-            <small class="setting-note">
-              <i class="fas fa-info-circle"></i>
-              テストデータは開発・デモ用のサンプル記事です。実際の運用時は削除することをお勧めします。
-            </small>
-          </div>
         </div>
       </section>
     </main>
@@ -431,25 +414,10 @@
     </div>
   </div>
 
-  <!-- テストデータ（開発環境用） -->
-  <script src="../js/test-data.js"></script>
-  
-    <!-- レッスン状況管理システム -->
+  <!-- レッスン状況管理システム -->
   <script src="../js/services/business/lesson-status-manager.js"></script>
   
   <!-- JavaScript -->
   <script type="module" src="../js/admin.js"></script>
-  
-  <!-- 管理画面初期化スクリプト -->
-  <script>
-    // 今日の日付をデフォルトで設定
-    document.addEventListener('DOMContentLoaded', function() {
-      const lessonDateField = document.getElementById('lesson-date');
-      if (lessonDateField) {
-        const today = new Date().toISOString().split('T')[0];
-        lessonDateField.value = today;
-      }
-    });
-  </script>
 </body>
 </html> 

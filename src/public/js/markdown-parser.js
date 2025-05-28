@@ -76,11 +76,11 @@ class ArticleManager {
   }
 
   /**
-   * 記事一覧を読み込み
+   * 記事一覧を読み込み（管理画面からの記事のみ）
    */
   async loadArticles() {
     try {
-      console.log('記事データを読み込み中...');
+      console.log('管理画面の記事データを読み込み中...');
       
       // 管理画面からのデータがある場合はそれを使用
       if (this.adminManager) {
@@ -90,7 +90,7 @@ class ArticleManager {
         return this.articles;
       }
 
-      // LocalStorageから管理者データを確認（管理画面で作成されたデータのみ使用）
+      // LocalStorageから管理画面で作成された記事を読み込み
       const adminData = localStorage.getItem('rbs_articles_data');
       if (adminData) {
         try {
@@ -102,23 +102,23 @@ class ArticleManager {
           this.articles = this.articles.map(article => ({
             ...article,
             categoryName: this.getCategoryName(article.category),
-            excerpt: article.summary || article.content?.substring(0, 150) + '...' || ''
+            excerpt: article.summary || (article.content ? article.content.substring(0, 150) + '...' : '')
           }));
           
-          console.log('LocalStorageから記事データを読み込み:', this.articles.length, '件（全', allArticles.length, '件中）');
+          console.log('管理画面からの記事を読み込み:', this.articles.length, '件（全', allArticles.length, '件中）');
           
           // データの整合性をチェック
           this.validateArticleData();
           
           return this.articles;
         } catch (parseError) {
-          console.error('LocalStorageデータの解析に失敗:', parseError);
+          console.error('記事データの解析に失敗:', parseError);
           localStorage.removeItem('rbs_articles_data');
         }
       }
 
       // 管理画面で作成された記事がない場合は空配列を返す
-      console.log('管理画面で作成された記事がありません。新しい記事を作成してください。');
+      console.log('管理画面で作成された記事がありません。');
       this.articles = [];
       return this.articles;
     } catch (error) {
@@ -131,36 +131,23 @@ class ArticleManager {
   /**
    * 特定の記事のMarkdownを読み込み
    */
-  async loadArticleContent(articleIdOrFilename) {
+  async loadArticleContent(articleId) {
     try {
       // 管理画面のデータから読み込み
       if (this.adminManager) {
-        const content = await this.adminManager.loadArticleContent(articleIdOrFilename);
+        const content = await this.adminManager.loadArticleContent(articleId);
         return this.parser.parse(content);
       }
 
-      // LocalStorageから記事のコンテンツを読み込み（管理画面で作成されたもの）
-      let article = null;
-      let articleId = null;
-      
-      // articleIdOrFilenameが数値または数値文字列の場合はIDとして処理
-      if (!isNaN(articleIdOrFilename)) {
-        articleId = parseInt(articleIdOrFilename);
-        article = this.articles.find(a => a.id === articleId);
-      } else {
-        // 文字列の場合はファイル名として処理（下位互換性のため）
-        article = this.articles.find(a => a.file === articleIdOrFilename);
-        if (article) {
-          articleId = article.id;
-        }
-      }
+      // IDによる記事の取得
+      const article = this.articles.find(a => a.id === parseInt(articleId));
 
       if (!article) {
-        console.warn('記事が見つかりません:', articleIdOrFilename);
+        console.warn('記事が見つかりません:', articleId);
         return '<p>記事が見つかりませんでした。</p>';
       }
 
-      // まず記事データのcontentフィールドをチェック（管理画面で作成された記事）
+      // 記事データのcontentフィールドをチェック
       if (article.content) {
         return this.parser.parse(article.content);
       }
@@ -172,7 +159,7 @@ class ArticleManager {
       }
 
       // コンテンツが見つからない場合
-      console.warn('記事のコンテンツが見つかりません:', articleIdOrFilename);
+      console.warn('記事のコンテンツが見つかりません:', articleId);
       return '<div class="empty-content"><h3>記事内容がありません</h3><p>この記事のコンテンツが正しく保存されていません。管理画面から記事を編集してください。</p></div>';
     } catch (error) {
       console.error('記事の読み込みに失敗しました:', error);
@@ -270,83 +257,5 @@ class ArticleManager {
     });
 
     console.log('データ検証完了:', this.articles.length, '件の有効な記事');
-  }
-
-  /**
-   * デバッグ情報を出力
-   */
-  debugInfo() {
-    console.log('=== ArticleManager デバッグ情報 ===');
-    console.log('記事数:', this.articles.length);
-    console.log('記事一覧:', this.articles);
-    console.log('LocalStorage記事データ:', localStorage.getItem('rbs_articles_data'));
-    console.log('LocalStorageコンテンツデータ:', localStorage.getItem('rbs_articles_content'));
-    
-    // 各記事の詳細情報
-    this.articles.forEach((article, index) => {
-      console.log(`記事${index + 1}:`, {
-        id: article.id,
-        title: article.title,
-        category: article.category,
-        status: article.status,
-        hasContent: !!article.content,
-        contentLength: article.content ? article.content.length : 0,
-        excerpt: article.excerpt || 'なし',
-        date: article.date
-      });
-    });
-    
-    // 公開済み記事のカウント
-    const publishedCount = this.articles.filter(a => a.status === 'published').length;
-    const draftCount = this.articles.filter(a => a.status === 'draft').length;
-    console.log('公開済み記事:', publishedCount, '件');
-    console.log('下書き記事:', draftCount, '件');
-    
-    console.log('================================');
-  }
-
-  /**
-   * 管理画面データとの同期状況をチェック
-   */
-  checkDataSync() {
-    try {
-      const adminData = localStorage.getItem('rbs_articles_data');
-      const contentData = localStorage.getItem('rbs_articles_content');
-      
-      console.log('=== データ同期チェック ===');
-      
-      if (!adminData) {
-        console.warn('管理画面データが見つかりません。管理画面から記事を作成してください。');
-        return false;
-      }
-      
-      const articles = JSON.parse(adminData);
-      const publishedArticles = articles.filter(a => a.status === 'published');
-      
-      console.log('管理画面総記事数:', articles.length);
-      console.log('公開済み記事数:', publishedArticles.length);
-      console.log('下書き記事数:', articles.filter(a => a.status === 'draft').length);
-      
-      // コンテンツの整合性チェック
-      if (contentData) {
-        const content = JSON.parse(contentData);
-        const contentIds = Object.keys(content);
-        console.log('コンテンツデータ:', contentIds.length, '件');
-        
-        // 記事データとコンテンツデータの整合性
-        publishedArticles.forEach(article => {
-          const hasContent = article.content || content[article.id];
-          if (!hasContent) {
-            console.warn('コンテンツが見つからない記事:', article.title, '(ID:', article.id, ')');
-          }
-        });
-      }
-      
-      console.log('=======================');
-      return true;
-    } catch (error) {
-      console.error('データ同期チェックでエラー:', error);
-      return false;
-    }
   }
 } 

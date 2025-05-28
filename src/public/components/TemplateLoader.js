@@ -88,9 +88,12 @@ class TemplateLoader {
     // ロゴのパスを調整
     if (logoPath) {
       const logoLink = document.querySelector('#logo-link');
-      const logoImage = document.querySelector('.logo-image');
       if (logoLink) logoLink.href = logoPath;
-      if (logoImage) logoImage.src = logoPath.replace('index.html', '../images/lp-logo.png');
+    }
+
+    // ナビゲーションリンクを調整（indexページ以外の場合）
+    if (currentPage !== 'index') {
+      this.adjustNavigationLinks();
     }
 
     // 現在のページに応じてナビゲーションを調整
@@ -100,17 +103,57 @@ class TemplateLoader {
   }
 
   /**
+   * ナビゲーションリンクを他ページ用に調整
+   */
+  adjustNavigationLinks() {
+    const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
+    navLinks.forEach(link => {
+      const href = link.getAttribute('href');
+      if (href.startsWith('#') && href !== '#hero') {
+        link.href = `index.html${href}`;
+      }
+    });
+
+    // NEWSリンクを適切に設定
+    const newsLink = document.querySelector('a[href="#news"]');
+    if (newsLink) {
+      newsLink.href = 'news.html';
+      if (window.location.pathname.includes('news')) {
+        newsLink.classList.add('active');
+      }
+    }
+  }
+
+  /**
    * フッターの設定を適用
    * @param {Object} options - 設定オプション
    */
   configureFooter(options = {}) {
-    const { currentYear } = options;
+    const { currentYear, currentPage } = options;
 
     // 年を更新
     const yearElement = document.querySelector('.copyright-year');
     if (yearElement) {
       yearElement.textContent = currentYear || new Date().getFullYear();
     }
+
+    // フッターリンクを調整（indexページ以外の場合）
+    if (currentPage !== 'index') {
+      this.adjustFooterLinks();
+    }
+  }
+
+  /**
+   * フッターリンクを他ページ用に調整
+   */
+  adjustFooterLinks() {
+    const footerLinks = document.querySelectorAll('footer .footer-links a[href^="#"]');
+    footerLinks.forEach(link => {
+      const href = link.getAttribute('href');
+      if (href.startsWith('#')) {
+        link.href = `index.html${href}`;
+      }
+    });
   }
 
   /**
@@ -150,7 +193,7 @@ class TemplateLoader {
     // 並行して読み込み
     await Promise.all([
       this.loadHeader(headerSelector, { currentPage, logoPath, activeSection }),
-      this.loadFooter(footerSelector)
+      this.loadFooter(footerSelector, { currentPage })
     ]);
 
     // 読み込み完了後の初期化

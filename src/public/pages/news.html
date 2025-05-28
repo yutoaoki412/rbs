@@ -3,39 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NEWS - RBS陸上教室</title>
-  <meta name="description" content="RBS陸上教室の最新情報をお届けします">
+  <!-- メタデータは自動設定されます -->
   
-  <!-- CSS -->
+  <!-- 基本CSS -->
   <link rel="stylesheet" href="../styles/base.css">
   <link rel="stylesheet" href="../styles/common.css">
   <link rel="stylesheet" href="../styles/components.css">
   <link rel="stylesheet" href="../styles/layout.css">
   <link rel="stylesheet" href="../styles/responsive.css">
-  <link rel="stylesheet" href="../styles/news.css">
+  <!-- ページ固有のCSSは自動読み込みされます -->
 </head>
 <body class="page-news">
-  <!-- ヘッダー -->
-  <header>
-    <nav>
-      <div class="logo">
-        <a href="index.html">
-          <img src="../images/lp-logo.png" alt="RBS陸上教室 Running & Brain School" class="logo-image">
-        </a>
-      </div>
-      <ul class="nav-links">
-        <li><a href="index.html#about">RBSとは</a></li>
-        <li><a href="index.html#program">プログラム</a></li>
-        <li><a href="index.html#coach">コーチ</a></li>
-        <li><a href="index.html#location">教室情報</a></li>
-        <li><a href="index.html#price">料金</a></li>
-        <li><a href="index.html#faq">よくある質問</a></li>
-        <li><a href="news.html" class="active">NEWS</a></li>
-        <li><a href="https://hacomono.jp/" class="login-btn" target="_blank">会員ログイン</a></li>
-      </ul>
-      <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
-    </nav>
-  </header>
+  <!-- ヘッダーは動的に読み込まれます -->
 
   <main>
     <div class="container">
@@ -72,43 +51,29 @@
           <p>記事を読み込み中...</p>
         </div>
       </div>
-
-      <!-- ページネーション -->
-      <div class="pagination" style="display: none;">
-        <a href="#" class="disabled">‹ 前へ</a>
-        <span class="current">1</span>
-        <a href="news.html?page=2">2</a>
-        <a href="news.html?page=3">3</a>
-        <span>...</span>
-        <a href="news.html?page=5">5</a>
-        <a href="news.html?page=2">次へ ›</a>
-      </div>
     </div>
   </main>
 
-  <!-- フッター -->
-  <footer>
-    <div class="footer-links">
-      <a href="/terms">特定商取引法に基づく表記</a>
-      <a href="/privacy">プライバシーポリシー</a>
-      <a href="https://hacomono.jp/" target="_blank">会員ログイン</a>
-    </div>
-    <p>© 2025 合同会社VITA. All rights reserved.</p>
-  </footer>
+  <!-- フッターは動的に読み込まれます -->
 
-  <!-- JavaScript -->
+  <!-- 基本JavaScript -->
+  <script src="../js/core/config/config.js"></script>
+  <script src="../js/core/utils/helpers.js"></script>
+  
+  <!-- コンポーネントシステム -->
+  <script src="../components/TemplateLoader.js"></script>
+  <script src="../components/CommonHeader.js"></script>
+  <script src="../components/CommonFooter.js"></script>
+  <script src="../components/PageInitializer.js"></script>
+  <script src="../js/page-configs.js"></script>
+  
+  <!-- ページ固有のJavaScript -->
   <script src="../js/markdown-parser.js"></script>
   
   <script>
     // グローバル変数
     let articleManager = null;
     let currentCategory = 'all';
-
-    // モバイルメニューの切り替え
-    function toggleMobileMenu() {
-      const navLinks = document.querySelector('.nav-links');
-      navLinks.classList.toggle('active');
-    }
 
     // URLパラメータからカテゴリーを取得
     function getCurrentCategory() {
@@ -133,7 +98,7 @@
           <h2 class="news-title">${escapeHtml(article.title)}</h2>
         </div>
         <div class="news-card-body">
-          <p class="news-excerpt">${escapeHtml(article.excerpt || article.summary || '')}</p>
+          <p class="news-excerpt">${escapeHtml(article.summary || article.excerpt || '')}</p>
           <a href="news-detail.html?id=${article.id}" class="news-read-more">続きを読む</a>
         </div>
       `;
@@ -159,12 +124,13 @@
           <div class="empty-message">
             <h3>記事がありません</h3>
             <p>${message}</p>
+            <a href="admin.html" class="btn-secondary">管理画面へ</a>
           </div>
         `;
         return;
       }
       
-      // 記事カードを生成
+      // 記事カードを生成して表示
       filteredArticles.forEach((article, index) => {
         const articleCard = createArticleCard(article);
         newsGrid.appendChild(articleCard);
@@ -181,7 +147,7 @@
 
     // カテゴリーでフィルタリング
     function filterArticlesByCategory(category) {
-      if (!articleManager || !articleManager.articles) {
+      if (!articleManager?.articles) {
         return [];
       }
       
@@ -266,7 +232,7 @@
         // ArticleManagerのインスタンスを作成
         articleManager = new ArticleManager();
         
-        // 記事データを読み込み
+        // 記事データを読み込み（管理画面からの記事のみ）
         await articleManager.loadArticles();
         
         console.log('記事データ読み込み完了:', articleManager.articles.length, '件');
@@ -288,20 +254,25 @@
       // 現在のカテゴリーを取得
       currentCategory = getCurrentCategory();
       
-      console.log('現在のカテゴリー:', currentCategory);
+      console.log('記事一覧ページを初期化中... カテゴリー:', currentCategory);
       
-      // 記事読み込み開始
-      loadAndDisplayArticles();
-
-      // ナビゲーションリンクのクリック時にモバイルメニューを閉じる
-      document.querySelectorAll('.nav-links a').forEach(link => {
-        link.addEventListener('click', function() {
-          const navLinks = document.querySelector('.nav-links');
-          if (navLinks.classList.contains('active')) {
-            navLinks.classList.remove('active');
+      // ページ初期化完了を待つ
+      if (window.PAGE_CONFIGS) {
+        // ページ初期化完了後に記事読み込み開始
+        setTimeout(() => {
+          loadAndDisplayArticles();
+        }, 100);
+      } else {
+        // PAGE_CONFIGSが読み込まれるまで待つ
+        const checkInitialization = () => {
+          if (window.PAGE_CONFIGS) {
+            loadAndDisplayArticles();
+          } else {
+            setTimeout(checkInitialization, 50);
           }
-        });
-      });
+        };
+        checkInitialization();
+      }
     });
   </script>
 </body>
