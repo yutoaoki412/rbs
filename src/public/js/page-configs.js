@@ -19,19 +19,19 @@ const PAGE_CONFIGS = {
       }
     },
     structuredData: {
-      "@type": "LocalBusiness",
+      "@type": "SportsActivityLocation",
       "name": "RBS陸上教室",
-      "description": "走力と非認知能力を同時に育てる次世代型陸上教室",
+      "description": "年長〜小6向け陸上教室。走力だけでなく集中力・判断力・挑戦心も育てる独自プログラム。",
+      "url": "https://rbs-sportas.jp",
       "address": {
         "@type": "PostalAddress",
+        "streetAddress": "大泉中央公園",
         "addressLocality": "練馬区",
         "addressRegion": "東京都",
         "addressCountry": "JP"
       },
-      "telephone": "03-XXXX-XXXX",
-      "email": "info@rbs-athletics.com",
-      "url": window.location.origin,
-      "openingHours": "Mo 17:00-18:50"
+      "openingHours": "Mo 17:00-18:50",
+      "priceRange": "¥8,800-¥14,200"
     },
     customCSS: [],
     customJS: []

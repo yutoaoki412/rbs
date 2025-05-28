@@ -286,9 +286,23 @@ class PageInitializer {
   setStructuredData() {
     const { structuredData } = this.pageConfig;
     
-    if (structuredData && window.CommonFooter) {
-      const footer = new window.CommonFooter();
-      footer.insertStructuredData(structuredData);
+    if (structuredData) {
+      // 既存の構造化データを削除
+      const existingScript = document.querySelector('script[type="application/ld+json"]');
+      if (existingScript) {
+        existingScript.remove();
+      }
+
+      // 新しい構造化データを作成
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        ...structuredData
+      });
+      
+      document.head.appendChild(script);
+      console.log('✅ 構造化データを設定しました');
     }
   }
 

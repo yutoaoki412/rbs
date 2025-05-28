@@ -3,9 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RBS陸上教室 - 走力×非認知能力を育てる</title>
-  <meta name="description" content="年長〜小6向け陸上教室。走力だけでなく集中力・判断力・挑戦心も育てる独自プログラム。Running & Brain Schoolで運動も勉強も前向きに！無料体験実施中">
-  <meta name="keywords" content="大泉学園 陸上教室, 練馬区 かけっこ教室, 子ども 運動教室, RBS陸上教室">
+  <!-- メタデータは自動設定されます -->
   
   <!-- CSS -->
   <link rel="stylesheet" href="../styles/base.css">
@@ -15,27 +13,7 @@
   <link rel="stylesheet" href="../styles/responsive.css">
 </head>
 <body class="page-index">
-  <!-- ヘッダー -->
-  <header class="header">
-    <nav class="nav container">
-      <div class="logo">
-        <a href="#hero">
-          <img src="../images/lp-logo.png" alt="RBS陸上教室 Running & Brain School" class="logo-image">
-        </a>
-      </div>
-      <ul class="nav-links">
-        <li><a href="#about">RBSとは</a></li>
-        <li><a href="#program">プログラム</a></li>
-        <li><a href="#coach">コーチ</a></li>
-        <li><a href="#location">教室情報</a></li>
-        <li><a href="#price">料金</a></li>
-        <li><a href="#faq">よくある質問</a></li>
-        <li><a href="#news">NEWS</a></li>
-        <li><a href="https://hacomono.jp/" class="login-btn" target="_blank">会員ログイン</a></li>
-      </ul>
-      <button class="mobile-menu-btn" aria-expanded="false" aria-controls="nav-links">☰</button>
-    </nav>
-  </header>
+  <!-- ヘッダーは動的に読み込まれます -->
 
   <!-- ヒーローセクション -->
   <section id="hero">
@@ -797,19 +775,20 @@
     </div>
   </section>
 
-  <!-- フッター -->
-  <footer>
-    <div class="footer-links">
-      <a href="#about">RBSとは</a>
-      <a href="#program">プログラム</a>
-      <a href="#location">教室情報</a>
-      <a href="#price">料金</a>
-      <a href="news.html">ニュース</a>
-    </div>
-    <p>&copy; 2024 RBS陸上教室. All rights reserved.</p>
-  </footer>
+  <!-- フッターは動的に読み込まれます -->
 
-  <!-- JavaScript -->
+  <!-- 基本JavaScript -->
+  <script src="../js/core/config/config.js"></script>
+  <script src="../js/core/utils/helpers.js"></script>
+  
+  <!-- コンポーネントシステム -->
+  <script src="../components/TemplateLoader.js"></script>
+  <script src="../components/CommonHeader.js"></script>
+  <script src="../components/CommonFooter.js"></script>
+  <script src="../components/PageInitializer.js"></script>
+  <script src="../js/page-configs.js"></script>
+  
+  <!-- ページ固有のJavaScript -->
   <script src="../js/markdown-parser.js"></script>
   <script src="../js/services/business/lesson-status-manager.js"></script>
   <script src="../js/components/ui/FAQManager.js"></script>
@@ -853,8 +832,36 @@
     // レッスン状況管理システムの初期化
     let lessonStatusManager;
     
-    // ナビゲーションのスムーススクロール（フォールバック）
-    document.addEventListener('DOMContentLoaded', function() {
+    // ページ初期化処理
+    document.addEventListener('DOMContentLoaded', async function() {
+      // page-configs.jsの自動初期化に任せて、ページ固有の初期化のみ実行
+      // PageInitializerの初期化完了を待つ
+      await waitForTemplateLoad();
+      
+      // ページ固有の初期化を実行
+      await initializePageContent();
+    });
+    
+    // テンプレート読み込み完了を待つ
+    async function waitForTemplateLoad() {
+      let attempts = 0;
+      const maxAttempts = 50; // 最大5秒待機
+      
+      while (attempts < maxAttempts) {
+        // ヘッダーが読み込まれているかチェック
+        if (document.querySelector('.header')) {
+          console.log('✅ テンプレート読み込み完了を確認');
+          return;
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+      
+      console.warn('⚠️ テンプレート読み込み完了の確認がタイムアウトしました');
+    }
+    
+    // ページ固有のコンテンツ初期化
+    async function initializePageContent() {
       // LessonStatusManagerの初期化
       if (typeof LessonStatusManager !== 'undefined') {
         try {
@@ -891,8 +898,6 @@
         console.warn('⚠️ LessonStatusManagerが読み込まれていません');
         showStatusError();
       }
-      
-
       
       // ニュース記事の読み込み
       loadAndDisplayNews();
@@ -945,10 +950,7 @@
       } else {
         console.warn('⚠️ initializeApp関数が見つかりません');
       }
-      
-      // 記事の読み込みを実行
-      loadAndDisplayNews();
-    });
+    }
 
     // レッスン状況の読み込みと表示
     function loadLessonStatus() {
@@ -1219,25 +1221,5 @@
   
   <!-- main.jsを記事読み込み処理の後に読み込み -->
   <script src="../js/pages/index/main.js"></script>
-  
-  <!-- 構造化データ (SEO) -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "SportsActivityLocation",
-    "name": "RBS陸上教室 大泉学園校",
-    "description": "大泉学園の年長〜小6向け陸上教室。走力だけでなく集中力・判断力・挑戦心も育てる独自プログラム。",
-    "url": "https://rbs-sportas.jp",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "大泉中央公園",
-      "addressLocality": "練馬区",
-      "addressRegion": "東京都",
-      "addressCountry": "JP"
-    },
-    "openingHours": "Mo 17:00-18:50",
-    "priceRange": "¥8,800-¥14,200"
-  }
-  </script>
 </body>
 </html> 

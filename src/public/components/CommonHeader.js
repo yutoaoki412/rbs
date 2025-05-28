@@ -132,6 +132,7 @@ class CommonHeader {
 
     const updateHeader = () => {
       const header = document.querySelector('.header');
+      const statusBanner = document.querySelector('.status-banner');
       if (!header) return;
 
       const currentScrollY = window.scrollY;
@@ -141,13 +142,22 @@ class CommonHeader {
         if (currentScrollY > lastScrollY) {
           // 下スクロール時は隠す
           header.classList.add('header-hidden');
+          if (statusBanner) {
+            statusBanner.classList.add('status-banner-hidden');
+          }
         } else {
           // 上スクロール時は表示
           header.classList.remove('header-hidden');
+          if (statusBanner) {
+            statusBanner.classList.remove('status-banner-hidden');
+          }
         }
       } else {
         // トップ付近では常に表示
         header.classList.remove('header-hidden');
+        if (statusBanner) {
+          statusBanner.classList.remove('status-banner-hidden');
+        }
       }
 
       lastScrollY = currentScrollY;
