@@ -136,6 +136,8 @@ class CommonHeader {
       if (!header) return;
 
       const currentScrollY = window.scrollY;
+      const isMobile = window.innerWidth <= 768;
+      const headerHeight = isMobile ? 104 : 124;
       
       // スクロール方向に応じてヘッダーの表示/非表示を制御
       if (currentScrollY > 100) {
@@ -143,20 +145,22 @@ class CommonHeader {
           // 下スクロール時は隠す
           header.classList.add('header-hidden');
           if (statusBanner) {
-            statusBanner.classList.add('status-banner-hidden');
+            // ヘッダーが隠れたときはstatus-bannerを上端に固定（隠さない）
+            statusBanner.style.top = '0px';
           }
         } else {
           // 上スクロール時は表示
           header.classList.remove('header-hidden');
           if (statusBanner) {
-            statusBanner.classList.remove('status-banner-hidden');
+            // ヘッダーが表示されたときは元の位置に戻す
+            statusBanner.style.top = `${headerHeight}px`;
           }
         }
       } else {
         // トップ付近では常に表示
         header.classList.remove('header-hidden');
         if (statusBanner) {
-          statusBanner.classList.remove('status-banner-hidden');
+          statusBanner.style.top = `${headerHeight}px`;
         }
       }
 
@@ -172,6 +176,17 @@ class CommonHeader {
     };
 
     window.addEventListener('scroll', requestTick, { passive: true });
+    
+    // ウィンドウリサイズ時にも位置を調整
+    window.addEventListener('resize', () => {
+      const statusBanner = document.querySelector('.status-banner');
+      const header = document.querySelector('.header');
+      if (statusBanner && header && !header.classList.contains('header-hidden')) {
+        const isMobile = window.innerWidth <= 768;
+        const headerHeight = isMobile ? 104 : 124;
+        statusBanner.style.top = `${headerHeight}px`;
+      }
+    });
   }
 
   /**

@@ -346,6 +346,11 @@
     position: sticky;
     top: 104px;
     z-index: var(--z-sticky);
+    transition: transform 0.3s ease, top 0.3s ease;
+  }
+
+  .status-banner-hidden {
+    transform: translateY(-100%);
   }
 
   .status-details {
