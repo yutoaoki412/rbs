@@ -224,4 +224,7 @@ class CommonHeader {
 }
 
 // グローバルに公開
-window.CommonHeader = CommonHeader; 
+window.CommonHeader = CommonHeader;
+
+// ES6モジュールとしてもエクスポート
+export default CommonHeader; 

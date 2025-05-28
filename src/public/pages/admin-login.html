@@ -76,7 +76,7 @@
                   required 
                   autocomplete="current-password"
                 >
-                <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">
+                <button type="button" class="password-toggle" id="password-toggle">
                   <i id="password-toggle-icon" class="fas fa-eye"></i>
                 </button>
               </div>
@@ -101,10 +101,9 @@
   </div>
 
   <!-- JavaScript -->
-  <script src="../js/config.js"></script>
-  
   <script type="module">
-    import { AdminAuth } from '../js/admin/core/AdminAuth.js';
+    // 新しいモジュール構造を使用
+    import { AdminAuth } from '../js/modules/auth/AdminAuth.js';
 
     let isLoading = false;
 
@@ -134,6 +133,9 @@
         hideError();
         hideSuccess();
       });
+      
+      // パスワード表示切り替え
+      document.getElementById('password-toggle').addEventListener('click', togglePasswordVisibility);
     }
 
     async function handleLogin(e) {
@@ -232,6 +234,7 @@
       }
     }
 
+    // ページ離脱時の処理
     window.addEventListener('beforeunload', function() {
       const passwordField = document.getElementById('password');
       if (passwordField) {
@@ -239,6 +242,7 @@
       }
     });
 
+    // ESCキーでエラー・成功メッセージを非表示
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         hideError();
@@ -246,9 +250,6 @@
       }
     });
   </script>
-
-  <!-- テストデータ（開発環境用） -->
-  <script src="../js/test-data.js"></script>
 
   <style>
     body.admin-layout {

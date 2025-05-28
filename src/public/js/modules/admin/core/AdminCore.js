@@ -9,7 +9,7 @@ import { AdminAuth } from '../../auth/AdminAuth.js';
 import { DataManager } from './DataManager.js';
 import { UIManager } from './UIManager.js';
 import { NewsFormManager } from '../forms/NewsFormManager.js';
-import { AdminActionHandler } from '../actions/AdminActionHandler.js';
+import { adminActionHandler } from '../handlers/AdminActionHandler.js';
 
 export class AdminCore extends EventEmitter {
   constructor() {
@@ -156,7 +156,8 @@ export class AdminCore extends EventEmitter {
    */
   async initializeActionHandler() {
     try {
-      this.actionHandler = new AdminActionHandler(this);
+      this.actionHandler = adminActionHandler;
+      this.actionHandler.init();
       
       this.logger.debug('アクションハンドラーの初期化完了');
     } catch (error) {

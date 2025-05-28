@@ -68,6 +68,7 @@ class Application {
     const sharedModules = [
       'shared/services/EventBus',
       'shared/services/StorageService',
+      'shared/services/ActionHandler',
       'shared/utils/helpers'
     ];
 
@@ -76,9 +77,192 @@ class Application {
         const module = await import(`../${modulePath}.js`);
         const name = modulePath.split('/').pop();
         this.modules.set(name, module);
+        
+        // ActionHandlerは自動的に初期化
+        if (name === 'ActionHandler' && module.actionHandler) {
+          module.actionHandler.init();
+        }
       } catch (error) {
         console.warn(`共通モジュール読み込み失敗: ${modulePath}`, error);
       }
+    }
+    
+    // CommonHeaderとCommonFooterを事前に読み込み
+    await this.preloadCommonComponents();
+    
+    // ヘッダーとフッターを読み込み
+    await this.loadTemplates();
+  }
+
+  /**
+   * CommonHeaderとCommonFooterを事前読み込み
+   */
+  async preloadCommonComponents() {
+    try {
+      console.log('📦 CommonHeader/CommonFooter事前読み込み開始');
+      
+      await Promise.all([
+        import('../components/CommonHeader.js'),
+        import('../components/CommonFooter.js')
+      ]);
+      
+      console.log('✅ CommonHeader/CommonFooter事前読み込み完了');
+    } catch (error) {
+      console.warn('⚠️ CommonHeader/CommonFooter事前読み込み失敗:', error);
+    }
+  }
+
+  /**
+   * ヘッダーとフッターのテンプレートを読み込み
+   */
+  async loadTemplates() {
+    const currentPage = this.getCurrentPage();
+    console.log(`🔄 テンプレート読み込み開始 - ページ: ${currentPage}`);
+    
+    // まずフォールバック版を確実に表示
+    this.createFallbackHeaderFooter();
+    console.log('✅ フォールバック ヘッダー・フッター表示完了');
+    
+    try {
+      // 新しいTemplateLoaderを使用してヘッダーとフッターを置き換え
+      const TemplateLoader = await import('../shared/components/template/TemplateLoader.js');
+      const templateLoader = new TemplateLoader.default();
+      
+      console.log('📦 TemplateLoader初期化完了');
+      
+      // 既存のヘッダー・フッターを一時的に削除
+      const existingHeader = document.querySelector('header');
+      const existingFooter = document.querySelector('footer');
+      
+      const success = await templateLoader.loadAll({
+        currentPage,
+        logoPath: currentPage === 'index' ? '#hero' : 'index.html',
+        activeSection: currentPage === 'news' ? 'news' : null
+      });
+      
+      if (success) {
+        // 成功した場合は古いヘッダー・フッターを削除
+        if (existingHeader) existingHeader.remove();
+        if (existingFooter) existingFooter.remove();
+        console.log('✅ TemplateLoader版ヘッダー・フッター表示完了');
+      } else {
+        console.warn('⚠️ TemplateLoader読み込み失敗、フォールバック版を継続使用');
+      }
+      
+    } catch (error) {
+      console.error('❌ TemplateLoader処理失敗:', error.message);
+      console.log('🔧 フォールバック版を継続使用します');
+    }
+  }
+
+  /**
+   * フォールバック用の基本ヘッダー・フッターを作成
+   */
+  createFallbackHeaderFooter() {
+    console.log('🔧 フォールバック ヘッダー・フッター作成中...');
+    
+    const currentPage = this.getCurrentPage();
+    
+    // 基本的なヘッダーの作成（元のheader.htmlと完全に同じ）
+    if (!document.querySelector('header')) {
+      const logoHref = currentPage === 'index' ? '#hero' : 'index.html';
+      const baseHref = currentPage === 'index' ? '' : 'index.html';
+      
+      const headerHTML = `
+        <header class="header">
+          <nav class="nav container">
+            <div class="logo">
+              <a href="${logoHref}" id="logo-link">
+                <img src="../assets/images/lp-logo.png" alt="RBS陸上教室 Running & Brain School" class="logo-image">
+              </a>
+            </div>
+            <ul class="nav-links">
+              <li><a href="${baseHref}#about">RBSとは</a></li>
+              <li><a href="${baseHref}#program">プログラム</a></li>
+              <li><a href="${baseHref}#coach">コーチ</a></li>
+              <li><a href="${baseHref}#location">教室情報</a></li>
+              <li><a href="${baseHref}#price">料金</a></li>
+              <li><a href="${baseHref}#faq">よくある質問</a></li>
+              <li><a href="news.html" class="nav-link" data-page="news" data-section="news">NEWS</a></li>
+              <li><a href="https://hacomono.jp/" class="login-btn" target="_blank">会員ログイン</a></li>
+            </ul>
+            <button class="mobile-menu-btn" aria-expanded="false" aria-controls="nav-links" data-action="toggle-mobile-menu">☰</button>
+          </nav>
+        </header>
+      `;
+      document.body.insertAdjacentHTML('afterbegin', headerHTML);
+    }
+
+    // 基本的なフッターの作成（元のfooter.htmlと完全に同じ）
+    if (!document.querySelector('footer')) {
+      const baseHref = currentPage === 'index' ? '' : 'index.html';
+      
+      const footerHTML = `
+        <footer>
+          <div class="footer-links">
+            <a href="${baseHref}#about">RBSとは</a>
+            <a href="${baseHref}#program">プログラム</a>
+            <a href="${baseHref}#location">教室情報</a>
+            <a href="${baseHref}#price">料金</a>
+            <a href="news.html">ニュース</a>
+          </div>
+          <p>&copy; <span class="copyright-year">${new Date().getFullYear()}</span> RBS陸上教室. All rights reserved.</p>
+        </footer>
+      `;
+      document.body.insertAdjacentHTML('beforeend', footerHTML);
+    }
+    
+    // CommonHeaderとCommonFooterの機能を初期化
+    this.initializeFallbackComponents();
+    
+    console.log('✅ フォールバック ヘッダー・フッター作成完了');
+  }
+
+  /**
+   * フォールバック版のコンポーネントを初期化
+   */
+  async initializeFallbackComponents() {
+    try {
+      console.log('🔧 フォールバック版コンポーネント初期化開始');
+      
+      // グローバルに存在する場合はそれを使用
+      if (window.CommonHeader) {
+        const header = new window.CommonHeader();
+        header.init({ currentPage: this.getCurrentPage() });
+        console.log('✅ CommonHeader (グローバル版) 初期化完了');
+      }
+
+      if (window.CommonFooter) {
+        const footer = new window.CommonFooter();
+        footer.init();
+        footer.updateCopyright();
+        console.log('✅ CommonFooter (グローバル版) 初期化完了');
+      }
+      
+      // グローバル版がない場合は動的にインポート
+      if (!window.CommonHeader || !window.CommonFooter) {
+        const [CommonHeader, CommonFooter] = await Promise.all([
+          import('../components/CommonHeader.js'),
+          import('../components/CommonFooter.js')
+        ]);
+
+        if (!window.CommonHeader && CommonHeader.default) {
+          const header = new CommonHeader.default();
+          header.init({ currentPage: this.getCurrentPage() });
+          console.log('✅ CommonHeader (インポート版) 初期化完了');
+        }
+
+        if (!window.CommonFooter && CommonFooter.default) {
+          const footer = new CommonFooter.default();
+          footer.init();
+          footer.updateCopyright();
+          console.log('✅ CommonFooter (インポート版) 初期化完了');
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ フォールバック版コンポーネント初期化エラー:', error);
+      console.log('🔧 基本機能のみで継続します');
     }
   }
 

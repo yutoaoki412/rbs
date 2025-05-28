@@ -36,8 +36,8 @@
           <a href="admin.html" class="btn btn-outline" target="_blank">
             <i class="fas fa-cog"></i> 管理画面
           </a>
-          <button class="btn btn-info" onclick="showDebugInfo()">
-            <i class="fas fa-bug"></i> デバッグ
+          <button class="btn btn-info" data-action="show-debug-info">
+            <i class="fas fa-bug"></i> デバッグ情報
           </button>
         </div>
       </div>
@@ -70,99 +70,7 @@
 
   <!-- フッターは動的に読み込まれます -->
 
-  <!-- 基本JavaScript -->
-  <script src="../js/core/config/config.js"></script>
-  <script src="../js/core/utils/helpers.js"></script>
-  <script src="../components/TemplateLoader.js"></script>
-  <script src="../components/CommonHeader.js"></script>
-  <script src="../components/CommonFooter.js"></script>
-  <script src="../components/PageInitializer.js"></script>
-  <script src="../components/PageTemplate.js"></script>
-  <script src="../js/page-configs.js"></script>
-  
-  <!-- ArticleService v2.0を最優先で読み込み -->
-  <script src="../js/services/article-service.js"></script>
-  
-  <!-- その他のスクリプト -->
-  <script src="../js/markdown-parser.js"></script>
-  <script src="../js/pages/news.js"></script>
-
-  <!-- デバッグ用スクリプト -->
-  <script>
-    // 開発環境でのみ管理画面リンクを表示
-    if (window.location.hostname === 'localhost' || 
-        window.location.hostname === '127.0.0.1' ||
-        window.location.protocol === 'file:') {
-      document.getElementById('admin-link').style.display = 'block';
-    }
-
-    // デバッグ情報表示関数（news.js v2.0の関数を呼び出し）
-    function showDebugInfo() {
-      if (typeof window.NewsPage !== 'undefined' && window.NewsPage.showDebugInfo) {
-        window.NewsPage.showDebugInfo();
-      } else {
-        // フォールバック：news.jsが読み込まれていない場合
-        alert('ニュースページのJavaScriptが正しく読み込まれていません。ページを再読み込みしてください。');
-        console.error('NewsPageオブジェクトが見つかりません');
-      }
-    }
-
-    // エラーハンドリング
-    window.addEventListener('error', function(event) {
-      console.error('ニュースページエラー:', event.error);
-      
-      // news.jsのエラーハンドリングがある場合はそれを使用、なければフォールバック
-      if (typeof window.NewsPage === 'undefined') {
-        const newsGrid = document.getElementById('news-grid');
-        if (newsGrid && newsGrid.children.length === 0) {
-          newsGrid.innerHTML = `
-            <div class="error-message" style="text-align: center; padding: 60px 20px; color: var(--primary-red);">
-              <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
-              <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 15px;">ページの読み込みに失敗しました</h3>
-              <p style="font-size: 16px; margin-bottom: 10px; color: var(--gray-medium);">システムエラーが発生しました。</p>
-              <p class="error-details" style="font-size: 14px; margin-bottom: 25px; color: var(--gray-medium); font-family: monospace;">エラー詳細: ${event.error?.message || 'Unknown error'}</p>
-              <div class="error-actions" style="display: flex; gap: 10px; justify-content: center;">
-                <button onclick="location.reload()" class="btn btn-primary" style="padding: 12px 24px; background: var(--primary-blue); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">再読み込み</button>
-                <button onclick="showDebugInfo()" class="btn btn-secondary" style="padding: 12px 24px; background: var(--gray-light); color: var(--gray-dark); border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">デバッグ情報</button>
-              </div>
-            </div>
-          `;
-        }
-      }
-    });
-
-    // 初期化完了の確認
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('📄 ニュースページ v2.0 DOM読み込み完了');
-      
-      // 5秒後にNewsPageが読み込まれているかチェック
-      setTimeout(() => {
-        if (typeof window.NewsPage === 'undefined') {
-          console.warn('⚠️ NewsPageオブジェクトが5秒経っても読み込まれていません');
-          
-          // 管理画面リンクがある場合はエラー表示
-          const adminLink = document.getElementById('admin-link');
-          if (adminLink && adminLink.style.display !== 'none') {
-            const newsGrid = document.getElementById('news-grid');
-            if (newsGrid && newsGrid.children.length === 0) {
-              newsGrid.innerHTML = `
-                <div class="initialization-error" style="text-align: center; padding: 60px 20px; color: var(--primary-orange);">
-                  <div style="font-size: 48px; margin-bottom: 20px;">🔧</div>
-                  <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 15px;">初期化が遅延しています</h3>
-                  <p style="font-size: 16px; margin-bottom: 25px; color: var(--gray-medium);">ニュースシステムの初期化に時間がかかっています。しばらくお待ちください。</p>
-                  <div class="error-actions" style="display: flex; gap: 10px; justify-content: center;">
-                    <button onclick="location.reload()" class="btn btn-primary" style="padding: 12px 24px; background: var(--primary-blue); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">再読み込み</button>
-                    <button onclick="showDebugInfo()" class="btn btn-secondary" style="padding: 12px 24px; background: var(--gray-light); color: var(--gray-dark); border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">詳細確認</button>
-                  </div>
-                </div>
-              `;
-            }
-          }
-        } else {
-          console.log('✅ NewsPageオブジェクトが正常に読み込まれています');
-        }
-      }, 5000);
-    });
-  </script>
+  <!-- メインアプリケーション（ES6モジュール） -->
+  <script type="module" src="../js/main.js"></script>
 </body>
 </html> 

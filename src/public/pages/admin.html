@@ -28,10 +28,10 @@
     </div>
     <div class="header-right">
       <!-- デバッグ情報表示ボタン -->
-      <button class="btn btn-outline" onclick="showDebugInfo()" title="デバッグ情報">
+      <button class="btn btn-outline" data-action="show-debug-info" title="デバッグ情報">
         <i class="fas fa-bug"></i>
       </button>
-      <button class="logout-btn" onclick="logout()">
+      <button class="logout-btn" data-action="logout">
         <i class="fas fa-sign-out-alt"></i>
         ログアウト
       </button>
@@ -135,19 +135,19 @@
             </div>
             <div class="widget-content">
               <div class="action-buttons">
-                <button class="action-btn primary" onclick="switchTab('news-management')">
+                <button class="action-btn primary" data-action="switch-tab" data-tab="news-management">
                   <i class="fas fa-plus"></i>
                   新しい記事を作成
                 </button>
-                <button class="action-btn success" onclick="switchTab('lesson-status')">
+                <button class="action-btn success" data-action="switch-tab" data-tab="lesson-status">
                   <i class="fas fa-calendar-check"></i>
                   レッスン状況を更新
                 </button>
-                <button class="action-btn secondary" onclick="window.open('index.html', '_blank')">
+                <button class="action-btn secondary" data-action="open-external" data-url="index.html">
                   <i class="fas fa-external-link-alt"></i>
                   サイトを確認
                 </button>
-                <button class="action-btn info" onclick="window.open('news.html', '_blank')">
+                <button class="action-btn info" data-action="open-external" data-url="news.html">
                   <i class="fas fa-newspaper"></i>
                   ニュース一覧を確認
                 </button>
@@ -162,7 +162,7 @@
         <div class="section-header">
           <h1><i class="fas fa-newspaper"></i> 記事管理</h1>
           <div class="section-actions">
-            <button class="btn btn-info" onclick="testArticleService()">
+            <button class="btn btn-info" data-action="test-article-service">
               <i class="fas fa-flask"></i> 連携テスト
             </button>
           </div>
@@ -174,16 +174,16 @@
             <div class="panel-header">
               <h2 id="editor-title">新規記事作成</h2>
               <div class="panel-actions">
-                <button class="btn btn-outline" onclick="clearNewsEditor()">
+                <button class="btn btn-outline" data-action="clear-news-editor">
                   <i class="fas fa-times"></i> クリア
                 </button>
-                <button class="btn btn-secondary" onclick="previewNews()">
+                <button class="btn btn-secondary" data-action="preview-news">
                   <i class="fas fa-eye"></i> プレビュー
                 </button>
-                <button class="btn btn-primary" onclick="saveNews()">
+                <button class="btn btn-primary" data-action="save-news">
                   <i class="fas fa-save"></i> 保存
                 </button>
-                <button class="btn btn-success" onclick="publishNews()">
+                <button class="btn btn-success" data-action="publish-news">
                   <i class="fas fa-globe"></i> 公開
                 </button>
               </div>
@@ -242,16 +242,16 @@
                   <i class="fas fa-file-alt"></i> 本文 <span class="required">*</span>
                 </label>
                 <div class="editor-toolbar">
-                  <button type="button" class="toolbar-btn" onclick="insertMarkdown('**', '**')" title="太字">
+                  <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="**" data-end="**" title="太字">
                     <i class="fas fa-bold"></i>
                   </button>
-                  <button type="button" class="toolbar-btn" onclick="insertMarkdown('## ', '')" title="見出し">
+                  <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="## " data-end="" title="見出し">
                     <i class="fas fa-heading"></i>
                   </button>
-                  <button type="button" class="toolbar-btn" onclick="insertMarkdown('- ', '')" title="リスト">
+                  <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="- " data-end="" title="リスト">
                     <i class="fas fa-list"></i>
                   </button>
-                  <button type="button" class="toolbar-btn" onclick="insertMarkdown('[', '](URL)')" title="リンク">
+                  <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="[" data-end="](URL)" title="リンク">
                     <i class="fas fa-link"></i>
                   </button>
                 </div>
@@ -275,12 +275,12 @@
             <div class="panel-header">
               <h2>記事一覧</h2>
               <div class="panel-filters">
-                <select id="news-filter" class="form-select" onchange="filterNewsList()">
+                <select id="news-filter" class="form-select" data-action="filter-news-list" data-target="news-filter">
                   <option value="all">すべて</option>
                   <option value="published">公開中</option>
                   <option value="draft">下書き</option>
                 </select>
-                <button class="btn btn-outline" onclick="refreshNewsList()">
+                <button class="btn btn-outline" data-action="refresh-news-list">
                   <i class="fas fa-sync"></i> 更新
                 </button>
               </div>
@@ -388,13 +388,13 @@
             </div>
             
             <div class="form-actions">
-              <button class="btn btn-secondary" onclick="loadLessonStatusToForm()">
+              <button class="btn btn-secondary" data-action="load-lesson-status">
                 <i class="fas fa-download"></i> 現在の状況を読み込み
               </button>
-              <button class="btn btn-outline" onclick="previewLessonStatus()">
+              <button class="btn btn-outline" data-action="preview-lesson-status">
                 <i class="fas fa-eye"></i> プレビュー
               </button>
-              <button class="btn btn-success" onclick="updateLessonStatus()">
+              <button class="btn btn-success" data-action="update-lesson-status">
                 <i class="fas fa-save"></i> 保存して公開
               </button>
             </div>
@@ -413,10 +413,10 @@
             <h3><i class="fas fa-database"></i> データ管理</h3>
             <p>記事データの管理とバックアップ</p>
             <div class="setting-actions">
-              <button class="btn btn-outline" onclick="exportData()">
+              <button class="btn btn-outline" data-action="export-data">
                 <i class="fas fa-download"></i> データをエクスポート
               </button>
-              <button class="btn btn-outline" onclick="clearAllData()">
+              <button class="btn btn-outline" data-action="clear-all-data">
                 <i class="fas fa-trash"></i> 全データクリア
               </button>
             </div>
@@ -426,11 +426,11 @@
             <h3><i class="fas fa-link"></i> サイト連携</h3>
             <p>フロントエンドサイトとの連携状況</p>
             <div class="setting-actions">
-              <button class="btn btn-primary" onclick="testSiteConnection()">
+              <button class="btn btn-primary" data-action="test-site-connection">
                 <i class="fas fa-link"></i> 連携テスト
               </button>
               <div id="site-connection-test-results" class="test-results" style="margin-top: 10px;"></div>
-              <button class="btn btn-secondary" onclick="window.open('news.html', '_blank')">
+              <button class="btn btn-secondary" data-action="open-external" data-url="news.html">
                 <i class="fas fa-external-link-alt"></i> ニュースページを開く
               </button>
             </div>
@@ -440,10 +440,10 @@
             <h3><i class="fas fa-bug"></i> デバッグ</h3>
             <p>開発者向けデバッグ機能</p>
             <div class="setting-actions">
-              <button class="btn btn-info" onclick="showDebugInfo()">
+              <button class="btn btn-info" data-action="show-debug-info">
                 <i class="fas fa-info-circle"></i> デバッグ情報表示
               </button>
-              <button class="btn btn-warning" onclick="resetLocalStorage()">
+              <button class="btn btn-warning" data-action="reset-local-storage">
                 <i class="fas fa-redo"></i> LocalStorage リセット
               </button>
             </div>
@@ -458,7 +458,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h3 id="modal-title">プレビュー</h3>
-        <button class="modal-close" onclick="closeModal()">
+        <button class="modal-close" data-action="close-modal">
           <i class="fas fa-times"></i>
         </button>
       </div>
@@ -473,10 +473,7 @@
     <!-- 通知がここに表示される -->
   </div>
 
-  <!-- レッスン状況管理システム -->
-  <script src="../js/services/business/lesson-status-manager.js"></script>
-  
-  <!-- JavaScript -->
-  <script type="module" src="../js/admin.js"></script>
+  <!-- メインアプリケーション（ES6モジュール） -->
+  <script type="module" src="../js/main.js"></script>
 </body>
 </html> 

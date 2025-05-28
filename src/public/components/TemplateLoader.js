@@ -226,4 +226,7 @@ class TemplateLoader {
 }
 
 // グローバルに公開
-window.TemplateLoader = TemplateLoader; 
+window.TemplateLoader = TemplateLoader;
+
+// ES6モジュールとしてもエクスポート
+export default TemplateLoader; 

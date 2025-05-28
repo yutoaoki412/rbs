@@ -37,7 +37,7 @@
   <!-- 本日の開催状況 -->
   <section id="today-status" class="status-banner">
     <div class="container">
-      <div class="status-header" onclick="toggleStatus()" style="cursor: pointer;">
+      <div class="status-header" data-action="toggle-status" style="cursor: pointer;">
         <div class="status-info">
           <span class="status-dot"></span>
           <span class="status-text">本日のレッスン開催状況</span>
@@ -721,7 +721,7 @@
         <a href="admin.html" class="btn btn-outline" target="_blank">
           <i class="fas fa-cog"></i> 管理画面
         </a>
-        <button class="btn btn-info" onclick="showNewsDebugInfo()">
+        <button class="btn btn-info" data-action="show-news-debug">
           <i class="fas fa-bug"></i> デバッグ
         </button>
       </div>
@@ -792,28 +792,7 @@
 
   <!-- フッターは動的に読み込まれます -->
 
-  <!-- 基本JavaScript -->
-  <script src="../js/core/config/config.js"></script>
-  <script src="../js/core/utils/helpers.js"></script>
-  <script src="../components/TemplateLoader.js"></script>
-  <script src="../components/CommonHeader.js"></script>
-  <script src="../components/CommonFooter.js"></script>
-  <script src="../components/PageInitializer.js"></script>
-  <script src="../components/PageTemplate.js"></script>
-  <script src="../js/page-configs.js"></script>
-  
-  <!-- ArticleService v2.0を最優先で読み込み -->
-  <script src="../js/services/article-service.js"></script>
-  
-  <!-- レッスンステータス管理 -->
-  <script src="../js/services/business/lesson-status-manager.js"></script>
-  <script src="../js/components/business/StatusBanner.js"></script>
-  
-  <!-- UIインタラクション管理 -->
-  <script src="../js/components/ui/UIInteractionManager.js"></script>
-  
-  <!-- その他のスクリプト -->
-  <script src="../js/markdown-parser.js"></script>
-  <script src="../js/pages/index/main.js"></script>
+  <!-- メインアプリケーション（ES6モジュール） -->
+  <script type="module" src="../js/main.js"></script>
 </body>
 </html> 

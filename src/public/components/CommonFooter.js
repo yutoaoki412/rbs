@@ -143,4 +143,7 @@ class CommonFooter {
 }
 
 // グローバルに公開
-window.CommonFooter = CommonFooter; 
+window.CommonFooter = CommonFooter;
+
+// ES6モジュールとしてもエクスポート
+export default CommonFooter; 
