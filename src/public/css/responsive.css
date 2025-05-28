@@ -13,42 +13,44 @@
 
 /* タブレット以下 (768px以下) */
 @media (max-width: 768px) {
-  /* レイアウト調整 */
+  /* レイアウト */
   .container-wide,
   .container {
     padding: 0 20px;
   }
 
-  /* ナビゲーション */
   .nav {
     padding: 0 20px;
   }
 
   .nav-links {
-    display: none;
-    position: absolute;
-    top: 100%;
+    position: fixed;
+    top: 104px;
     left: 0;
-    right: 0;
+    width: 100%;
     background: var(--white);
-    flex-direction: column;
-    padding: 20px;
-    box-shadow: var(--shadow-md);
-    border-top: 3px solid var(--primary-blue);
-    gap: 0;
+    padding: 30px 0;
+    text-align: center;
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    z-index: var(--z-modal);
   }
 
   .nav-links.active {
-    display: flex;
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
   }
 
   .nav-links li {
-    margin-right: 0;
-    margin-bottom: 15px;
+    margin: 0 0 25px 0;
+    font-size: 18px;
   }
 
   .nav-links li:last-child {
-    margin-left: 0;
     margin-bottom: 0;
   }
 
@@ -56,97 +58,88 @@
     display: block;
   }
 
-  /* ロゴ調整 */
   .logo-image {
-    height: 80px;
-    max-width: 450px;
+    height: 45px;
   }
 
-  /* グリッドレイアウト */
+  /* 料金・教室内容 */
   .price-tables,
-  .reason-list,
-  .features,
-  .program-grid,
-  .common-programs,
-  .coach-grid {
-    grid-template-columns: 1fr !important;
-    gap: 30px !important;
-  }
-
-  .location-content {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* セクション調整 */
-  section {
-    padding: 80px 0;
-  }
-
-  /* ヒーロー */
-  #hero {
-    padding: 100px 0 80px;
-    min-height: 85vh;
-  }
-
-  .hero-content {
-    padding: 40px 25px;
-    margin: 30px 15px 0 15px;
-    max-width: 95% !important;
-    border-radius: 25px;
-  }
-
-  .hero-content h1 {
-    font-size: 32px;
-  }
-
-  .hero-description p {
-    font-size: 18px;
-  }
-
-  .hero-badge {
-    font-size: 16px;
-    padding: 10px 20px;
-  }
-
-  .cta-message {
-    font-size: 18px;
-  }
-
-  /* CTA */
-  .cta-features {
+  .program-grid {
     flex-direction: column;
     gap: 25px;
   }
 
-  /* ニュース */
-  .news-item {
+  .location-content {
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  section {
+    padding: 60px 0;
+  }
+
+  #hero {
+    padding: 120px 0 80px;
+  }
+
+  .hero-content {
+    margin: 40px 20px 0;
+    padding: 35px 25px;
+    max-width: 90%;
+  }
+
+  .hero-content h1 {
+    font-size: 28px;
+    margin-bottom: 20px;
+  }
+
+  .hero-description p {
+    font-size: 16px;
+  }
+
+  .hero-badge {
+    font-size: 16px;
+    padding: 8px 20px;
+  }
+
+  .cta-message {
+    font-size: 18px;
+    margin-bottom: 25px;
+  }
+
+  .cta-features {
     flex-direction: column;
     gap: 15px;
   }
 
-  /* 料金 */
+  .news-item {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+
   .fee-item {
-    display: block;
-    margin: 15px 0;
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
   }
 
   .price-item {
+    padding: 20px 15px;
+    text-align: center;
+    display: flex;
     flex-direction: column;
-    align-items: flex-start;
     gap: 15px;
-    padding: 20px;
   }
 
   .price-label {
     font-size: 14px;
-    white-space: normal;
-    line-height: 1.4;
+    margin-bottom: 0;
   }
 
   .price-amount {
     font-size: 24px;
-    white-space: normal;
-    align-self: flex-end;
+    margin-top: 0;
   }
 
   .price-amount small {
@@ -154,40 +147,33 @@
   }
 
   .price-body {
-    padding: 30px 20px;
+    padding: 25px 20px;
   }
 
-  /* 会社概要 */
   .company-table th,
   .company-table td {
-    padding: 15px 0;
+    padding: 12px 8px;
     font-size: 14px;
   }
 
-  /* 予約フォーム */
   .booking-frame {
     padding: 30px 20px;
   }
 
-  /* フッター */
   footer a {
-    margin: 0 10px 10px 0;
-    display: inline-block;
-    font-size: 14px;
-    padding: 6px 12px;
+    font-size: 16px;
   }
 
+  /* ステータス関連 */
   .footer-links {
-    margin-bottom: 15px;
-    line-height: 1.6;
+    flex-direction: column;
+    gap: 15px;
   }
 
-  /* ステータスバナー */
   .status-item {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-    padding: 20px 15px;
+    text-align: center;
+    gap: 10px;
   }
 
   .status-text {
@@ -195,80 +181,19 @@
   }
 
   .status-details {
-    padding: 35px 30px;
+    padding: 30px 20px;
   }
 
   .status-header:hover {
-    margin: 0 15px;
+    margin: 0 10px;
   }
 
-  /* 天候情報 */
   .weather-info {
-    padding: 18px 16px;
+    padding: 20px 15px;
     font-size: 14px;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
+    text-align: center;
+    gap: 15px;
     line-height: 1.5;
-    word-break: keep-all;
-    overflow-wrap: break-word;
-    border-radius: 12px;
-  }
-
-  /* FAQ */
-  .faq-question {
-    padding: 25px 20px;
-    padding-left: 70px;
-    font-size: 17px;
-    min-height: 70px;
-  }
-
-  .faq-question::before {
-    left: 20px;
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-  }
-
-  .faq-question::after {
-    left: 16px;
-    width: 40px;
-    height: 40px;
-  }
-
-  .faq-question:hover {
-    padding-left: 75px;
-  }
-
-  .faq-item.active .faq-question {
-    padding-left: 75px;
-  }
-
-  .faq-answer {
-    padding: 0 20px;
-  }
-
-  .faq-item.active .faq-answer {
-    padding: 30px 20px 35px 70px;
-  }
-
-  .faq-answer p {
-    font-size: 15px;
-    line-height: 1.8;
-  }
-
-  .faq-answer p::before {
-    left: -50px;
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
-  }
-
-  .faq-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 24px;
   }
 
   /* About セクションの4列グリッド */
@@ -421,29 +346,24 @@
     padding: 30px 20px;
   }
 
-  /* カード */
   .feature-card,
-  .reason-item {
+  .program-card {
     padding: 25px 20px;
   }
 
-  /* フッター */
   footer {
-    padding: 40px 15px;
+    padding: 40px 0 20px;
   }
 
   footer a {
-    margin: 0 5px 8px 0;
-    font-size: 13px;
-    padding: 5px 10px;
+    font-size: 14px;
+    margin: 5px;
   }
 
   footer p {
-    font-size: 14px;
-    margin-top: 15px;
+    font-size: 12px;
   }
 
-  /* About セクション */
   #about [style*="grid-template-columns: repeat(4, 1fr)"] {
     grid-template-columns: 1fr !important;
     gap: 15px !important;
@@ -454,94 +374,35 @@
   }
 
   #about [style*="padding: 15px"] {
-    padding: 10px !important;
+    padding: 12px !important;
   }
 
-  /* プログラム・コーチセクション */
   #program, #coach {
-    padding: 60px 0;
+    padding: 50px 0;
   }
 
   .program-body {
-    padding: 25px 20px;
+    padding: 20px 15px;
   }
 
   .coach-grid > div:last-child {
-    padding: 30px 20px;
+    padding: 20px 15px;
   }
 
   .program-grid {
-    grid-template-columns: 1fr !important;
-    gap: 25px !important;
+    gap: 20px;
   }
 
   .common-programs {
-    grid-template-columns: 1fr !important;
-    gap: 20px !important;
+    gap: 20px;
   }
 
   .coach-grid {
-    grid-template-columns: 1fr !important;
-    gap: 20px !important;
-  }
-
-  /* FAQ */
-  .faq-question {
-    padding: 20px 15px;
-    padding-left: 60px;
-    font-size: 16px;
-    min-height: 60px;
-  }
-
-  .faq-question::before {
-    left: 15px;
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
-  }
-
-  .faq-question::after {
-    left: 11px;
-    width: 36px;
-    height: 36px;
-  }
-
-  .faq-question:hover {
-    padding-left: 65px;
-  }
-
-  .faq-item.active .faq-question {
-    padding-left: 65px;
-  }
-
-  .faq-answer {
-    padding: 0 15px;
-  }
-
-  .faq-item.active .faq-answer {
-    padding: 25px 15px 30px 60px;
-  }
-
-  .faq-answer p {
-    font-size: 14px;
-    line-height: 1.7;
-  }
-
-  .faq-answer p::before {
-    left: -45px;
-    width: 24px;
-    height: 24px;
-    font-size: 11px;
-  }
-
-  .faq-icon {
-    font-size: 22px;
-    width: 32px;
-    height: 32px;
+    gap: 0;
   }
 
   .faq-item {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
   }
 }
 
