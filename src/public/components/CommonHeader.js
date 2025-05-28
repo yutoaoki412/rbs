@@ -5,16 +5,22 @@
 class CommonHeader {
   constructor() {
     this.isInitialized = false;
+    this.currentPage = null;
   }
 
   /**
    * ヘッダーを初期化
+   * @param {Object} options - 初期化オプション
    */
-  init() {
+  init(options = {}) {
     if (this.isInitialized) return;
+    
+    this.currentPage = options.currentPage || this.detectCurrentPage();
     
     this.setupMobileMenu();
     this.setupSmoothScroll();
+    this.setupActiveNavigation();
+    this.setupScrollBehavior();
     this.isInitialized = true;
   }
 
@@ -97,6 +103,97 @@ class CommonHeader {
           });
         }
       });
+    });
+  }
+
+  /**
+   * アクティブナビゲーションをセットアップ
+   */
+  setupActiveNavigation() {
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    navLinks.forEach(link => {
+      const linkPage = link.getAttribute('data-page');
+      const linkSection = link.getAttribute('data-section');
+      
+      // 現在のページまたはセクションをハイライト
+      if (linkPage === this.currentPage) {
+        link.classList.add('active');
+      }
+    });
+  }
+
+  /**
+   * スクロール時のヘッダー動作をセットアップ
+   */
+  setupScrollBehavior() {
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    const updateHeader = () => {
+      const header = document.querySelector('.header');
+      if (!header) return;
+
+      const currentScrollY = window.scrollY;
+      
+      // スクロール方向に応じてヘッダーの表示/非表示を制御
+      if (currentScrollY > 100) {
+        if (currentScrollY > lastScrollY) {
+          // 下スクロール時は隠す
+          header.classList.add('header-hidden');
+        } else {
+          // 上スクロール時は表示
+          header.classList.remove('header-hidden');
+        }
+      } else {
+        // トップ付近では常に表示
+        header.classList.remove('header-hidden');
+      }
+
+      lastScrollY = currentScrollY;
+      ticking = false;
+    };
+
+    const requestTick = () => {
+      if (!ticking) {
+        requestAnimationFrame(updateHeader);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', requestTick, { passive: true });
+  }
+
+  /**
+   * 現在のページを検出
+   */
+  detectCurrentPage() {
+    const path = window.location.pathname;
+    const filename = path.split('/').pop().replace('.html', '');
+    
+    if (filename === 'index' || filename === '' || path.endsWith('/')) {
+      return 'index';
+    }
+    
+    return filename;
+  }
+
+  /**
+   * ナビゲーションの状態を更新
+   */
+  updateNavigation(currentPage, activeSection) {
+    this.currentPage = currentPage;
+    
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+      link.classList.remove('active');
+      
+      const linkPage = link.getAttribute('data-page');
+      const linkSection = link.getAttribute('data-section');
+      
+      if (linkPage === currentPage || linkSection === activeSection) {
+        link.classList.add('active');
+      }
     });
   }
 }

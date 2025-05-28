@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- メタデータは動的に設定されます -->
+  
+  <!-- 基本CSS -->
+  <link rel="stylesheet" href="../styles/base.css">
+  <link rel="stylesheet" href="../styles/common.css">
+  <link rel="stylesheet" href="../styles/components.css">
+  <link rel="stylesheet" href="../styles/layout.css">
+  <link rel="stylesheet" href="../styles/responsive.css">
+  <!-- ページ固有のCSSは動的に読み込まれます -->
+</head>
+<body class="page-{{PAGE_TYPE}}">
+  <!-- ヘッダーは動的に読み込まれます -->
+
+  <main>
+    <div class="container">
+      <!-- ページコンテンツをここに記述 -->
+      <div class="page-header">
+        <h1>{{PAGE_TITLE}}</h1>
+        <p>{{PAGE_DESCRIPTION}}</p>
+      </div>
+
+      <!-- メインコンテンツ -->
+      <div class="page-content">
+        <!-- コンテンツをここに追加 -->
+      </div>
+    </div>
+  </main>
+
+  <!-- フッターは動的に読み込まれます -->
+
+  <!-- 基本JavaScript -->
+  <script src="../js/config.js"></script>
+  <script src="../utils/helpers.js"></script>
+  
+  <!-- コンポーネントシステム -->
+  <script src="../components/TemplateLoader.js"></script>
+  <script src="../components/CommonHeader.js"></script>
+  <script src="../components/CommonFooter.js"></script>
+  <script src="../components/PageInitializer.js"></script>
+  <script src="../js/page-configs.js"></script>
+  
+  <!-- ページ固有のコンポーネント -->
+  <!-- 必要に応じてここに追加 -->
+  
+  <script>
+    // ページ固有の初期化処理
+    document.addEventListener('DOMContentLoaded', async () => {
+      // ページ固有の処理をここに記述
+      console.log('{{PAGE_TYPE}}ページが初期化されました');
+    });
+  </script>
+</body>
+</html> 
