@@ -5,7 +5,7 @@
 
 import { EventEmitter } from '../utils/EventEmitter.js';
 import { Logger } from '../utils/Logger.js';
-import { AdminAuth } from './AdminAuth.js';
+import { AdminAuth } from '../../auth/AdminAuth.js';
 import { DataManager } from './DataManager.js';
 import { UIManager } from './UIManager.js';
 import { NewsFormManager } from '../forms/NewsFormManager.js';
