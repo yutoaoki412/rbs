@@ -810,10 +810,9 @@
   </footer>
 
   <!-- JavaScript -->
-  <script src="../js/core/config/config.js"></script>
   <script src="../js/markdown-parser.js"></script>
   <script src="../js/services/business/lesson-status-manager.js"></script>
-  <script src="../components/StatusBanner.js"></script>
+  <script src="../js/components/ui/FAQManager.js"></script>
   <script src="../js/test-data.js"></script>
   
   <!-- フォールバック JavaScript -->
@@ -893,12 +892,7 @@
         showStatusError();
       }
       
-      // StatusBannerは使用しない（元のUIを保持するため）
-      // if (typeof StatusBanner !== 'undefined') {
-      //   const statusBanner = new StatusBanner();
-      //   statusBanner.insertIntoPage();
-      //   statusBanner.startAutoUpdate();
-      // }
+
       
       // ニュース記事の読み込み
       loadAndDisplayNews();
@@ -924,31 +918,32 @@
         });
       });
       
-      // main.jsの機能を記事読み込み後に初期化
+      // FAQ機能の初期化（DOMが完全に読み込まれた後）
       setTimeout(() => {
-        if (typeof initializeApp === 'function') {
-          initializeApp();
-          console.log('✅ initializeApp()が実行されました');
-        } else {
-          console.warn('⚠️ initializeApp関数が見つかりません');
-        }
-      }, 1000);
-      
-      // 開発環境用：レッスン状況テスト関数
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        window.testLessonStatus = function() {
-          console.log('=== レッスン状況テスト ===');
-          if (lessonStatusManager) {
-            const currentStatus = lessonStatusManager.getLessonStatus();
-            console.log('現在の状況:', currentStatus);
-            console.log('通常開催判定:', lessonStatusManager.isNormalStatus(currentStatus));
-          } else {
-            console.error('LessonStatusManagerが利用できません');
+        if (typeof FAQManager !== 'undefined') {
+          try {
+            const faqManager = new FAQManager();
+            const initResult = faqManager.init();
+            if (initResult) {
+              window.rbsFAQManager = faqManager;
+              console.log('✅ FAQ機能が正常に初期化されました');
+            } else {
+              console.warn('⚠️ FAQ機能の初期化に失敗しました（要素が見つからない可能性があります）');
+            }
+          } catch (error) {
+            console.error('❌ FAQ機能の初期化でエラーが発生:', error);
           }
-        };
-        
-        console.log('💡 開発環境用関数が利用可能です:');
-        console.log('- testLessonStatus(): 現在のレッスン状況を確認');
+        } else {
+          console.warn('⚠️ FAQManagerが読み込まれていません');
+        }
+      }, 100);
+
+      // main.jsの機能を初期化
+      if (typeof initializeApp === 'function') {
+        initializeApp();
+        console.log('✅ initializeApp()が実行されました');
+      } else {
+        console.warn('⚠️ initializeApp関数が見つかりません');
       }
       
       // 開発環境でのデータ確認とテストデータ作成
@@ -956,10 +951,8 @@
         const hasData = localStorage.getItem('rbs_articles_data');
         if (!hasData) {
           console.log('🔧 開発環境でLocalStorageにデータがないため、テストデータを作成します');
-          // test-data.jsが読み込まれていればテストデータを作成
           if (typeof createTestData === 'function') {
             createTestData();
-            // データ作成後に再読み込み
             setTimeout(() => {
               loadAndDisplayNews();
             }, 500);

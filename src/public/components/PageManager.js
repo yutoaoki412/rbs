@@ -132,8 +132,7 @@ class PageManager {
       await rbsApp.init();
     }
     
-    // FAQアコーディオンの初期化
-    this.initializeFAQ();
+    // FAQ機能は統一されたFAQManager.jsで管理されます
     
     // ステータスバナーの初期化
     this.initializeStatusBanner();
@@ -256,22 +255,7 @@ class PageManager {
     });
   }
 
-  /**
-   * FAQアコーディオンの初期化
-   */
-  initializeFAQ() {
-    // グローバル関数として定義
-    window.toggleFaq = (element) => {
-      const faqItem = element.closest('.faq-item');
-      const currentlyActive = document.querySelector('.faq-item.active');
-      
-      if (currentlyActive && currentlyActive !== faqItem) {
-        currentlyActive.classList.remove('active');
-      }
-      
-      faqItem.classList.toggle('active');
-    };
-  }
+  // FAQ機能は統一されたFAQManager.jsで管理されます
 
   /**
    * ステータスバナーの初期化

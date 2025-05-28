@@ -555,6 +555,7 @@
 .faq-item.active .faq-answer {
   padding: 25px 30px 30px 75px;
   opacity: 1;
+  max-height: 1000px; /* 十分な高さを設定 */
 }
 
 .faq-answer p {

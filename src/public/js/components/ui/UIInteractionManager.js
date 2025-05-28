@@ -410,37 +410,7 @@ class UIInteractionManager extends Component {
   }
 }
 
-/**
- * FAQ管理クラス
- */
-class FAQManager {
-  /**
-   * FAQ切り替え（グローバル関数として公開）
-   */
-  static toggle(element) {
-    try {
-      const faqItem = element.closest('.faq-item');
-      if (!faqItem) return;
-
-      const isActive = faqItem.classList.contains('active');
-      
-      // 全てのFAQを閉じる
-      RBSHelpers.getElements('.faq-item').forEach(item => {
-        item.classList.remove('active');
-      });
-      
-      // クリックされたFAQを開く
-      if (!isActive) {
-        faqItem.classList.add('active');
-      }
-
-      // イベントを発火
-      eventBus.emit('ui:faqToggled', { faqItem, isActive: !isActive });
-    } catch (error) {
-      console.error('FAQ切り替えエラー:', error);
-    }
-  }
-}
+// FAQ機能は統一されたFAQManager.jsで管理されます
 
 /**
  * ステータス管理クラス
@@ -465,7 +435,7 @@ class StatusManager {
 }
 
 // グローバル関数として公開（HTMLから呼び出されるため）
-window.toggleFaq = FAQManager.toggle;
+// window.toggleFaq は統一されたFAQManager.jsで管理されます
 window.toggleStatus = StatusManager.toggle;
 
 // UIインタラクションマネージャーのインスタンスを作成

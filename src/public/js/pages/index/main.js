@@ -75,68 +75,8 @@ function initializeStatusBanner() {
  * FAQ機能の初期化
  */
 function initializeFAQ() {
-  const faqItems = document.querySelectorAll('.faq-item');
-  
-  faqItems.forEach(item => {
-    const question = item.querySelector('.faq-question');
-    const answer = item.querySelector('.faq-answer');
-    const icon = item.querySelector('.faq-icon');
-    
-    if (question && answer && icon) {
-      // 初期状態を設定
-      answer.style.maxHeight = '0';
-      answer.style.overflow = 'hidden';
-      answer.style.opacity = '0';
-      answer.style.transform = 'translateY(-10px)';
-      icon.textContent = '+';
-      
-      question.addEventListener('click', function() {
-        const isOpen = item.classList.contains('active');
-        
-        // 他のFAQを閉じる
-        faqItems.forEach(otherItem => {
-          if (otherItem !== item) {
-            otherItem.classList.remove('active');
-            const otherAnswer = otherItem.querySelector('.faq-answer');
-            const otherIcon = otherItem.querySelector('.faq-icon');
-            if (otherAnswer) {
-              otherAnswer.style.maxHeight = '0';
-              otherAnswer.style.opacity = '0';
-              otherAnswer.style.transform = 'translateY(-10px)';
-            }
-            if (otherIcon) otherIcon.textContent = '+';
-          }
-        });
-        
-        if (isOpen) {
-          // 閉じる
-          item.classList.remove('active');
-          answer.style.maxHeight = '0';
-          answer.style.opacity = '0';
-          answer.style.transform = 'translateY(-10px)';
-          icon.textContent = '+';
-        } else {
-          // 開く
-          item.classList.add('active');
-          // 一時的に高さを測定するために表示
-          answer.style.opacity = '0';
-          answer.style.transform = 'translateY(-10px)';
-          answer.style.maxHeight = 'none';
-          const height = answer.scrollHeight;
-          answer.style.maxHeight = '0';
-          
-          // アニメーション開始
-          requestAnimationFrame(() => {
-            answer.style.maxHeight = height + 'px';
-            answer.style.opacity = '1';
-            answer.style.transform = 'translateY(0)';
-          });
-          
-          icon.textContent = '−';
-        }
-      });
-    }
-  });
+  // FAQ機能は既にHTMLで初期化されているため、ここでは何もしない
+  console.log('FAQ機能: HTMLで初期化済み');
 }
 
 /**
