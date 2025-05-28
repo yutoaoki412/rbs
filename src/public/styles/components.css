@@ -547,13 +547,14 @@
   padding: 0 30px;
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.4s ease, padding 0.4s ease;
+  transition: max-height 0.4s ease, padding 0.4s ease, opacity 0.3s ease;
   background: var(--gray-light);
+  opacity: 0;
 }
 
 .faq-item.active .faq-answer {
   padding: 25px 30px 30px 75px;
-  max-height: 600px;
+  opacity: 1;
 }
 
 .faq-answer p {

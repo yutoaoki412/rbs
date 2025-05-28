@@ -810,9 +810,9 @@
   </footer>
 
   <!-- JavaScript -->
-  <script src="../js/config.js"></script>
+  <script src="../js/core/config/config.js"></script>
   <script src="../js/markdown-parser.js"></script>
-  <script src="../js/lesson-status-manager.js"></script>
+  <script src="../js/services/business/lesson-status-manager.js"></script>
   <script src="../components/StatusBanner.js"></script>
   <script src="../js/test-data.js"></script>
   
@@ -858,11 +858,17 @@
     document.addEventListener('DOMContentLoaded', function() {
       // LessonStatusManagerの初期化
       if (typeof LessonStatusManager !== 'undefined') {
-        lessonStatusManager = new LessonStatusManager();
-        lessonStatusManager.init();
-        
-        // レッスン状況を読み込み
-        loadLessonStatus();
+        try {
+          lessonStatusManager = new LessonStatusManager();
+          lessonStatusManager.init();
+          
+          // レッスン状況を読み込み
+          loadLessonStatus();
+          console.log('✅ LessonStatusManagerが正常に初期化されました');
+        } catch (error) {
+          console.error('❌ LessonStatusManagerの初期化に失敗:', error);
+          showStatusError();
+        }
         
         // レッスン状況更新イベントのリスナー
         window.addEventListener('lessonStatusUpdated', function(event) {
@@ -882,6 +888,9 @@
         setInterval(() => {
           loadLessonStatus();
         }, 5000); // 5秒ごとにチェック
+      } else {
+        console.warn('⚠️ LessonStatusManagerが読み込まれていません');
+        showStatusError();
       }
       
       // StatusBannerは使用しない（元のUIを保持するため）
@@ -919,6 +928,9 @@
       setTimeout(() => {
         if (typeof initializeApp === 'function') {
           initializeApp();
+          console.log('✅ initializeApp()が実行されました');
+        } else {
+          console.warn('⚠️ initializeApp関数が見つかりません');
         }
       }, 1000);
       
@@ -1271,7 +1283,7 @@
   </script>
   
   <!-- main.jsを記事読み込み処理の後に読み込み -->
-  <script src="../js/main.js"></script>
+  <script src="../js/pages/index/main.js"></script>
   
   <!-- 構造化データ (SEO) -->
   <script type="application/ld+json">
