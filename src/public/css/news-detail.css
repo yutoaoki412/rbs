@@ -808,6 +808,103 @@ main {
   color: var(--primary-blue);
 }
 
+/* ローディング・エラー・空のメッセージ */
+.loading-message, .error-message, .empty-message {
+  text-align: center;
+  padding: 80px 20px;
+  background: var(--white);
+  border-radius: 20px;
+  border: 3px solid var(--gray-border);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.loading-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-medium);
+}
+
+.loading-message h3, .error-message h3, .empty-message h3 {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  color: var(--navy-dark);
+}
+
+.error-message h3 {
+  color: var(--primary-red);
+}
+
+.loading-message p, .error-message p, .empty-message p {
+  font-size: 16px;
+  color: var(--text-medium);
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.loading-spinner {
+  border: 4px solid var(--gray-light);
+  border-top: 4px solid var(--primary-blue);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 25px;
+}
+
+.retry-btn, .btn-primary, .btn-secondary {
+  background: var(--primary-blue);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-secondary {
+  background: var(--gray-medium);
+}
+
+.retry-btn:hover, .btn-primary:hover {
+  background: var(--primary-dark);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.3);
+}
+
+.btn-secondary:hover {
+  background: var(--gray-dark);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* 空のコンテンツ */
+.empty-content {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--gray-medium);
+}
+
+.empty-content h3 {
+  color: var(--navy-dark);
+  margin-bottom: 15px;
+  font-size: 24px;
+}
+
+.empty-content p {
+  margin-bottom: 25px;
+  font-size: 16px;
+}
+
 /* レスポンシブ */
 @media (max-width: 768px) {
   .nav-links {
@@ -940,6 +1037,18 @@ main {
     padding: 15px;
     font-size: 14px;
   }
+
+  .loading-message,
+  .error-message,
+  .empty-message {
+    padding: 60px 20px;
+  }
+  
+  .loading-spinner {
+    width: 32px;
+    height: 32px;
+    border-width: 3px;
+  }
 }
 
 @media (max-width: 768px) and (min-width: 481px) {
@@ -1046,72 +1155,11 @@ main {
   .related-card-body {
     padding: 15px;
   }
-}
 
-.article-content .share-section,
-.related-card-header,
-.related-card-body {
-  padding: 15px;
-}
-
-/* ローディング・エラー・空のメッセージ */
-.loading-message, .error-message, .empty-message {
-  text-align: center;
-  padding: 80px 20px;
-  background: var(--white);
-  border-radius: 20px;
-  border: 3px solid var(--gray-border);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-}
-
-.loading-message h3, .error-message h3, .empty-message h3 {
-  font-size: 24px;
-  font-weight: 800;
-  margin-bottom: 20px;
-  color: var(--navy-dark);
-}
-
-.error-message h3 {
-  color: var(--primary-red);
-}
-
-.loading-message p, .error-message p, .empty-message p {
-  font-size: 16px;
-  color: var(--text-medium);
-  line-height: 1.6;
-  margin-bottom: 15px;
-}
-
-.loading-spinner {
-  border: 4px solid var(--gray-light);
-  border-top: 4px solid var(--primary-blue);
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 25px;
-}
-
-.retry-btn, .btn-primary {
-  background: var(--primary-blue);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 25px;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 20px;
-  text-decoration: none;
-  display: inline-block;
-}
-
-.retry-btn:hover, .btn-primary:hover {
-  background: var(--primary-dark);
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.3);
+  .retry-btn, .btn-primary, .btn-secondary {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
 }
 
 @keyframes spin {

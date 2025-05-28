@@ -258,4 +258,8 @@ class ArticleManager {
 
     console.log('データ検証完了:', this.articles.length, '件の有効な記事');
   }
-} 
+}
+
+// グローバルに公開
+window.MarkdownParser = MarkdownParser;
+window.ArticleManager = ArticleManager; 

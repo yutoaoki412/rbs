@@ -11,7 +11,7 @@
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
   
-  <!-- CSS - 元のシステムを維持 -->
+  <!-- CSS -->
   <link rel="stylesheet" href="../css/base.css">
   <link rel="stylesheet" href="../css/common.css">
   <link rel="stylesheet" href="../css/components.css">
@@ -24,21 +24,19 @@
 
   <main>
     <div class="container">
-      <!-- ページヘッダー - 元のスタイルを使用 -->
-      <div style="text-align: center; padding-top: 60px; margin-bottom: 60px; position: relative;">
-        <h1 style="font-size: clamp(36px, 7vw, 56px); line-height: 1.2; margin-bottom: 40px; color: var(--navy-dark); font-weight: var(--font-weight-heavy); letter-spacing: -0.02em; position: relative; padding-bottom: 25px;">
+      <!-- ページヘッダー -->
+      <div class="news-page-header">
+        <h1 class="news-page-title">
           NEWS
-          <span style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 120px; height: 8px; background: var(--primary-blue); border-radius: var(--radius-xs); display: block;"></span>
         </h1>
-        <p style="font-size: 18px; color: var(--gray-medium); margin-top: 15px;">RBS陸上教室の最新情報をお届けします</p>
+        <p class="news-page-description">RBS陸上教室の最新情報をお届けします</p>
       </div>
 
-      <!-- ニュース一覧 -->
       <!-- フィルター -->
       <div class="news-filters">
         <div class="filter-title">カテゴリーで絞り込み</div>
         <div class="filter-buttons">
-          <a href="news.html" class="filter-btn active" data-category="all">すべて</a>
+          <a href="news.html" class="filter-btn" data-category="all">すべて</a>
           <a href="news.html?category=announcement" class="filter-btn" data-category="announcement">お知らせ</a>
           <a href="news.html?category=event" class="filter-btn" data-category="event">体験会</a>
           <a href="news.html?category=media" class="filter-btn" data-category="media">メディア</a>
@@ -76,246 +74,6 @@
   <script src="../components/PageTemplate.js"></script>
   <script src="../js/page-configs.js"></script>
   <script src="../js/markdown-parser.js"></script>
-  
-  <script>
-    // グローバル変数
-    let articleManager = null;
-    let currentCategory = 'all';
-
-    // URLパラメータからカテゴリーを取得
-    function getCurrentCategory() {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('category') || 'all';
-    }
-
-    // 記事カードを作成
-    function createArticleCard(article) {
-      const card = document.createElement('article');
-      card.className = 'news-card';
-      card.setAttribute('data-category', article.category);
-      
-      card.innerHTML = `
-        <div class="news-card-header">
-          <div class="news-meta">
-            <div class="news-date">${formatDate(article.date)}</div>
-            <div class="news-category ${article.category}">
-              ${getCategoryName(article.category)}
-            </div>
-          </div>
-          <h2 class="news-title">${escapeHtml(article.title)}</h2>
-        </div>
-        <div class="news-card-body">
-          <p class="news-excerpt">${escapeHtml(article.summary || article.excerpt || '')}</p>
-          <a href="news-detail.html?id=${article.id}" class="news-read-more">続きを読む</a>
-        </div>
-      `;
-      
-      return card;
-    }
-
-    // 記事を表示
-    function displayArticles() {
-      const newsGrid = document.getElementById('news-grid');
-      const filteredArticles = filterArticlesByCategory(currentCategory);
-      
-      // 既存の記事をクリア
-      newsGrid.innerHTML = '';
-      
-      // 記事がない場合
-      if (filteredArticles.length === 0) {
-        const message = currentCategory === 'all' 
-          ? '記事がまだ公開されていません。管理画面から記事を作成・公開してください。'
-          : '該当するカテゴリーの記事が見つかりませんでした。';
-        
-        newsGrid.innerHTML = `
-          <div class="empty-message">
-            <h3>記事がありません</h3>
-            <p>${message}</p>
-            <a href="admin.html" class="btn btn-secondary">管理画面へ</a>
-          </div>
-        `;
-        return;
-      }
-      
-      // 記事カードを生成して表示
-      filteredArticles.forEach((article, index) => {
-        const articleCard = createArticleCard(article);
-        newsGrid.appendChild(articleCard);
-        
-        // アニメーション効果
-        setTimeout(() => {
-          articleCard.classList.add('fade-in');
-        }, index * 100);
-      });
-      
-      // 検索結果表示を更新
-      updateSearchResults(filteredArticles.length, currentCategory);
-    }
-
-    // カテゴリーでフィルタリング
-    function filterArticlesByCategory(category) {
-      if (!articleManager?.articles) {
-        return [];
-      }
-      
-      if (category === 'all') {
-        return articleManager.articles;
-      }
-      
-      return articleManager.articles.filter(article => article.category === category);
-    }
-
-    // 検索結果表示を更新
-    function updateSearchResults(count, category) {
-      const searchResults = document.getElementById('search-results');
-      const searchCount = document.getElementById('search-count');
-      
-      if (category !== 'all') {
-        searchCount.textContent = count;
-        searchResults.style.display = 'block';
-      } else {
-        searchResults.style.display = 'none';
-      }
-    }
-
-    // フィルタリング機能をセットアップ
-    function setupFiltering() {
-      const filterButtons = document.querySelectorAll('.filter-btn');
-      
-      // 既存のイベントリスナーをクリア（重複防止）
-      filterButtons.forEach(btn => {
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-      });
-      
-      // 新しいボタン要素を再取得
-      const newFilterButtons = document.querySelectorAll('.filter-btn');
-      
-      // 現在のカテゴリーに基づいてアクティブ状態を設定
-      updateActiveButton(newFilterButtons);
-      
-      // 各ボタンにクリックイベントを追加
-      newFilterButtons.forEach(btn => {
-        btn.addEventListener('click', handleFilterClick);
-      });
-    }
-
-    // アクティブボタンを更新
-    function updateActiveButton(buttons) {
-      console.log('アクティブボタン更新 - 現在のカテゴリー:', currentCategory); // デバッグ用
-      buttons.forEach(btn => {
-        btn.classList.remove('active');
-        const btnCategory = btn.getAttribute('data-category');
-        console.log('ボタンカテゴリー:', btnCategory, 'アクティブ:', btnCategory === currentCategory); // デバッグ用
-        if (btnCategory === currentCategory) {
-          btn.classList.add('active');
-          console.log('アクティブクラス追加:', btn); // デバッグ用
-        }
-      });
-    }
-
-    // フィルタークリックハンドラー
-    function handleFilterClick(e) {
-      e.preventDefault();
-      
-      const clickedCategory = this.getAttribute('data-category');
-      console.log('フィルタークリック:', clickedCategory, '現在:', currentCategory); // デバッグ用
-      
-      // カテゴリーが変更された場合のみ処理
-      if (clickedCategory !== currentCategory) {
-        // カテゴリーを更新
-        currentCategory = clickedCategory;
-        console.log('カテゴリー更新:', currentCategory); // デバッグ用
-        
-        // アクティブ状態を更新
-        const filterButtons = document.querySelectorAll('.filter-btn');
-        updateActiveButton(filterButtons);
-        
-        // URLを更新
-        updateURL(currentCategory);
-        
-        // 記事を再表示
-        displayArticles();
-      }
-    }
-
-    // URL更新
-    function updateURL(category) {
-      const newUrl = category === 'all' 
-        ? 'news.html' 
-        : `news.html?category=${category}`;
-      window.history.pushState({category: category}, '', newUrl);
-    }
-
-    // ユーティリティ関数
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('ja-JP', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      }).replace(/\//g, '.');
-    }
-
-    function getCategoryName(category) {
-      const categories = {
-        'all': 'すべて',
-        'announcement': 'お知らせ',
-        'event': '体験会',
-        'media': 'メディア',
-        'important': '重要'
-      };
-      return categories[category] || category;
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    // ページ初期化
-    document.addEventListener('DOMContentLoaded', function() {
-      // 初期カテゴリーを設定
-      currentCategory = getCurrentCategory();
-      console.log('初期カテゴリー:', currentCategory); // デバッグ用
-      
-      if (typeof PageInitializer !== 'undefined') {
-        PageInitializer.init({
-          currentPage: 'news',
-          pageTitle: 'ニュース - RBS陸上教室',
-          hasStatusBanner: false
-        });
-      }
-      
-      // フィルタリング機能を初期化
-      setTimeout(() => {
-        setupFiltering();
-      }, 100);
-      
-      // ブラウザの戻る/進むボタンに対応
-      window.addEventListener('popstate', function(event) {
-        currentCategory = getCurrentCategory();
-        console.log('popstate - カテゴリー変更:', currentCategory); // デバッグ用
-        setupFiltering();
-        if (articleManager) {
-          displayArticles();
-        }
-      });
-      
-      // 記事管理システムの初期化を待つ
-      const initArticleSystem = () => {
-        if (window.articleManager) {
-          articleManager = window.articleManager;
-          console.log('記事管理システム初期化完了'); // デバッグ用
-          displayArticles();
-        } else {
-          setTimeout(initArticleSystem, 100);
-        }
-      };
-      
-      initArticleSystem();
-    });
-  </script>
+  <script src="../js/pages/news.js"></script>
 </body>
 </html> 
