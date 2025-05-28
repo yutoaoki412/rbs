@@ -97,22 +97,16 @@ class StatusBanner extends Component {
    * @returns {string} バナーHTML
    */
   buildBannerHTML(statusData, today) {
-    const statusIcon = this.lessonStatusManager.getStatusIcon(statusData.globalStatus);
     const globalMessage = statusData.globalMessage ? 
       `<p class="global-message">${RBSHelpers.sanitizeString(statusData.globalMessage)}</p>` : '';
-    
     const courseStatusHTML = [
       this.generateCourseStatus(statusData.courses.basic),
       this.generateCourseStatus(statusData.courses.advance)
     ].filter(html => html).join('');
-
     return `
       <div class="status-banner" id="status-banner" role="banner" aria-live="polite">
         <div class="container">
           <div class="status-content">
-            <div class="status-icon" aria-hidden="true">
-              ${statusIcon}
-            </div>
             <div class="status-info">
               <h3 class="status-title">${RBSHelpers.sanitizeString(today)} のレッスン状況</h3>
               ${globalMessage}

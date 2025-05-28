@@ -112,7 +112,7 @@ ${mergedConfig.pageSpecificJS ? `  <script src="${mergedConfig.pageSpecificJS}">
     return `  <!-- 本日の開催状況 -->
   <section id="today-status" class="status-banner">
     <div class="container">
-      <div class="status-header" onclick="toggleStatusContent()" style="cursor: pointer;">
+      <div class="status-header" onclick="toggleStatus()" style="cursor: pointer;">
         <div class="status-info">
           <span class="status-icon" id="status-icon"></span>
           <span class="status-text">本日のレッスン開催状況</span>

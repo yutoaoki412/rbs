@@ -27,6 +27,10 @@
       <span class="admin-logo-text">RBS陸上教室 管理画面</span>
     </div>
     <div class="header-right">
+      <!-- デバッグ情報表示ボタン -->
+      <button class="btn btn-outline" onclick="showDebugInfo()" title="デバッグ情報">
+        <i class="fas fa-bug"></i>
+      </button>
       <button class="logout-btn" onclick="logout()">
         <i class="fas fa-sign-out-alt"></i>
         ログアウト
@@ -131,17 +135,21 @@
             </div>
             <div class="widget-content">
               <div class="action-buttons">
-                <button class="action-btn primary" onclick="switchToTab('news-management')">
+                <button class="action-btn primary" onclick="switchTab('news-management')">
                   <i class="fas fa-plus"></i>
                   新しい記事を作成
                 </button>
-                <button class="action-btn success" onclick="switchToTab('lesson-status')">
+                <button class="action-btn success" onclick="switchTab('lesson-status')">
                   <i class="fas fa-calendar-check"></i>
                   レッスン状況を更新
                 </button>
                 <button class="action-btn secondary" onclick="window.open('index.html', '_blank')">
                   <i class="fas fa-external-link-alt"></i>
                   サイトを確認
+                </button>
+                <button class="action-btn info" onclick="window.open('news.html', '_blank')">
+                  <i class="fas fa-newspaper"></i>
+                  ニュース一覧を確認
                 </button>
               </div>
             </div>
@@ -153,6 +161,11 @@
       <section id="news-management" class="admin-section">
         <div class="section-header">
           <h1><i class="fas fa-newspaper"></i> 記事管理</h1>
+          <div class="section-actions">
+            <button class="btn btn-info" onclick="testArticleService()">
+              <i class="fas fa-flask"></i> 連携テスト
+            </button>
+          </div>
         </div>
         
         <div class="management-layout">
@@ -163,6 +176,9 @@
               <div class="panel-actions">
                 <button class="btn btn-outline" onclick="clearNewsEditor()">
                   <i class="fas fa-times"></i> クリア
+                </button>
+                <button class="btn btn-secondary" onclick="previewNews()">
+                  <i class="fas fa-eye"></i> プレビュー
                 </button>
                 <button class="btn btn-primary" onclick="saveNews()">
                   <i class="fas fa-save"></i> 保存
@@ -179,9 +195,9 @@
               <div class="form-grid">
                 <div class="form-group">
                   <label for="news-title">
-                    <i class="fas fa-heading"></i> タイトル
+                    <i class="fas fa-heading"></i> タイトル <span class="required">*</span>
                   </label>
-                  <input type="text" id="news-title" class="form-input" placeholder="記事のタイトルを入力">
+                  <input type="text" id="news-title" class="form-input" placeholder="記事のタイトルを入力" required>
                 </div>
                 <div class="form-group">
                   <label for="news-category">
@@ -218,12 +234,12 @@
                 <label for="news-summary">
                   <i class="fas fa-align-left"></i> 概要
                 </label>
-                <textarea id="news-summary" class="form-textarea" placeholder="記事の概要を入力"></textarea>
+                <textarea id="news-summary" class="form-textarea" placeholder="記事の概要を入力（一覧ページで表示されます）"></textarea>
               </div>
               
               <div class="form-group">
                 <label for="news-content">
-                  <i class="fas fa-file-alt"></i> 本文
+                  <i class="fas fa-file-alt"></i> 本文 <span class="required">*</span>
                 </label>
                 <div class="editor-toolbar">
                   <button type="button" class="toolbar-btn" onclick="insertMarkdown('**', '**')" title="太字">
@@ -235,11 +251,21 @@
                   <button type="button" class="toolbar-btn" onclick="insertMarkdown('- ', '')" title="リスト">
                     <i class="fas fa-list"></i>
                   </button>
-                  <button type="button" class="toolbar-btn" onclick="previewNews()" title="プレビュー">
-                    <i class="fas fa-eye"></i>
+                  <button type="button" class="toolbar-btn" onclick="insertMarkdown('[', '](URL)')" title="リンク">
+                    <i class="fas fa-link"></i>
                   </button>
                 </div>
-                <textarea id="news-content" class="form-textarea editor-content" placeholder="記事の本文をMarkdown形式で入力"></textarea>
+                <textarea id="news-content" class="form-textarea editor-content" placeholder="記事の本文をMarkdown形式で入力" required></textarea>
+                <div class="form-help">
+                  <small>Markdown記法が使用できます。**太字**、## 見出し、- リストなど</small>
+                </div>
+              </div>
+              
+              <!-- 追加フィールド -->
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" id="news-featured"> 注目記事として表示
+                </label>
               </div>
             </div>
           </div>
@@ -254,10 +280,16 @@
                   <option value="published">公開中</option>
                   <option value="draft">下書き</option>
                 </select>
+                <button class="btn btn-outline" onclick="refreshNewsList()">
+                  <i class="fas fa-sync"></i> 更新
+                </button>
               </div>
             </div>
             <div id="news-list" class="list-content">
               <!-- 記事一覧がここに表示される -->
+              <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i> 記事を読み込み中...
+              </div>
             </div>
           </div>
         </div>
@@ -378,21 +410,43 @@
         
         <div class="settings-panel">
           <div class="setting-group">
-            <h3><i class="fas fa-instagram"></i> Instagram管理</h3>
-            <p>Instagram投稿の管理とリンク設定</p>
-            <button class="btn btn-primary">Instagram設定</button>
+            <h3><i class="fas fa-database"></i> データ管理</h3>
+            <p>記事データの管理とバックアップ</p>
+            <div class="setting-actions">
+              <button class="btn btn-outline" onclick="exportData()">
+                <i class="fas fa-download"></i> データをエクスポート
+              </button>
+              <button class="btn btn-outline" onclick="clearAllData()">
+                <i class="fas fa-trash"></i> 全データクリア
+              </button>
+            </div>
           </div>
           
           <div class="setting-group">
-            <h3><i class="fas fa-bell"></i> 通知設定</h3>
-            <p>レッスン状況やニュース公開時の通知設定</p>
-            <button class="btn btn-primary">通知設定</button>
+            <h3><i class="fas fa-link"></i> サイト連携</h3>
+            <p>フロントエンドサイトとの連携状況</p>
+            <div class="setting-actions">
+              <button class="btn btn-primary" onclick="testSiteConnection()">
+                <i class="fas fa-link"></i> 連携テスト
+              </button>
+              <div id="site-connection-test-results" class="test-results" style="margin-top: 10px;"></div>
+              <button class="btn btn-secondary" onclick="window.open('news.html', '_blank')">
+                <i class="fas fa-external-link-alt"></i> ニュースページを開く
+              </button>
+            </div>
           </div>
           
           <div class="setting-group">
-            <h3><i class="fas fa-download"></i> データエクスポート</h3>
-            <p>記事データやレッスン履歴のエクスポート</p>
-            <button class="btn btn-outline" onclick="exportData()">データをエクスポート</button>
+            <h3><i class="fas fa-bug"></i> デバッグ</h3>
+            <p>開発者向けデバッグ機能</p>
+            <div class="setting-actions">
+              <button class="btn btn-info" onclick="showDebugInfo()">
+                <i class="fas fa-info-circle"></i> デバッグ情報表示
+              </button>
+              <button class="btn btn-warning" onclick="resetLocalStorage()">
+                <i class="fas fa-redo"></i> LocalStorage リセット
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -403,15 +457,20 @@
   <div id="modal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>プレビュー</h3>
+        <h3 id="modal-title">プレビュー</h3>
         <button class="modal-close" onclick="closeModal()">
           <i class="fas fa-times"></i>
         </button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" id="modal-body">
         <!-- プレビュー内容がここに表示される -->
       </div>
     </div>
+  </div>
+
+  <!-- 通知エリア -->
+  <div id="notification-container" class="notification-container">
+    <!-- 通知がここに表示される -->
   </div>
 
   <!-- レッスン状況管理システム -->

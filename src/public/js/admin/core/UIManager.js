@@ -824,6 +824,15 @@ export class UIManager extends EventEmitter {
     return labels[filter] || filter;
   }
 
+  getStatusLabel(status) {
+    const labels = {
+      開催: '開催',
+      中止: '中止'
+      // 必要に応じて他のステータスも追加
+    };
+    return labels[status] || status;
+  }
+
   /**
    * 破棄処理
    */
@@ -835,5 +844,90 @@ export class UIManager extends EventEmitter {
 
     this.removeAllListeners();
     this.logger.info('UI管理システムを破棄しました');
+  }
+
+  displaySiteConnectionResults(results) {
+    const resultsContainer = document.getElementById('site-connection-test-results');
+    if (resultsContainer) {
+      resultsContainer.innerHTML = `
+        <h4>サイト連携テスト結果</h4>
+        <ul>
+          ${results.map(result => `<li class="${result.status}"><strong>${result.name}:</strong> ${result.message}</li>`).join('')}
+        </ul>
+        <p><small>※ 実際の動作確認は各ページを開いて行ってください</small></p>
+      `;
+    } else {
+      this.logger.warn('Site connection test results container not found. Results:', results);
+    }
+  }
+
+  markdownToHtml(markdown) {
+    // 簡易的なMarkdown変換
+    return markdown
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\n/g, '<br>');
+  }
+
+  _generateNewsPreviewHTML(article) {
+    return `
+      <div class="preview-content">
+        <h2>${this.escapeHtml(article.title)}</h2>
+        <div class="preview-meta">
+          <span class="preview-category">${this.getCategoryLabel(article.category)}</span>
+          <span class="preview-date">${article.date}</span>
+        </div>
+        ${article.summary ? `<p class="preview-summary">${this.escapeHtml(article.summary)}</p>` : ''}
+        <div class="preview-content-body">
+          ${article.content ? this.markdownToHtml(article.content) : '<p>内容がありません</p>'}
+        </div>
+      </div>
+    `;
+  }
+
+  showNewsPreviewModal(articleData) {
+    if (!articleData.title.trim()) {
+      this.showNotification('error', 'タイトルを入力してください');
+      return;
+    }
+    const previewContent = this._generateNewsPreviewHTML(articleData);
+    this.showModal('記事プレビュー', previewContent);
+  }
+
+  // デバッグ情報モーダル表示用のメソッド (後で実装)
+  showDebugInfoModal(debugContentHTML) {
+    this.showModal('管理画面デバッグ情報', debugContentHTML);
+  }
+
+  _generateLessonStatusPreviewHTML(statusData) {
+    const courses = [
+      { key: 'basic', name: 'ベーシックコース（年長〜小3）', time: '17:00-17:50' },
+      { key: 'advance', name: 'アドバンスコース（小4〜小6）', time: '18:00-18:50' }
+    ];
+    
+    let html = '<div class="lesson-status-preview">';
+    
+    courses.forEach(course => {
+      const lesson = statusData[course.key];
+      if (lesson) {
+        const statusLabel = this.getStatusLabel(lesson.status);
+        html += `
+          <div class="lesson-item">
+            <h3>${course.name}</h3>
+            <p><strong>時間:</strong> ${course.time}</p>
+            <p><strong>状況:</strong> <span class="status status-${lesson.status}">${statusLabel}</span></p>
+            ${lesson.note ? `<p class="note"><strong>補足:</strong> ${this.escapeHtml(lesson.note)}</p>` : ''}
+          </div>
+        `;
+      }
+    });
+    
+    html += '</div>';
+    return html;
+  }
+
+  showLessonStatusPreviewModal(statusData) {
+    const previewContent = this._generateLessonStatusPreviewHTML(statusData);
+    this.showModal('レッスン状況プレビュー', previewContent);
   }
 } 

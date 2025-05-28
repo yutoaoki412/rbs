@@ -1,234 +1,402 @@
 /**
- * RBS陸上教室 管理画面コアシステム
- * モジュラー設計による管理画面の基盤クラス
+ * RBS陸上教室 管理画面システム
+ * 認証、データ管理、UI管理を統合した管理画面のコアシステム
  */
 
 import { EventEmitter } from '../utils/EventEmitter.js';
 import { Logger } from '../utils/Logger.js';
-import { ErrorHandler } from '../utils/ErrorHandler.js';
 import { AdminAuth } from './AdminAuth.js';
 import { DataManager } from './DataManager.js';
 import { UIManager } from './UIManager.js';
+import { NewsFormManager } from '../forms/NewsFormManager.js';
+import { AdminActionHandler } from '../actions/AdminActionHandler.js';
 
 export class AdminCore extends EventEmitter {
   constructor() {
     super();
-    this.logger = new Logger('AdminCore');
-    this.errorHandler = new ErrorHandler();
-    this.isInitialized = false;
-    this.modules = new Map();
     
-    // コア設定
-    this.config = {
-      version: '2.0.0',
-      environment: 'production',
-      debug: false,
-      autoSave: true,
-      autoSaveInterval: 30000, // 30秒
-      maxRetries: 3
-    };
+    this.logger = new Logger('AdminCore');
+    
+    // システムの状態
+    this.isInitialized = false;
+    this.isAuthenticated = false;
+    
+    // モジュールインスタンス
+    this.auth = null;
+    this.dataManager = null;
+    this.uiManager = null;
+    this.newsFormManager = null;
+    this.actionHandler = null;
+    
+    // エラーハンドリング
+    this.errorHandler = null;
   }
 
   /**
-   * 管理画面の初期化
+   * 管理画面システムの初期化
    */
   async init() {
     try {
-      this.logger.info('管理画面システムを初期化中...');
+      this.logger.info('RBS陸上教室 管理画面システム v2.1 を初期化中...');
       
-      // エラーハンドラーの設定
-      this.setupErrorHandling();
-      
-      // コアモジュールの初期化
-      await this.initCoreModules();
+      // 認証システムの初期化
+      await this.initializeAuth();
       
       // 認証チェック
-      await this.checkAuthentication();
-      
-      // UIの初期化
-      await this.initUI();
-      
-      // イベントリスナーの設定
-      this.setupEventListeners();
-      
-      // 自動保存の設定
-      if (this.config.autoSave) {
-        this.setupAutoSave();
+      if (!this.isAuthenticated) {
+        this.logger.warn('認証が必要です');
+        this.redirectToLogin();
+        return;
       }
+      
+      // データ管理システムの初期化
+      await this.initializeDataManager();
+      
+      // UI管理システムの初期化
+      await this.initializeUIManager();
+      
+      // フォーム管理システムの初期化
+      await this.initializeNewsFormManager();
+      
+      // アクションハンドラーの初期化
+      await this.initializeActionHandler();
+      
+      // システム統合
+      this.setupSystemIntegration();
       
       this.isInitialized = true;
       this.emit('initialized');
+      
       this.logger.info('管理画面システムの初期化が完了しました');
       
     } catch (error) {
       this.logger.error('管理画面システムの初期化に失敗:', error);
-      this.errorHandler.handle(error, '管理画面の初期化');
+      this.handleCriticalError(error);
       throw error;
     }
   }
 
   /**
-   * コアモジュールの初期化
+   * 認証システムの初期化
    */
-  async initCoreModules() {
+  async initializeAuth() {
     try {
-      // 認証システム
       this.auth = new AdminAuth();
       await this.auth.init();
-      this.modules.set('auth', this.auth);
       
-      // データ管理
+      this.isAuthenticated = this.auth.isAuthenticated();
+      
+      // 認証状態の変更を監視
+      this.auth.on('authStateChanged', (authenticated) => {
+        this.isAuthenticated = authenticated;
+        if (!authenticated) {
+          this.redirectToLogin();
+        }
+      });
+      
+      this.logger.debug('認証システムの初期化完了');
+    } catch (error) {
+      this.logger.error('認証システムの初期化に失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * データ管理システムの初期化
+   */
+  async initializeDataManager() {
+    try {
       this.dataManager = new DataManager();
       await this.dataManager.init();
-      this.modules.set('dataManager', this.dataManager);
       
-      // UI管理
-      this.uiManager = new UIManager();
-      this.modules.set('uiManager', this.uiManager);
-      
-      // モジュール間の連携設定
-      this.setupModuleConnections();
-      
-      this.logger.info('コアモジュールの初期化完了');
+      this.logger.debug('データ管理システムの初期化完了');
     } catch (error) {
-      throw new Error(`コアモジュールの初期化に失敗: ${error.message}`);
+      this.logger.error('データ管理システムの初期化に失敗:', error);
+      throw error;
     }
   }
 
   /**
-   * モジュール間の連携設定
+   * UI管理システムの初期化
    */
-  setupModuleConnections() {
-    // データマネージャーにUIマネージャーを設定
+  async initializeUIManager() {
+    try {
+      this.uiManager = new UIManager();
+      await this.uiManager.init();
+      
+      // DataManagerとの連携設定
+      this.uiManager.setupDataManagerEvents(this.dataManager);
+      
+      this.logger.debug('UI管理システムの初期化完了');
+    } catch (error) {
+      this.logger.error('UI管理システムの初期化に失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * フォーム管理システムの初期化
+   */
+  async initializeNewsFormManager() {
+    try {
+      this.newsFormManager = new NewsFormManager();
+      
+      // フォーム管理イベントの設定
+      this.setupNewsFormEvents();
+      
+      this.logger.debug('フォーム管理システムの初期化完了');
+    } catch (error) {
+      this.logger.error('フォーム管理システムの初期化に失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * アクションハンドラーの初期化
+   */
+  async initializeActionHandler() {
+    try {
+      this.actionHandler = new AdminActionHandler(this);
+      
+      this.logger.debug('アクションハンドラーの初期化完了');
+    } catch (error) {
+      this.logger.error('アクションハンドラーの初期化に失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * システム統合設定
+   */
+  setupSystemIntegration() {
+    // UIManagerにイベントリスナーを設定
+    this.uiManager.on('saveRequested', (type) => {
+      if (type === 'news') {
+        this.actionHandler.saveNews();
+      } else if (type === 'lesson') {
+        this.actionHandler.updateLessonStatus();
+      }
+    });
+
+    // DataManagerにエラーハンドラーを設定
     this.dataManager.setUIManager(this.uiManager);
     
-    // UIマネージャーにDataManagerのイベントを設定
-    this.uiManager.setupDataManagerEvents(this.dataManager);
-    
-    // 各モジュールにエラーハンドラーを設定
-    this.modules.forEach(module => {
-      if (module.setErrorHandler) {
-        module.setErrorHandler(this.errorHandler);
-      }
-    });
-  }
-
-  /**
-   * 認証チェック
-   */
-  async checkAuthentication() {
-    if (!this.auth.isAuthenticated()) {
-      this.logger.warn('認証が必要です');
-      this.redirectToLogin();
-      throw new Error('認証が必要です');
-    }
-    this.logger.info('認証チェック完了');
-  }
-
-  /**
-   * UI初期化
-   */
-  async initUI() {
-    await this.uiManager.init();
-    
-    // UI初期化完了後、ダッシュボードが初期タブの場合は初期化を実行
-    if (this.uiManager.currentTab === 'dashboard') {
-      this.logger.debug('初期タブがダッシュボードのため、初期化を実行します');
-      this.uiManager.initializeDashboard();
-    }
-    
-    this.logger.info('UI初期化完了');
-  }
-
-  /**
-   * エラーハンドリングの設定
-   */
-  setupErrorHandling() {
-    // グローバルエラーハンドラー
-    window.addEventListener('error', (event) => {
-      this.errorHandler.handle(event.error, 'グローバルエラー');
-    });
-
-    // Promise拒否ハンドラー
-    window.addEventListener('unhandledrejection', (event) => {
-      this.errorHandler.handle(event.reason, 'Promise拒否');
-    });
-  }
-
-  /**
-   * イベントリスナーの設定
-   */
-  setupEventListeners() {
-    // 認証状態の変更
-    this.auth.on('authChanged', (isAuthenticated) => {
-      if (!isAuthenticated) {
-        this.redirectToLogin();
-      }
-    });
-
-    // データの変更
+    // データ変更時にUIを更新
     this.dataManager.on('dataChanged', (type, data) => {
-      this.emit('dataChanged', { type, data });
+      this.emit('dataChanged', type, data);
     });
 
-    // UI状態の変更
-    this.uiManager.on('tabChanged', (tabName) => {
-      this.emit('tabChanged', tabName);
+    this.logger.debug('システム統合設定完了');
+  }
+
+  /**
+   * フォーム管理イベントの設定
+   */
+  setupNewsFormEvents() {
+    // フォーム変更時の処理
+    this.newsFormManager.on('formChanged', (formData) => {
+      // 未保存の変更があることを記録
+      this.uiManager.handleFormChange();
+    });
+
+    // 自動保存完了時の通知
+    this.newsFormManager.on('autoSaved', (formData) => {
+      this.uiManager.showNotification('info', '自動保存しました', 2000);
+    });
+
+    // 記事読み込み時の処理
+    this.newsFormManager.on('articleLoaded', (article) => {
+      this.emit('articleLoaded', article);
+    });
+
+    // フォームクリア時の処理
+    this.newsFormManager.on('formCleared', () => {
+      this.uiManager.clearFormChanges('news-form');
     });
   }
 
   /**
-   * 自動保存の設定
+   * ログアウト処理
    */
-  setupAutoSave() {
-    setInterval(() => {
-      if (this.dataManager.hasUnsavedChanges()) {
-        this.dataManager.autoSave();
+  async logout() {
+    try {
+      this.logger.info('ログアウト処理を開始...');
+      
+      // 未保存の変更があるかチェック
+      if (this.uiManager && this.uiManager.hasUnsavedChanges()) {
+        if (!confirm('未保存の変更があります。ログアウトしますか？')) {
+          return;
+        }
       }
-    }, this.config.autoSaveInterval);
+      
+      // 認証システムからログアウト
+      if (this.auth) {
+        await this.auth.logout();
+      }
+      
+      // システムをクリーンアップ
+      this.destroy();
+      
+      // ログインページにリダイレクト
+      this.redirectToLogin();
+      
+    } catch (error) {
+      this.logger.error('ログアウト処理に失敗:', error);
+      this.uiManager?.showNotification('error', 'ログアウトに失敗しました');
+    }
   }
 
   /**
-   * モジュール取得
-   */
-  getModule(name) {
-    return this.modules.get(name);
-  }
-
-  /**
-   * ログイン画面にリダイレクト
+   * ログインページへのリダイレクト
    */
   redirectToLogin() {
-    this.logger.info('ログイン画面にリダイレクト');
-    setTimeout(() => {
-      window.location.href = 'admin-login.html';
-    }, 1000);
+    window.location.href = 'admin-login.html';
   }
 
   /**
-   * ログアウト
+   * 重大なエラーの処理
    */
-  logout() {
-    this.auth.logout();
-    this.redirectToLogin();
+  handleCriticalError(error) {
+    this.logger.error('重大なエラーが発生:', error);
+    
+    // フォールバックエラー表示
+    this.showFallbackError(error);
   }
 
   /**
-   * 破棄処理
+   * フォールバックエラー表示
+   */
+  showFallbackError(error) {
+    const errorHTML = `
+      <div style="
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #fff;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        text-align: center;
+        z-index: 9999;
+        max-width: 400px;
+      ">
+        <h2 style="color: #e53e3e; margin-bottom: 1rem;">
+          システムエラー
+        </h2>
+        <p style="margin-bottom: 1rem;">
+          管理画面の起動に失敗しました。<br>
+          ページを再読み込みしてください。
+        </p>
+        <div style="margin-bottom: 1rem; font-size: 0.8em; color: #666;">
+          エラー詳細: ${error.message}
+        </div>
+        <button onclick="window.location.reload()" style="
+          background: #4299e1;
+          color: white;
+          border: none;
+          padding: 0.5rem 1rem;
+          border-radius: 4px;
+          cursor: pointer;
+          margin-right: 0.5rem;
+        ">
+          再読み込み
+        </button>
+        <button onclick="window.location.href='admin-login.html'" style="
+          background: #718096;
+          color: white;
+          border: none;
+          padding: 0.5rem 1rem;
+          border-radius: 4px;
+          cursor: pointer;
+        ">
+          ログイン画面へ
+        </button>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', errorHTML);
+  }
+
+  /**
+   * システム状態の取得
+   */
+  getSystemStatus() {
+    return {
+      isInitialized: this.isInitialized,
+      isAuthenticated: this.isAuthenticated,
+      modules: {
+        auth: !!this.auth,
+        dataManager: !!this.dataManager,
+        uiManager: !!this.uiManager,
+        newsFormManager: !!this.newsFormManager,
+        actionHandler: !!this.actionHandler
+      },
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  /**
+   * パフォーマンス情報の取得
+   */
+  getPerformanceInfo() {
+    const performance = window.performance;
+    const navigation = performance.getEntriesByType('navigation')[0];
+    
+    return {
+      pageLoad: navigation ? navigation.loadEventEnd - navigation.loadEventStart : 0,
+      domContentLoaded: navigation ? navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart : 0,
+      memory: performance.memory ? {
+        used: performance.memory.usedJSHeapSize,
+        total: performance.memory.totalJSHeapSize,
+        limit: performance.memory.jsHeapSizeLimit
+      } : null
+    };
+  }
+
+  /**
+   * システム破棄処理
    */
   destroy() {
-    if (this.autoSaveInterval) {
-      clearInterval(this.autoSaveInterval);
-    }
-    
-    this.modules.forEach(module => {
-      if (module.destroy) {
-        module.destroy();
+    try {
+      this.logger.info('管理画面システムを破棄中...');
+      
+      // 各モジュールの破棄
+      if (this.actionHandler) {
+        this.actionHandler.destroy();
+        this.actionHandler = null;
       }
-    });
-    
-    this.removeAllListeners();
-    this.isInitialized = false;
-    this.logger.info('管理画面システムを破棄しました');
+      
+      if (this.newsFormManager) {
+        this.newsFormManager.destroy();
+        this.newsFormManager = null;
+      }
+      
+      if (this.uiManager) {
+        this.uiManager.destroy();
+        this.uiManager = null;
+      }
+      
+      if (this.dataManager) {
+        this.dataManager.destroy();
+        this.dataManager = null;
+      }
+      
+      if (this.auth) {
+        this.auth.destroy();
+        this.auth = null;
+      }
+      
+      // イベントリスナーをクリア
+      this.removeAllListeners();
+      
+      this.isInitialized = false;
+      this.isAuthenticated = false;
+      
+      this.logger.info('管理画面システムの破棄完了');
+      
+    } catch (error) {
+      this.logger.error('システム破棄中にエラーが発生:', error);
+    }
   }
 } 

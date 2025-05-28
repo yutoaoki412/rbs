@@ -3,17 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- メタデータは自動設定されます -->
-  <!-- OGP設定は動的に更新されます -->
+  <!-- メタデータは動的に設定されます -->
+  <title>ニュース詳細 - RBS陸上教室</title>
+  <meta name="description" content="RBS陸上教室のニュース詳細ページ">
+  <meta name="keywords" content="RBS,陸上教室,Running,Brain,School,子ども,スポーツ,ニュース">
+  <meta name="robots" content="index, follow">
   
-  <!-- 基本CSS -->
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+  
+  <!-- CSS -->
   <link rel="stylesheet" href="../css/base.css">
   <link rel="stylesheet" href="../css/common.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/news.css">
   <link rel="stylesheet" href="../css/news-detail.css">
   <link rel="stylesheet" href="../css/responsive.css">
-  <!-- ページ固有のCSSは自動読み込みされます -->
 </head>
 <body class="page-news-detail">
   <!-- ヘッダーは動的に読み込まれます -->
@@ -22,62 +28,81 @@
     <div class="container">
       <!-- パンくずナビ -->
       <nav class="breadcrumb">
-        <ol class="breadcrumb-list">
-          <li><a href="index.html">ホーム</a></li>
-          <li><span class="breadcrumb-separator">›</span></li>
-          <li><a href="news.html">NEWS</a></li>
-          <li><span class="breadcrumb-separator">›</span></li>
-          <li class="current" id="breadcrumb-title">記事を読み込み中...</li>
-        </ol>
+        <ul class="breadcrumb-list">
+          <li>
+            <a href="../pages/index.html">ホーム</a>
+          </li>
+          <li>
+            <span class="breadcrumb-separator">></span>
+          </li>
+          <li>
+            <a href="news.html">ニュース</a>
+          </li>
+          <li>
+            <span class="breadcrumb-separator">></span>
+          </li>
+          <li>
+            <span id="breadcrumb-title">記事詳細</span>
+          </li>
+        </ul>
       </nav>
 
       <!-- 記事ヘッダー -->
-      <article class="article-header">
+      <header class="article-header" id="article-header">
         <div class="article-meta">
-          <div class="article-date" id="article-date">-</div>
-          <div class="article-category" id="article-category">-</div>
+          <span class="article-date" id="article-date">読み込み中...</span>
+          <span class="article-category" id="article-category">読み込み中...</span>
         </div>
         <h1 class="article-title" id="article-title">記事を読み込み中...</h1>
-      </article>
+        
+        <!-- 管理機能（開発時のみ表示） -->
+        <div class="admin-controls" style="display: none;" id="admin-controls">
+          <a href="admin.html" class="btn btn-outline" target="_blank">
+            <i class="fas fa-cog"></i> 管理画面
+          </a>
+          <button class="btn btn-info" onclick="showDebugInfo()">
+            <i class="fas fa-bug"></i> デバッグ
+          </button>
+        </div>
+      </header>
 
       <!-- 記事本文 -->
-      <div class="article-content" id="article-content">
-        <div class="loading-message">
-          <div class="loading-spinner"></div>
-          <p>記事を読み込み中...</p>
-        </div>
-      </div>
+      <article class="article-content" id="article-content">
+        <!-- コンテンツは動的に読み込まれます -->
+      </article>
 
-      <!-- SNSシェア -->
-      <div class="share-section" id="share-section" style="display: none;">
-        <div class="share-title">この記事をシェア</div>
+      <!-- シェアセクション -->
+      <section class="share-section" id="share-section" style="display: none;">
+        <h3 class="share-title">この記事をシェア</h3>
         <div class="share-buttons">
-          <a href="#" class="share-btn twitter" onclick="shareTwitter()">
-            <span class="share-icon">🐦</span> X
-          </a>
-          <a href="#" class="share-btn facebook" onclick="shareFacebook()">
-            <span class="share-icon">📘</span> Facebook
-          </a>
-          <a href="#" class="share-btn line" onclick="shareLine()">
-            <span class="share-icon">💬</span> LINE
-          </a>
-          <a href="#" class="share-btn copy" onclick="copyUrl()">
-            <span class="share-icon">📋</span> URLコピー
-          </a>
+          <button onclick="shareTwitter()" class="share-btn twitter">
+            <i class="fab fa-twitter share-icon"></i> Twitter
+          </button>
+          <button onclick="shareFacebook()" class="share-btn facebook">
+            <i class="fab fa-facebook share-icon"></i> Facebook
+          </button>
+          <button onclick="shareLine()" class="share-btn line">
+            <i class="fab fa-line share-icon"></i> LINE
+          </button>
+          <button onclick="copyUrl()" class="share-btn copy">
+            <i class="fas fa-copy share-icon"></i> URLコピー
+          </button>
         </div>
-      </div>
+      </section>
 
       <!-- 関連記事 -->
-      <div class="related-articles" id="related-articles" style="display: none;">
+      <section class="related-articles" id="related-articles" style="display: none;">
         <h3 class="related-title">関連記事</h3>
         <div class="related-grid" id="related-articles-container">
           <!-- 関連記事は動的に生成されます -->
         </div>
-      </div>
+      </section>
 
-      <!-- 記事ナビゲーション -->
-      <div class="article-nav" id="article-navigation">
-        <a href="news.html" class="nav-btn">一覧に戻る</a>
+      <!-- 一覧に戻る -->
+      <div class="article-nav">
+        <a href="news.html" class="nav-btn">
+          <i class="fas fa-arrow-left"></i> ニュース一覧に戻る
+        </a>
       </div>
     </div>
   </main>
@@ -87,16 +112,96 @@
   <!-- 基本JavaScript -->
   <script src="../js/core/config/config.js"></script>
   <script src="../js/core/utils/helpers.js"></script>
-  
-  <!-- コンポーネントシステム -->
   <script src="../components/TemplateLoader.js"></script>
   <script src="../components/CommonHeader.js"></script>
   <script src="../components/CommonFooter.js"></script>
   <script src="../components/PageInitializer.js"></script>
+  <script src="../components/PageTemplate.js"></script>
   <script src="../js/page-configs.js"></script>
   
-  <!-- ページ固有のJavaScript -->
+  <!-- ArticleService v2.0を最優先で読み込み -->
+  <script src="../js/services/article-service.js"></script>
+  
+  <!-- その他のスクリプト -->
   <script src="../js/markdown-parser.js"></script>
   <script src="../js/pages/news-detail.js"></script>
+
+  <!-- 初期化とエラーハンドリング -->
+  <script>
+    // 開発環境でのみ管理機能を表示
+    if (window.location.hostname === 'localhost' || 
+        window.location.hostname === '127.0.0.1' ||
+        window.location.protocol === 'file:') {
+      const adminControls = document.getElementById('admin-controls');
+      if (adminControls) {
+        adminControls.style.display = 'flex';
+      }
+    }
+
+    // デバッグ情報表示関数
+    function showDebugInfo() {
+      if (typeof window.NewsDetailPage !== 'undefined' && window.NewsDetailPage.showDebugInfo) {
+        window.NewsDetailPage.showDebugInfo();
+      } else {
+        alert('ニュース詳細ページのJavaScriptが正しく読み込まれていません。ページを再読み込みしてください。');
+        console.error('NewsDetailPageオブジェクトが見つかりません');
+      }
+    }
+
+    // グローバルエラーハンドリング
+    window.addEventListener('error', function(event) {
+      console.error('ニュース詳細ページエラー:', event.error);
+      
+      if (typeof window.NewsDetailPage === 'undefined') {
+        const articleContent = document.getElementById('article-content');
+        if (articleContent && articleContent.children.length === 0) {
+          articleContent.innerHTML = `
+            <div class="error-message">
+              <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+              <h3>記事の読み込みに失敗しました</h3>
+              <p>システムエラーが発生しました。</p>
+              <p class="error-details">エラー詳細: ${event.error?.message || 'Unknown error'}</p>
+              <div class="error-actions">
+                <button onclick="location.reload()" class="btn btn-primary">再読み込み</button>
+                <a href="news.html" class="btn btn-secondary">ニュース一覧へ</a>
+              </div>
+            </div>
+          `;
+        }
+      }
+    });
+
+    // 初期化チェック
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('📄 ニュース詳細ページ DOM読み込み完了');
+      
+      // NewsDetailPageオブジェクトの読み込み確認
+      setTimeout(() => {
+        if (typeof window.NewsDetailPage === 'undefined') {
+          console.warn('⚠️ NewsDetailPageオブジェクトが読み込まれていません');
+          
+          const adminControls = document.getElementById('admin-controls');
+          if (adminControls && adminControls.style.display !== 'none') {
+            const articleContent = document.getElementById('article-content');
+            if (articleContent && articleContent.children.length === 0) {
+              articleContent.innerHTML = `
+                <div class="initialization-error">
+                  <div style="font-size: 48px; margin-bottom: 20px;">🔧</div>
+                  <h3>初期化が遅延しています</h3>
+                  <p>記事詳細システムの初期化に時間がかかっています。しばらくお待ちください。</p>
+                  <div class="error-actions">
+                    <button onclick="location.reload()" class="btn btn-primary">再読み込み</button>
+                    <button onclick="showDebugInfo()" class="btn btn-secondary">詳細確認</button>
+                  </div>
+                </div>
+              `;
+            }
+          }
+        } else {
+          console.log('✅ NewsDetailPageオブジェクトが正常に読み込まれています');
+        }
+      }, 5000);
+    });
+  </script>
 </body>
 </html> 

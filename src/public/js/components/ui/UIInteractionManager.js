@@ -35,17 +35,23 @@ class UIInteractionManager extends Component {
   }
 
   /**
-   * 初期化処理
+   * 初期化処理の実行
    */
   doInit() {
+    console.log('📱 UIInteractionManager v2.0 初期化開始');
+    
     this.setupMobileMenu();
     this.setupSmoothScroll();
     this.setupScrollAnimations();
     this.setupHeaderEffects();
     this.setupHeroAnimations();
+    this.setupVideoHandling();
     this.setupFloatingShapes();
     
-    this.emit('ui:initialized');
+    // ステータスバナーの初期化
+    StatusManager.init();
+    
+    console.log('✅ UIInteractionManager v2.0 初期化完了');
   }
 
   /**
@@ -410,8 +416,6 @@ class UIInteractionManager extends Component {
   }
 }
 
-// FAQ機能は統一されたFAQManager.jsで管理されます
-
 /**
  * ステータス管理クラス
  */
@@ -421,15 +425,117 @@ class StatusManager {
    */
   static toggle() {
     try {
-      const statusBanner = RBSHelpers.getElement('.status-banner');
-      if (!statusBanner) return;
-
-      statusBanner.classList.toggle('active');
+      console.log('📊 ステータストグル開始');
       
+      const statusBanner = RBSHelpers.getElement('.status-banner');
+      if (!statusBanner) {
+        console.warn('⚠️ ステータスバナーが見つかりません');
+        return;
+      }
+
+      const statusContent = statusBanner.querySelector('.status-content');
+      const toggleIcon = statusBanner.querySelector('.toggle-icon');
+      
+      // activeクラスの切り替え
+      const isCurrentlyActive = statusBanner.classList.contains('active');
+      statusBanner.classList.toggle('active');
       const isActive = statusBanner.classList.contains('active');
-      eventBus.emit('ui:statusToggled', { isActive });
+      
+      console.log('📊 ステータス状態変更:', 
+        `${isCurrentlyActive ? '展開' : '折りたたみ'} → ${isActive ? '展開' : '折りたたみ'}`);
+      
+      // コンテンツの表示制御
+      if (statusContent) {
+        if (isActive) {
+          // 展開
+          statusContent.style.display = 'block';
+          statusContent.style.maxHeight = '0';
+          statusContent.style.opacity = '0';
+          
+          // 次のフレームで展開アニメーション開始
+          requestAnimationFrame(() => {
+            statusContent.style.maxHeight = '500px';
+            statusContent.style.opacity = '1';
+          });
+        } else {
+          // 折りたたみ
+          statusContent.style.maxHeight = '0';
+          statusContent.style.opacity = '0';
+          
+          // アニメーション完了後にdisplay: noneを設定
+          setTimeout(() => {
+            if (!statusBanner.classList.contains('active')) {
+              statusContent.style.display = 'none';
+            }
+          }, 300);
+        }
+      }
+      
+      // アイコンの回転
+      if (toggleIcon) {
+        toggleIcon.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0deg)';
+      }
+      
+      // statusBannerにdata属性を追加して状態を明示
+      statusBanner.setAttribute('data-status', isActive ? 'open' : 'closed');
+      
+      // カスタムイベントの発行
+      const event = new CustomEvent('statusToggled', {
+        detail: { isActive, element: statusBanner }
+      });
+      document.dispatchEvent(event);
+      
+      // eventBusが利用可能な場合は従来のイベントも発行
+      if (typeof eventBus !== 'undefined') {
+        eventBus.emit('ui:statusToggled', { isActive });
+      }
+      
+      console.log('✅ ステータストグル完了 - 状態:', isActive ? '展開' : '折りたたみ');
+      
     } catch (error) {
-      console.error('ステータス切り替えエラー:', error);
+      console.error('❌ ステータス切り替えエラー:', error);
+    }
+  }
+  
+  /**
+   * ステータスバナーを初期化
+   */
+  static init() {
+    try {
+      console.log('📊 ステータスバナー初期化開始');
+      
+      const statusBanner = RBSHelpers.getElement('.status-banner');
+      if (!statusBanner) {
+        console.warn('⚠️ ステータスバナーが見つかりません');
+        return false;
+      }
+      
+      const statusContent = statusBanner.querySelector('.status-content');
+      if (statusContent) {
+        // 初期状態を設定
+        statusContent.style.display = 'none';
+        statusContent.style.maxHeight = '0';
+        statusContent.style.opacity = '0';
+        statusContent.style.transition = 'max-height 0.3s ease, opacity 0.3s ease';
+        statusContent.style.overflow = 'hidden';
+      }
+      
+      const toggleIcon = statusBanner.querySelector('.toggle-icon');
+      if (toggleIcon) {
+        toggleIcon.style.transition = 'transform 0.3s ease';
+        toggleIcon.style.transform = 'rotate(0deg)';
+      }
+      
+      // 初期状態の設定
+      statusBanner.classList.remove('active');
+      statusBanner.setAttribute('data-status', 'closed');
+      
+      console.log('✅ ステータスバナー初期化完了');
+      return true;
+      
+    } catch (error) {
+      console.error('❌ ステータスバナー初期化エラー:', error);
+      return false;
     }
   }
 }
