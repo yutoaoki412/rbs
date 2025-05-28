@@ -3,52 +3,62 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- メタデータは自動設定されます -->
+  <title>ニュース - RBS陸上教室</title>
+  <meta name="description" content="RBS陸上教室の最新情報をお届けします">
+  <meta name="keywords" content="RBS,陸上教室,Running,Brain,School,子ども,スポーツ,ニュース">
+  <meta name="robots" content="index, follow">
   
-  <!-- 基本CSS -->
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="../images/favicon.ico">
+  
+  <!-- CSS - 元のシステムを維持 -->
   <link rel="stylesheet" href="../styles/base.css">
   <link rel="stylesheet" href="../styles/common.css">
   <link rel="stylesheet" href="../styles/components.css">
   <link rel="stylesheet" href="../styles/layout.css">
+  <link rel="stylesheet" href="../styles/news.css">
   <link rel="stylesheet" href="../styles/responsive.css">
-  <!-- ページ固有のCSSは自動読み込みされます -->
 </head>
 <body class="page-news">
   <!-- ヘッダーは動的に読み込まれます -->
 
   <main>
     <div class="container">
-      <!-- ページヘッダー -->
-      <div class="page-header">
-        <h1>NEWS</h1>
-        <p>RBS陸上教室の最新情報をお届けします</p>
-      </div>
-
-      <!-- フィルター -->
-      <div class="news-filters">
-        <div class="filter-title">カテゴリーで絞り込み</div>
-        <div class="filter-buttons">
-          <a href="news.html" class="filter-btn active" data-category="all">すべて</a>
-          <a href="news.html?category=announcement" class="filter-btn" data-category="announcement">お知らせ</a>
-          <a href="news.html?category=event" class="filter-btn" data-category="event">体験会</a>
-          <a href="news.html?category=media" class="filter-btn" data-category="media">メディア</a>
-          <a href="news.html?category=important" class="filter-btn" data-category="important">重要</a>
-        </div>
-      </div>
-
-      <!-- 検索結果表示 -->
-      <div class="search-results" id="search-results" style="display: none;">
-        <div class="search-results-text">
-          <span id="search-count">0</span>件の記事が見つかりました
-        </div>
+      <!-- ページヘッダー - 元のスタイルを使用 -->
+      <div style="text-align: center; padding-top: 60px; margin-bottom: 60px; position: relative;">
+        <h1 style="font-size: clamp(36px, 7vw, 56px); line-height: 1.2; margin-bottom: 40px; color: var(--navy-dark); font-weight: var(--font-weight-heavy); letter-spacing: -0.02em; position: relative; padding-bottom: 25px;">
+          NEWS
+          <span style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 120px; height: 8px; background: var(--primary-blue); border-radius: var(--radius-xs); display: block;"></span>
+        </h1>
+        <p style="font-size: 18px; color: var(--gray-medium); margin-top: 15px;">RBS陸上教室の最新情報をお届けします</p>
       </div>
 
       <!-- ニュース一覧 -->
-      <div class="news-grid" id="news-grid">
-        <!-- 初期表示：ローディング -->
-        <div class="loading-message">
-          <div class="loading-spinner"></div>
-          <p>記事を読み込み中...</p>
+      <div class="news-section-new">
+        <!-- フィルター -->
+        <div class="filter-title-new">カテゴリーで絞り込み</div>
+        <div class="news-filters-new">
+          <a href="news.html" class="filter-btn-new active" data-category="all">すべて</a>
+          <a href="news.html?category=announcement" class="filter-btn-new" data-category="announcement">お知らせ</a>
+          <a href="news.html?category=event" class="filter-btn-new" data-category="event">体験会</a>
+          <a href="news.html?category=media" class="filter-btn-new" data-category="media">メディア</a>
+          <a href="news.html?category=important" class="filter-btn-new" data-category="important">重要</a>
+        </div>
+
+        <!-- 検索結果表示 -->
+        <div class="search-results-new" id="search-results" style="display: none;">
+          <div class="search-results-text">
+            <span id="search-count">0</span>件の記事が見つかりました
+          </div>
+        </div>
+
+        <!-- ニュース一覧 -->
+        <div class="news-grid-new" id="news-grid">
+          <!-- 初期表示：ローディング -->
+          <div class="loading-message">
+            <div class="loading-spinner"></div>
+            <p>記事を読み込み中...</p>
+          </div>
         </div>
       </div>
     </div>
@@ -56,18 +66,15 @@
 
   <!-- フッターは動的に読み込まれます -->
 
-  <!-- 基本JavaScript -->
+  <!-- JavaScript -->
   <script src="../js/core/config/config.js"></script>
   <script src="../js/core/utils/helpers.js"></script>
-  
-  <!-- コンポーネントシステム -->
   <script src="../components/TemplateLoader.js"></script>
   <script src="../components/CommonHeader.js"></script>
   <script src="../components/CommonFooter.js"></script>
   <script src="../components/PageInitializer.js"></script>
+  <script src="../components/PageTemplate.js"></script>
   <script src="../js/page-configs.js"></script>
-  
-  <!-- ページ固有のJavaScript -->
   <script src="../js/markdown-parser.js"></script>
   
   <script>
@@ -84,7 +91,7 @@
     // 記事カードを作成
     function createArticleCard(article) {
       const card = document.createElement('article');
-      card.className = 'news-card';
+      card.className = 'news-card-new';
       card.setAttribute('data-category', article.category);
       
       card.innerHTML = `
@@ -124,7 +131,7 @@
           <div class="empty-message">
             <h3>記事がありません</h3>
             <p>${message}</p>
-            <a href="admin.html" class="btn-secondary">管理画面へ</a>
+            <a href="admin.html" class="btn btn-secondary">管理画面へ</a>
           </div>
         `;
         return;
@@ -173,7 +180,7 @@
 
     // フィルタリング機能をセットアップ
     function setupFiltering() {
-      const filterButtons = document.querySelectorAll('.filter-btn');
+      const filterButtons = document.querySelectorAll('.filter-btn-new');
       
       // 現在のカテゴリーボタンをアクティブに
       filterButtons.forEach(btn => {
@@ -207,72 +214,36 @@
     }
 
     function escapeHtml(text) {
-      if (!text) return '';
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
     }
 
-    // エラーメッセージを表示
-    function showErrorMessage() {
-      const newsGrid = document.getElementById('news-grid');
-      newsGrid.innerHTML = `
-        <div class="error-message">
-          <h3>読み込みエラー</h3>
-          <p>記事の読み込みに失敗しました。</p>
-          <p>しばらく時間をおいてから再度お試しください。</p>
-          <button onclick="location.reload()" class="retry-btn">再読み込み</button>
-        </div>
-      `;
-    }
-
-    // 記事一覧を読み込み・表示
-    async function loadAndDisplayArticles() {
-      try {
-        // ArticleManagerのインスタンスを作成
-        articleManager = new ArticleManager();
-        
-        // 記事データを読み込み（管理画面からの記事のみ）
-        await articleManager.loadArticles();
-        
-        console.log('記事データ読み込み完了:', articleManager.articles.length, '件');
-        
-        // 記事を表示
-        displayArticles();
-        
-        // フィルタリング機能をセットアップ
-        setupFiltering();
-        
-      } catch (error) {
-        console.error('記事の読み込みに失敗しました:', error);
-        showErrorMessage();
-      }
-    }
-
-    // ページロード時の処理
+    // ページ初期化
     document.addEventListener('DOMContentLoaded', function() {
-      // 現在のカテゴリーを取得
       currentCategory = getCurrentCategory();
       
-      console.log('記事一覧ページを初期化中... カテゴリー:', currentCategory);
-      
-      // ページ初期化完了を待つ
-      if (window.PAGE_CONFIGS) {
-        // ページ初期化完了後に記事読み込み開始
-        setTimeout(() => {
-          loadAndDisplayArticles();
-        }, 100);
-      } else {
-        // PAGE_CONFIGSが読み込まれるまで待つ
-        const checkInitialization = () => {
-          if (window.PAGE_CONFIGS) {
-            loadAndDisplayArticles();
-          } else {
-            setTimeout(checkInitialization, 50);
-          }
-        };
-        checkInitialization();
+      if (typeof PageInitializer !== 'undefined') {
+        PageInitializer.init({
+          currentPage: 'news',
+          pageTitle: 'ニュース - RBS陸上教室',
+          hasStatusBanner: false
+        });
       }
+      
+      setupFiltering();
+      
+      // 記事管理システムの初期化を待つ
+      const initArticleSystem = () => {
+        if (window.articleManager) {
+          articleManager = window.articleManager;
+          displayArticles();
+        } else {
+          setTimeout(initArticleSystem, 100);
+        }
+      };
+      
+      initArticleSystem();
     });
   </script>
 </body>
