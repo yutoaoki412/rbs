@@ -25,23 +25,35 @@ export async function init(app) {
  * インデックスページ固有のアクションを登録
  */
 function registerIndexActions() {
+  // ActionHandlerが使用可能かチェック
+  if (typeof actionHandler === 'undefined' || !actionHandler) {
+    console.warn('⚠️ ActionHandlerが使用できません。フォールバック処理を実行します。');
+    registerFallbackActions();
+    return;
+  }
+
+  console.log('🔧 インデックス固有アクション登録開始');
+  
   actionHandler.registerMultiple({
-    // ステータス切り替え
+    // ステータス切り替え（シンプル版）
     'toggle-status': (element) => {
-      const statusContent = document.querySelector('.status-content');
-      const toggleIcon = element.querySelector('.toggle-icon');
+      const statusBanner = document.getElementById('today-status');
       
-      if (statusContent && toggleIcon) {
-        const isExpanded = statusContent.style.display !== 'none';
+      if (statusBanner) {
+        // CSSの.status-banner.activeクラスを使用してトグル
+        const isActive = statusBanner.classList.contains('active');
         
-        statusContent.style.display = isExpanded ? 'none' : 'block';
-        toggleIcon.textContent = isExpanded ? '▼' : '▲';
-        element.setAttribute('aria-expanded', !isExpanded);
-        
-        // アニメーション効果
-        if (!isExpanded) {
-          statusContent.style.animation = 'fadeInDown 0.3s ease-out';
+        if (isActive) {
+          statusBanner.classList.remove('active');
+          element.setAttribute('aria-expanded', 'false');
+        } else {
+          statusBanner.classList.add('active');
+          element.setAttribute('aria-expanded', 'true');
         }
+        
+        console.log(`🔄 レッスン状況トグル: ${isActive ? 'クローズ' : 'オープン'}`);
+      } else {
+        console.warn('⚠️ ステータスバナー要素が見つかりません');
       }
     },
 
@@ -50,6 +62,41 @@ function registerIndexActions() {
       EventBus.emit('debug:show-news-info');
     }
   });
+  
+  console.log('✅ インデックス固有アクション登録完了');
+}
+
+/**
+ * フォールバック用のアクション登録
+ */
+function registerFallbackActions() {
+  console.log('🔧 フォールバック版アクション登録開始');
+  
+  // 直接イベントリスナーを設定
+  const statusToggleElement = document.querySelector('[data-action="toggle-status"]');
+  if (statusToggleElement) {
+    statusToggleElement.addEventListener('click', (event) => {
+      event.preventDefault();
+      
+      const statusBanner = document.getElementById('today-status');
+      
+      if (statusBanner) {
+        const isActive = statusBanner.classList.contains('active');
+        
+        if (isActive) {
+          statusBanner.classList.remove('active');
+          statusToggleElement.setAttribute('aria-expanded', 'false');
+        } else {
+          statusBanner.classList.add('active');
+          statusToggleElement.setAttribute('aria-expanded', 'true');
+        }
+        
+        console.log('📱 フォールバック版レッスン状況トグル実行');
+      }
+    });
+  }
+  
+  console.log('✅ フォールバック版アクション登録完了');
 }
 
 /**
@@ -202,5 +249,5 @@ function showNewsDebugInfo() {
  * ページの破棄処理
  */
 export function destroy() {
-  console.log('�� インデックスページ破棄中');
+  console.log('🗑️ インデックスページ破棄中');
 }

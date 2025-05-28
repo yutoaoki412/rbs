@@ -98,15 +98,51 @@ function initBasicFallbacks() {
     });
   }
 
-  // FAQ機能
-  document.querySelectorAll('.faq-item').forEach(item => {
-    const question = item.querySelector('.faq-question');
-    if (question) {
+  // レッスン状況トグル（フォールバック版）
+  const statusToggleElement = document.querySelector('[data-action="toggle-status"]');
+  if (statusToggleElement) {
+    statusToggleElement.addEventListener('click', () => {
+      const statusBanner = document.getElementById('today-status');
+      
+      if (statusBanner) {
+        const isActive = statusBanner.classList.contains('active');
+        
+        if (isActive) {
+          statusBanner.classList.remove('active');
+          statusToggleElement.setAttribute('aria-expanded', 'false');
+        } else {
+          statusBanner.classList.add('active');
+          statusToggleElement.setAttribute('aria-expanded', 'true');
+        }
+        
+        console.log('📱 フォールバック版レッスン状況トグル実行');
+      }
+    });
+  }
+
+  // 基本的なFAQフォールバック（ActionHandlerが利用できない場合のみ）
+  if (!window.RBS?.app?.modules?.has('ActionHandler')) {
+    document.querySelectorAll('[data-action="toggle-faq"]').forEach(question => {
       question.addEventListener('click', () => {
-        item.classList.toggle('open');
+        const faqItem = question.closest('.faq-item');
+        if (faqItem) {
+          // アコーディオン動作: 他のFAQを閉じる
+          document.querySelectorAll('.faq-item.active').forEach(item => {
+            if (item !== faqItem) {
+              item.classList.remove('active');
+            }
+          });
+          
+          // 現在のFAQをトグル
+          faqItem.classList.toggle('active');
+          const isActive = faqItem.classList.contains('active');
+          question.setAttribute('aria-expanded', isActive.toString());
+          
+          console.log('📱 フォールバック版FAQトグル実行');
+        }
       });
-    }
-  });
+    });
+  }
 
   // スクロールトップボタン
   const scrollTopBtn = document.querySelector('.scroll-to-top');

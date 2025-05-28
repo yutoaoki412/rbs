@@ -74,13 +74,20 @@ class Application {
 
     for (const modulePath of sharedModules) {
       try {
+        console.log(`📦 モジュール読み込み中: ${modulePath}`);
         const module = await import(`../${modulePath}.js`);
         const name = modulePath.split('/').pop();
         this.modules.set(name, module);
         
-        // ActionHandlerは自動的に初期化
-        if (name === 'ActionHandler' && module.actionHandler) {
-          module.actionHandler.init();
+        // ActionHandlerは確実に初期化
+        if (name === 'ActionHandler') {
+          console.log('🔧 ActionHandler初期化開始');
+          if (module.actionHandler) {
+            module.actionHandler.init();
+            console.log('✅ ActionHandler初期化完了');
+          } else {
+            console.warn('⚠️ actionHandlerインスタンスが見つかりません');
+          }
         }
       } catch (error) {
         console.warn(`共通モジュール読み込み失敗: ${modulePath}`, error);

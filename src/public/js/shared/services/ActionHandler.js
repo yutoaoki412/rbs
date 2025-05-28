@@ -141,6 +141,30 @@ export class ActionHandler {
         }
       },
 
+      // FAQトグル機能
+      'toggle-faq': (element, params) => {
+        const faqItem = element.closest('.faq-item');
+        if (faqItem) {
+          const isActive = faqItem.classList.contains('active');
+          
+          // 他の開いているFAQを閉じる（アコーディオン動作）
+          document.querySelectorAll('.faq-item.active').forEach(item => {
+            if (item !== faqItem) {
+              item.classList.remove('active');
+            }
+          });
+          
+          // 現在のFAQをトグル
+          faqItem.classList.toggle('active');
+          
+          // アクセシビリティ対応
+          const isNowActive = faqItem.classList.contains('active');
+          element.setAttribute('aria-expanded', isNowActive.toString());
+          
+          console.log(`FAQ ${isNowActive ? 'opened' : 'closed'}: ${params.target || 'unknown'}`);
+        }
+      },
+
       // モバイルメニュー切り替え
       'toggle-mobile-menu': (element) => {
         const nav = document.querySelector('.nav-links');

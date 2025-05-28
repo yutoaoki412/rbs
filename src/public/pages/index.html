@@ -37,7 +37,7 @@
   <!-- 本日の開催状況 -->
   <section id="today-status" class="status-banner">
     <div class="container">
-      <div class="status-header" data-action="toggle-status" style="cursor: pointer;">
+      <div class="status-header" data-action="toggle-status" style="cursor: pointer;" aria-expanded="false">
         <div class="status-info">
           <span class="status-dot"></span>
           <span class="status-text">本日のレッスン開催状況</span>
@@ -45,7 +45,7 @@
         </div>
         <span class="toggle-icon">▼</span>
       </div>
-      <div class="status-content" style="display: none;">
+      <div class="status-content">
         <div class="status-details" id="status-details">
           <div class="loading-status">
             <p>レッスン状況を読み込み中...</p>
@@ -569,11 +569,11 @@
       <h2>よくあるご質問</h2>
       <div class="faq-list">
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-1">
             Q1. レッスンではどのような内容を行いますか？
             <span class="faq-icon">+</span>
           </div>
-          <div class="faq-answer">
+          <div class="faq-answer" id="faq-1">
             <p>
               RBS陸上教室では、「走る・跳ぶ・投げる」といった陸上競技の基本動作を中心に、遊び感覚も取り入れたトレーニングを通じて自然と運動能力を高めていきます。短距離を中心に、他の球技にも活きるトレーニングを楽しく体験しながら基礎を習得できるカリキュラムです。<br><br>
               また、非認知能力（挑戦する力・集中力・協調性など）を育むプログラムも導入しており、競技力だけでなく人間力の向上にも力を入れています。少人数制クラスで、一人ひとりの成長に寄り添った丁寧な指導を行っています。
@@ -581,99 +581,99 @@
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-2">
             Q2. 無料体験は可能ですか？
             <span class="faq-icon">+</span>
           </div>
-          <div class="faq-answer">
+          <div class="faq-answer" id="faq-2">
             <p>
               はい、<span class="text-success">無料体験レッスン</span>を随時受け付けております。体験をご希望の方は、当教室のウェブサイトにてお申し込みください。
             </p>
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-3">
             Q3. 他の陸上クラブとの違いは何ですか？
             <span class="faq-icon">+</span>
           </div>
-          <div class="faq-answer">
+          <div class="faq-answer" id="faq-3">
             <p>
               RBS陸上教室は、単なる技術指導だけでなく、子どもたちの<span class="text-primary">非認知能力</span>（自己肯定感、協調性、課題解決能力など）を育むことにも重点を置いています。また、個々の成長に合わせた指導を行い、子どもたち一人ひとりの可能性を最大限に引き出します。
             </p>
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-4">
             Q4. 持ち物は何が必要ですか？
             <span class="faq-icon">+</span>
           </div>
-          <div class="faq-answer">
+          <div class="faq-answer" id="faq-4">
             <p>
               運動に適した服装、運動に適したシューズ、飲み物（給水用）をご持参ください。また、屋内施設を利用する場合は、室内履きが必要となることがありますので、事前にご確認ください。
             </p>
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-5">
             Q5. 欠席した場合、振替はできますか？
             <span class="faq-icon">+</span>
           </div>
-          <div class="faq-answer">
+          <div class="faq-answer" id="faq-5">
             <p>
               はい、月に<span class="text-warning">1回まで</span>他のクラスへの振替が可能です。また、天候不良など教室側の都合でレッスンが中止となった場合は、別日に振替を行います。
             </p>
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-6">
             Q6. 雨天時のレッスン開催についてはどうなりますか？
             <span class="faq-icon">+</span>
           </div>
-          <div class="faq-answer">
+          <div class="faq-answer" id="faq-6">
             <p>
               屋外でのレッスンの場合、雨天時は中止となることがあります。レッスンの開催可否は、開始<span class="text-highlight">1時間半前まで</span>に当教室のウェブサイトの「本日のレッスン開催状況」セクションにてお知らせいたします。
             </p>
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-7">
             Q7. 休会は可能ですか？
             <span class="faq-icon">+</span>
           </div>
-          <div class="faq-answer">
+          <div class="faq-answer" id="faq-7">
             <p>
               はい、休会をご希望の場合は、休会される<span class="text-warning">前月の20日まで</span>にご申告ください。休会は月単位で承っており、復帰月を事前にお知らせいただく必要があります。
             </p>
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-8">
             Q8. 月謝の支払い方法は？
             <span class="faq-icon">+</span>
           </div>
-          <div class="faq-answer">
+          <div class="faq-answer" id="faq-8">
             <p>
               基本的には<span class="text-primary">自動口座引き落とし</span>をお願いしております。一部の教室では、銀行振込など他の支払い方法にも対応しておりますので、詳細はお問い合わせください。
             </p>
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-9">
             Q9. 何歳から参加できますか？
             <span class="faq-icon">+</span>
           </div>
-          <div class="faq-answer">
+          <div class="faq-answer" id="faq-9">
             <p>
               当教室では、<span class="text-success">年長から</span>ご参加いただけます。体験レッスンは、該当年度の4月1日時点で年長を迎えているお子様が対象となります。
             </p>
           </div>
         </div>
         <div class="faq-item animate-on-scroll">
-          <div class="faq-question">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-10">
             Q10. 保護者の見学は可能ですか？
             <span class="faq-icon">+</span>
           </div>
-          <div class="faq-answer">
+          <div class="faq-answer" id="faq-10">
             <p>
               はい、レッスンの<span class="text-primary">見学は可能</span>です。お子様が緊張している場合など、保護者の方が一緒に参加いただくこともできますので、ご相談ください。
             </p>

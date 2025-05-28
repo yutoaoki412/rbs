@@ -315,13 +315,11 @@
   color: var(--navy-dark);
   backdrop-filter: blur(10px);
   opacity: 0;
-  display: none;
 }
 
 .status-banner.active .status-content {
   max-height: 500px;
   opacity: 1;
-  display: block;
 }
 
 .status-details {
