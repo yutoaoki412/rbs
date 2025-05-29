@@ -716,15 +716,21 @@
 .news-items {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .news-item {
-  padding: 1.25rem;
+  background: var(--admin-white);
   border: 1px solid var(--admin-gray-200);
   border-radius: var(--admin-border-radius-sm);
-  background: var(--admin-white);
+  padding: 1rem;
   transition: all 0.15s ease;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  grid-template-rows: auto auto;
+  gap: 0.75rem 1rem;
+  align-items: start;
 }
 
 .news-item:hover {
@@ -733,54 +739,61 @@
   transform: translateY(-1px);
 }
 
-.news-item-header {
+/* グリッドレイアウト */
+.news-item-main {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  min-width: 0; /* テキストの省略を可能にする */
+}
+
+.news-item-status-area {
+  grid-column: 2;
+  grid-row: 1;
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 0.75rem;
-  gap: 1rem;
+}
+
+.news-item-actions {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 120px;
+}
+
+/* メインコンテンツエリア */
+.news-item-header {
+  margin-bottom: 0.5rem;
 }
 
 .news-item-title {
   font-size: 1rem;
   font-weight: 600;
   color: var(--admin-gray-900);
-  margin: 0;
+  margin: 0 0 0.375rem 0;
   line-height: 1.4;
-  flex: 1;
-}
-
-.news-item-status {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  white-space: nowrap;
-  border: 1px solid;
-}
-
-.news-item-status.status-published {
-  background: #dcfce7;
-  color: #166534;
-  border-color: #bbf7d0;
-}
-
-.news-item-status.status-draft {
-  background: #fef3c7;
-  color: #92400e;
-  border-color: #fde68a;
+  
+  /* テキストの省略 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 2.8em;
 }
 
 .news-item-meta {
   display: flex;
   gap: 1rem;
-  margin-bottom: 0.75rem;
-  font-size: 0.8125rem;
-  color: var(--admin-gray-500);
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .news-item-date,
 .news-item-category {
+  font-size: 0.8125rem;
+  color: var(--admin-gray-500);
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -788,15 +801,114 @@
 
 .news-item-summary {
   color: var(--admin-gray-600);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.5;
-  margin-bottom: 1rem;
+  margin-bottom: 0.25rem;
+  
+  /* テキストの省略 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 3em; /* line-height 1.5 × 2行 = 3em */
 }
 
-.news-item-actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
+/* ステータス表示 */
+.news-item-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+}
+
+.news-item-status.status-published {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.news-item-status.status-draft {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+/* アクションボタン */
+.news-item-actions .btn {
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
+  white-space: nowrap;
+  min-width: auto;
+  justify-content: center;
+}
+
+.news-item-actions .btn i {
+  font-size: 0.625rem;
+  margin-right: 0.25rem;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 1024px) {
+  .news-item {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto auto;
+    gap: 0.5rem;
+  }
+  
+  .news-item-main {
+    grid-column: 1 / 3;
+    grid-row: 1;
+  }
+  
+  .news-item-status-area {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+  }
+  
+  .news-item-actions {
+    grid-column: 2;
+    grid-row: 2;
+    flex-direction: row;
+    gap: 0.5rem;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .news-item {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 0.75rem;
+  }
+  
+  .news-item-main {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  
+  .news-item-status-area {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+  }
+  
+  .news-item-actions {
+    grid-column: 1;
+    grid-row: 3;
+    flex-direction: row;
+    gap: 0.5rem;
+    justify-content: flex-start;
+  }
+  
+  .news-item-actions .btn {
+    flex: 1;
+    min-width: 80px;
+  }
 }
 
 /* 状態表示 */
@@ -1150,321 +1262,6 @@ input[type="checkbox"] {
   }
 }
 
-/* 記事一覧のスタイル */
-.news-items {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.news-item {
-  background: var(--admin-white);
-  border: 1px solid var(--admin-gray-200);
-  border-radius: var(--admin-border-radius);
-  padding: 1.5rem;
-  transition: var(--admin-transition);
-  cursor: pointer;
-}
-
-.news-item:hover {
-  box-shadow: var(--admin-shadow);
-  border-color: var(--admin-primary);
-}
-
-.news-item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.news-item-title {
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--admin-gray-900);
-  line-height: 1.4;
-  flex: 1;
-}
-
-.news-item-status {
-  padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-  white-space: nowrap;
-}
-
-.news-item-status.status-published {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.news-item-status.status-draft {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.news-item-meta {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.news-item-date,
-.news-item-category {
-  font-size: 0.875rem;
-  color: var(--admin-gray-500);
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.news-item-date::before {
-  content: '📅';
-  font-size: 0.75rem;
-}
-
-.news-item-category::before {
-  content: '🏷️';
-  font-size: 0.75rem;
-}
-
-.news-item-summary {
-  color: var(--admin-gray-600);
-  font-size: 0.875rem;
-  line-height: 1.5;
-  margin-bottom: 1rem;
-}
-
-.news-item-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.news-item-actions .btn {
-  font-size: 0.75rem;
-  padding: 0.375rem 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.news-item-actions .btn i {
-  font-size: 0.625rem;
-}
-
-.btn-danger {
-  background: var(--admin-error);
-  color: var(--admin-white);
-  border: 1px solid var(--admin-error);
-}
-
-.btn-danger:hover {
-  background: #dc2626;
-  border-color: #dc2626;
-  transform: translateY(-1px);
-}
-
-/* 空状態とエラー状態 */
-.empty-state,
-.error-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
-}
-
-.loading-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100px;
-  color: var(--admin-gray-500);
-  font-size: 0.875rem;
-}
-
-.loading-state i {
-  margin-right: 0.5rem;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* フィルターのレスポンシブ対応 */
-@media (max-width: 768px) {
-  .news-item {
-    padding: 1rem;
-  }
-  
-  .news-item-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-  
-  .news-item-meta {
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-  
-  .news-item-actions {
-    width: 100%;
-    justify-content: flex-start;
-  }
-  
-  .news-item-actions .btn {
-    flex: 1;
-    justify-content: center;
-    min-width: 80px;
-  }
-}
-
-/* 最近の記事アイテム */
-.recent-article-item {
-  border-bottom: 1px solid var(--admin-gray-100);
-  padding: 1rem 0;
-}
-
-.recent-article-item:last-child {
-  border-bottom: none;
-}
-
-.recent-article-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.5rem;
-  gap: 1rem;
-}
-
-.recent-article-title {
-  font-weight: 600;
-  font-size: 0.875rem;
-  color: var(--admin-gray-900);
-  line-height: 1.3;
-  flex: 1;
-  margin-right: 0.5rem;
-}
-
-.recent-article-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-.recent-article-meta {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.75rem;
-  color: var(--admin-gray-500);
-}
-
-.meta-item i {
-  width: 0.875rem;
-  text-align: center;
-}
-
-.recent-article-summary {
-  font-size: 0.75rem;
-  color: var(--admin-gray-600);
-  line-height: 1.4;
-  margin-bottom: 0.75rem;
-}
-
-/* バッジスタイル */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.125rem 0.5rem;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  border-radius: 0.25rem;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.badge-success {
-  background-color: var(--admin-success);
-  color: white;
-}
-
-.badge-warning {
-  background-color: var(--admin-warning);
-  color: white;
-}
-
-.badge-info {
-  background-color: var(--admin-secondary);
-  color: white;
-}
-
-.badge-error {
-  background-color: var(--admin-danger);
-  color: white;
-}
-
-/* UI強化 */
-.form-input:valid {
-  border-color: var(--admin-success);
-}
-
-.form-input:invalid:not(:placeholder-shown) {
-  border-color: var(--admin-error);
-}
-
-.form-textarea:focus {
-  min-height: 120px;
-}
-
-.form-textarea.editor-content:focus {
-  min-height: 320px;
-}
-
-/* カテゴリーカラー */
-.news-item-category {
-  padding: 0.125rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  background: var(--admin-gray-100);
-  color: var(--admin-gray-600);
-}
-
-/* ボタンの改善 */
-.btn:focus {
-  outline: 2px solid var(--admin-primary);
-  outline-offset: 2px;
-}
-
-.btn-outline:focus {
-  outline-color: var(--admin-gray-500);
-}
-
-.btn-danger:focus {
-  outline-color: var(--admin-error);
-}
-
 /* アクセシビリティ向上 */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -1485,5 +1282,259 @@ input[type="checkbox"] {
   .btn {
     border-width: 2px;
     font-weight: 700;
+  }
+}
+
+/* レッスン開催状況専用スタイル */
+
+/* レッスンパネル */
+.lesson-panel {
+  background: var(--admin-white);
+  border-radius: var(--admin-border-radius);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--admin-gray-200);
+  overflow: hidden;
+}
+
+.lesson-panel .panel-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--admin-gray-200);
+  background: var(--admin-gray-50);
+}
+
+.lesson-panel .panel-header h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+  margin: 0 0 1rem 0;
+}
+
+/* ステータス表示エリア */
+.status-display {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-item input[type="radio"] {
+  width: 1.125rem;
+  height: 1.125rem;
+  accent-color: var(--admin-primary);
+}
+
+.status-item label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--admin-gray-700);
+  cursor: pointer;
+  transition: var(--admin-transition);
+}
+
+.status-item:hover label {
+  color: var(--admin-primary);
+}
+
+/* レッスンフォーム */
+.lesson-form {
+  padding: 1.5rem;
+}
+
+/* コースグリッド */
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+/* コースカード */
+.course-card {
+  background: var(--admin-white);
+  border: 2px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius);
+  overflow: hidden;
+  transition: var(--admin-transition);
+}
+
+.course-card:hover {
+  border-color: var(--admin-primary);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.1);
+}
+
+/* コースヘッダー */
+.course-header {
+  background: var(--admin-primary);
+  color: var(--admin-white);
+  padding: 1.25rem;
+  text-align: center;
+  border-bottom: 1px solid var(--admin-gray-200);
+}
+
+.course-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.course-header p {
+  font-size: 0.875rem;
+  margin: 0;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+/* コースコンテンツ */
+.course-content {
+  padding: 1.25rem;
+}
+
+/* ステータスボタングループ */
+.status-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.status-buttons input[type="radio"] {
+  display: none;
+}
+
+.status-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--admin-gray-300);
+  border-radius: var(--admin-border-radius-sm);
+  background: var(--admin-white);
+  color: var(--admin-gray-700);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.status-btn:hover {
+  border-color: var(--admin-primary);
+  background: rgba(74, 144, 226, 0.05);
+  color: var(--admin-primary);
+}
+
+.status-btn i {
+  font-size: 0.75rem;
+}
+
+/* ステータス別スタイル */
+.status-buttons input[type="radio"]:checked + .status-btn {
+  border-color: var(--admin-primary);
+  background: var(--admin-primary);
+  color: var(--admin-white);
+  box-shadow: 0 2px 4px rgba(74, 144, 226, 0.3);
+}
+
+/* 通常開催 */
+input[id*="scheduled"]:checked + .status-btn {
+  border-color: var(--admin-success);
+  background: var(--admin-success);
+}
+
+/* 中止 */
+input[id*="cancelled"]:checked + .status-btn {
+  border-color: var(--admin-error);
+  background: var(--admin-error);
+}
+
+/* 室内開催 */
+input[id*="indoor"]:checked + .status-btn {
+  border-color: var(--admin-warning);
+  background: var(--admin-warning);
+}
+
+/* 延期 */
+input[id*="postponed"]:checked + .status-btn {
+  border-color: var(--admin-secondary);
+  background: var(--admin-secondary);
+}
+
+/* 小さなテキストエリア */
+.form-textarea.small {
+  min-height: 80px;
+  font-size: 0.8125rem;
+}
+
+/* フォームアクション */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--admin-gray-200);
+}
+
+.form-actions .btn {
+  min-width: 150px;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 1024px) {
+  .courses-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  
+  .status-display {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .lesson-form {
+    padding: 1rem;
+  }
+  
+  .course-header {
+    padding: 1rem;
+  }
+  
+  .course-content {
+    padding: 1rem;
+  }
+  
+  .status-buttons {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .form-actions .btn {
+    min-width: auto;
+  }
+  
+  .status-display {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .status-item {
+    justify-content: center;
+    padding: 0.75rem;
+    background: var(--admin-gray-50);
+    border-radius: var(--admin-border-radius-sm);
   }
 } 

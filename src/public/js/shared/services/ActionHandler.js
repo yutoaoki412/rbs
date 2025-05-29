@@ -1180,28 +1180,35 @@ export class ActionHandler {
   createNewsListItem(article) {
     const statusClass = article.status === 'published' ? 'status-published' : 'status-draft';
     const statusText = article.status === 'published' ? '公開中' : '下書き';
-    const date = new Date(article.date || article.createdAt).toLocaleDateString('ja-JP');
+    const date = new Date(article.date || article.createdAt).toLocaleDateString('ja-JP', {
+      month: 'short',
+      day: 'numeric'
+    });
     const categoryName = this.getCategoryLabel(article.category || 'announcement');
     
     return `
       <div class="news-item" data-id="${article.id}">
-        <div class="news-item-header">
-          <h4 class="news-item-title">${this.escapeHtml(article.title || 'タイトル未設定')}</h4>
+        <div class="news-item-main">
+          <div class="news-item-header">
+            <h4 class="news-item-title">${this.escapeHtml(article.title || 'タイトル未設定')}</h4>
+          </div>
+          <div class="news-item-meta">
+            <span class="news-item-date">${date}</span>
+            <span class="news-item-category">${categoryName}</span>
+          </div>
+          <div class="news-item-summary">
+            ${this.escapeHtml((article.summary || '概要なし').substring(0, 100))}${(article.summary || '').length > 100 ? '…' : ''}
+          </div>
+        </div>
+        <div class="news-item-status-area">
           <span class="news-item-status ${statusClass}">${statusText}</span>
-        </div>
-        <div class="news-item-meta">
-          <span class="news-item-date">${date}</span>
-          <span class="news-item-category">${categoryName}</span>
-        </div>
-        <div class="news-item-summary">
-          ${this.escapeHtml((article.summary || '').substring(0, 120))}${(article.summary || '').length > 120 ? '…' : ''}
         </div>
         <div class="news-item-actions">
           <button class="btn btn-sm btn-outline" onclick="actionHandler.editNewsItem('${article.id}')">
-            編集
+            <i class="fas fa-edit"></i> 編集
           </button>
           <button class="btn btn-sm btn-danger" onclick="actionHandler.deleteNewsItem('${article.id}')">
-            削除
+            <i class="fas fa-trash"></i> 削除
           </button>
         </div>
       </div>
