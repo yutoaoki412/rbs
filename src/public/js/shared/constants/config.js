@@ -15,9 +15,9 @@ const config = {
       '/': 'index',
       '/index.html': 'index',
       '/news.html': 'news',
-      '/news-detail.html': 'news',
+      '/news-detail.html': 'news-detail',
       '/admin.html': 'admin',
-      '/admin-login.html': 'admin'
+      '/admin-login.html': 'admin-login'
     },
     defaultRoute: 'index'
   },

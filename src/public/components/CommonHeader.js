@@ -196,11 +196,22 @@ class CommonHeader {
     const path = window.location.pathname;
     const filename = path.split('/').pop().replace('.html', '');
     
-    if (filename === 'index' || filename === '' || path.endsWith('/')) {
-      return 'index';
+    // 明確なマッピング
+    switch (filename) {
+      case 'index':
+      case '':
+        return path.endsWith('/') ? 'index' : 'index';
+      case 'admin':
+        return 'admin';
+      case 'admin-login':
+        return 'admin-login';
+      case 'news':
+        return 'news';
+      case 'news-detail':
+        return 'news-detail';
+      default:
+        return filename || 'index';
     }
-    
-    return filename;
   }
 
   /**

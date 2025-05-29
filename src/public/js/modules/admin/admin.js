@@ -3,7 +3,7 @@
  * メインエントリーポイント（スリム化版）
  */
 
-import { AdminCore } from './admin/core/AdminCore.js';
+import { AdminCore } from './core/AdminCore.js';
 
 // グローバル変数として管理画面インスタンスを保持
 let adminInstance = null;

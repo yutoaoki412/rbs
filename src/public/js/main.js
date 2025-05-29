@@ -1,15 +1,33 @@
 /**
  * RBS陸上教室 メインエントリーポイント v3.0
  * 新しいアーキテクチャでのアプリケーション起動
+ * TypeScript移行対応版
+ * 
+ * @typedef {Object} ErrorInfo
+ * @property {string} message - エラーメッセージ
+ * @property {string} stack - スタックトレース
+ * @property {string} timestamp - タイムスタンプ
+ * @property {string} userAgent - ユーザーエージェント
+ * @property {string} url - エラー発生URL
+ * 
+ * @typedef {Object} DashboardStats
+ * @property {number} total - 総記事数
+ * @property {number} published - 公開済み記事数
+ * @property {number} draft - 下書き記事数
+ * @property {number} currentMonth - 今月の記事数
  */
 
 import Application from './app/Application.js';
 
-// グローバル変数
+/**
+ * アプリケーションインスタンス
+ * @type {Application|null}
+ */
 let app = null;
 
 /**
  * アプリケーションを初期化
+ * @returns {Promise<void>}
  */
 async function initializeApp() {
   try {
@@ -28,11 +46,13 @@ async function initializeApp() {
     
     // グローバルに公開（開発用）
     if (app.config?.debug?.enabled) {
-      window.RBS = {
+      /** @type {any} */
+      const globalScope = window;
+      globalScope.RBS = {
         app,
         version: '3.0',
-        debug: () => app.getInfo(),
-        modules: () => Array.from(app.modules.keys())
+        debug: () => app?.getInfo(),
+        modules: () => Array.from(app?.modules.keys() ?? [])
       };
     }
     
@@ -48,13 +68,16 @@ async function initializeApp() {
 
 /**
  * 初期化エラーを処理
+ * @param {Error} error - エラーオブジェクト
+ * @returns {void}
  */
 function handleInitializationError(error) {
   // エラー情報をローカルストレージに保存
   try {
+    /** @type {ErrorInfo} */
     const errorInfo = {
       message: error.message,
-      stack: error.stack,
+      stack: error.stack || '',
       timestamp: new Date().toISOString(),
       userAgent: navigator.userAgent,
       url: window.location.href
@@ -71,18 +94,28 @@ function handleInitializationError(error) {
 
 /**
  * 基本機能のフォールバック
+ * @returns {void}
  */
 function initBasicFallbacks() {
   console.log('🔄 基本機能のフォールバック実行中...');
   
+  // 管理画面の場合の特別な処理
+  const currentPage = getCurrentPageFallback();
+  if (currentPage === 'admin') {
+    console.log('🔧 管理画面用フォールバック処理を開始');
+    initAdminFallbacks();
+  }
+  
   // スムーススクロール
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
-      const targetId = this.getAttribute('href').substring(1);
-      const target = document.getElementById(targetId);
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth' });
+      const targetId = this.getAttribute('href')?.substring(1);
+      if (targetId) {
+        const target = document.getElementById(targetId);
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
       }
     });
   });
@@ -157,6 +190,195 @@ function initBasicFallbacks() {
   }
 
   console.log('✅ 基本機能のフォールバック完了');
+}
+
+/**
+ * 管理画面用のフォールバック処理
+ * @returns {void}
+ */
+function initAdminFallbacks() {
+  console.log('🔧 管理画面用フォールバック処理開始');
+  
+  // タブ切り替えのフォールバック
+  document.querySelectorAll('.nav-item[data-tab]').forEach(navItem => {
+    navItem.addEventListener('click', (e) => {
+      e.preventDefault();
+      const tabName = navItem.dataset.tab;
+      if (tabName) {
+        switchTabFallback(tabName);
+      }
+    });
+  });
+
+  // クイックアクションのフォールバック
+  document.querySelectorAll('[data-action="switch-tab"]').forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      const tabName = button.dataset.tab;
+      if (tabName) {
+        switchTabFallback(tabName);
+      }
+    });
+  });
+
+  // 外部リンクのフォールバック
+  document.querySelectorAll('[data-action="open-external"]').forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      const url = button.dataset.url;
+      if (url) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+    });
+  });
+
+  // モーダル閉じるボタンのフォールバック
+  document.querySelectorAll('[data-action="close-modal"]').forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeModalFallback();
+    });
+  });
+
+  // ログアウトボタンのフォールバック
+  document.querySelectorAll('[data-action="logout"]').forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (confirm('ログアウトしますか？')) {
+        window.location.href = 'admin-login.html';
+      }
+    });
+  });
+
+  // 初期タブを表示
+  switchTabFallback('dashboard');
+
+  console.log('✅ 管理画面用フォールバック処理完了');
+}
+
+/**
+ * フォールバック版タブ切り替え
+ * @param {string} tabName - タブ名
+ * @returns {void}
+ */
+function switchTabFallback(tabName) {
+  console.log(`🔄 フォールバック版タブ切り替え: ${tabName}`);
+  
+  // ナビゲーションアイテムの更新
+  document.querySelectorAll('.nav-item').forEach(navItem => {
+    navItem.classList.remove('active');
+    if (navItem.dataset.tab === tabName) {
+      navItem.classList.add('active');
+    }
+  });
+
+  // セクションの表示切り替え
+  document.querySelectorAll('.admin-section').forEach(section => {
+    section.classList.remove('active');
+    if (section.id === tabName) {
+      section.classList.add('active');
+    }
+  });
+
+  // タブ固有の初期化
+  initTabContentFallback(tabName);
+}
+
+/**
+ * フォールバック版タブ初期化
+ * @param {string} tabName - タブ名
+ * @returns {void}
+ */
+function initTabContentFallback(tabName) {
+  switch (tabName) {
+    case 'dashboard':
+      // 統計情報の更新
+      updateStatsFallback();
+      break;
+    case 'lesson-status':
+      // 現在の日付をセット
+      const today = new Date().toISOString().split('T')[0];
+      const dateInput = document.getElementById('lesson-date');
+      if (dateInput instanceof HTMLInputElement) {
+        dateInput.value = today;
+      }
+      break;
+  }
+}
+
+/**
+ * フォールバック版統計更新
+ * @returns {void}
+ */
+function updateStatsFallback() {
+  /** @type {DashboardStats} */
+  const stats = {
+    total: 5,
+    published: 3,
+    draft: 2,
+    currentMonth: 1
+  };
+  
+  /**
+   * 統計値を更新
+   * @param {string} id - 要素ID
+   * @param {number} value - 値
+   */
+  const updateStat = (id, value) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.textContent = value.toString();
+    }
+  };
+  
+  updateStat('total-articles', stats.total);
+  updateStat('published-articles', stats.published);
+  updateStat('draft-articles', stats.draft);
+  updateStat('current-month-articles', stats.currentMonth);
+}
+
+/**
+ * フォールバック版モーダル閉じる
+ * @returns {void}
+ */
+function closeModalFallback() {
+  const modal = document.getElementById('modal');
+  if (modal instanceof HTMLElement) {
+    modal.style.display = 'none';
+  }
+}
+
+/**
+ * 現在のページを判定（フォールバック版）
+ * @returns {PageType}
+ */
+function getCurrentPageFallback() {
+  const path = window.location.pathname;
+  const filename = path.split('/').pop()?.replace('.html', '') ?? '';
+  
+  // 明確なマッピング
+  switch (filename) {
+    case 'index':
+    case '':
+      return 'index';
+    case 'admin':
+      return 'admin';
+    case 'admin-login':
+      return 'admin-login';
+    case 'news':
+      return 'news';
+    case 'news-detail':
+      return 'news-detail';
+    default:
+      // フォールバック: プレフィックスで判定
+      if (filename.startsWith('admin')) {
+        return 'admin';
+      }
+      if (filename.startsWith('news')) {
+        return 'news';
+      }
+      return 'index';
+  }
 }
 
 /**

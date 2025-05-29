@@ -1,14 +1,86 @@
 /**
  * RBS陸上教室 メインアプリケーションクラス
  * アプリケーション全体のライフサイクルを管理
+ * TypeScript移行対応版
+ * 
+ * @typedef {'index'|'admin'|'news'} PageType
+ * 
+ * @typedef {Object} AppConfig
+ * @property {Object} debug - デバッグ設定
+ * @property {boolean} debug.enabled - デバッグ有効フラグ
+ * @property {Object} routing - ルーティング設定
+ * 
+ * @typedef {Object} AppInfo
+ * @property {string} version - アプリケーションバージョン
+ * @property {boolean} initialized - 初期化状態
+ * @property {number} loadTime - 読み込み時間
+ * @property {string[]} modules - 読み込み済みモジュール一覧
+ * @property {PageType} currentPage - 現在のページ
+ */
+
+/**
+ * アプリケーションメインクラス
+ * TypeScript移行対応版
  */
 class Application {
+  /**
+   * @type {boolean}
+   */
+  #initialized;
+
+  /**
+   * @type {Map<string, any>}
+   */
+  #modules;
+
+  /**
+   * @type {AppConfig|null}
+   */
+  #config;
+
+  /**
+   * @type {any|null}
+   */
+  #router;
+
+  /**
+   * @type {number}
+   */
+  #startTime;
+
+  /**
+   * コンストラクタ
+   */
   constructor() {
-    this.initialized = false;
-    this.modules = new Map();
-    this.config = null;
-    this.router = null;
-    this.startTime = Date.now();
+    this.#initialized = false;
+    this.#modules = new Map();
+    this.#config = null;
+    this.#router = null;
+    this.#startTime = Date.now();
+  }
+
+  /**
+   * 初期化状態を取得
+   * @returns {boolean}
+   */
+  get initialized() {
+    return this.#initialized;
+  }
+
+  /**
+   * 設定を取得
+   * @returns {AppConfig|null}
+   */
+  get config() {
+    return this.#config;
+  }
+
+  /**
+   * モジュールマップを取得
+   * @returns {Map<string, any>}
+   */
+  get modules() {
+    return this.#modules;
   }
 
   /**
@@ -30,9 +102,9 @@ class Application {
       // ページ固有モジュール読み込み
       await this.loadPageModules();
       
-      this.initialized = true;
+      this.#initialized = true;
       
-      const loadTime = Date.now() - this.startTime;
+      const loadTime = Date.now() - this.#startTime;
       console.log(`✅ アプリケーション初期化完了 (${loadTime}ms)`);
       
       this.emit('app:ready', { loadTime });
@@ -49,7 +121,7 @@ class Application {
    */
   async loadConfig() {
     const { default: config } = await import('../shared/constants/config.js');
-    this.config = config;
+    this.#config = config;
   }
 
   /**
@@ -57,8 +129,8 @@ class Application {
    */
   async initRouter() {
     const { Router } = await import('./Router.js');
-    this.router = new Router(this.config.routing);
-    await this.router.init();
+    this.#router = new Router(this.#config.routing);
+    await this.#router.init();
   }
 
   /**
@@ -70,6 +142,7 @@ class Application {
       'shared/services/StorageService',
       'shared/services/ActionHandler',
       'shared/services/lesson-status-manager',
+      'shared/services/PagesManager',
       'shared/utils/helpers'
     ];
 
@@ -78,13 +151,23 @@ class Application {
         console.log(`📦 モジュール読み込み中: ${modulePath}`);
         const module = await import(`../${modulePath}.js`);
         const name = modulePath.split('/').pop();
-        this.modules.set(name, module);
+        this.#modules.set(name, module);
         
         // ActionHandlerは確実に初期化
         if (name === 'ActionHandler') {
           console.log('🔧 ActionHandler初期化開始');
           if (module.actionHandler) {
-            module.actionHandler.init();
+            await module.actionHandler.init();
+            
+            // 管理画面の場合は特別な初期化を実行
+            const currentPage = this.getCurrentPage();
+            if (currentPage === 'admin') {
+              console.log('🔧 管理画面用ActionHandler設定を開始');
+              // 管理画面用のイベントリスナーを追加設定
+              this.setupAdminEventListeners(module.actionHandler);
+              console.log('✅ 管理画面用ActionHandler設定完了');
+            }
+            
             console.log('✅ ActionHandler初期化完了');
           } else {
             console.warn('⚠️ actionHandlerインスタンスが見つかりません');
@@ -100,6 +183,20 @@ class Application {
             console.log('✅ LessonStatusManager初期化完了');
           } else {
             console.warn('⚠️ LessonStatusManagerが見つかりません');
+          }
+        }
+        
+        // PagesManagerの初期化
+        if (name === 'PagesManager') {
+          console.log('🔧 PagesManager初期化開始');
+          if (module.default) {
+            const pagesManager = new module.default();
+            await pagesManager.init();
+            // グローバルアクセス用
+            window.pagesManager = pagesManager;
+            console.log('✅ PagesManager初期化完了');
+          } else {
+            console.warn('⚠️ PagesManagerクラスが見つかりません');
           }
         }
       } catch (error) {
@@ -122,8 +219,8 @@ class Application {
       console.log('📦 CommonHeader/CommonFooter事前読み込み開始');
       
       await Promise.all([
-        import('../components/CommonHeader.js'),
-        import('../components/CommonFooter.js')
+        import('../../components/CommonHeader.js'),
+        import('../../components/CommonFooter.js')
       ]);
       
       console.log('✅ CommonHeader/CommonFooter事前読み込み完了');
@@ -295,17 +392,26 @@ class Application {
     try {
       let pageModule;
       
-      if (currentPage === 'index') {
-        pageModule = await import('./index.js');
-      } else if (currentPage === 'news') {
-        pageModule = await import('../modules/news/news.js');
-      } else if (currentPage === 'admin') {
-        pageModule = await import('../modules/admin/admin.js');
-      } else {
-        pageModule = await import('./index.js'); // デフォルト
+      switch (currentPage) {
+        case 'index':
+          pageModule = await import('./index.js');
+          break;
+        case 'news':
+          pageModule = await import('../modules/news/news.js');
+          break;
+        case 'news-detail':
+          pageModule = await import('../modules/news/news-detail.js');
+          break;
+        case 'admin':
+        case 'admin-login':
+          pageModule = await import('../modules/admin/admin.js');
+          break;
+        default:
+          console.warn(`未対応のページタイプ: ${currentPage}, デフォルトモジュールを使用`);
+          pageModule = await import('./index.js');
       }
       
-      this.modules.set(`page:${currentPage}`, pageModule);
+      this.#modules.set(`page:${currentPage}`, pageModule);
       
       if (pageModule.init) {
         await pageModule.init(this);
@@ -322,26 +428,36 @@ class Application {
     const path = window.location.pathname;
     const filename = path.split('/').pop().replace('.html', '');
     
-    if (filename === 'index' || filename === '' || path.endsWith('/')) {
-      return 'index';
+    // 明確なマッピング
+    switch (filename) {
+      case 'index':
+      case '':
+        return path.endsWith('/') ? 'index' : 'index';
+      case 'admin':
+        return 'admin';
+      case 'admin-login':
+        return 'admin-login';
+      case 'news':
+        return 'news';
+      case 'news-detail':
+        return 'news-detail';
+      default:
+        // フォールバック: ファイル名のプレフィックスで判定
+        if (filename.startsWith('admin')) {
+          return 'admin';
+        }
+        if (filename.startsWith('news')) {
+          return 'news';
+        }
+        return 'index';
     }
-    
-    if (filename.startsWith('admin')) {
-      return 'admin';
-    }
-    
-    if (filename.startsWith('news')) {
-      return 'news';
-    }
-    
-    return 'index';
   }
 
   /**
    * モジュールを取得
    */
   getModule(name) {
-    return this.modules.get(name);
+    return this.#modules.get(name);
   }
 
   /**
@@ -424,9 +540,9 @@ class Application {
   getInfo() {
     return {
       version: '3.0',
-      initialized: this.initialized,
-      loadTime: Date.now() - this.startTime,
-      modules: Array.from(this.modules.keys()),
+      initialized: this.#initialized,
+      loadTime: Date.now() - this.#startTime,
+      modules: Array.from(this.#modules.keys()),
       currentPage: this.getCurrentPage()
     };
   }
@@ -435,9 +551,62 @@ class Application {
    * アプリケーションを破棄
    */
   destroy() {
-    this.modules.clear();
-    this.initialized = false;
-    console.log('🛑 アプリケーション破棄完了');
+    if (this.#modules) {
+      this.#modules.clear();
+    }
+    
+    this.#initialized = false;
+    console.log('🔄 Application destroyed');
+  }
+
+  /**
+   * 管理画面用のイベントリスナーを設定
+   */
+  setupAdminEventListeners(actionHandler) {
+    // 初期ダッシュボードの表示
+    setTimeout(() => {
+      actionHandler.switchAdminTab('dashboard');
+    }, 100);
+
+    // サイドバーのナビゲーションアイテムにクリックイベントを確実に追加
+    document.querySelectorAll('.nav-item[data-tab]').forEach(navItem => {
+      navItem.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tabName = navItem.dataset.tab;
+        if (tabName) {
+          actionHandler.switchAdminTab(tabName);
+        }
+      });
+    });
+
+    // フォームの送信を防止
+    document.querySelectorAll('form').forEach(form => {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+      });
+    });
+
+    // モーダルのクリック以外での閉じる処理
+    const modal = document.getElementById('modal');
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          actionHandler.closeModal();
+        }
+      });
+    }
+
+    // Escキーでモーダルを閉じる
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('modal');
+        if (modal && modal.style.display === 'block') {
+          actionHandler.closeModal();
+        }
+      }
+    });
+
+    console.log('✅ 管理画面用イベントリスナー設定完了');
   }
 }
 

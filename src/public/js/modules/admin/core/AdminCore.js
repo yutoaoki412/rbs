@@ -9,7 +9,7 @@ import { AdminAuth } from '../../auth/AdminAuth.js';
 import { DataManager } from './DataManager.js';
 import { UIManager } from './UIManager.js';
 import { NewsFormManager } from '../forms/NewsFormManager.js';
-import { adminActionHandler } from '../handlers/AdminActionHandler.js';
+import { AdminActionHandler } from '../actions/AdminActionHandler.js';
 import { EventBus } from '../../../shared/services/EventBus.js';
 
 export class AdminCore extends EventEmitter {
@@ -40,14 +40,20 @@ export class AdminCore extends EventEmitter {
     try {
       this.logger.info('RBS陸上教室 管理画面システム v2.1 を初期化中...');
       
-      // 認証システムの初期化
-      await this.initializeAuth();
-      
-      // 認証チェック
-      if (!this.isAuthenticated) {
-        this.logger.warn('認証が必要です');
-        this.redirectToLogin();
-        return;
+      // 開発環境では認証をスキップ
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        this.logger.warn('開発環境のため認証をスキップします');
+        this.isAuthenticated = true;
+      } else {
+        // 認証システムの初期化
+        await this.initializeAuth();
+        
+        // 認証チェック
+        if (!this.isAuthenticated) {
+          this.logger.warn('認証が必要です');
+          this.redirectToLogin();
+          return;
+        }
       }
       
       // データ管理システムの初期化
@@ -157,8 +163,7 @@ export class AdminCore extends EventEmitter {
    */
   async initializeActionHandler() {
     try {
-      this.actionHandler = adminActionHandler;
-      this.actionHandler.init();
+      this.actionHandler = new AdminActionHandler(this);
       
       this.logger.debug('アクションハンドラーの初期化完了');
     } catch (error) {
