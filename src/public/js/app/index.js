@@ -168,22 +168,51 @@ function initializeScrollAnimations() {
 function initializeFAQ() {
   const faqItems = document.querySelectorAll('.faq-item');
   
+  if (faqItems.length === 0) {
+    console.warn('⚠️ FAQ項目が見つかりません');
+    return;
+  }
+  
   faqItems.forEach(item => {
     const question = item.querySelector('.faq-question');
-    if (question) {
+    const icon = item.querySelector('.faq-icon');
+    
+    if (question && icon) {
       question.addEventListener('click', () => {
+        const isActive = item.classList.contains('active');
+        
         // 他のFAQを閉じる
         faqItems.forEach(otherItem => {
           if (otherItem !== item) {
-            otherItem.classList.remove('open');
+            otherItem.classList.remove('active');
+            const otherQuestion = otherItem.querySelector('.faq-question');
+            const otherIcon = otherItem.querySelector('.faq-icon');
+            if (otherQuestion) otherQuestion.setAttribute('aria-expanded', 'false');
+            if (otherIcon) otherIcon.textContent = '+';
           }
         });
         
         // 現在のFAQをトグル
-        item.classList.toggle('open');
+        if (isActive) {
+          item.classList.remove('active');
+          question.setAttribute('aria-expanded', 'false');
+          icon.textContent = '+';
+        } else {
+          item.classList.add('active');
+          question.setAttribute('aria-expanded', 'true');
+          icon.textContent = '−';
+        }
+        
+        console.log(`FAQ ${isActive ? 'クローズ' : 'オープン'}: ${question.textContent}`);
       });
+      
+      // 初期設定
+      question.setAttribute('aria-expanded', 'false');
+      icon.textContent = '+';
     }
   });
+  
+  console.log(`✅ FAQ機能初期化完了 - ${faqItems.length}項目`);
 }
 
 /**
@@ -201,17 +230,57 @@ async function initializeNewsSection() {
       newsStatusText.textContent = 'ニュースを読み込み中...';
     }
     
-    // ArticleServiceを初期化
-    let articleService;
-    try {
-      const { default: ArticleService } = await import('../modules/news/article-service.js');
-      articleService = new ArticleService();
-      await articleService.init();
-      window.articleService = articleService; // グローバルに設定
-    } catch (error) {
-      console.error('❌ ArticleServiceの初期化に失敗:', error);
-      showNewsError('記事システムの初期化に失敗しました');
-      return;
+
+    // ArticleServiceが利用可能か確認（Application.jsで初期化済み）
+    let articleService = window.articleService;
+    
+    if (!articleService) {
+      console.warn('⚠️ ArticleServiceが初期化されていません。Application.jsの初期化を待機中...');
+      if (newsStatusText) {
+        newsStatusText.textContent = 'ArticleServiceの初期化を待機中...';
+      }
+      
+      // 短時間待機してからリトライ
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      articleService = window.articleService;
+      
+      // まだない場合は手動初期化を試行
+      if (!articleService) {
+        console.log('🔄 ArticleServiceを手動初期化中...');
+        try {
+          const { default: ArticleService } = await import('../modules/news/article-service.js');
+          articleService = new ArticleService();
+          await articleService.init();
+          window.articleService = articleService;
+          console.log('✅ ArticleService手動初期化完了');
+        } catch (error) {
+          console.error('❌ ArticleServiceの初期化に失敗:', error);
+          showNewsError('記事システムの初期化に失敗しました');
+          return;
+        }
+      }
+    }
+    
+    // ArticleServiceが初期化されていない場合は初期化
+    if (articleService && !articleService.isInitialized) {
+      console.log('🔄 ArticleServiceを初期化中...');
+      if (newsStatusText) {
+        newsStatusText.textContent = 'ArticleServiceを初期化中...';
+      }
+      
+      try {
+        await articleService.init();
+        console.log('✅ ArticleService初期化完了');
+      } catch (error) {
+        console.error('❌ ArticleService初期化失敗:', error);
+        showNewsError('記事システムの初期化に失敗しました');
+        return;
+      }
+    }
+    
+    // データの最新化を確認
+    if (articleService && articleService.refresh) {
+      await articleService.refresh();
     }
     
     // 記事を読み込んで表示

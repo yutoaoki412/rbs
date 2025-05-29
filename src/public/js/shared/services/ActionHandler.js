@@ -1939,20 +1939,47 @@ export class ActionHandler {
    * @param {ActionParams} params - パラメータ
    */
   #handleFaqToggle(element, params) {
-    const target = params.target || element.getAttribute('href')?.substring(1);
-    if (!target) return;
-
-    const targetElement = document.getElementById(target);
-    if (!targetElement) return;
-
-    const isExpanded = targetElement.style.display === 'block';
-    targetElement.style.display = isExpanded ? 'none' : 'block';
-    
-    // アイコンの回転
-    const icon = element.querySelector('i');
-    if (icon) {
-      icon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+    // data-target属性から対象のFAQ回答要素を取得
+    const targetId = params.target || element.getAttribute('data-target');
+    if (!targetId) {
+      console.warn('⚠️ FAQ target not found');
+      return;
     }
+
+    const targetElement = document.getElementById(targetId);
+    const faqItem = element.closest('.faq-item');
+    const icon = element.querySelector('.faq-icon');
+    
+    if (!targetElement || !faqItem) {
+      console.warn('⚠️ FAQ elements not found');
+      return;
+    }
+
+    const isActive = faqItem.classList.contains('active');
+    
+    // 他のFAQを閉じる
+    document.querySelectorAll('.faq-item').forEach(item => {
+      if (item !== faqItem) {
+        item.classList.remove('active');
+        const otherQuestion = item.querySelector('.faq-question');
+        const otherIcon = item.querySelector('.faq-icon');
+        if (otherQuestion) otherQuestion.setAttribute('aria-expanded', 'false');
+        if (otherIcon) otherIcon.textContent = '+';
+      }
+    });
+    
+    // 現在のFAQをトグル
+    if (isActive) {
+      faqItem.classList.remove('active');
+      element.setAttribute('aria-expanded', 'false');
+      if (icon) icon.textContent = '+';
+    } else {
+      faqItem.classList.add('active');
+      element.setAttribute('aria-expanded', 'true');
+      if (icon) icon.textContent = '−';
+    }
+    
+    console.log(`FAQ ${isActive ? 'クローズ' : 'オープン'}: ${targetId}`);
   }
 
   /**

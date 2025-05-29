@@ -215,6 +215,7 @@ class Application {
             console.warn('⚠️ PagesManagerクラスが見つかりません');
           }
         }
+
       } catch (error) {
         console.warn(`共通モジュール読み込み失敗: ${modulePath}`, error);
       }
@@ -646,6 +647,45 @@ class Application {
     });
 
     console.log('✅ 管理画面用イベントリスナー設定完了');
+  }
+
+  /**
+   * ArticleServiceを統一的に初期化
+   */
+  async loadArticleService() {
+    try {
+      console.log('📰 ArticleService統一初期化開始');
+      
+      // ArticleServiceを動的インポート
+      const { default: ArticleService } = await import('../modules/news/article-service.js');
+      const articleService = new ArticleService();
+      
+      // 初期化
+      await articleService.init();
+      
+      // グローバルに設定
+      window.articleService = articleService;
+      
+      // アプリケーションモジュールにも保存
+      this.#modules.set('ArticleService', articleService);
+      
+      console.log('✅ ArticleService統一初期化完了');
+      
+      return articleService;
+      
+    } catch (error) {
+      console.error('❌ ArticleService初期化失敗:', error);
+      // エラーハンドリング: フォールバック用の空のモックサービスを設定
+      window.articleService = {
+        isInitialized: false,
+        getPublishedArticles: () => [],
+        getArticleById: () => null,
+        getArticlesByCategory: () => [],
+        checkStorageStatus: () => ({ hasData: false, totalArticles: 0, publishedArticles: 0 }),
+        getDebugInfo: () => ({ isInitialized: false, articlesCount: 0 }),
+        refresh: async () => {}
+      };
+    }
   }
 }
 

@@ -51,19 +51,34 @@ async function displayArticles() {
   const newsGrid = document.getElementById('news-grid');
   
   try {
-    // ArticleServiceの初期化確認
-    if (!window.articleService || !window.articleService.isInitialized) {
+    // ArticleServiceが利用可能か確認（Application.jsで初期化済み）
+    if (!window.articleService) {
+      console.warn('⚠️ ArticleServiceが初期化されていません。Application.jsの初期化を待機中...');
+      showLoadingMessage('ArticleServiceの初期化を待機中...');
+      
+      // 短時間待機してからリトライ
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // まだない場合は手動初期化を試行
+      if (!window.articleService) {
+        console.log('🔄 ArticleServiceを手動初期化中...');
+        const { default: ArticleService } = await import('./article-service.js');
+        window.articleService = new ArticleService();
+        await window.articleService.init();
+      }
+    }
+    
+    // ArticleServiceが初期化されていない場合は初期化
+    if (window.articleService && !window.articleService.isInitialized) {
       console.log('🔄 ArticleServiceを初期化中...');
       showLoadingMessage('ArticleServiceを初期化中...');
-      
-      // ArticleServiceのインポートと初期化
-      const { default: ArticleService } = await import('./article-service.js');
-      window.articleService = new ArticleService();
       await window.articleService.init();
     }
     
     // データの最新化を確認
-    await window.articleService.refresh();
+    if (window.articleService && window.articleService.refresh) {
+      await window.articleService.refresh();
+    }
     
     // ArticleServiceから記事を取得してカテゴリーでフィルタリング
     const filteredArticles = filterArticlesByCategory(currentCategory);
@@ -353,15 +368,26 @@ export async function init(app) {
 }
 
 /**
- * ニュース固有のアクションを登録
+ * ニュース固有のアクションを登録（改善版）
  */
 function registerNewsActions() {
-  actionHandler.registerMultiple({
-    // デバッグ情報表示
-    'show-debug-info': () => {
-      showDebugInfo();
-    }
-  });
+  // ActionHandlerが利用可能かチェック
+  if (typeof actionHandler === 'undefined' || !actionHandler) {
+    console.warn('⚠️ ActionHandlerが使用できません。ニュース固有のアクションをスキップします。');
+    return;
+  }
+
+  try {
+    actionHandler.registerMultiple({
+      // デバッグ情報表示
+      'show-debug-info': () => {
+        showDebugInfo();
+      }
+    });
+    console.log('✅ ニュース固有のアクション登録完了');
+  } catch (error) {
+    console.error('❌ ニュース固有のアクション登録失敗:', error);
+  }
 }
 
 /**
@@ -385,7 +411,10 @@ async function initializeNewsPage() {
 }
 
 // DOMContentLoadedイベントでページを初期化
-document.addEventListener('DOMContentLoaded', initNewsPage);
+// document.addEventListener('DOMContentLoaded', initNewsPage);
+
+// Application.jsから統一初期化される（直接のDOMContentLoadedイベントは使用しない）
+// document.addEventListener('DOMContentLoaded', initNewsPage);
 
 // グローバルに公開（他のスクリプトからアクセス可能にする）
 window.NewsPage = {

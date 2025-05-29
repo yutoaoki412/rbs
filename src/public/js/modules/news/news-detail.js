@@ -495,6 +495,48 @@ async function loadArticleDetail() {
       console.log('🔄 ArticleServiceデータを最新化中...');
       await window.articleService.refresh();
     }
+
+    // ArticleServiceが利用可能か確認（Application.jsで初期化済み）
+    if (!window.articleService) {
+      console.warn('⚠️ ArticleServiceが初期化されていません。Application.jsの初期化を待機中...');
+      
+      // 短時間待機してからリトライ
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // まだない場合は手動初期化を試行
+      if (!window.articleService) {
+        console.log('🔄 ArticleServiceを手動初期化中...');
+        try {
+          const { default: ArticleService } = await import('./article-service.js');
+          window.articleService = new ArticleService();
+          await window.articleService.init();
+          console.log('✅ ArticleService手動初期化完了');
+        } catch (initError) {
+          console.error('❌ ArticleService初期化失敗:', initError);
+          showLoadError('記事システムの初期化に失敗しました');
+          return;
+        }
+      }
+    }
+    
+    // ArticleServiceが初期化されていない場合は初期化
+    if (window.articleService && !window.articleService.isInitialized) {
+      console.log('🔄 ArticleServiceを初期化中...');
+      try {
+        await window.articleService.init();
+        console.log('✅ ArticleService初期化完了');
+      } catch (initError) {
+        console.error('❌ ArticleService初期化失敗:', initError);
+        showLoadError('記事システムの初期化に失敗しました');
+        return;
+      }
+    }
+    
+    // データの最新化を確認
+    if (window.articleService && window.articleService.refresh) {
+      console.log('🔄 ArticleServiceデータを最新化中...');
+      await window.articleService.refresh();
+    }
     
     // 記事データを取得
     const article = window.articleService.getArticleById(articleId);
@@ -530,100 +572,44 @@ async function loadArticleDetail() {
   }
 }
 
-// ページ初期化
-async function initNewsDetailPage() {
-  console.log('🚀 ニュース詳細ページ v2.1 初期化開始');
-  
-  try {
-    // ヘッダーとフッターを読み込み
-    await initializeTemplates();
-    
-    // ArticleServiceを初期化して記事を読み込み
-    await initializeAndLoadArticle();
-    
-  } catch (error) {
-    console.error('❌ ページ初期化失敗:', error);
-    showLoadError(error.message);
-  }
-  
-  console.log('🎉 ニュース詳細ページ初期化完了');
-}
-
-// テンプレートを初期化
+// テンプレートを初期化（簡素化版 - TemplateLoader使用なし）
 async function initializeTemplates() {
   try {
-    const templateLoader = new TemplateLoader();
-    await templateLoader.loadAll({
-      currentPage: 'news-detail',
-      logoPath: '../index.html',
-      activeSection: 'news'
-    });
-    console.log('✅ ヘッダー・フッター読み込み完了');
+    console.log('🔄 テンプレート初期化開始（簡素化版）');
     
-    // ヘッダーの初期化
-    setTimeout(() => {
-      if (window.CommonHeader) {
-        const header = new window.CommonHeader();
-        header.init({ currentPage: 'news-detail' });
-        console.log('✅ CommonHeader初期化完了');
-      }
-    }, 100);
+    // TemplateLoaderを使わず、基本的な初期化のみ
+    // ヘッダー・フッターは既にHTMLに組み込まれている前提
     
-  } catch (error) {
-    console.error('❌ テンプレート読み込みエラー:', error);
-  }
-  
-  // PageInitializerの初期化
-  if (typeof PageInitializer !== 'undefined') {
-    PageInitializer.init({
-      currentPage: 'news-detail',
-      pageTitle: 'ニュース詳細 - RBS陸上教室',
-      hasStatusBanner: false
-    });
-  }
-}
-
-// ArticleServiceを初期化して記事を読み込み
-async function initializeAndLoadArticle() {
-  try {
-    console.log('🔄 ArticleService初期化開始');
+    // PageInitializerの初期化（利用可能な場合のみ）
+    if (typeof PageInitializer !== 'undefined') {
+      PageInitializer.init({
+        currentPage: 'news-detail',
+        pageTitle: 'ニュース詳細 - RBS陸上教室',
+        hasStatusBanner: false
+      });
+    }
     
-    // ArticleServiceが読み込まれるまで待機
-    await waitForArticleService();
-    
-    await window.articleService.init();
-    console.log('✅ ArticleService初期化完了');
-    
-    // 記事詳細を読み込み
-    await loadArticleDetail();
+    console.log('✅ テンプレート初期化完了（簡素化版）');
     
   } catch (error) {
-    console.error('❌ ArticleService初期化失敗:', error);
-    throw error;
+    console.error('❌ テンプレート初期化エラー:', error);
   }
 }
 
-// ArticleServiceの読み込みを待機
-async function waitForArticleService() {
-  if (window.articleService) {
-    return;
-  }
-  
-  let attempts = 0;
-  const maxAttempts = 50; // 5秒間待機
-  
-  while (!window.articleService && attempts < maxAttempts) {
-    await new Promise(resolve => setTimeout(resolve, 100));
-    attempts++;
-  }
-  
-  if (!window.articleService) {
-    throw new Error('ArticleServiceが読み込まれませんでした');
-  }
+
+export async function init(app) {
+  console.log('📰 ニュース詳細ページ初期化開始（v3.0統合版）');
+  await initNewsDetailPage();
+  console.log('✅ ニュース詳細ページ初期化完了');
 }
 
-// DOMContentLoadedイベントでページを初期化
-document.addEventListener('DOMContentLoaded', initNewsDetailPage);
+// フォールバック用（直接読み込み時）
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initNewsDetailPage);
+} else {
+  // DOMが既に読み込まれている場合
+  setTimeout(initNewsDetailPage, 0);
+}
 
 // グローバルに公開
 window.NewsDetailPage = {

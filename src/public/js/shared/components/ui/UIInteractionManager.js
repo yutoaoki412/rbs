@@ -541,7 +541,7 @@ class StatusManager {
 }
 
 // グローバル関数として公開（HTMLから呼び出されるため）
-// window.toggleFaq は統一されたFAQManager.jsで管理されます
+// FAQトグル機能はindex.jsで直接処理されます
 window.toggleStatus = StatusManager.toggle;
 
 // UIインタラクションマネージャーのインスタンスを作成
