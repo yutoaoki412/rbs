@@ -297,7 +297,7 @@
       <!-- レッスン状況 -->
       <section id="lesson-status" class="admin-section">
         <div class="section-header">
-          <h1>レッスン開催状況</h1>
+          <h1><i class="fas fa-calendar-check"></i> レッスン開催状況</h1>
         </div>
         
         <div class="lesson-panel">
@@ -326,12 +326,15 @@
           <div class="lesson-form">
             <div class="form-grid">
               <div class="form-group">
-                <label for="lesson-date">対象日</label>
+                <label for="lesson-date"><i class="fas fa-calendar"></i> 対象日</label>
                 <input type="date" id="lesson-date" class="form-input" value="">
               </div>
               <div class="form-group">
-                <label for="global-message">全体メッセージ（任意）</label>
-                <textarea id="global-message" class="form-textarea small" placeholder="例：雨天のため室内で実施"></textarea>
+                <label for="global-message"><i class="fas fa-comment"></i> 全体メッセージ（任意）</label>
+                <textarea id="global-message" class="form-textarea" rows="3" placeholder="例：雨天のため室内で実施いたします。"></textarea>
+                <div class="form-help">
+                  <small>このメッセージはトップページの開催状況に表示されます</small>
+                </div>
               </div>
             </div>
             
@@ -345,24 +348,24 @@
                   <div class="status-buttons">
                     <input type="radio" name="basic-lesson" value="通常開催" id="basic-lesson-scheduled" checked>
                     <label for="basic-lesson-scheduled" class="status-btn">
+                      <i class="fas fa-check-circle"></i>
                       通常開催
                     </label>
                     <input type="radio" name="basic-lesson" value="中止" id="basic-lesson-cancelled">
                     <label for="basic-lesson-cancelled" class="status-btn">
+                      <i class="fas fa-times-circle"></i>
                       中止
                     </label>
                     <input type="radio" name="basic-lesson" value="室内開催" id="basic-lesson-indoor">
                     <label for="basic-lesson-indoor" class="status-btn">
+                      <i class="fas fa-home"></i>
                       室内開催
                     </label>
                     <input type="radio" name="basic-lesson" value="延期" id="basic-lesson-postponed">
                     <label for="basic-lesson-postponed" class="status-btn">
+                      <i class="fas fa-clock"></i>
                       延期
                     </label>
-                  </div>
-                  <div class="form-group">
-                    <label for="basic-lesson-note">コース別メッセージ</label>
-                    <textarea id="basic-lesson-note" class="form-textarea small" placeholder="例：雨天のため室内で実施"></textarea>
                   </div>
                 </div>
               </div>
@@ -376,24 +379,24 @@
                   <div class="status-buttons">
                     <input type="radio" name="advance-lesson" value="通常開催" id="advance-lesson-scheduled" checked>
                     <label for="advance-lesson-scheduled" class="status-btn">
+                      <i class="fas fa-check-circle"></i>
                       通常開催
                     </label>
                     <input type="radio" name="advance-lesson" value="中止" id="advance-lesson-cancelled">
                     <label for="advance-lesson-cancelled" class="status-btn">
+                      <i class="fas fa-times-circle"></i>
                       中止
                     </label>
                     <input type="radio" name="advance-lesson" value="室内開催" id="advance-lesson-indoor">
                     <label for="advance-lesson-indoor" class="status-btn">
+                      <i class="fas fa-home"></i>
                       室内開催
                     </label>
                     <input type="radio" name="advance-lesson" value="延期" id="advance-lesson-postponed">
                     <label for="advance-lesson-postponed" class="status-btn">
+                      <i class="fas fa-clock"></i>
                       延期
                     </label>
-                  </div>
-                  <div class="form-group">
-                    <label for="advance-lesson-note">コース別メッセージ</label>
-                    <textarea id="advance-lesson-note" class="form-textarea small" placeholder="例：雨天のため室内で実施"></textarea>
                   </div>
                 </div>
               </div>
@@ -401,13 +404,13 @@
             
             <div class="form-actions">
               <button class="btn btn-secondary" data-action="load-lesson-status">
-                現在の状況を読み込み
+                <i class="fas fa-download"></i> 現在の状況を読み込み
               </button>
               <button class="btn btn-outline" data-action="preview-lesson-status">
-                プレビュー
+                <i class="fas fa-eye"></i> プレビュー
               </button>
               <button class="btn btn-success" data-action="update-lesson-status">
-                保存して公開
+                <i class="fas fa-save"></i> 保存して公開
               </button>
             </div>
           </div>
