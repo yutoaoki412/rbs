@@ -51,16 +51,19 @@ async function displayArticles() {
   const newsGrid = document.getElementById('news-grid');
   
   try {
-    // ArticleServiceが初期化されていない場合は初期化
-    if (!window.articleService) {
-      throw new Error('ArticleServiceが利用できません');
-    }
-    
-    if (!window.articleService.isInitialized) {
+    // ArticleServiceの初期化確認
+    if (!window.articleService || !window.articleService.isInitialized) {
       console.log('🔄 ArticleServiceを初期化中...');
       showLoadingMessage('ArticleServiceを初期化中...');
+      
+      // ArticleServiceのインポートと初期化
+      const { default: ArticleService } = await import('./article-service.js');
+      window.articleService = new ArticleService();
       await window.articleService.init();
     }
+    
+    // データの最新化を確認
+    await window.articleService.refresh();
     
     // ArticleServiceから記事を取得してカテゴリーでフィルタリング
     const filteredArticles = filterArticlesByCategory(currentCategory);

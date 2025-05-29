@@ -191,16 +191,182 @@ function initializeFAQ() {
  */
 async function initializeNewsSection() {
   try {
-    // ニュース一覧の読み込み
-    EventBus.emit('news:load-for-index');
+    console.log('📰 トップページニュースセクション初期化開始');
+    
+    // ニュース読み込み状況を表示
+    const newsLoadingStatus = document.getElementById('news-loading-status');
+    const newsStatusText = document.getElementById('news-status-text');
+    
+    if (newsStatusText) {
+      newsStatusText.textContent = 'ニュースを読み込み中...';
+    }
+    
+    // ArticleServiceを初期化
+    let articleService;
+    try {
+      const { default: ArticleService } = await import('../modules/news/article-service.js');
+      articleService = new ArticleService();
+      await articleService.init();
+      window.articleService = articleService; // グローバルに設定
+    } catch (error) {
+      console.error('❌ ArticleServiceの初期化に失敗:', error);
+      showNewsError('記事システムの初期化に失敗しました');
+      return;
+    }
+    
+    // 記事を読み込んで表示
+    await displayIndexNews(articleService);
+    
+    // デバッグ機能（開発時のみ）
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      const adminLink = document.getElementById('news-admin-link');
+      if (adminLink) {
+        adminLink.style.display = 'flex';
+      }
+    }
     
     // デバッグ情報のイベントリスナー
     EventBus.on('debug:show-news-info', () => {
       showNewsDebugInfo();
     });
     
+    console.log('✅ トップページニュースセクション初期化完了');
+    
   } catch (error) {
-    console.error('ニュースセクションの初期化に失敗:', error);
+    console.error('❌ ニュースセクションの初期化に失敗:', error);
+    showNewsError('ニュースの読み込みに失敗しました');
+  }
+}
+
+/**
+ * トップページ用ニュース表示
+ */
+async function displayIndexNews(articleService) {
+  const newsList = document.getElementById('news-list');
+  const newsLoadingStatus = document.getElementById('news-loading-status');
+  
+  if (!newsList) {
+    console.warn('⚠️ news-list要素が見つかりません');
+    return;
+  }
+  
+  try {
+    // 最新記事を取得（最大3件）
+    const latestArticles = articleService.getLatestArticles(3);
+    
+    console.log('📰 トップページに表示する記事:', latestArticles.length, '件');
+    
+    if (latestArticles.length === 0) {
+      // 記事がない場合の表示
+      newsList.innerHTML = `
+        <div class="no-news-message">
+          <div style="text-align: center; padding: 60px 20px; color: var(--gray-medium);">
+            <div style="font-size: 48px; margin-bottom: 20px;">📝</div>
+            <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 15px; color: var(--navy-dark);">記事がまだありません</h3>
+            <p style="font-size: 16px; margin-bottom: 25px; line-height: 1.6;">
+              現在公開中の記事がありません。<br>
+              新しい情報が追加されるまでお待ちください。
+            </p>
+            <a href="admin.html" class="btn" style="display: inline-block; padding: 12px 24px; background: var(--primary-blue); color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">
+              管理画面で記事を作成
+            </a>
+          </div>
+        </div>
+      `;
+    } else {
+      // 記事を表示
+      newsList.innerHTML = '';
+      
+      latestArticles.forEach((article, index) => {
+        const newsCard = createIndexNewsCard(article);
+        newsList.appendChild(newsCard);
+        
+        // アニメーション効果
+        setTimeout(() => {
+          newsCard.classList.add('fade-in');
+        }, index * 200);
+      });
+    }
+    
+    // ローディング状態を非表示
+    if (newsLoadingStatus) {
+      newsLoadingStatus.style.display = 'none';
+    }
+    
+  } catch (error) {
+    console.error('❌ トップページニュース表示エラー:', error);
+    showNewsError('記事の表示に失敗しました');
+  }
+}
+
+/**
+ * トップページ用ニュースカードを作成
+ */
+function createIndexNewsCard(article) {
+  const card = document.createElement('article');
+  card.className = 'news-card';
+  card.setAttribute('data-category', article.category);
+  
+  // カテゴリー色の設定
+  const categoryColors = {
+    'announcement': '#4299e1',
+    'event': '#38b2ac',
+    'media': '#9f7aea',
+    'important': '#f56565'
+  };
+  
+  const categoryColor = categoryColors[article.category] || categoryColors.announcement;
+  const formattedDate = article.formattedDate || article.date;
+  const categoryName = article.categoryName || article.category;
+  const excerpt = article.excerpt || article.summary || '';
+  
+  card.innerHTML = `
+    <div class="news-card-header">
+      <div class="news-meta">
+        <div class="news-date">${escapeHtml(formattedDate)}</div>
+        <div class="news-category ${article.category}" style="background-color: ${categoryColor};">
+          ${escapeHtml(categoryName)}
+        </div>
+      </div>
+      <h2 class="news-title">
+        <a href="news-detail.html?id=${article.id}">${escapeHtml(article.title)}</a>
+      </h2>
+    </div>
+    <div class="news-card-body">
+      <p class="news-excerpt">${escapeHtml(excerpt)}</p>
+      <div class="news-actions">
+        <a href="news-detail.html?id=${article.id}" class="news-read-more">続きを読む</a>
+      </div>
+    </div>
+  `;
+  
+  return card;
+}
+
+/**
+ * ニュースエラーを表示
+ */
+function showNewsError(message) {
+  const newsList = document.getElementById('news-list');
+  const newsLoadingStatus = document.getElementById('news-loading-status');
+  
+  if (newsList) {
+    newsList.innerHTML = `
+      <div class="news-error">
+        <div style="text-align: center; padding: 60px 20px; color: var(--primary-red);">
+          <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+          <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 15px; color: var(--navy-dark);">ニュース読み込みエラー</h3>
+          <p style="font-size: 16px; margin-bottom: 25px; line-height: 1.6;">${escapeHtml(message)}</p>
+          <button onclick="window.location.reload()" class="btn" style="display: inline-block; padding: 12px 24px; background: var(--primary-blue); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+            再読み込み
+          </button>
+        </div>
+      </div>
+    `;
+  }
+  
+  if (newsLoadingStatus) {
+    newsLoadingStatus.style.display = 'none';
   }
 }
 

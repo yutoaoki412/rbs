@@ -463,47 +463,70 @@ function showNotification(message, type = 'info') {
 // 記事詳細を読み込み
 async function loadArticleDetail() {
   try {
-    const articleId = getArticleId();
+    console.log('📰 記事詳細読み込み開始');
     
+    // 記事IDを取得
+    const articleId = getArticleId();
     if (!articleId) {
-      console.error('❌ 記事IDが指定されていません');
+      console.error('❌ 記事IDが取得できません');
       showInvalidIdError();
       return;
     }
     
-    console.log('🔄 記事詳細読み込み開始 - ID:', articleId);
+    console.log('🔍 記事ID:', articleId);
     
-    // ArticleServiceが存在するかチェック
-    if (!window.articleService) {
-      throw new Error('ArticleServiceが利用できません');
-    }
-    
-    // ArticleServiceが初期化されていない場合は初期化
-    if (!window.articleService.isInitialized) {
+    // ArticleServiceの初期化を確実に行う
+    if (!window.articleService || !window.articleService.isInitialized) {
       console.log('🔄 ArticleServiceを初期化中...');
-      await window.articleService.init();
+      
+      try {
+        const { default: ArticleService } = await import('./article-service.js');
+        window.articleService = new ArticleService();
+        await window.articleService.init();
+        
+        console.log('✅ ArticleService初期化完了');
+      } catch (initError) {
+        console.error('❌ ArticleService初期化失敗:', initError);
+        showLoadError('記事システムの初期化に失敗しました');
+        return;
+      }
+    } else {
+      // 既に初期化済みの場合はデータを最新化
+      console.log('🔄 ArticleServiceデータを最新化中...');
+      await window.articleService.refresh();
     }
     
-    // 記事を取得
+    // 記事データを取得
     const article = window.articleService.getArticleById(articleId);
     
     if (!article) {
-      console.error('❌ 記事が見つかりません - ID:', articleId);
+      console.error('❌ 記事が見つかりません:', articleId);
+      
+      // デバッグ情報を出力
+      const allArticles = window.articleService.getPublishedArticles();
+      console.log('📊 利用可能な記事:', allArticles.map(a => ({
+        id: a.id,
+        title: a.title,
+        status: a.status
+      })));
+      
       showNotFoundError();
       return;
     }
     
-    // グローバル変数に保存
+    console.log('📄 記事データ取得成功:', article.title);
+    
+    // グローバルに保存
     currentArticle = article;
     
     // 記事を表示
     await displayArticle(article);
     
-    console.log('✅ 記事詳細読み込み完了');
+    console.log('✅ 記事詳細表示完了');
     
   } catch (error) {
     console.error('❌ 記事詳細読み込みエラー:', error);
-    showLoadError(error.message);
+    showLoadError(error.message || '記事の読み込みに失敗しました');
   }
 }
 

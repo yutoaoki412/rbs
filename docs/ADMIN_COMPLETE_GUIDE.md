@@ -17,7 +17,6 @@ RBS陸上教室管理画面v3.0は、ActionHandler統合により完全に刷新
 ### 🎯 主要機能
 - **ダッシュボード**: システム統計と概要表示
 - **記事管理**: ニュース記事の作成・編集・管理
-- **ページ管理**: @pages機能による動的ページ生成 **⭐ 新機能**
 - **レッスン状況**: 開催状況の管理・通知
 - **設定**: システム設定とデータ管理
 
@@ -51,7 +50,6 @@ https://yourdomain.com/admin.html
 RBS陸上教室管理画面 v3.0
 ├── Application.js ────────── アプリケーションコア
 ├── ActionHandler.js ──────── 統一イベント処理
-├── PagesManager.js ───────── ページ管理エンジン
 ├── Admin Module ──────────── 管理画面固有機能
 └── Common Components ─────── 共通コンポーネント
 ```
@@ -64,17 +62,6 @@ RBS陸上教室管理画面 v3.0
 <button data-action="switch-tab" data-tab="dashboard">
   ダッシュボード
 </button>
-```
-
-#### 2. PagesManager（ページ管理）
-```javascript
-// 動的ページ生成
-await window.pagesManager.createPage({
-  id: 'new-page',
-  title: '新しいページ',
-  type: 'custom',
-  content: '<h1>ページコンテンツ</h1>'
-});
 ```
 
 ## 機能詳細
@@ -135,55 +122,6 @@ await window.pagesManager.createPage({
 - **リスト**: `- 項目`
 - **リンク**: `[テキスト](URL)`
 
-### 📄 ページ管理 ⭐ **新機能**
-
-#### @pages機能概要
-動的ページ生成システムにより、統一されたテンプレートで新しいページを作成できます。
-
-#### 機能特徴
-- **統一テンプレート**: 一貫したデザインとレイアウト
-- **SEO最適化**: 自動メタデータ設定
-- **レスポンシブ**: モバイル対応デザイン
-- **カスタム対応**: CSS/JS追加可能
-
-#### 使用方法
-
-##### 新規ページ作成
-1. 「ページ管理」タブを選択
-2. ページ情報を入力：
-   ```
-   ページタイトル*: ページのタイトル
-   ページタイプ: custom/news-detail/contact/about
-   ページ説明: SEO用説明文
-   キーワード: SEO用キーワード（カンマ区切り）
-   ページコンテンツ*: HTMLコンテンツ
-   カスタムCSS: 追加CSS（オプション）
-   カスタムJS: 追加JavaScript（オプション）
-   ```
-3. アクションボタン：
-   - **クリア**: エディターをクリア
-   - **プレビュー**: モーダルでプレビュー
-   - **保存**: ページを保存
-   - **ページ作成**: ページを生成
-
-##### ページ一覧管理
-- **既存ページ一覧**: システム内の全ページ表示
-- **編集**: ページ内容の修正
-- **削除**: ページの削除
-- **デバッグ情報**: 開発者向け詳細情報
-
-#### テスト機能
-```javascript
-// @pages機能テスト
-window.testPagesFunction()
-
-// サンプルページ作成
-window.pagesManager.createSamplePage()
-
-// デバッグ情報表示
-window.pagesManager.getDebugInfo()
-```
-
 ### 📅 レッスン状況管理
 
 #### 機能概要
@@ -222,83 +160,6 @@ window.pagesManager.getDebugInfo()
 - **デバッグ情報表示**: システム状態の確認
 - **LocalStorageリセット**: ブラウザデータのクリア
 
-## @pages機能
-
-### 概要
-@pages機能は、RBS陸上教室システムの動的ページ生成機能です。統一されたテンプレートを使用して、SEOに最適化されたページを簡単に作成できます。
-
-### アーキテクチャ
-
-#### PageGenerator
-```javascript
-// ページ生成の基本的な使用方法
-const generator = new PageGenerator();
-const page = await generator.createPage('custom', {
-  pageTitle: 'カスタムページ',
-  pageDescription: 'ページの説明',
-  pageKeywords: 'キーワード1, キーワード2',
-  content: '<div>ページコンテンツ</div>'
-});
-```
-
-#### PagesManager
-```javascript
-// 高レベルなページ管理
-const pageInfo = await window.pagesManager.createPage({
-  id: 'new-page',
-  title: '新しいページ',
-  description: 'ページの説明',
-  type: 'custom',
-  content: '<h1>ページコンテンツ</h1>'
-});
-```
-
-### テンプレート構造
-```html
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <title>{{PAGE_TITLE}} | RBS陸上教室</title>
-  <meta name="description" content="{{PAGE_DESCRIPTION}}">
-  <meta name="keywords" content="{{PAGE_KEYWORDS}}">
-  <!-- OGPメタデータ自動設定 -->
-</head>
-<body class="page-{{PAGE_TYPE}}">
-  <!-- 統一ヘッダー -->
-  <main id="main-content">
-    <!-- 動的コンテンツ -->
-  </main>
-  <!-- 統一フッター -->
-</body>
-</html>
-```
-
-### 利用可能なページタイプ
-- **custom**: カスタムページ
-- **news-detail**: ニュース詳細ページ
-- **contact**: お問い合わせページ
-- **about**: 会社情報ページ
-
-### API参考
-
-#### 基本操作
-```javascript
-// ページ作成
-const page = await window.pagesManager.createPage(config);
-
-// ページ取得
-const page = window.pagesManager.getPage('page-id');
-
-// 全ページ取得
-const pages = window.pagesManager.getAllPages();
-
-// ページ削除
-window.pagesManager.deletePage('page-id');
-
-// ページ更新
-await window.pagesManager.updatePage('page-id', updates);
-```
-
 ## 開発者向け情報
 
 ### システム要件
@@ -335,9 +196,6 @@ console.log(window.RBS.debug());
 
 // ActionHandler状態
 console.log(window.actionHandler.isInitialized);
-
-// PagesManager状態
-console.log(window.pagesManager.getDebugInfo());
 ```
 
 ### ログ確認
@@ -375,19 +233,7 @@ window.actionHandler.switchAdminTab('dashboard');
 2. ActionHandlerの状態確認
 3. ページリロード
 
-#### 3. @pages機能が動作しない
-**症状**: ページ作成ボタンを押してもページが生成されない
-
-**解決方法**:
-```javascript
-// PagesManagerの状態確認
-console.log(window.pagesManager);
-
-// テスト実行
-await window.testPagesFunction();
-```
-
-#### 4. データが保存されない
+#### 3. データが保存されない
 **症状**: フォームに入力してもデータが保存されない
 
 **解決方法**:
@@ -431,13 +277,11 @@ console.log(window.RBS.app.getInfo());
 
 #### ✅ 主要な改善
 - **ActionHandler統合**: 統一されたイベント処理システム
-- **@pages機能**: 動的ページ生成機能の実装
 - **管理画面修復**: タブ切り替えとボタン操作の完全修復
 - **型安全性向上**: TypeScript型定義の完全対応
 - **アーキテクチャ改善**: モジュラー設計への移行
 
 #### 🆕 新機能
-- **ページ管理**: 5番目のタブとして追加
 - **統一テンプレート**: SEO最適化されたページテンプレート
 - **デバッグツール**: 開発者向けデバッグ機能
 - **エラーハンドリング**: 改善されたエラー処理
@@ -450,7 +294,6 @@ console.log(window.RBS.app.getInfo());
 #### 🐛 修正された問題
 - タブ切り替え機能の不動作
 - ボタンクリック時の応答不良
-- PagesManagerの未統合
 - 型定義の不整合
 - 重複したフォールバック処理
 

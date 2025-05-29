@@ -7,7 +7,7 @@ class ArticleService {
     this.articles = [];
     this.isInitialized = false;
     this.storageKeys = {
-      articles: 'rbs_articles_data',
+      articles: 'rbs_articles',
       content: 'rbs_articles_content'
     };
     this.categories = {
@@ -108,7 +108,7 @@ class ArticleService {
    */
   normalizeArticle(article) {
     return {
-      id: parseInt(article.id),
+      id: article.id, // 管理画面では文字列IDを使用
       title: article.title || '',
       category: article.category || 'announcement',
       date: article.date || article.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
@@ -118,6 +118,7 @@ class ArticleService {
       status: article.status,
       createdAt: article.createdAt,
       updatedAt: article.updatedAt,
+      publishedAt: article.publishedAt,
       // 表示用の追加フィールド
       categoryName: this.getCategoryName(article.category || 'announcement'),
       categoryColor: this.getCategoryColor(article.category || 'announcement'),
@@ -169,8 +170,8 @@ class ArticleService {
       return null;
     }
     
-    const articleId = parseInt(id);
-    return this.articles.find(article => article.id === articleId) || null;
+    // 文字列IDで検索（管理画面のデータ構造に対応）
+    return this.articles.find(article => article.id === id) || null;
   }
 
   /**
