@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="../css/common.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/admin.css">
+  <link rel="stylesheet" href="../css/login.css">
   
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
@@ -102,23 +103,49 @@
 
   <!-- JavaScript -->
   <script type="module">
-    // 新しいモジュール構造を使用
-    import { AdminAuth } from '../js/modules/auth/AdminAuth.js';
-
+    // 設定読み込み
+    import config from '../js/shared/constants/config.js';
+    
+    const ADMIN_PASSWORD = config.security.admin.password;
+    
     let isLoading = false;
 
     document.addEventListener('DOMContentLoaded', function() {
+      console.log('ログインページ初期化開始');
+      
+      // 既存の認証をチェック
       if (checkExistingAuth()) {
+        console.log('既存の認証が見つかりました。管理画面にリダイレクト');
         window.location.href = 'admin.html';
         return;
       }
+      
       setupEventListeners();
       document.getElementById('password').focus();
+      console.log('ログインページ初期化完了');
     });
 
     function checkExistingAuth() {
-      const adminAuth = new AdminAuth();
-      return adminAuth.isAuthenticated();
+      try {
+        const authData = localStorage.getItem('rbs_admin_auth');
+        if (!authData) return false;
+        
+        const parsed = JSON.parse(authData);
+        const now = Date.now();
+        
+        // セッションが有効か確認
+        if (parsed.expires && now < parsed.expires) {
+          return true;
+        }
+        
+        // 期限切れの場合は削除
+        localStorage.removeItem('rbs_admin_auth');
+        return false;
+      } catch (error) {
+        console.error('認証チェックエラー:', error);
+        localStorage.removeItem('rbs_admin_auth');
+        return false;
+      }
     }
 
     function setupEventListeners() {
@@ -142,6 +169,8 @@
       e.preventDefault();
       if (isLoading) return;
 
+      console.log('ログイン処理開始');
+      
       const password = document.getElementById('password').value.trim();
       if (!password) {
         showError('パスワードを入力してください');
@@ -153,14 +182,29 @@
       hideSuccess();
 
       try {
+        // 少し待機してUXを改善
         await new Promise(resolve => setTimeout(resolve, 500)); 
-        const adminAuth = new AdminAuth();
-        const result = await adminAuth.login(password);
         
-        if (result.success) {
+        console.log('パスワード検証中...');
+        
+        // パスワード検証
+        if (password === ADMIN_PASSWORD) {
+          console.log('パスワード認証成功');
+          
+          // セッションを作成
+          const authData = {
+            token: generateSessionToken(),
+            created: Date.now(),
+            expires: Date.now() + (8 * 60 * 60 * 1000), // 8時間
+            lastActivity: Date.now()
+          };
+          
+          localStorage.setItem('rbs_admin_auth', JSON.stringify(authData));
+          
           showSuccessAndRedirect();
         } else {
-          showError(result.message);
+          console.log('パスワード認証失敗');
+          showError('パスワードが正しくありません');
           document.getElementById('password').value = '';
           document.getElementById('password').focus();
         }
@@ -170,6 +214,12 @@
       } finally {
         setLoadingState(false);
       }
+    }
+
+    function generateSessionToken() {
+      const timestamp = Date.now().toString();
+      const random = Math.random().toString(36).substring(2);
+      return btoa(`${timestamp}_${random}_admin`);
     }
 
     function setLoadingState(loading) {
@@ -192,6 +242,7 @@
     }
 
     function showError(message) {
+      console.log('エラー表示:', message);
       const errorElement = document.getElementById('error-message');
       const errorText = errorElement.querySelector('.error-text');
       errorText.textContent = message;
@@ -216,8 +267,10 @@
     }
 
     function showSuccessAndRedirect() {
+      console.log('ログイン成功、リダイレクト準備');
       showSuccess();
       setTimeout(() => {
+        console.log('管理画面にリダイレクト');
         window.location.href = 'admin.html';
       }, 1500);
     }
@@ -252,9 +305,9 @@
   </script>
 
   <style>
+    /* 管理画面ログイン用の最小限の調整 */
     body.admin-layout {
-      background: var(--admin-gray-50); /* admin.css の背景色に統一 */
-      /* login.css の背景グラデーションは不使用 */
+      background: var(--admin-gray-50);
     }
 
     .login-main {
@@ -264,20 +317,18 @@
       justify-content: center;
       min-height: calc(100vh - var(--admin-header-height));
       padding: 2rem;
-      position: relative;
     }
 
     .login-card {
-      max-width: 420px; /* login.css の max-width に近い値に調整 */
+      max-width: 420px;
       width: 100%;
       margin: 2rem auto;
-      padding: 2.5rem 2rem; /* login.css のパディングを参考に調整 */
-      background: var(--admin-white); /* admin.css のウィジェット背景色 */
-      border: 1px solid var(--admin-gray-200); /* admin.css のボーダー */
-      border-radius: var(--admin-border-radius); /* admin.css の角丸 */
-      box-shadow: var(--admin-shadow-lg); /* admin.css の大きな影を適用 */
+      padding: 2.5rem 2rem;
+      background: var(--admin-white);
+      border: 1px solid var(--admin-gray-200);
+      border-radius: var(--admin-border-radius);
+      box-shadow: var(--admin-shadow-lg);
       position: relative;
-      overflow: hidden;
     }
 
     .login-card::before {
@@ -286,14 +337,9 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 4px; /* 少し高さを調整 */
+      height: 4px;
       background: var(--admin-primary);
       border-radius: var(--admin-border-radius) var(--admin-border-radius) 0 0;
-    }
-
-    .login-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
     }
 
     .section-header {
@@ -302,167 +348,18 @@
     }
 
     .section-header h1 {
-      color: var(--admin-gray-900); /* admin.css の見出し色 */
-      font-size: 1.625rem; /* login.css のタイトルサイズに近い値 */
+      color: var(--admin-gray-900);
+      font-size: 1.625rem;
       font-weight: 700;
       margin: 0;
-      letter-spacing: -0.025em;
     }
 
     .section-header h1 i {
       color: var(--admin-primary);
       margin-right: 0.5rem;
-      font-size: 1.375rem; /* アイコンサイズ調整 */
     }
 
-    .login-form {
-      /* login.css には space-y のような直接的な定義はないため、form-group の margin で調整 */
-    }
-
-    .form-group {
-      margin-bottom: 1.25rem; /* login.css に近いマージン */
-    }
-
-    .form-label {
-      display: block; /* login.css の .form-label は flex だが、アイコンがない場合は block で十分 */
-      font-weight: 600;
-      color: var(--admin-gray-700); /* admin.css のラベル色 */
-      margin-bottom: 0.625rem; /* login.css に近いマージン */
-      font-size: 0.875rem; /* admin.css のフォントサイズを参考 */
-    }
-
-    .form-label i {
-      color: var(--admin-primary);
-      margin-right: 0.5rem;
-      width: 16px;
-    }
-
-    .password-input-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .password-input-wrapper .form-input {
-      width: 100%;
-      padding: 0.875rem 3rem 0.875rem 1rem; /* login.css のパディングを参考に調整 */
-      border: 1px solid var(--admin-gray-300); /* admin.css の入力フィールドボーダー */
-      border-radius: var(--admin-border-radius-sm); /* admin.css の角丸 */
-      font-size: 0.9375rem; /* login.css と admin.css の中間的なサイズ */
-      background: var(--admin-white);
-      transition: var(--admin-transition);
-      outline: none;
-    }
-
-    .password-input-wrapper .form-input:focus {
-      border-color: var(--admin-primary);
-      background: var(--admin-white);
-      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1); /* admin-primary の実際のRGB値 */
-    }
-
-    .password-input-wrapper .form-input::placeholder {
-      color: var(--admin-gray-500); /* admin.css のプレースホルダー色 */
-      font-weight: 400;
-    }
-
-    .password-toggle {
-      position: absolute;
-      right: 0.75rem;
-      background: none;
-      border: none;
-      color: var(--admin-gray-500);
-      cursor: pointer;
-      padding: 0.5rem;
-      font-size: 1.1rem;
-      border-radius: 6px;
-      transition: var(--admin-transition);
-    }
-
-    .password-toggle:hover {
-      color: var(--admin-primary);
-      background: var(--admin-gray-100);
-    }
-
-    .password-toggle:focus-visible {
-      outline: 2px solid var(--admin-primary);
-      outline-offset: 2px;
-    }
-
-    .form-actions {
-      margin-top: 1.75rem; /* login.css の .login-form の margin-bottom に近い値 */
-    }
-
-    .login-btn {
-      width: 100%;
-      padding: 0.875rem 1.5rem;
-      font-size: 1rem;
-      font-weight: 600;
-      border-radius: var(--admin-border-radius-sm);
-      border: none;
-      background: var(--admin-primary); /* admin.css のプライマリボタン色 */
-      color: var(--admin-white);
-      cursor: pointer;
-      transition: var(--admin-transition);
-      box-shadow: var(--admin-shadow);
-      display: flex; /* 中央揃えのため */
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-
-    .login-btn:hover:not(:disabled) {
-      background: var(--admin-primary-dark); /* admin.css のホバー色 */
-      transform: translateY(-1px);
-      box-shadow: var(--admin-shadow-lg);
-    }
-
-    .login-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      background: var(--admin-gray-300);
-      color: var(--admin-gray-500);
-      transform: none;
-      box-shadow: none;
-    }
-
-    .login-btn:focus-visible {
-      outline: 2px solid var(--admin-primary);
-      outline-offset: 2px;
-    }
-
-    /* .btn-text, .btn-loading は .login-btn に統合 */
-
-    .admin-notification {
-      border-radius: var(--admin-border-radius-sm);
-      padding: 1rem 1.25rem;
-      font-weight: 500;
-      border: 1px solid;
-      margin-bottom: 1.5rem; /* login.css のマージンを適用 */
-    }
-
-    .admin-notification.error {
-      background: rgba(239, 68, 68, 0.1); /* admin-error をベースにした背景色 */
-      border-color: rgba(239, 68, 68, 0.2);
-      color: var(--admin-error);
-    }
-
-    .admin-notification.success {
-      background: rgba(34, 197, 94, 0.1); /* admin-success をベースにした背景色 */
-      border-color: rgba(34, 197, 94, 0.2);
-      color: var(--admin-success);
-    }
-
-    .notification-content {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .notification-content i {
-      font-size: 1.1rem;
-    }
-
-    /* ヘッダー内の「サイトに戻る」ボタンのスタイル調整 */
+    /* ヘッダーの「サイトに戻る」ボタンのスタイル */
     .admin-header .back-link {
       display: flex;
       align-items: center;
@@ -488,43 +385,6 @@
       box-shadow: var(--admin-shadow-lg);
     }
 
-    .admin-header .back-link:focus-visible {
-      outline: 2px solid var(--admin-primary);
-      outline-offset: 2px;
-    }
-
-    /* ヘッダー自体のスタイル (admin.css と共通) */
-    .admin-header {
-      /* admin.css の .admin-header と共通のスタイルが適用される前提 */
-      /* ただし、ログイン画面専用の調整があればここに追加 */
-      /* 今回は login.css のようなヘッダー中央ロゴ等はないため、現状維持 */
-    }
-
-    .admin-logo-icon {
-      /* admin.css のスタイルを継承 */
-    }
-
-    .admin-logo-text {
-      /* admin.css のスタイルを継承 */
-    }
-
-    /* ローディング状態の改善 (login.css には .loading-spinner があるが、既存実装をベースに調整) */
-    .login-btn.loading .btn-text {
-        display: none;
-    }
-    .login-btn.loading .btn-loading {
-        display: flex; /* 初期状態は display: none だが、JSで変更される */
-    }
-
-    .btn-loading .fa-spinner {
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
     /* レスポンシブデザイン */
     @media (max-width: 768px) {
       .login-main {
@@ -533,7 +393,6 @@
       
       .login-card {
         padding: 2rem 1.5rem;
-        border-radius: var(--admin-border-radius); /* モバイルでも統一感を出す */
         margin: 1rem;
       }
       
@@ -541,17 +400,8 @@
         font-size: 1.5rem;
       }
       
-      .admin-header {
-        padding: 0 1rem;
-      }
-      
       .admin-logo-text {
         display: none;
-      }
-
-      .admin-header .back-link {
-        padding: 0.5rem 1rem;
-        font-size: 0.8rem;
       }
     }
 
@@ -559,17 +409,6 @@
       .login-card {
         margin: 0.5rem;
         padding: 1.5rem 1rem;
-      }
-      
-      .section-header {
-        margin-bottom: 1.5rem; /* モバイルでの間隔調整 */
-      }
-       .password-input-wrapper .form-input {
-        padding: 0.75rem 2.5rem 0.75rem 0.75rem; /* モバイルでのパディング調整 */
-      }
-      .login-btn {
-        padding: 0.75rem 1rem;
-        font-size: 0.9375rem;
       }
     }
   </style>

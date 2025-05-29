@@ -156,15 +156,26 @@ class Application {
         // ActionHandlerは確実に初期化
         if (name === 'ActionHandler') {
           console.log('🔧 ActionHandler初期化開始');
-          if (module.actionHandler) {
-            await module.actionHandler.init();
+          
+          // シングルトンインスタンスを取得
+          const { actionHandler } = module;
+          if (actionHandler) {
+            // まだ初期化されていない場合のみ初期化
+            if (!actionHandler.isInitialized) {
+              actionHandler.init();
+            }
+            
+            // グローバルアクセス用
+            window.actionHandler = actionHandler;
             
             // 管理画面の場合は特別な初期化を実行
             const currentPage = this.getCurrentPage();
-            if (currentPage === 'admin') {
+            if (currentPage === 'admin' || currentPage === 'admin-login') {
               console.log('🔧 管理画面用ActionHandler設定を開始');
               // 管理画面用のイベントリスナーを追加設定
-              this.setupAdminEventListeners(module.actionHandler);
+              setTimeout(() => {
+                this.setupAdminEventListeners(actionHandler);
+              }, 100);
               console.log('✅ 管理画面用ActionHandler設定完了');
             }
             
@@ -190,11 +201,16 @@ class Application {
         if (name === 'PagesManager') {
           console.log('🔧 PagesManager初期化開始');
           if (module.default) {
-            const pagesManager = new module.default();
-            await pagesManager.init();
-            // グローバルアクセス用
-            window.pagesManager = pagesManager;
-            console.log('✅ PagesManager初期化完了');
+            try {
+              const pagesManager = new module.default();
+              await pagesManager.init();
+              // グローバルアクセス用
+              window.pagesManager = pagesManager;
+              console.log('✅ PagesManager初期化完了');
+            } catch (error) {
+              console.error('❌ PagesManager初期化失敗:', error);
+              // PagesManagerが失敗してもアプリケーションは継続
+            }
           } else {
             console.warn('⚠️ PagesManagerクラスが見つかりません');
           }

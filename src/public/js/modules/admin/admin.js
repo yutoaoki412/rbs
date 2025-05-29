@@ -1,39 +1,92 @@
 /**
- * RBS陸上教室 管理画面システム v2.1
- * メインエントリーポイント（スリム化版）
+ * RBS陸上教室 管理画面システム v3.0
+ * ActionHandler統合版
  */
-
-import { AdminCore } from './core/AdminCore.js';
-
-// グローバル変数として管理画面インスタンスを保持
-let adminInstance = null;
 
 /**
  * 管理画面の初期化
  */
-async function initializeAdmin() {
+async function initializeAdmin(app) {
   try {
-    console.log('RBS陸上教室 管理画面システム v2.1 を起動中...');
+    console.log('🔧 管理画面システム v3.0 初期化開始');
     
-    // 既存のインスタンスがある場合は破棄
-    if (adminInstance) {
-      adminInstance.destroy();
+    // ActionHandlerが初期化されるまで待機
+    let retryCount = 0;
+    const maxRetries = 10;
+    
+    while (!window.actionHandler?.isInitialized && retryCount < maxRetries) {
+      console.log(`⏳ ActionHandlerの初期化を待機中... (${retryCount + 1}/${maxRetries})`);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      retryCount++;
     }
     
-    // 新しいインスタンスを作成
-    adminInstance = new AdminCore();
+    if (!window.actionHandler?.isInitialized) {
+      throw new Error('ActionHandlerが初期化されていません');
+    }
     
-    // 初期化
-    await adminInstance.init();
+    console.log('✅ ActionHandler確認完了');
     
-    console.log('管理画面システムの起動が完了しました');
+    // 管理画面固有の初期化
+    initializeAdminSpecific();
+    
+    // 初期ダッシュボードを表示
+    setTimeout(() => {
+      if (window.actionHandler) {
+        window.actionHandler.switchAdminTab('dashboard');
+      }
+    }, 200);
+    
+    console.log('✅ 管理画面システム初期化完了');
     
   } catch (error) {
-    console.error('管理画面システムの起動に失敗:', error);
-    
-    // エラー発生時のフォールバック
+    console.error('❌ 管理画面システムの起動に失敗:', error);
     showFallbackError(error);
   }
+}
+
+/**
+ * 管理画面固有の初期化処理
+ */
+function initializeAdminSpecific() {
+  console.log('🔧 管理画面固有設定を開始');
+  
+  // 現在の日付を設定
+  const today = new Date().toISOString().split('T')[0];
+  const dateInputs = document.querySelectorAll('input[type="date"]');
+  dateInputs.forEach(input => {
+    if (!input.value) {
+      input.value = today;
+    }
+  });
+  
+  // フォームの自動保存防止
+  document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+    });
+  });
+  
+  // モーダル外クリックで閉じる
+  const modal = document.getElementById('modal');
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal && window.actionHandler) {
+        window.actionHandler.closeModal();
+      }
+    });
+  }
+  
+  // Escキーでモーダルを閉じる
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('modal');
+      if (modal && modal.style.display === 'block' && window.actionHandler) {
+        window.actionHandler.closeModal();
+      }
+    }
+  });
+  
+  console.log('✅ 管理画面固有設定完了');
 }
 
 /**
@@ -89,7 +142,7 @@ function showFallbackError(error) {
         ">
           ログイン画面へ
         </button>
-        <button onclick="console.error('管理画面エラー:', ${JSON.stringify(error.message)})" style="
+        <button onclick="console.error('管理画面エラー:', '${error.message}')" style="
           background: #e53e3e;
           color: white;
           border: none;
@@ -106,11 +159,16 @@ function showFallbackError(error) {
   document.body.insertAdjacentHTML('beforeend', errorHTML);
 }
 
+// エクスポート用の関数
+export async function init(app) {
+  await initializeAdmin(app);
+}
+
 /**
  * ページ離脱時の確認処理
  */
 window.addEventListener('beforeunload', (e) => {
-  if (adminInstance && adminInstance.uiManager && adminInstance.uiManager.hasUnsavedChanges()) {
+  if (window.actionHandler && window.actionHandler.uiManager && window.actionHandler.uiManager.hasUnsavedChanges()) {
     e.preventDefault();
     e.returnValue = '未保存の変更があります。本当に離脱しますか？';
   }
@@ -120,17 +178,13 @@ window.addEventListener('beforeunload', (e) => {
  * DOMContentLoaded イベントで初期化
  */
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeAdmin);
+  document.addEventListener('DOMContentLoaded', () => initializeAdmin(window));
 } else {
-  initializeAdmin();
+  initializeAdmin(window);
 }
 
 // デバッグ用: 開発環境でのみグローバルに公開
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-  window.adminInstance = adminInstance;
-  window.getSystemStatus = () => adminInstance?.getSystemStatus();
-  window.getPerformanceInfo = () => adminInstance?.getPerformanceInfo();
-}
-
-// モジュールとして公開
-export { adminInstance, initializeAdmin }; 
+  window.getSystemStatus = () => window.actionHandler?.getSystemStatus();
+  window.getPerformanceInfo = () => window.actionHandler?.getPerformanceInfo();
+} 

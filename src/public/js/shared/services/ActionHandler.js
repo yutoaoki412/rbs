@@ -21,7 +21,7 @@
  * 
  * @typedef {'success'|'error'|'info'|'warning'} FeedbackType
  * 
- * @typedef {'dashboard'|'news-management'|'lesson-status'|'settings'} TabName
+ * @typedef {'dashboard'|'news-management'|'page-management'|'lesson-status'|'settings'} TabName
  * 
  * @typedef {Object} DashboardStats
  * @property {number} total - 総記事数
@@ -269,6 +269,21 @@ export class ActionHandler {
       'publish-news': () => this.publishNews(),
       'test-article-service': () => this.testArticleService(),
 
+      // 管理画面 - ページ管理
+      'clear-page-editor': () => {
+        if (confirm('ページエディターの内容をクリアしますか？')) {
+          this.clearPageEditor();
+        }
+      },
+
+      'preview-page': () => this.previewPage(),
+      'save-page': () => this.savePage(),
+      'create-page': () => this.createPage(),
+      'refresh-page-list': () => this.loadPagesList(),
+      'show-pages-debug': () => this.showPagesDebugInfo(),
+      'test-pages-function': () => this.testPagesFunction(),
+      'create-sample-page': () => this.createSamplePage(),
+
       // 管理画面 - レッスン状況
       'load-lesson-status': () => this.loadLessonStatus(),
       'preview-lesson-status': () => this.previewLessonStatus(),
@@ -355,6 +370,7 @@ export class ActionHandler {
     const tabNames = {
       'dashboard': 'ダッシュボード',
       'news-management': '記事管理',
+      'page-management': 'ページ管理',
       'lesson-status': 'レッスン状況',
       'settings': '設定'
     };
@@ -371,6 +387,9 @@ export class ActionHandler {
         break;
       case 'news-management':
         this.initializeNewsManagement();
+        break;
+      case 'page-management':
+        this.initializePageManagement();
         break;
       case 'lesson-status':
         this.initializeLessonStatus();
@@ -397,6 +416,14 @@ export class ActionHandler {
     console.log('📝 記事管理を初期化中...');
     // 記事リストの更新など
     this.loadNewsList();
+  }
+
+  /**
+   * ページ管理初期化
+   */
+  initializePageManagement() {
+    console.log('📄 ページ管理を初期化中...');
+    this.loadPagesList();
   }
 
   /**
@@ -601,7 +628,7 @@ export class ActionHandler {
    * @returns {tabName is TabName}
    */
   #isValidTabName(tabName) {
-    const validTabs = ['dashboard', 'news-management', 'lesson-status', 'settings'];
+    const validTabs = ['dashboard', 'news-management', 'page-management', 'lesson-status', 'settings'];
     return typeof tabName === 'string' && validTabs.includes(tabName);
   }
 
@@ -694,6 +721,381 @@ export class ActionHandler {
     if (shareUrl) {
       const windowFeatures = platform === 'line' ? undefined : 'width=600,height=400,scrollbars=yes,resizable=yes';
       window.open(shareUrl, '_blank', windowFeatures);
+    }
+  }
+
+  // ページ管理機能の実装
+  clearPageEditor() {
+    const fields = [
+      'page-title', 'page-type', 'page-description', 'page-keywords',
+      'page-content', 'page-custom-css', 'page-custom-js'
+    ];
+    fields.forEach(id => {
+      const element = document.getElementById(id);
+      if (element) element.value = '';
+    });
+    this.showFeedback('ページエディターをクリアしました');
+  }
+
+  previewPage() {
+    const title = document.getElementById('page-title')?.value || 'ページタイトル未設定';
+    const content = document.getElementById('page-content')?.value || 'ページコンテンツが設定されていません';
+    const description = document.getElementById('page-description')?.value || '';
+    
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    
+    if (modal && modalTitle && modalBody) {
+      modalTitle.textContent = 'ページプレビュー';
+      modalBody.innerHTML = `
+        <div class="preview-content">
+          <h1>${this.escapeHtml(title)}</h1>
+          ${description ? `<p class="description">${this.escapeHtml(description)}</p>` : ''}
+          <div class="preview-body">${content}</div>
+        </div>
+      `;
+      modal.style.display = 'block';
+    }
+  }
+
+  savePage() {
+    // 基本的な保存処理
+    const pageData = {
+      title: document.getElementById('page-title')?.value,
+      type: document.getElementById('page-type')?.value,
+      description: document.getElementById('page-description')?.value,
+      keywords: document.getElementById('page-keywords')?.value,
+      content: document.getElementById('page-content')?.value,
+      customCSS: document.getElementById('page-custom-css')?.value,
+      customJS: document.getElementById('page-custom-js')?.value,
+      updatedAt: new Date().toISOString()
+    };
+    
+    try {
+      // LocalStorageに保存
+      const existingPages = JSON.parse(localStorage.getItem('rbs_pages_data') || '[]');
+      existingPages.push(pageData);
+      localStorage.setItem('rbs_pages_data', JSON.stringify(existingPages));
+      
+      this.showFeedback('ページデータを保存しました');
+    } catch (error) {
+      console.error('ページ保存エラー:', error);
+      this.showFeedback('ページの保存に失敗しました', 'error');
+    }
+  }
+
+  async createPage() {
+    const title = document.getElementById('page-title')?.value;
+    const type = document.getElementById('page-type')?.value || 'custom';
+    const content = document.getElementById('page-content')?.value;
+    
+    if (!title || !content) {
+      this.showFeedback('ページタイトルとコンテンツは必須です', 'error');
+      return;
+    }
+    
+    try {
+      if (window.pagesManager) {
+        const pageConfig = {
+          id: `page-${Date.now()}`,
+          title: title,
+          description: document.getElementById('page-description')?.value || '',
+          keywords: document.getElementById('page-keywords')?.value || '',
+          type: type,
+          content: content,
+          customCSS: document.getElementById('page-custom-css')?.value || '',
+          customJS: document.getElementById('page-custom-js')?.value || ''
+        };
+        
+        await window.pagesManager.createPage(pageConfig);
+        this.showFeedback('ページを作成しました');
+        
+        // エディターをクリア
+        this.clearPageEditor();
+        
+        // ページリストを更新
+        this.loadPagesList();
+      } else {
+        throw new Error('PagesManagerが利用できません');
+      }
+    } catch (error) {
+      console.error('ページ作成エラー:', error);
+      this.showFeedback('ページの作成に失敗しました', 'error');
+    }
+  }
+
+  loadPagesList() {
+    try {
+      const pagesList = document.getElementById('pages-list');
+      if (!pagesList) return;
+      
+      if (window.pagesManager) {
+        const pages = window.pagesManager.getAllPages();
+        
+        if (pages.length === 0) {
+          pagesList.innerHTML = '<p class="no-pages">ページがありません</p>';
+          return;
+        }
+        
+        const pagesHTML = pages.map(page => `
+          <div class="page-item" data-page-id="${page.id}">
+            <div class="page-info">
+              <h4>${this.escapeHtml(page.title)}</h4>
+              <p class="page-meta">
+                タイプ: ${page.type} | 
+                作成日: ${new Date(page.createdAt).toLocaleDateString('ja-JP')}
+              </p>
+              ${page.description ? `<p class="page-desc">${this.escapeHtml(page.description)}</p>` : ''}
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-sm" onclick="window.actionHandler.editPage('${page.id}')">編集</button>
+              <button class="btn btn-sm btn-danger" onclick="window.actionHandler.deletePage('${page.id}')">削除</button>
+            </div>
+          </div>
+        `).join('');
+        
+        pagesList.innerHTML = pagesHTML;
+      } else {
+        // フォールバック: LocalStorageから読み込み
+        const savedPages = JSON.parse(localStorage.getItem('rbs_pages_data') || '[]');
+        
+        if (savedPages.length === 0) {
+          pagesList.innerHTML = '<p class="no-pages">ページがありません</p>';
+          return;
+        }
+        
+        const pagesHTML = savedPages.map((page, index) => `
+          <div class="page-item" data-page-index="${index}">
+            <div class="page-info">
+              <h4>${this.escapeHtml(page.title || 'タイトル未設定')}</h4>
+              <p class="page-meta">
+                タイプ: ${page.type || 'custom'} | 
+                更新日: ${page.updatedAt ? new Date(page.updatedAt).toLocaleDateString('ja-JP') : '不明'}
+              </p>
+              ${page.description ? `<p class="page-desc">${this.escapeHtml(page.description)}</p>` : ''}
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-sm" onclick="window.actionHandler.editPageFromStorage(${index})">編集</button>
+              <button class="btn btn-sm btn-danger" onclick="window.actionHandler.deletePageFromStorage(${index})">削除</button>
+            </div>
+          </div>
+        `).join('');
+        
+        pagesList.innerHTML = pagesHTML;
+      }
+      
+      this.showFeedback('ページリストを更新しました');
+      
+    } catch (error) {
+      console.error('ページリスト読み込みエラー:', error);
+      this.showFeedback('ページリストの読み込みに失敗しました', 'error');
+    }
+  }
+
+  editPage(pageId) {
+    try {
+      if (window.pagesManager) {
+        const page = window.pagesManager.getPage(pageId);
+        if (page) {
+          // フォームに値をセット
+          document.getElementById('page-title').value = page.title || '';
+          document.getElementById('page-type').value = page.type || 'custom';
+          document.getElementById('page-description').value = page.description || '';
+          document.getElementById('page-keywords').value = page.keywords || '';
+          document.getElementById('page-content').value = page.content || '';
+          document.getElementById('page-custom-css').value = page.customCSS || '';
+          document.getElementById('page-custom-js').value = page.customJS || '';
+          
+          this.showFeedback(`ページ「${page.title}」を編集中`);
+        }
+      }
+    } catch (error) {
+      console.error('ページ編集エラー:', error);
+      this.showFeedback('ページの編集に失敗しました', 'error');
+    }
+  }
+
+  deletePage(pageId) {
+    if (!confirm('本当にこのページを削除しますか？')) return;
+    
+    try {
+      if (window.pagesManager) {
+        window.pagesManager.deletePage(pageId);
+        this.showFeedback('ページを削除しました');
+        this.loadPagesList();
+      }
+    } catch (error) {
+      console.error('ページ削除エラー:', error);
+      this.showFeedback('ページの削除に失敗しました', 'error');
+    }
+  }
+
+  editPageFromStorage(index) {
+    try {
+      const savedPages = JSON.parse(localStorage.getItem('rbs_pages_data') || '[]');
+      const page = savedPages[index];
+      if (page) {
+        // フォームに値をセット
+        document.getElementById('page-title').value = page.title || '';
+        document.getElementById('page-type').value = page.type || 'custom';
+        document.getElementById('page-description').value = page.description || '';
+        document.getElementById('page-keywords').value = page.keywords || '';
+        document.getElementById('page-content').value = page.content || '';
+        document.getElementById('page-custom-css').value = page.customCSS || '';
+        document.getElementById('page-custom-js').value = page.customJS || '';
+        
+        this.showFeedback(`ページ「${page.title}」を編集中`);
+      }
+    } catch (error) {
+      console.error('ページ編集エラー:', error);
+      this.showFeedback('ページの編集に失敗しました', 'error');
+    }
+  }
+
+  deletePageFromStorage(index) {
+    if (!confirm('本当にこのページを削除しますか？')) return;
+    
+    try {
+      const savedPages = JSON.parse(localStorage.getItem('rbs_pages_data') || '[]');
+      savedPages.splice(index, 1);
+      localStorage.setItem('rbs_pages_data', JSON.stringify(savedPages));
+      
+      this.showFeedback('ページを削除しました');
+      this.loadPagesList();
+    } catch (error) {
+      console.error('ページ削除エラー:', error);
+      this.showFeedback('ページの削除に失敗しました', 'error');
+    }
+  }
+
+  showPagesDebugInfo() {
+    try {
+      const debugInfo = {
+        pagesManagerAvailable: !!window.pagesManager,
+        localStoragePages: JSON.parse(localStorage.getItem('rbs_pages_data') || '[]').length,
+        timestamp: new Date().toISOString()
+      };
+      
+      if (window.pagesManager) {
+        debugInfo.pagesManagerPages = window.pagesManager.getAllPages().length;
+        debugInfo.pagesManagerStatus = window.pagesManager.getDebugInfo();
+      }
+      
+      console.log('🔍 Pages Debug Info:', debugInfo);
+      
+      const modal = document.getElementById('modal');
+      const modalTitle = document.getElementById('modal-title');
+      const modalBody = document.getElementById('modal-body');
+      
+      if (modal && modalTitle && modalBody) {
+        modalTitle.textContent = 'ページ管理デバッグ情報';
+        modalBody.innerHTML = `
+          <div class="debug-info">
+            <pre>${JSON.stringify(debugInfo, null, 2)}</pre>
+          </div>
+        `;
+        modal.style.display = 'block';
+      }
+      
+    } catch (error) {
+      console.error('デバッグ情報取得エラー:', error);
+      this.showFeedback('デバッグ情報の取得に失敗しました', 'error');
+    }
+  }
+
+  async testPagesFunction() {
+    try {
+      console.log('🧪 @pages機能テスト開始');
+      
+      if (!window.pagesManager) {
+        throw new Error('PagesManagerが利用できません');
+      }
+      
+      // テスト用ページ設定
+      const testPageConfig = {
+        id: `test-page-${Date.now()}`,
+        title: 'テストページ',
+        description: 'これは@pages機能のテストページです',
+        keywords: 'テスト, @pages, 機能確認',
+        type: 'custom',
+        content: `
+          <h1>@pages機能テストページ</h1>
+          <p>このページは@pages機能のテストとして作成されました。</p>
+          <p>作成時刻: ${new Date().toLocaleString('ja-JP')}</p>
+          <h2>機能確認項目</h2>
+          <ul>
+            <li>✅ ページの動的生成</li>
+            <li>✅ テンプレートの適用</li>
+            <li>✅ SEOメタデータの設定</li>
+            <li>✅ コンテンツの表示</li>
+          </ul>
+        `
+      };
+      
+      // ページを作成
+      await window.pagesManager.createPage(testPageConfig);
+      
+      console.log('✅ テストページ作成完了');
+      this.showFeedback('@pages機能テストが成功しました');
+      
+      // ページリストを更新
+      this.loadPagesList();
+      
+    } catch (error) {
+      console.error('❌ @pages機能テスト失敗:', error);
+      this.showFeedback('@pages機能テストに失敗しました', 'error');
+    }
+  }
+
+  async createSamplePage() {
+    try {
+      if (!window.pagesManager) {
+        throw new Error('PagesManagerが利用できません');
+      }
+      
+      const samplePageConfig = {
+        id: `sample-page-${Date.now()}`,
+        title: 'サンプルページ',
+        description: 'RBS陸上教室のサンプルページです',
+        keywords: 'RBS陸上教室, サンプル, ページ',
+        type: 'custom',
+        content: `
+          <h1>RBS陸上教室 サンプルページ</h1>
+          <p>このページは@pages機能を使用して作成されたサンプルページです。</p>
+          
+          <h2>特徴</h2>
+          <ul>
+            <li>統一されたデザインテンプレート</li>
+            <li>SEO最適化されたメタデータ</li>
+            <li>レスポンシブ対応</li>
+            <li>カスタムCSS/JS対応</li>
+          </ul>
+          
+          <h2>お問い合わせ</h2>
+          <p>詳細については<a href="index.html#contact">お問い合わせフォーム</a>からご連絡ください。</p>
+        `,
+        customCSS: `
+          .sample-highlight {
+            background-color: #fef3c7;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+          }
+        `,
+        customJS: `
+          console.log('サンプルページが読み込まれました');
+        `
+      };
+      
+      await window.pagesManager.createPage(samplePageConfig);
+      
+      this.showFeedback('サンプルページを作成しました');
+      this.loadPagesList();
+      
+    } catch (error) {
+      console.error('サンプルページ作成エラー:', error);
+      this.showFeedback('サンプルページの作成に失敗しました', 'error');
     }
   }
 }

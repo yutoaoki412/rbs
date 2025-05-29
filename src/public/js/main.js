@@ -88,297 +88,57 @@ function handleInitializationError(error) {
     console.warn('エラー情報の保存に失敗:', e);
   }
 
-  // 基本的な機能のフォールバック
-  initBasicFallbacks();
+  // 最小限のフォールバック処理のみ実行
+  initMinimalFallbacks();
 }
 
 /**
- * 基本機能のフォールバック
+ * 最小限のフォールバック処理
  * @returns {void}
  */
-function initBasicFallbacks() {
-  console.log('🔄 基本機能のフォールバック実行中...');
+function initMinimalFallbacks() {
+  console.log('🔄 最小限のフォールバック処理を実行中...');
   
-  // 管理画面の場合の特別な処理
-  const currentPage = getCurrentPageFallback();
-  if (currentPage === 'admin') {
-    console.log('🔧 管理画面用フォールバック処理を開始');
-    initAdminFallbacks();
-  }
+  // エラーメッセージを表示
+  const errorDialog = document.createElement('div');
+  errorDialog.innerHTML = `
+    <div style="
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7); z-index: 10000;
+      display: flex; align-items: center; justify-content: center;
+    ">
+      <div style="
+        background: white; padding: 2rem; border-radius: 8px;
+        max-width: 500px; margin: 1rem; text-align: center;
+      ">
+        <h2 style="color: #e53e3e; margin-bottom: 1rem;">
+          システムエラー
+        </h2>
+        <p style="margin-bottom: 1rem;">
+          アプリケーションの初期化に失敗しました。<br>
+          ページを再読み込みしてください。
+        </p>
+        <div style="display: flex; gap: 0.5rem; justify-content: center;">
+          <button onclick="window.location.reload()" style="
+            background: #4299e1; color: white; border: none;
+            padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;
+          ">
+            再読み込み
+          </button>
+          <button onclick="this.parentElement.parentElement.parentElement.remove()" style="
+            background: #718096; color: white; border: none;
+            padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;
+          ">
+            閉じる
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
   
-  // スムーススクロール
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-      const targetId = this.getAttribute('href')?.substring(1);
-      if (targetId) {
-        const target = document.getElementById(targetId);
-        if (target) {
-          e.preventDefault();
-          target.scrollIntoView({ behavior: 'smooth' });
-        }
-      }
-    });
-  });
-
-  // モバイルメニュー
-  const menuToggle = document.querySelector('.mobile-menu-toggle');
-  const mobileMenu = document.querySelector('.mobile-menu');
+  document.body.appendChild(errorDialog);
   
-  if (menuToggle && mobileMenu) {
-    menuToggle.addEventListener('click', () => {
-      mobileMenu.classList.toggle('open');
-      menuToggle.classList.toggle('active');
-    });
-  }
-
-  // レッスン状況トグル（フォールバック版）
-  const statusToggleElement = document.querySelector('[data-action="toggle-status"]');
-  if (statusToggleElement) {
-    statusToggleElement.addEventListener('click', () => {
-      const statusBanner = document.getElementById('today-status');
-      
-      if (statusBanner) {
-        const isActive = statusBanner.classList.contains('active');
-        
-        if (isActive) {
-          statusBanner.classList.remove('active');
-          statusToggleElement.setAttribute('aria-expanded', 'false');
-        } else {
-          statusBanner.classList.add('active');
-          statusToggleElement.setAttribute('aria-expanded', 'true');
-        }
-        
-        console.log('📱 フォールバック版レッスン状況トグル実行');
-      }
-    });
-  }
-
-  // 基本的なFAQフォールバック（ActionHandlerが利用できない場合のみ）
-  if (!window.RBS?.app?.modules?.has('ActionHandler')) {
-    document.querySelectorAll('[data-action="toggle-faq"]').forEach(question => {
-      question.addEventListener('click', () => {
-        const faqItem = question.closest('.faq-item');
-        if (faqItem) {
-          // アコーディオン動作: 他のFAQを閉じる
-          document.querySelectorAll('.faq-item.active').forEach(item => {
-            if (item !== faqItem) {
-              item.classList.remove('active');
-            }
-          });
-          
-          // 現在のFAQをトグル
-          faqItem.classList.toggle('active');
-          const isActive = faqItem.classList.contains('active');
-          question.setAttribute('aria-expanded', isActive.toString());
-          
-          console.log('📱 フォールバック版FAQトグル実行');
-        }
-      });
-    });
-  }
-
-  // スクロールトップボタン
-  const scrollTopBtn = document.querySelector('.scroll-to-top');
-  if (scrollTopBtn) {
-    window.addEventListener('scroll', () => {
-      scrollTopBtn.classList.toggle('visible', window.pageYOffset > 300);
-    });
-    
-    scrollTopBtn.addEventListener('click', () => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-  }
-
-  console.log('✅ 基本機能のフォールバック完了');
-}
-
-/**
- * 管理画面用のフォールバック処理
- * @returns {void}
- */
-function initAdminFallbacks() {
-  console.log('🔧 管理画面用フォールバック処理開始');
-  
-  // タブ切り替えのフォールバック
-  document.querySelectorAll('.nav-item[data-tab]').forEach(navItem => {
-    navItem.addEventListener('click', (e) => {
-      e.preventDefault();
-      const tabName = navItem.dataset.tab;
-      if (tabName) {
-        switchTabFallback(tabName);
-      }
-    });
-  });
-
-  // クイックアクションのフォールバック
-  document.querySelectorAll('[data-action="switch-tab"]').forEach(button => {
-    button.addEventListener('click', (e) => {
-      e.preventDefault();
-      const tabName = button.dataset.tab;
-      if (tabName) {
-        switchTabFallback(tabName);
-      }
-    });
-  });
-
-  // 外部リンクのフォールバック
-  document.querySelectorAll('[data-action="open-external"]').forEach(button => {
-    button.addEventListener('click', (e) => {
-      e.preventDefault();
-      const url = button.dataset.url;
-      if (url) {
-        window.open(url, '_blank', 'noopener,noreferrer');
-      }
-    });
-  });
-
-  // モーダル閉じるボタンのフォールバック
-  document.querySelectorAll('[data-action="close-modal"]').forEach(button => {
-    button.addEventListener('click', (e) => {
-      e.preventDefault();
-      closeModalFallback();
-    });
-  });
-
-  // ログアウトボタンのフォールバック
-  document.querySelectorAll('[data-action="logout"]').forEach(button => {
-    button.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (confirm('ログアウトしますか？')) {
-        window.location.href = 'admin-login.html';
-      }
-    });
-  });
-
-  // 初期タブを表示
-  switchTabFallback('dashboard');
-
-  console.log('✅ 管理画面用フォールバック処理完了');
-}
-
-/**
- * フォールバック版タブ切り替え
- * @param {string} tabName - タブ名
- * @returns {void}
- */
-function switchTabFallback(tabName) {
-  console.log(`🔄 フォールバック版タブ切り替え: ${tabName}`);
-  
-  // ナビゲーションアイテムの更新
-  document.querySelectorAll('.nav-item').forEach(navItem => {
-    navItem.classList.remove('active');
-    if (navItem.dataset.tab === tabName) {
-      navItem.classList.add('active');
-    }
-  });
-
-  // セクションの表示切り替え
-  document.querySelectorAll('.admin-section').forEach(section => {
-    section.classList.remove('active');
-    if (section.id === tabName) {
-      section.classList.add('active');
-    }
-  });
-
-  // タブ固有の初期化
-  initTabContentFallback(tabName);
-}
-
-/**
- * フォールバック版タブ初期化
- * @param {string} tabName - タブ名
- * @returns {void}
- */
-function initTabContentFallback(tabName) {
-  switch (tabName) {
-    case 'dashboard':
-      // 統計情報の更新
-      updateStatsFallback();
-      break;
-    case 'lesson-status':
-      // 現在の日付をセット
-      const today = new Date().toISOString().split('T')[0];
-      const dateInput = document.getElementById('lesson-date');
-      if (dateInput instanceof HTMLInputElement) {
-        dateInput.value = today;
-      }
-      break;
-  }
-}
-
-/**
- * フォールバック版統計更新
- * @returns {void}
- */
-function updateStatsFallback() {
-  /** @type {DashboardStats} */
-  const stats = {
-    total: 5,
-    published: 3,
-    draft: 2,
-    currentMonth: 1
-  };
-  
-  /**
-   * 統計値を更新
-   * @param {string} id - 要素ID
-   * @param {number} value - 値
-   */
-  const updateStat = (id, value) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.textContent = value.toString();
-    }
-  };
-  
-  updateStat('total-articles', stats.total);
-  updateStat('published-articles', stats.published);
-  updateStat('draft-articles', stats.draft);
-  updateStat('current-month-articles', stats.currentMonth);
-}
-
-/**
- * フォールバック版モーダル閉じる
- * @returns {void}
- */
-function closeModalFallback() {
-  const modal = document.getElementById('modal');
-  if (modal instanceof HTMLElement) {
-    modal.style.display = 'none';
-  }
-}
-
-/**
- * 現在のページを判定（フォールバック版）
- * @returns {PageType}
- */
-function getCurrentPageFallback() {
-  const path = window.location.pathname;
-  const filename = path.split('/').pop()?.replace('.html', '') ?? '';
-  
-  // 明確なマッピング
-  switch (filename) {
-    case 'index':
-    case '':
-      return 'index';
-    case 'admin':
-      return 'admin';
-    case 'admin-login':
-      return 'admin-login';
-    case 'news':
-      return 'news';
-    case 'news-detail':
-      return 'news-detail';
-    default:
-      // フォールバック: プレフィックスで判定
-      if (filename.startsWith('admin')) {
-        return 'admin';
-      }
-      if (filename.startsWith('news')) {
-        return 'news';
-      }
-      return 'index';
-  }
+  console.log('✅ 最小限のフォールバック処理完了');
 }
 
 /**

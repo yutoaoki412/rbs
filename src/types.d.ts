@@ -25,7 +25,7 @@ export type ActionHandler = (
 ) => Promise<void> | void;
 
 export type FeedbackType = 'success' | 'error' | 'info' | 'warning';
-export type TabName = 'dashboard' | 'news-management' | 'lesson-status' | 'settings';
+export type TabName = 'dashboard' | 'news-management' | 'page-management' | 'lesson-status' | 'settings';
 export type PageType = 'index' | 'admin' | 'admin-login' | 'news' | 'news-detail';
 
 // === アプリケーション関連 ===
@@ -118,6 +118,49 @@ export declare class ActionHandler {
   switchAdminTab(tabName: TabName): void;
   showFeedback(message: string, type?: FeedbackType): void;
   destroy(): void;
+  
+  // 記事管理メソッド
+  clearNewsEditor(): void;
+  previewNews(): void;
+  saveNews(): void;
+  publishNews(): void;
+  testArticleService(): void;
+  loadNewsList(): void;
+  
+  // ページ管理メソッド
+  clearPageEditor(): void;
+  previewPage(): void;
+  savePage(): void;
+  createPage(): Promise<void>;
+  loadPagesList(): void;
+  editPage(pageId: string): void;
+  deletePage(pageId: string): void;
+  showPagesDebugInfo(): void;
+  testPagesFunction(): Promise<void>;
+  createSamplePage(): Promise<void>;
+  
+  // レッスン状況メソッド
+  loadLessonStatus(): void;
+  previewLessonStatus(): void;
+  updateLessonStatus(): void;
+  
+  // 設定・管理メソッド
+  exportData(): void;
+  clearAllData(): void;
+  testSiteConnection(): void;
+  resetLocalStorage(): void;
+  showDebugInfo(): void;
+  closeModal(): void;
+  logout(): void;
+  
+  // 初期化メソッド
+  initializeTabContent(tabName: TabName): void;
+  initializeDashboard(): void;
+  initializeNewsManagement(): void;
+  initializePageManagement(): void;
+  initializeLessonStatus(): void;
+  initializeSettings(): void;
+  updateDashboardStats(): void;
 }
 
 export declare class Application {

@@ -3,8 +3,9 @@
  * EventEmitter を継承し、より堅牢な認証機能を提供
  */
 
-import { EventEmitter } from '../utils/EventEmitter.js';
-import { Logger } from '../utils/Logger.js';
+import { EventEmitter } from '../admin/utils/EventEmitter.js';
+import { Logger } from '../admin/utils/Logger.js';
+import config from '../../shared/constants/config.js';
 
 export class AdminAuth extends EventEmitter {
   constructor() {
@@ -19,13 +20,13 @@ export class AdminAuth extends EventEmitter {
       lastAttempt: 'rbs_admin_last_attempt'
     };
     
-    // セキュリティ設定
+    // セキュリティ設定（config.jsから取得）
     this.config = {
-      maxAttempts: 5, // 最大試行回数
-      lockoutDuration: 15 * 60 * 1000, // ロックアウト時間（15分）
-      sessionDuration: 8 * 60 * 60 * 1000, // セッション持続時間（8時間）
+      maxAttempts: config.security.maxLoginAttempts,
+      lockoutDuration: config.security.admin.lockoutDuration,
+      sessionDuration: config.security.admin.sessionDuration,
       sessionExtensionThreshold: 30 * 60 * 1000, // セッション延長の閾値（30分）
-      adminPassword: 'rbs2024admin' // パスワード（ハードコーディング）
+      adminPassword: config.security.admin.password
     };
 
     // 状態管理

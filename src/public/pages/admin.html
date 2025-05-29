@@ -634,6 +634,92 @@
   </div>
 
   <!-- メインアプリケーション（ES6モジュール） -->
-  <script type="module" src="../js/main.js"></script>
+  <script type="module">
+    // 認証チェック
+    function checkAuth() {
+      try {
+        console.log('管理画面の認証チェック開始');
+        
+        const authData = localStorage.getItem('rbs_admin_auth');
+        if (!authData) {
+          console.log('認証データがありません。ログインページにリダイレクト');
+          window.location.href = 'admin-login.html';
+          return false;
+        }
+        
+        const parsed = JSON.parse(authData);
+        const now = Date.now();
+        
+        // セッションが有効か確認
+        if (!parsed.expires || now >= parsed.expires) {
+          console.log('セッションが期限切れです。ログインページにリダイレクト');
+          localStorage.removeItem('rbs_admin_auth');
+          window.location.href = 'admin-login.html';
+          return false;
+        }
+        
+        console.log('認証チェック成功');
+        return true;
+      } catch (error) {
+        console.error('認証チェックエラー:', error);
+        localStorage.removeItem('rbs_admin_auth');
+        window.location.href = 'admin-login.html';
+        return false;
+      }
+    }
+    
+    // 認証チェックを実行
+    if (!checkAuth()) {
+      // 認証に失敗した場合は処理を停止
+      throw new Error('認証が必要です');
+    }
+    
+    // 認証が成功した場合のみメインアプリケーションを読み込み
+    import('../js/main.js').then(() => {
+      console.log('管理画面のメインアプリケーション読み込み完了');
+      
+      // ログアウト処理を設定
+      setupLogout();
+    }).catch(error => {
+      console.error('メインアプリケーション読み込みエラー:', error);
+    });
+    
+    function setupLogout() {
+      // ログアウトボタンの処理
+      document.addEventListener('click', function(e) {
+        const target = e.target.closest('[data-action="logout"]');
+        if (target) {
+          e.preventDefault();
+          logout();
+        }
+      });
+      
+      // Ctrl+Shift+L でもログアウト可能
+      document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.shiftKey && e.key === 'L') {
+          e.preventDefault();
+          logout();
+        }
+      });
+    }
+    
+    function logout() {
+      try {
+        console.log('ログアウト処理開始');
+        
+        // 認証データを削除
+        localStorage.removeItem('rbs_admin_auth');
+        
+        // ログイン画面にリダイレクト
+        window.location.href = 'admin-login.html';
+        
+        console.log('ログアウト完了');
+      } catch (error) {
+        console.error('ログアウトエラー:', error);
+        // エラーが発生してもログイン画面にリダイレクト
+        window.location.href = 'admin-login.html';
+      }
+    }
+  </script>
 </body>
 </html> 

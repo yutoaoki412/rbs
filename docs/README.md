@@ -1,105 +1,185 @@
-# RBS陸上教室システム リファクタリング後の構造
+# RBS陸上教室 システム v3.0
 
-## 📁 新しいディレクトリ構造
+RBS陸上教室（Running & Brain School）の公式Webサイトとコンテンツ管理システムです。
 
+## 🚀 新機能 v3.0
+
+### 🎯 大規模リファクタリング完了
+- **ActionHandler統合**: 統一されたイベント処理システム
+- **@pages機能**: 動的ページ生成機能 **⭐ 新実装**
+- **管理画面刷新**: 完全に機能する管理インターフェース
+- **TypeScript対応**: 型安全性の向上
+
+## 📚 ドキュメント
+
+| ドキュメント | 説明 |
+|-------------|------|
+| [管理画面完全ガイド](ADMIN_COMPLETE_GUIDE.md) | 📖 **メインドキュメント** - 管理画面の使用方法と機能解説 |
+| [PAGES機能レポート](PAGES_FEATURE_REPORT.md) | @pages機能の実装詳細と使用方法 |
+| [TypeScript移行ガイド](TYPESCRIPT_MIGRATION.md) | TypeScript移行の計画と実装詳細 |
+| [リファクタリングレポート](REFACTORING_REPORT.md) | v3.0リファクタリングの詳細記録 |
+
+## 🎯 プロジェクト概要
+
+### 📋 主要機能
+- **レスポンシブWebサイト**: モバイル対応の美しいUI
+- **管理画面システム**: コンテンツ管理とレッスン状況更新
+- **動的ページ生成**: @pages機能による柔軟なページ作成
+- **ニュース管理**: 記事の作成・編集・公開機能
+
+### 🏗️ アーキテクチャ
 ```
-src/public/js/
-├── app/                          # アプリケーションコア
-│   ├── Application.js           # メインアプリケーションクラス
-│   ├── Router.js               # ルーティング
-│   ├── index.js                # インデックスページ
-│   └── index-main.js           # インデックスページ詳細実装
-│
-├── modules/                     # 機能別モジュール
-│   ├── admin/                  # 管理機能
-│   │   ├── actions/           # アクション処理
-│   │   ├── core/              # コア機能
-│   │   │   ├── AdminCore.js   # 管理コア
-│   │   │   ├── UIManager.js   # UI管理
-│   │   │   └── DataManager.js # データ管理
-│   │   ├── forms/             # フォーム管理
-│   │   ├── utils/             # ユーティリティ
-│   │   └── admin.js           # 管理画面エントリーポイント
-│   │
-│   ├── auth/                   # 認証機能
-│   │   └── AdminAuth.js       # 管理者認証
-│   │
-│   └── news/                  # ニュース機能
-│       ├── article-service.js # 記事サービス
-│       ├── news.js           # ニュース一覧
-│       └── news-detail.js    # ニュース詳細
-│
-└── shared/                     # 共通機能
-    ├── base/                  # 基底クラス
-    ├── components/            # 共通コンポーネント
-    │   ├── business/         # ビジネスロジック系
-    │   ├── layout/           # レイアウト系
-    │   ├── ui/               # UI系
-    │   └── BaseComponent.js  # 基底コンポーネント
-    ├── constants/             # 定数・設定
-    │   └── config.js         # アプリケーション設定
-    ├── services/              # 共通サービス
-    │   ├── EventBus.js       # イベントバス
-    │   ├── StorageService.js # ストレージ
-    │   └── lesson-status-manager.js # レッスン状況管理
-    ├── utils/                 # ユーティリティ
-    │   └── helpers.js        # ヘルパー関数
-    └── ModuleLoader.js        # モジュールローダー
+RBS陸上教室システム v3.0
+├── 📁 src/public/
+│   ├── 🏠 index.html ──────── メインランディングページ
+│   ├── 📰 news.html ───────── ニュース一覧ページ
+│   ├── 🔧 admin.html ─────── 管理画面
+│   ├── 🔐 admin-login.html ── ログイン画面
+│   └── 📁 js/
+│       ├── 🧠 app/ ──────── アプリケーションコア
+│       ├── 🔗 shared/ ────── 共通サービス・ユーティリティ
+│       ├── 🧩 components/ ── UIコンポーネント
+│       └── 📦 modules/ ──── 機能別モジュール
+└── 📁 docs/ ─────────────── プロジェクトドキュメント
 ```
 
-## 🎯 モジュール分割の方針
+## 🚀 クイックスタート
 
-### app/
-- アプリケーションの起動・初期化
-- ルーティング
-- ページ固有の処理
+### 1. 開発環境セットアップ
+```bash
+# リポジトリをクローン
+git clone https://github.com/your-org/rbs.git
+cd rbs
 
-### modules/
-- **admin/**: 管理画面関連の全機能（core、actions、forms、utils）
-- **auth/**: 認証・認可機能
-- **news/**: ニュース・記事関連機能
+# ローカル開発サーバーを起動
+python -m http.server 8000
+# または
+npx http-server
+```
 
-### shared/
-- **constants/**: 設定値・定数
-- **services/**: 複数モジュールで使用するサービス
-- **components/**: 再利用可能なコンポーネント
-- **utils/**: 汎用的なユーティリティ関数
+### 2. サイトアクセス
+```
+メインサイト: http://localhost:8000/src/public/
+管理画面: http://localhost:8000/src/public/admin.html
+```
 
-## 📝 リファクタリングで実施したこと
+### 3. 管理画面ログイン
+- **パスワード**: `rbs2024admin`
+- **セッション**: 8時間（自動延長あり）
 
-### ✅ 統合・削除
-- 重複するファイルの統合
-- 古い/未使用ファイルの削除
-- 機能の重複排除
-- 空のcontentモジュールの削除
+## 🔧 主要技術
 
-### ✅ 構造化
-- 機能別モジュール分割
-- 共通機能の shared への集約
-- import文の最適化
+### フロントエンド
+- **バニラJavaScript**: ES6+ Modules
+- **CSS3**: カスタムプロパティ、Flexbox、Grid
+- **HTML5**: セマンティック構造
 
-### ✅ 最適化
-- ファイル配置の論理的整理
-- 依存関係の明確化
-- メンテナンス性の向上
+### システム
+- **ActionHandler**: 統一イベント処理
+- **PagesManager**: 動的ページ生成
+- **LocalStorage**: データ永続化
 
-## 🔄 import文の更新
+### 開発ツール
+- **TypeScript型定義**: 型安全性向上
+- **モジュラー設計**: 保守性向上
+- **デバッグツール**: 開発効率向上
 
-リファクタリングに伴い、以下のファイルのimport文が更新されました：
+## 📖 使用方法
 
-- `app/Application.js`: config.jsパスの更新
-- `modules/admin/core/AdminCore.js`: AdminAuth.jsパスの更新
+### 👥 一般ユーザー向け
+1. メインサイトでRBS陸上教室の情報を閲覧
+2. ニュースページで最新情報をチェック
+3. お問い合わせフォームで体験レッスンを申込
 
-## 📊 最終的なファイル統計
+### 🔧 管理者向け
+1. **管理画面にログイン**
+2. **ダッシュボード**で全体状況を確認
+3. **記事管理**でニュース記事を作成・編集
+4. **ページ管理**で新しいページを作成（@pages機能）
+5. **レッスン状況**で開催状況を更新
+6. **設定**でシステム管理
 
-- **総ファイル数**: 30個のJavaScriptファイル
-- **モジュール構成**: 3つのメインモジュール（admin、auth、news）
-- **共通機能**: sharedディレクトリに集約
-- **重複ファイル**: すべて解決済み
+詳細は [管理画面完全ガイド](ADMIN_COMPLETE_GUIDE.md) を参照してください。
 
-## 🚀 次のステップ
+## 🆕 @pages機能（v3.0新実装）
 
-1. **テストの追加**: 各モジュールのユニットテスト
-2. **ドキュメントの充実**: 各モジュールのAPI文書化
-3. **パフォーマンス最適化**: 遅延読み込みの実装
-4. **新機能追加**: 必要に応じてcontentモジュールの追加 
+### 概要
+管理画面から統一されたテンプレートで新しいページを動的に生成できる機能です。
+
+### 特徴
+- **統一デザイン**: 一貫したルック&フィール
+- **SEO最適化**: 自動メタデータ設定
+- **カスタマイズ可能**: CSS/JavaScript追加対応
+
+### 使用例
+```javascript
+// 新しいページを作成
+await window.pagesManager.createPage({
+  id: 'about-coach',
+  title: 'コーチ紹介',
+  description: 'RBS陸上教室のコーチを紹介します',
+  content: '<h1>コーチ紹介</h1><p>...</p>'
+});
+```
+
+## 🔍 デバッグ・トラブルシューティング
+
+### 開発者ツール
+```javascript
+// システム状態確認
+console.log(window.RBS.debug());
+
+// ActionHandler状態
+console.log(window.actionHandler?.isInitialized);
+
+// @pages機能テスト
+await window.testPagesFunction();
+```
+
+### よくある問題
+- **タブが切り替わらない**: ActionHandlerの初期化を確認
+- **ボタンが動作しない**: コンソールエラーをチェック
+- **ページが生成されない**: PagesManagerの状態を確認
+
+詳細は [管理画面完全ガイド](ADMIN_COMPLETE_GUIDE.md#トラブルシューティング) を参照してください。
+
+## 🔄 アップデート履歴
+
+### v3.0 (2024年12月) - 大規模リファクタリング
+- ✅ ActionHandler統合による統一イベント処理
+- ✅ @pages機能実装（動的ページ生成）
+- ✅ 管理画面の完全修復
+- ✅ TypeScript型定義対応
+- ✅ モジュラー設計への移行
+
+### v2.x - 以前のバージョン
+- 基本的な管理画面機能
+- 記事管理システム
+- レッスン状況管理
+
+## 📞 サポート
+
+### 技術サポート
+- 🐛 **バグレポート**: GitHub Issues
+- 💡 **機能要望**: GitHub Discussions
+- 📧 **技術相談**: 開発チームまで
+
+### ドキュメント
+- 📖 [管理画面完全ガイド](ADMIN_COMPLETE_GUIDE.md) - メイン利用ガイド
+- 🔧 [開発者向けドキュメント](ADMIN_COMPLETE_GUIDE.md#開発者向け情報)
+
+## 📄 ライセンス
+
+このプロジェクトは RBS陸上教室の専用システムです。
+
+---
+
+**RBS陸上教室 - Running & Brain School**  
+*「走ることで脳を鍛え、心を育てる」*
+
+📧 お問い合わせ: contact@rbs-athletics.com  
+🌐 公式サイト: https://rbs-athletics.com
+
+---
+
+*最終更新: 2024年12月 | Version 3.0* 

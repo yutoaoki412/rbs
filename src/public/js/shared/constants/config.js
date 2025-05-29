@@ -89,7 +89,12 @@ const config = {
   security: {
     csrfToken: true,
     sessionTimeout: 30 * 60 * 1000, // 30分
-    maxLoginAttempts: 5
+    maxLoginAttempts: 5,
+    admin: {
+      password: 'rbs2024admin',
+      sessionDuration: 8 * 60 * 60 * 1000, // 8時間
+      lockoutDuration: 15 * 60 * 1000 // 15分
+    }
   },
 
   // パフォーマンス設定
