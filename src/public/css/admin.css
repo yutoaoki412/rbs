@@ -1549,4 +1549,134 @@ input[id*="postponed"]:checked + .status-btn {
     background: var(--admin-gray-50);
     border-radius: var(--admin-border-radius-sm);
   }
+}
+
+/* =============================================================================
+   レッスン状況プレビュー
+   ============================================================================= */
+
+.lesson-status-preview {
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.lesson-status-preview .preview-header h3 {
+  color: var(--admin-gray-900);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.lesson-status-preview .global-status-indicator {
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.lesson-status-preview .global-status-indicator.scheduled {
+  background: #1abc9c;
+  color: white;
+}
+
+.lesson-status-preview .global-status-indicator.cancelled {
+  background: #e74c3c;
+  color: white;
+}
+
+.lesson-status-preview .global-status-indicator.indoor {
+  background: #f39c12;
+  color: white;
+}
+
+.lesson-status-preview .global-status-indicator.postponed {
+  background: #3498db;
+  color: white;
+}
+
+.lesson-status-preview .preview-global-message {
+  background: rgba(74, 144, 226, 0.08);
+  border: 1px solid rgba(74, 144, 226, 0.2);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.lesson-status-preview .preview-global-message .message-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.lesson-status-preview .preview-global-message i {
+  color: var(--admin-primary);
+  margin-top: 0.1rem;
+}
+
+.lesson-status-preview .courses-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.lesson-status-preview .preview-course-item {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 2px solid #e2e8f0;
+}
+
+.lesson-status-preview .course-header h5 {
+  margin: 0 0 0.25rem 0;
+  color: var(--admin-gray-900);
+}
+
+.lesson-status-preview .course-header p {
+  margin: 0 0 0.75rem 0;
+  color: var(--admin-gray-500);
+  font-size: 0.875rem;
+}
+
+.lesson-status-preview .course-status {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.lesson-status-preview .course-status.scheduled {
+  background: #1abc9c;
+  color: white;
+}
+
+.lesson-status-preview .course-status.cancelled {
+  background: #e74c3c;
+  color: white;
+}
+
+.lesson-status-preview .course-status.indoor {
+  background: #f39c12;
+  color: white;
+}
+
+.lesson-status-preview .course-status.postponed {
+  background: #3498db;
+  color: white;
+}
+
+.lesson-status-preview .preview-footer {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+  color: var(--admin-gray-600);
+  font-size: 0.875rem;
+}
+
+.lesson-status-preview .preview-footer .note {
+  font-style: italic;
+  color: var(--admin-gray-500);
 } 
