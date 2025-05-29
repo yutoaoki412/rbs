@@ -143,17 +143,28 @@ export class ActionHandler {
   async handleAction(element, event) {
     const actionName = element.getAttribute('data-action');
     
-    if (!actionName) return;
+    if (!actionName) {
+      console.warn('⚠️ data-actionが指定されていません:', element);
+      return;
+    }
 
+    console.log(`🔧 アクション処理開始: "${actionName}"`);
+    
     const params = this.#extractParams(element);
     
     try {
       if (this.#actions.has(actionName)) {
         const handler = this.#actions.get(actionName);
         if (handler) {
+          console.log(`✅ アクションハンドラー実行: "${actionName}"`);
           await handler(element, params, event);
+          console.log(`✅ アクション処理完了: "${actionName}"`);
+        } else {
+          console.error(`❌ アクションハンドラーがnull: "${actionName}"`);
+          this.showFeedback(`アクション "${actionName}" のハンドラーが無効です`, 'error');
         }
       } else {
+        console.log(`📢 未登録アクションをEventBusに配信: "${actionName}"`);
         // 未登録のアクションはEventBusで配信
         EventBus.emit(`action:${actionName}`, {
           element,
@@ -162,8 +173,79 @@ export class ActionHandler {
         });
       }
     } catch (error) {
-      console.error(`Action handler error for "${actionName}":`, error);
-      this.showFeedback(`アクション "${actionName}" でエラーが発生しました`, 'error');
+      console.error(`❌ Action handler error for "${actionName}":`, error);
+      console.error('❌ Error stack:', error.stack);
+      console.error('❌ Error details:', {
+        element,
+        params,
+        actionName,
+        isInitialized: this.#initialized,
+        actionsCount: this.#actions.size
+      });
+      this.showFeedback(`アクション "${actionName}" でエラーが発生しました: ${error.message}`, 'error');
+    }
+  }
+
+  /**
+   * 最近の記事を手動で更新
+   */
+  refreshRecentArticles() {
+    try {
+      console.log('🔄 最近の記事を更新中...');
+      
+      const recentArticlesContainer = document.getElementById('recent-articles');
+      if (!recentArticlesContainer) {
+        console.warn('⚠️ recent-articles要素が見つかりません');
+        this.showFeedback('記事表示エリアが見つかりません', 'error');
+        return;
+      }
+
+      console.log('✅ recent-articles要素が見つかりました');
+
+      // ローディング表示
+      recentArticlesContainer.innerHTML = `
+        <div class="loading-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          記事を更新中...
+        </div>
+      `;
+
+      console.log('✅ ローディング表示設定完了');
+
+      // setTimeout を使用して非同期的に処理し、DOM更新を確実にする
+      setTimeout(() => {
+        try {
+          console.log('🔄 ダッシュボード統計の更新を開始...');
+          // ダッシュボード統計を更新（これにより最近の記事も更新される）
+          this.updateDashboardStats();
+          console.log('✅ ダッシュボード統計の更新完了');
+          
+          this.showFeedback('最近の記事を更新しました');
+          
+        } catch (innerError) {
+          console.error('❌ ダッシュボード統計更新中のエラー:', innerError);
+          console.error('❌ Inner error stack:', innerError.stack);
+          this.showFeedback('記事の更新処理中にエラーが発生しました', 'error');
+          
+          // エラー時はエラー表示に切り替え
+          recentArticlesContainer.innerHTML = `
+            <div class="error-state">
+              <i class="fas fa-exclamation-triangle"></i>
+              記事の更新に失敗しました
+            </div>
+          `;
+        }
+      }, 100);
+      
+    } catch (error) {
+      console.error('❌ 最近の記事更新エラー:', error);
+      console.error('❌ Error stack:', error.stack);
+      console.error('❌ Error context:', {
+        initialized: this.#initialized,
+        actionsSize: this.#actions.size,
+        hasUpdateMethod: typeof this.updateDashboardStats
+      });
+      this.showFeedback(`最近の記事の更新に失敗しました: ${error.message}`, 'error');
     }
   }
 
@@ -291,6 +373,7 @@ export class ActionHandler {
       // 記事一覧管理
       'filter-news-list': (element, params) => this.filterNewsList(element, params),
       'refresh-news-list': () => this.refreshNewsList(),
+      'refresh-recent-articles': () => this.refreshRecentArticles(),
 
       // 管理画面 - レッスン状況
       'load-lesson-status': () => this.loadLessonStatus(),
@@ -537,8 +620,7 @@ export class ActionHandler {
       }
       
       // 既存の記事データを取得
-      const articlesData = localStorage.getItem('rbs_articles');
-      let articles = articlesData ? JSON.parse(articlesData) : [];
+      let articles = this.#getStorageData('rbs_articles', []);
       
       // 記事データを作成/更新
       if (formData.id) {
@@ -567,14 +649,14 @@ export class ActionHandler {
       }
       
       // LocalStorageに保存
-      localStorage.setItem('rbs_articles', JSON.stringify(articles));
-      
-      // UIを更新
-      this.updateDashboardStats();
-      this.refreshNewsList();
-      
-      this.showFeedback('記事を保存しました');
-      console.log('✅ 記事保存完了');
+      if (this.#setStorageData('rbs_articles', articles)) {
+        // UIを更新
+        this.updateDashboardStats();
+        this.refreshNewsList();
+        
+        this.showFeedback('記事を保存しました');
+        console.log('✅ 記事保存完了');
+      }
       
     } catch (error) {
       console.error('❌ 記事保存エラー:', error);
@@ -597,10 +679,7 @@ export class ActionHandler {
       }
       
       // ステータスを公開に変更
-      const articlesData = localStorage.getItem('rbs_articles');
-      if (!articlesData) return;
-      
-      let articles = JSON.parse(articlesData);
+      let articles = this.#getStorageData('rbs_articles', []);
       const index = articles.findIndex(a => a.id === formData.id);
       
       if (index >= 0) {
@@ -609,18 +688,18 @@ export class ActionHandler {
         articles[index].updatedAt = new Date().toISOString();
         
         // LocalStorageに保存
-        localStorage.setItem('rbs_articles', JSON.stringify(articles));
-        
-        // フォームのステータスも更新
-        const statusSelect = document.getElementById('news-status');
-        if (statusSelect) statusSelect.value = 'published';
-        
-        // UIを更新
-        this.updateDashboardStats();
-        this.refreshNewsList();
-        
-        this.showFeedback('記事を公開しました');
-        console.log('✅ 記事公開完了');
+        if (this.#setStorageData('rbs_articles', articles)) {
+          // フォームのステータスも更新
+          const statusSelect = document.getElementById('news-status');
+          if (statusSelect) statusSelect.value = 'published';
+          
+          // UIを更新
+          this.updateDashboardStats();
+          this.refreshNewsList();
+          
+          this.showFeedback('記事を公開しました');
+          console.log('✅ 記事公開完了');
+        }
       }
       
     } catch (error) {
@@ -663,24 +742,268 @@ export class ActionHandler {
     this.showFeedback('記事サービステストを実行しました');
   }
 
-  loadLessonStatus() {
-    this.showFeedback('レッスン状況を読み込みました');
-  }
-
-  previewLessonStatus() {
-    const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalBody = document.getElementById('modal-body');
-    
-    if (modal && modalTitle && modalBody) {
-      modalTitle.textContent = 'レッスン状況プレビュー';
-      modalBody.innerHTML = '<div class="preview-content">レッスン状況のプレビューが表示されます</div>';
-      modal.style.display = 'block';
+  /**
+   * レッスン状況をLocalStorageから読み込んでフォームに反映
+   */
+  loadLessonStatusToForm() {
+    try {
+      console.log('📅 レッスン状況を読み込み中...');
+      
+      // LessonStatusManagerを使って現在の状況を取得
+      let lessonStatusManager;
+      if (typeof LessonStatusManager !== 'undefined') {
+        lessonStatusManager = new LessonStatusManager();
+      } else {
+        throw new Error('LessonStatusManagerが利用できません');
+      }
+      
+      // 対象日を取得（フォームから）
+      const dateInput = document.getElementById('lesson-date');
+      const targetDate = dateInput ? dateInput.value : null;
+      
+      // レッスン状況を取得
+      const statusData = lessonStatusManager.getLessonStatus(targetDate);
+      
+      // フォームに状況を反映
+      lessonStatusManager.populateAdminForm(statusData);
+      
+      this.showFeedback(`レッスン状況を読み込みました (${targetDate || '今日'})`, 'success');
+      console.log('✅ レッスン状況読み込み完了:', statusData);
+      
+    } catch (error) {
+      console.error('❌ レッスン状況読み込みエラー:', error);
+      this.showFeedback('レッスン状況の読み込みに失敗しました', 'error');
     }
   }
 
+  /**
+   * レッスン状況を読み込み（旧互換メソッド）
+   */
+  loadLessonStatus() {
+    this.loadLessonStatusToForm();
+  }
+
+  /**
+   * レッスン状況のプレビューを表示
+   */
+  previewLessonStatus() {
+    try {
+      console.log('👁️ レッスン状況プレビュー表示中...');
+      
+      // フォームからデータを取得
+      const formData = this.getLessonStatusFormData();
+      if (!formData) {
+        this.showFeedback('フォームデータの取得に失敗しました', 'error');
+        return;
+      }
+      
+      // LessonStatusManagerを使用してプレビューHTML生成
+      let lessonStatusManager;
+      if (typeof LessonStatusManager !== 'undefined') {
+        lessonStatusManager = new LessonStatusManager();
+      } else {
+        throw new Error('LessonStatusManagerが利用できません');
+      }
+      
+      // プレビューHTMLを生成
+      const previewHTML = this.generateLessonStatusPreview(formData, lessonStatusManager);
+      
+      // モーダルに表示
+      const modal = document.getElementById('modal');
+      const modalTitle = document.getElementById('modal-title');
+      const modalBody = document.getElementById('modal-body');
+      
+      if (modal && modalTitle && modalBody) {
+        modalTitle.textContent = 'レッスン状況プレビュー';
+        modalBody.innerHTML = previewHTML;
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+      }
+      
+      console.log('✅ レッスン状況プレビュー表示完了');
+      
+    } catch (error) {
+      console.error('❌ レッスン状況プレビューエラー:', error);
+      this.showFeedback('プレビューの表示に失敗しました', 'error');
+    }
+  }
+
+  /**
+   * レッスン状況を保存してLocalStorageに反映
+   */
   updateLessonStatus() {
-    this.showFeedback('レッスン状況を更新しました');
+    try {
+      console.log('💾 レッスン状況を保存中...');
+      
+      // フォームからデータを取得
+      const formData = this.getLessonStatusFormData();
+      if (!formData) {
+        this.showFeedback('フォームデータの取得に失敗しました', 'error');
+        return;
+      }
+      
+      // LessonStatusManagerを使用してデータを保存
+      let lessonStatusManager;
+      if (typeof LessonStatusManager !== 'undefined') {
+        lessonStatusManager = new LessonStatusManager();
+      } else {
+        throw new Error('LessonStatusManagerが利用できません');
+      }
+      
+      // データの変換と保存
+      const convertedData = lessonStatusManager.convertFromAdminForm(formData);
+      const result = lessonStatusManager.saveLessonStatus(convertedData, formData.date);
+      
+      if (result.success) {
+        this.showFeedback('レッスン状況を保存しました', 'success');
+        console.log('✅ レッスン状況保存完了:', result.data);
+        
+        // index.htmlのレッスン状況表示を更新（もし開いていれば）
+        this.updateLPLessonStatus(result.data);
+        
+      } else {
+        throw new Error(result.error || 'レッスン状況の保存に失敗しました');
+      }
+      
+    } catch (error) {
+      console.error('❌ レッスン状況保存エラー:', error);
+      this.showFeedback('レッスン状況の保存に失敗しました', 'error');
+    }
+  }
+
+  /**
+   * フォームからレッスン状況データを取得
+   */
+  getLessonStatusFormData() {
+    try {
+      // 対象日
+      const dateInput = document.getElementById('lesson-date');
+      const date = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
+      
+      // グローバルステータス
+      const globalStatusInput = document.querySelector('input[name="global-status"]:checked');
+      const globalStatus = globalStatusInput ? globalStatusInput.value : 'scheduled';
+      
+      // グローバルメッセージ
+      const globalMessageInput = document.getElementById('global-message');
+      const globalMessage = globalMessageInput ? globalMessageInput.value.trim() : '';
+      
+      // ベーシックコースステータス
+      const basicStatusInput = document.querySelector('input[name="basic-lesson"]:checked');
+      const basicStatus = basicStatusInput ? basicStatusInput.value : '通常開催';
+      
+      // アドバンスコースステータス
+      const advanceStatusInput = document.querySelector('input[name="advance-lesson"]:checked');
+      const advanceStatus = advanceStatusInput ? advanceStatusInput.value : '通常開催';
+      
+      const formData = {
+        date,
+        globalStatus,
+        globalMessage,
+        basic: {
+          status: basicStatus,
+          note: '' // コース別メッセージは削除済み
+        },
+        advance: {
+          status: advanceStatus,
+          note: '' // コース別メッセージは削除済み
+        }
+      };
+      
+      console.log('📝 フォームデータ取得:', formData);
+      return formData;
+      
+    } catch (error) {
+      console.error('❌ フォームデータ取得エラー:', error);
+      return null;
+    }
+  }
+
+  /**
+   * レッスン状況プレビューHTMLを生成
+   */
+  generateLessonStatusPreview(formData, lessonStatusManager) {
+    const convertedData = lessonStatusManager.convertFromAdminForm(formData);
+    
+    let html = `
+      <div class="lesson-status-preview">
+        <div class="preview-header">
+          <h3>🗓️ ${formData.date} のレッスン開催状況</h3>
+        </div>
+        
+        <div class="preview-global-status">
+          <div class="global-status-indicator ${convertedData.globalStatus}">
+            ${lessonStatusManager.getStatusIcon(convertedData.globalStatus)} 
+            ${lessonStatusManager.getStatusText(convertedData.globalStatus)}
+          </div>
+        </div>
+    `;
+    
+    if (convertedData.globalMessage) {
+      html += `
+        <div class="preview-global-message">
+          <div class="message-content">
+            <i class="fas fa-info-circle"></i>
+            <span>${this.escapeHtml(convertedData.globalMessage)}</span>
+          </div>
+        </div>
+      `;
+    }
+    
+    html += `
+        <div class="preview-courses">
+          <h4>コース別状況</h4>
+          <div class="courses-grid">
+    `;
+    
+    Object.entries(convertedData.courses).forEach(([courseKey, courseData]) => {
+      const courseName = courseKey === 'basic' ? 'ベーシックコース' : 'アドバンスコース';
+      const courseTime = courseKey === 'basic' ? '17:00-17:50' : '18:00-18:50';
+      
+      html += `
+        <div class="preview-course-item">
+          <div class="course-header">
+            <h5>${courseName}</h5>
+            <p>${courseTime}</p>
+          </div>
+          <div class="course-status ${courseData.status}">
+            ${lessonStatusManager.getStatusIcon(courseData.status)} 
+            ${lessonStatusManager.getStatusText(courseData.status)}
+          </div>
+        </div>
+      `;
+    });
+    
+    html += `
+          </div>
+        </div>
+        
+        <div class="preview-footer">
+          <p><strong>最終更新:</strong> ${new Date().toLocaleString('ja-JP')}</p>
+          <p class="note">※ このプレビューは実際の表示イメージです</p>
+        </div>
+      </div>
+    `;
+    
+    return html;
+  }
+
+  /**
+   * LP側のレッスン状況表示を更新
+   */
+  updateLPLessonStatus(statusData) {
+    try {
+      // カスタムイベントを発火してLP側に通知
+      const event = new CustomEvent('lessonStatusUpdated', {
+        detail: statusData,
+        bubbles: true
+      });
+      document.dispatchEvent(event);
+      console.log('📢 LP側レッスン状況更新イベント発火:', statusData);
+      
+    } catch (error) {
+      console.error('❌ LP側レッスン状況更新エラー:', error);
+    }
   }
 
   exportData() {
@@ -688,14 +1011,10 @@ export class ActionHandler {
       console.log('📦 データをエクスポート中...');
       
       // LocalStorageから全てのデータを取得
-      const articlesData = localStorage.getItem('rbs_articles');
-      const lessonStatusData = localStorage.getItem('rbs_lesson_status');
-      const instagramData = localStorage.getItem('rbs_instagram');
-      
       const exportData = {
-        articles: articlesData ? JSON.parse(articlesData) : [],
-        lessonStatus: lessonStatusData ? JSON.parse(lessonStatusData) : {},
-        instagram: instagramData ? JSON.parse(instagramData) : [],
+        articles: this.#getStorageData('rbs_articles', []),
+        lessonStatus: this.#getStorageData('rbs_lesson_status', {}),
+        instagram: this.#getStorageData('rbs_instagram', []),
         exportedAt: new Date().toISOString(),
         version: '3.0'
       };
@@ -808,6 +1127,7 @@ export class ActionHandler {
     const modal = document.getElementById('modal');
     if (modal) {
       modal.style.display = 'none';
+      modal.classList.remove('active');
     }
   }
 
@@ -820,21 +1140,12 @@ export class ActionHandler {
       console.log('📊 ダッシュボード統計を更新中...');
       
       // LocalStorageから実際の記事データを取得
-      const articlesData = localStorage.getItem('rbs_articles');
-      let articles = [];
+      let articles = this.#getStorageData('rbs_articles', []);
       
-      try {
-        if (articlesData) {
-          articles = JSON.parse(articlesData);
-          // データの整合性チェック
-          articles = articles.filter(article => 
-            article && typeof article === 'object' && article.id
-          );
-        }
-      } catch (error) {
-        console.error('❌ 記事データの解析に失敗:', error);
-        articles = [];
-      }
+      // データの整合性チェック
+      articles = articles.filter(article => 
+        article && typeof article === 'object' && article.id
+      );
       
       // 統計計算
       const now = new Date();
@@ -903,14 +1214,12 @@ export class ActionHandler {
     if (articles.length === 0) {
       recentArticlesContainer.innerHTML = `
         <div class="empty-state">
-          <div style="text-align: center; padding: 40px 20px; color: var(--gray-medium);">
-            <div style="font-size: 48px; margin-bottom: 20px;">📄</div>
-            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 10px; color: var(--navy-dark);">記事がありません</h3>
-            <p style="font-size: 14px; line-height: 1.6; margin-bottom: 20px;">新しい記事を作成してください。</p>
-            <button class="btn btn-primary" data-action="switch-tab" data-tab="news-management">
-              <i class="fas fa-plus"></i> 新しい記事を作成
-            </button>
-          </div>
+          <div style="font-size: 3rem; margin-bottom: 1rem; color: var(--admin-gray-300);">📄</div>
+          <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--admin-gray-700);">記事がありません</h3>
+          <p style="font-size: 0.875rem; line-height: 1.6; margin-bottom: 1.25rem; color: var(--admin-gray-500);">新しい記事を作成して、サイトのコンテンツを充実させましょう。</p>
+          <button class="btn btn-primary" data-action="switch-tab" data-tab="news-management">
+            <i class="fas fa-plus"></i> 新しい記事を作成
+          </button>
         </div>
       `;
       return;
@@ -934,49 +1243,82 @@ export class ActionHandler {
   createRecentArticleItem(article) {
     const date = new Date(article.date || article.createdAt);
     const formattedDate = date.toLocaleDateString('ja-JP', {
+      year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
     
+    const relativeTime = this.getRelativeTime(date);
+    
     const statusBadge = article.status === 'published' 
-      ? '<span class="badge badge-success">公開</span>'
-      : '<span class="badge badge-warning">下書き</span>';
+      ? '<span class="badge badge-success"><i class="fas fa-check-circle"></i> 公開中</span>'
+      : '<span class="badge badge-warning"><i class="fas fa-edit"></i> 下書き</span>';
     
     const categoryLabel = this.getCategoryLabel(article.category || 'announcement');
+    const categoryIcon = this.getCategoryIcon(article.category || 'announcement');
+    
+    // 注目記事の表示
+    const featuredBadge = article.featured 
+      ? '<span class="badge badge-info"><i class="fas fa-star"></i> 注目</span>' 
+      : '';
     
     return `
-      <div class="recent-article-item">
+      <div class="recent-article-item" onclick="actionHandler.editNewsItem('${article.id}')">
         <div class="recent-article-header">
           <div class="recent-article-title">${this.escapeHtml(article.title || '無題')}</div>
           <div class="recent-article-actions">
-            <button class="btn-icon" onclick="actionHandler.editNewsItem('${article.id}')" title="編集">
+            <button class="btn-icon" onclick="event.stopPropagation(); actionHandler.editNewsItem('${article.id}')" title="編集">
               <i class="fas fa-edit"></i>
             </button>
-            <button class="btn-icon" onclick="actionHandler.deleteNewsItem('${article.id}')" title="削除">
+            <button class="btn-icon" onclick="event.stopPropagation(); actionHandler.deleteNewsItem('${article.id}')" title="削除">
               <i class="fas fa-trash"></i>
             </button>
           </div>
         </div>
         <div class="recent-article-meta">
           <div class="meta-item">
-            <i class="fas fa-calendar"></i>
-            ${formattedDate}
+            <i class="fas fa-calendar-alt"></i>
+            <span title="${formattedDate}">${relativeTime}</span>
           </div>
           <div class="meta-item">
-            <i class="fas fa-tag"></i>
+            <i class="${categoryIcon}"></i>
             ${categoryLabel}
           </div>
           <div class="meta-item">
             ${statusBadge}
           </div>
+          ${featuredBadge ? `<div class="meta-item">${featuredBadge}</div>` : ''}
         </div>
         ${article.summary ? `
           <div class="recent-article-summary">
-            ${this.escapeHtml(article.summary.substring(0, 100))}${article.summary.length > 100 ? '...' : ''}
+            ${this.escapeHtml(article.summary.substring(0, 120))}${article.summary.length > 120 ? '...' : ''}
           </div>
         ` : ''}
       </div>
     `;
+  }
+
+  /**
+   * 相対時間を取得
+   */
+  getRelativeTime(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+    if (diffDays > 30) {
+      return `${Math.floor(diffDays / 30)}ヶ月前`;
+    } else if (diffDays > 0) {
+      return `${diffDays}日前`;
+    } else if (diffHours > 0) {
+      return `${diffHours}時間前`;
+    } else if (diffMinutes > 0) {
+      return `${diffMinutes}分前`;
+    } else {
+      return 'たった今';
+    }
   }
 
   /**
@@ -990,6 +1332,19 @@ export class ActionHandler {
       'important': '重要'
     };
     return categoryMap[category] || 'お知らせ';
+  }
+
+  /**
+   * カテゴリーアイコンを取得
+   */
+  getCategoryIcon(category) {
+    const iconMap = {
+      'announcement': 'fas fa-bullhorn',
+      'event': 'fas fa-calendar-star',
+      'media': 'fas fa-camera',
+      'important': 'fas fa-exclamation-triangle'
+    };
+    return iconMap[category] || 'fas fa-tag';
   }
 
   loadNewsList() {
@@ -1105,17 +1460,7 @@ export class ActionHandler {
    */
   performNewsListFilter(filterValue) {
     // LocalStorageから記事データを取得
-    const articlesData = localStorage.getItem('rbs_articles');
-    let articles = [];
-    
-    try {
-      if (articlesData) {
-        articles = JSON.parse(articlesData);
-      }
-    } catch (error) {
-      console.error('❌ 記事データの解析に失敗:', error);
-      articles = [];
-    }
+    let articles = this.#getStorageData('rbs_articles', []);
 
     // フィルターに基づいて記事をフィルタリング
     let filteredArticles = articles;
@@ -1160,7 +1505,7 @@ export class ActionHandler {
       `;
       return;
     }
-
+    
     // 記事一覧のHTML生成
     const articlesHTML = articles
       .sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt))
@@ -1247,13 +1592,7 @@ export class ActionHandler {
       console.log(`✏️ 記事を編集中: ${articleId}`);
       
       // LocalStorageから記事データを取得
-      const articlesData = localStorage.getItem('rbs_articles');
-      if (!articlesData) {
-        this.showFeedback('記事データが見つかりません', 'error');
-        return;
-      }
-      
-      const articles = JSON.parse(articlesData);
+      const articles = this.#getStorageData('rbs_articles', []);
       const article = articles.find(a => a.id === articleId);
       
       if (!article) {
@@ -1289,13 +1628,7 @@ export class ActionHandler {
       console.log(`🗑️ 記事を削除中: ${articleId}`);
       
       // LocalStorageから記事データを取得
-      const articlesData = localStorage.getItem('rbs_articles');
-      if (!articlesData) {
-        this.showFeedback('記事データが見つかりません', 'warning');
-        return;
-      }
-      
-      let articles = JSON.parse(articlesData);
+      let articles = this.#getStorageData('rbs_articles', []);
       const beforeCount = articles.length;
       
       // 指定された記事を削除
@@ -1307,21 +1640,21 @@ export class ActionHandler {
       }
       
       // LocalStorageに保存
-      localStorage.setItem('rbs_articles', JSON.stringify(articles));
-      
-      // 関連データも削除（記事コンテンツなど）
-      const contentData = JSON.parse(localStorage.getItem('rbs_articles_content') || '{}');
-      if (contentData[articleId]) {
-        delete contentData[articleId];
-        localStorage.setItem('rbs_articles_content', JSON.stringify(contentData));
+      if (this.#setStorageData('rbs_articles', articles)) {
+        // 関連データも削除（記事コンテンツなど）
+        const contentData = this.#getStorageData('rbs_articles_content', {});
+        if (contentData[articleId]) {
+          delete contentData[articleId];
+          this.#setStorageData('rbs_articles_content', contentData);
+        }
+        
+        // UIを更新
+        this.updateDashboardStats();
+        this.refreshNewsList();
+        
+        this.showFeedback('記事を削除しました');
+        console.log('✅ 記事削除完了:', articleId);
       }
-      
-      // UIを更新
-      this.updateDashboardStats();
-      this.refreshNewsList();
-      
-      this.showFeedback('記事を削除しました');
-      console.log('✅ 記事削除完了:', articleId);
       
     } catch (error) {
       console.error('❌ 記事削除エラー:', error);
@@ -1434,117 +1767,12 @@ export class ActionHandler {
     }
   }
 
-  /**
-   * タブ名の妥当性をチェック
-   * @private
-   * @param {string} tabName - チェック対象のタブ名
-   * @returns {tabName is TabName}
-   */
-  #isValidTabName(tabName) {
-    const validTabs = ['dashboard', 'news-management', 'lesson-status', 'settings'];
-    return typeof tabName === 'string' && validTabs.includes(tabName);
-  }
-
-  /**
-   * FAQトグル処理
-   * @private
-   * @param {HTMLElement} element - クリックされた要素
-   * @param {ActionParams} params - パラメータ
-   * @returns {void}
-   */
-  #handleFaqToggle(element, params) {
-    const faqItem = element.closest('.faq-item');
-    if (faqItem) {
-      const isActive = faqItem.classList.contains('active');
-      
-      // 他の開いているFAQを閉じる（アコーディオン動作）
-      document.querySelectorAll('.faq-item.active').forEach(item => {
-        if (item !== faqItem) {
-          item.classList.remove('active');
-        }
-      });
-      
-      // 現在のFAQをトグル
-      faqItem.classList.toggle('active');
-      
-      // アクセシビリティ対応
-      const isNowActive = faqItem.classList.contains('active');
-      element.setAttribute('aria-expanded', isNowActive.toString());
-      
-      console.log(`FAQ ${isNowActive ? 'opened' : 'closed'}: ${params.target || 'unknown'}`);
-    }
-  }
-
-  /**
-   * モバイルメニュートグル処理
-   * @private
-   * @param {HTMLElement} element - クリックされた要素
-   * @returns {void}
-   */
-  #handleMobileMenuToggle(element) {
-    const nav = document.querySelector('.nav-links');
-    const isExpanded = element.getAttribute('aria-expanded') === 'true';
-    
-    element.setAttribute('aria-expanded', (!isExpanded).toString());
-    
-    if (nav) {
-      nav.classList.toggle('mobile-open');
-    }
-  }
-
-  /**
-   * URL コピー処理
-   * @private
-   * @param {HTMLElement} element - クリックされた要素
-   * @param {ActionParams} params - パラメータ
-   * @returns {Promise<void>}
-   */
-  async #handleUrlCopy(element, params) {
-    const url = params.url || window.location.href;
-    
-    try {
-      await navigator.clipboard.writeText(url);
-      this.showFeedback('URLをコピーしました');
-    } catch (error) {
-      console.error('URLコピーに失敗:', error);
-      this.showFeedback('URLコピーに失敗しました', 'error');
-    }
-  }
-
-  /**
-   * ソーシャルシェア処理
-   * @private
-   * @param {'twitter'|'facebook'|'line'} platform - シェアプラットフォーム
-   * @param {HTMLElement} element - クリックされた要素
-   * @param {ActionParams} params - パラメータ
-   * @returns {void}
-   */
-  #handleSocialShare(platform, element, params) {
-    const url = params.url || window.location.href;
-    const text = params.text || document.title;
-    
-    /** @type {Record<string, string>} */
-    const shareUrls = {
-      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-      line: `https://line.me/R/msg/text/?${encodeURIComponent(text + ' ' + url)}`
-    };
-    
-    const shareUrl = shareUrls[platform];
-    if (shareUrl) {
-      const windowFeatures = platform === 'line' ? undefined : 'width=600,height=400,scrollbars=yes,resizable=yes';
-      window.open(shareUrl, '_blank', windowFeatures);
-    }
-  }
-
-  // テストデータ作成機能を追加
   createTestData() {
     try {
       console.log('📝 テストデータを作成中...');
       
       // 既存の記事データを取得
-      const existingData = localStorage.getItem('rbs_articles');
-      let articles = existingData ? JSON.parse(existingData) : [];
+      let articles = this.#getStorageData('rbs_articles', []);
       
       // テストデータの作成
       const testArticles = [
@@ -1593,14 +1821,14 @@ export class ActionHandler {
       articles.push(...testArticles);
       
       // LocalStorageに保存
-      localStorage.setItem('rbs_articles', JSON.stringify(articles));
-      
-      // UIを更新
-      this.updateDashboardStats();
-      this.refreshNewsList();
-      
-      this.showFeedback(`テストデータを作成しました（${testArticles.length}件）`);
-      console.log('✅ テストデータ作成完了:', testArticles);
+      if (this.#setStorageData('rbs_articles', articles)) {
+        // UIを更新
+        this.updateDashboardStats();
+        this.refreshNewsList();
+        
+        this.showFeedback(`テストデータを作成しました（${testArticles.length}件）`);
+        console.log('✅ テストデータ作成完了:', testArticles);
+      }
       
     } catch (error) {
       console.error('❌ テストデータ作成エラー:', error);
@@ -1678,265 +1906,237 @@ export class ActionHandler {
     }
   }
 
-  // LP側ニュースのデバッグ表示
-  showLPNewsDebug() {
-    try {
-      console.log('🔍 LP側ニュースデバッグ情報を取得中...');
-      
-      // LocalStorageから記事データを取得
-      const articlesData = localStorage.getItem('rbs_articles');
-      let articles = [];
-      
-      try {
-        if (articlesData) {
-          articles = JSON.parse(articlesData);
-        }
-      } catch (error) {
-        console.error('記事データの解析に失敗:', error);
-      }
-      
-      // LP側の要素の状態を確認
-      const newsElements = {
-        'index.html news-list': document.getElementById('news-list'),
-        'news.html news-grid': document.getElementById('news-grid'),
-        'news-detail.html article-content': document.getElementById('article-content'),
-        'news-loading-status': document.getElementById('news-loading-status'),
-        'news-admin-link': document.getElementById('news-admin-link')
-      };
-      
-      const debugInfo = {
-        記事データ: {
-          総記事数: articles.length,
-          公開済み: articles.filter(a => a.status === 'published').length,
-          下書き: articles.filter(a => a.status === 'draft').length,
-          カテゴリ別: this.getArticlesByCategory(articles)
-        },
-        LP側要素: {},
-        ArticleService: {
-          存在: !!window.articleService,
-          初期化済み: window.articleService?.isInitialized || false,
-          記事数: window.articleService?.articles?.length || 0
-        },
-        現在のページ: {
-          URL: window.location.href,
-          パス: window.location.pathname,
-          クエリ: window.location.search
-        }
-      };
-      
-      // 各要素の状態を確認
-      Object.keys(newsElements).forEach(key => {
-        const element = newsElements[key];
-        debugInfo.LP側要素[key] = {
-          存在: !!element,
-          表示: element ? element.style.display !== 'none' : false,
-          内容サイズ: element ? element.innerHTML.length : 0,
-          子要素数: element ? element.children.length : 0
-        };
-      });
-      
-      // コンソールに詳細情報を出力
-      console.group('📊 LP側ニュースデバッグ情報');
-      console.log('記事データ:', debugInfo.記事データ);
-      console.log('LP側要素:', debugInfo.LP側要素);
-      console.log('ArticleService:', debugInfo.ArticleService);
-      console.log('現在のページ:', debugInfo.現在のページ);
-      if (articles.length > 0) {
-        console.log('記事一覧（最新5件）:', articles.slice(0, 5));
-      }
-      console.groupEnd();
-      
-      // ユーザー向けサマリー
-      const summary = `📊 LP側ニュースデバッグ情報
-
-📰 記事データ:
-・総記事数: ${debugInfo.記事データ.総記事数}件
-・公開済み: ${debugInfo.記事データ.公開済み}件
-・下書き: ${debugInfo.記事データ.下書き}件
-
-🖥️ 表示要素:
-・news-list: ${debugInfo.LP側要素['index.html news-list'].存在 ? 'あり' : 'なし'}
-・news-grid: ${debugInfo.LP側要素['news.html news-grid'].存在 ? 'あり' : 'なし'}
-・article-content: ${debugInfo.LP側要素['news-detail.html article-content'].存在 ? 'あり' : 'なし'}
-
-🔧 ArticleService:
-・初期化済み: ${debugInfo.ArticleService.初期化済み ? 'はい' : 'いいえ'}
-・読み込み記事数: ${debugInfo.ArticleService.記事数}件
-
-📍 現在のページ: ${debugInfo.現在のページ.パス}
-
-詳細はコンソールを確認してください。`;
-      
-      alert(summary);
-      
-      console.log('✅ LP側ニュースデバッグ情報表示完了');
-      
-    } catch (error) {
-      console.error('❌ LP側ニュースデバッグ情報取得エラー:', error);
-      this.showFeedback('デバッグ情報の取得に失敗しました', 'error');
-    }
-  }
-
-  /**
-   * カテゴリ別記事数を取得
-   */
-  getArticlesByCategory(articles) {
-    const categories = {};
-    articles.forEach(article => {
-      const category = article.category || 'announcement';
-      categories[category] = (categories[category] || 0) + 1;
-    });
-    return categories;
-  }
-
-  // LP側のArticleServiceを最新化
   async refreshLPArticleService() {
     try {
       console.log('🔄 LP側ArticleServiceを最新化中...');
-      
       // LP側にArticleServiceが存在する場合のみ実行
       if (window.articleService && window.articleService.isInitialized) {
         await window.articleService.refresh();
         console.log('✅ LP側ArticleService最新化完了');
-        
-        // LP側の記事表示も更新
-        this.refreshLPNewsDisplay();
       } else {
         console.log('💡 LP側のArticleServiceが存在しないため、スキップします');
       }
-      
     } catch (error) {
       console.error('❌ LP側ArticleService最新化エラー:', error);
     }
   }
 
   /**
-   * LP側のニュース表示を更新
+   * タブ名が有効かどうかを確認
+   * @private
+   * @param {string} tabName - タブ名
+   * @returns {boolean}
    */
-  refreshLPNewsDisplay() {
-    try {
-      // index.htmlのニュースリストを更新
-      const newsList = document.getElementById('news-list');
-      if (newsList && window.articleService && window.articleService.isInitialized) {
-        // 最新記事を再取得して表示
-        const latestArticles = window.articleService.getLatestArticles(3);
-        
-        if (latestArticles.length > 0) {
-          newsList.innerHTML = '';
-          latestArticles.forEach((article, index) => {
-            const newsCard = this.createIndexNewsCard(article);
-            newsList.appendChild(newsCard);
-            
-            // アニメーション効果
-            setTimeout(() => {
-              newsCard.classList.add('fade-in');
-            }, index * 100);
-          });
-          console.log('✅ index.htmlニュースリスト更新完了');
-        }
-      }
-      
-      // news.htmlのニュースグリッドを更新
-      const newsGrid = document.getElementById('news-grid');
-      if (newsGrid && window.articleService && window.articleService.isInitialized) {
-        // 現在のカテゴリーフィルターを保持して再表示
-        const currentCategory = new URLSearchParams(window.location.search).get('category') || 'all';
-        const filteredArticles = currentCategory === 'all' 
-          ? window.articleService.getPublishedArticles()
-          : window.articleService.getArticlesByCategory(currentCategory);
-        
-        if (filteredArticles.length > 0) {
-          newsGrid.innerHTML = '';
-          filteredArticles.forEach((article, index) => {
-            const articleCard = this.createNewsGridCard(article);
-            newsGrid.appendChild(articleCard);
-            
-            setTimeout(() => {
-              articleCard.classList.add('fade-in');
-            }, index * 100);
-          });
-          console.log('✅ news.htmlニュースグリッド更新完了');
-        }
-      }
-      
-    } catch (error) {
-      console.error('❌ LP側ニュース表示更新エラー:', error);
+  #isValidTabName(tabName) {
+    const validTabs = ['dashboard', 'news-management', 'lesson-status', 'settings'];
+    return validTabs.includes(tabName);
+  }
+
+  /**
+   * FAQトグル処理
+   * @private
+   * @param {HTMLElement} element - 対象要素
+   * @param {ActionParams} params - パラメータ
+   */
+  #handleFaqToggle(element, params) {
+    const target = params.target || element.getAttribute('href')?.substring(1);
+    if (!target) return;
+
+    const targetElement = document.getElementById(target);
+    if (!targetElement) return;
+
+    const isExpanded = targetElement.style.display === 'block';
+    targetElement.style.display = isExpanded ? 'none' : 'block';
+    
+    // アイコンの回転
+    const icon = element.querySelector('i');
+    if (icon) {
+      icon.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
     }
   }
 
   /**
-   * index.html用ニュースカードを作成
+   * モバイルメニュートグル処理
+   * @private
+   * @param {HTMLElement} element - 対象要素
    */
-  createIndexNewsCard(article) {
-    const card = document.createElement('article');
-    card.className = 'news-card';
-    card.setAttribute('data-category', article.category);
+  #handleMobileMenuToggle(element) {
+    const menu = document.querySelector('.mobile-menu, .nav-menu');
+    if (!menu) return;
+
+    menu.classList.toggle('active');
+    element.classList.toggle('active');
     
-    const categoryColors = {
-      'announcement': '#4299e1',
-      'event': '#38b2ac',
-      'media': '#9f7aea',
-      'important': '#f56565'
-    };
-    
-    const categoryColor = categoryColors[article.category] || categoryColors.announcement;
-    const formattedDate = article.formattedDate || article.date;
-    const categoryName = article.categoryName || article.category;
-    const excerpt = article.excerpt || article.summary || '';
-    
-    card.innerHTML = `
-      <div class="news-card-header">
-        <div class="news-meta">
-          <div class="news-date">${this.escapeHtml(formattedDate)}</div>
-          <div class="news-category ${article.category}" style="background-color: ${categoryColor};">
-            ${this.escapeHtml(categoryName)}
-          </div>
-        </div>
-        <h2 class="news-title">
-          <a href="news-detail.html?id=${article.id}">${this.escapeHtml(article.title)}</a>
-        </h2>
-      </div>
-      <div class="news-card-body">
-        <p class="news-excerpt">${this.escapeHtml(excerpt)}</p>
-        <div class="news-actions">
-          <a href="news-detail.html?id=${article.id}" class="news-read-more">続きを読む</a>
-        </div>
-      </div>
-    `;
-    
-    return card;
+    // ボディのスクロール制御
+    document.body.style.overflow = menu.classList.contains('active') ? 'hidden' : '';
   }
 
   /**
-   * news.html用ニュースカードを作成
+   * URL コピー処理
+   * @private
+   * @param {HTMLElement} element - 対象要素
+   * @param {ActionParams} params - パラメータ
    */
-  createNewsGridCard(article) {
-    const card = document.createElement('article');
-    card.className = 'news-card';
-    card.setAttribute('data-category', article.category);
+  async #handleUrlCopy(element, params) {
+    try {
+      const url = params.url || window.location.href;
+      
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        // フォールバック
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      
+      this.showFeedback('URLをコピーしました');
+    } catch (error) {
+      console.error('URL コピーエラー:', error);
+      this.showFeedback('URLのコピーに失敗しました', 'error');
+    }
+  }
+
+  /**
+   * ソーシャルシェア処理
+   * @private
+   * @param {string} platform - プラットフォーム名
+   * @param {HTMLElement} element - 対象要素
+   * @param {ActionParams} params - パラメータ
+   */
+  #handleSocialShare(platform, element, params) {
+    const url = encodeURIComponent(params.url || window.location.href);
+    const text = encodeURIComponent(params.text || document.title);
     
-    const categoryColor = article.categoryColor || '#4299e1';
-    const formattedDate = article.formattedDate || article.date;
-    const categoryName = article.categoryName || article.category;
-    const excerpt = article.excerpt || article.summary || '';
+    let shareUrl = '';
     
-    card.innerHTML = `
-      <div class="news-card-header">
-        <div class="news-meta">
-          <div class="news-date">${formattedDate}</div>
-          <div class="news-category ${article.category}" style="background-color: ${categoryColor};">
-            ${categoryName}
-          </div>
-        </div>
-        <h2 class="news-title">${this.escapeHtml(article.title)}</h2>
-      </div>
-      <div class="news-card-body">
-        <p class="news-excerpt">${this.escapeHtml(excerpt)}</p>
-        <a href="news-detail.html?id=${article.id}" class="news-read-more">続きを読む</a>
-      </div>
-    `;
+    switch (platform) {
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+        break;
+      case 'line':
+        shareUrl = `https://social-plugins.line.me/lineit/share?url=${url}`;
+        break;
+      default:
+        console.warn(`未対応のプラットフォーム: ${platform}`);
+        return;
+    }
     
-    return card;
+    window.open(shareUrl, '_blank', 'width=600,height=400,scrollbars=yes,resizable=yes');
+  }
+
+  /**
+   * LP側ニュースのデバッグ表示
+   */
+  showLPNewsDebug() {
+    try {
+      console.log('🐛 LP側ニュースデバッグ情報を表示中...');
+      
+      // LocalStorageから記事データを取得
+      const articles = this.#getStorageData('rbs_articles', []);
+      
+      const debugInfo = {
+        総記事数: articles.length,
+        公開記事: articles.filter(a => a.status === 'published').length,
+        最新記事: articles.length > 0 ? articles[articles.length - 1] : null,
+        ArticleServiceの状態: window.articleService ? '読み込み済み' : '未読み込み'
+      };
+      
+      console.group('📰 LP側ニュース デバッグ情報');
+      console.log('記事統計:', debugInfo);
+      if (articles.length > 0) {
+        console.log('全記事データ:', articles);
+      }
+      console.log('LocalStorage状態:', {
+        articles: localStorage.getItem('rbs_articles') ? 'あり' : 'なし',
+        サイズ: localStorage.getItem('rbs_articles')?.length || 0
+      });
+      console.groupEnd();
+      
+      // LP側のArticleServiceに最新データを反映
+      if (window.articleService && typeof window.articleService.refresh === 'function') {
+        window.articleService.refresh();
+        console.log('✅ LP側ArticleServiceを更新しました');
+      }
+      
+      this.showFeedback('LP側ニュースデバッグ情報をコンソールに出力しました');
+      
+    } catch (error) {
+      console.error('❌ LP側ニュースデバッグエラー:', error);
+      this.showFeedback('デバッグ情報の取得に失敗しました', 'error');
+    }
+  }
+
+  /**
+   * LocalStorageからJSONデータを安全に取得
+   * @private
+   * @param {string} key - LocalStorageキー
+   * @param {*} defaultValue - デフォルト値
+   * @returns {*} パースされたデータまたはデフォルト値
+   */
+  #getStorageData(key, defaultValue = null) {
+    try {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : defaultValue;
+    } catch (error) {
+      console.error(`❌ LocalStorage読み込みエラー (${key}):`, error);
+      return defaultValue;
+    }
+  }
+
+  /**
+   * LocalStorageにJSONデータを安全に保存
+   * @private
+   * @param {string} key - LocalStorageキー
+   * @param {*} data - 保存するデータ
+   * @returns {boolean} 保存成功フラグ
+   */
+  #setStorageData(key, data) {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+      return true;
+    } catch (error) {
+      console.error(`❌ LocalStorage保存エラー (${key}):`, error);
+      this.showFeedback('データの保存に失敗しました', 'error');
+      return false;
+    }
+  }
+
+  /**
+   * ActionHandlerの初期化状態とアクション登録状況をデバッグ
+   */
+  debugStatus() {
+    const status = {
+      initialized: this.#initialized,
+      actionsRegistered: this.#actions.size,
+      registeredActions: Array.from(this.#actions.keys()),
+      listenersActive: this.#listeners.length,
+      currentFilter: this.#currentNewsFilter
+    };
+    
+    console.group('🔍 ActionHandler デバッグ状況');
+    console.log('初期化状態:', status.initialized ? '✅ 完了' : '❌ 未完了');
+    console.log('登録アクション数:', status.actionsRegistered);
+    console.log('登録アクション一覧:', status.registeredActions);
+    console.log('アクティブリスナー数:', status.listenersActive);
+    console.log('現在のニュースフィルター:', status.currentFilter);
+    
+    // refresh-recent-articlesが登録されているかチェック
+    if (this.#actions.has('refresh-recent-articles')) {
+      console.log('✅ refresh-recent-articles アクションは正常に登録されています');
+    } else {
+      console.error('❌ refresh-recent-articles アクションが登録されていません');
+    }
+    
+    console.groupEnd();
+    
+    return status;
   }
 }
 
@@ -1944,25 +2144,12 @@ export class ActionHandler {
 const style = document.createElement('style');
 style.textContent = `
   @keyframes slideInRight {
-    from {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
   }
-
   @keyframes slideOutRight {
-    from {
-      transform: translateX(0);
-      opacity: 1;
-    }
-    to {
-      transform: translateX(100%);
-      opacity: 0;
-    }
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
   }
 `;
 document.head.appendChild(style);

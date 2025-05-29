@@ -118,11 +118,20 @@
           <div class="widget">
             <div class="widget-header">
               <h2><i class="fas fa-newspaper"></i> 最近の記事</h2>
+              <div class="widget-header-actions">
+                <button class="btn-icon" data-action="refresh-recent-articles" title="更新">
+                  <i class="fas fa-sync-alt"></i>
+                </button>
+                <button class="btn-icon" onclick="window.actionHandler?.debugStatus()" title="ActionHandlerデバッグ">
+                  <i class="fas fa-bug"></i>
+                </button>
+              </div>
             </div>
             <div class="widget-content">
               <div id="recent-articles">
-                <div class="empty-state">
-                  記事がありません
+                <div class="loading-state">
+                  <i class="fas fa-spinner fa-spin"></i>
+                  記事を読み込み中...
                 </div>
               </div>
             </div>
