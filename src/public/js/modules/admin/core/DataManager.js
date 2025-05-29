@@ -457,9 +457,6 @@ export class DataManager extends EventEmitter {
       instagram: {
         required: ['url', 'category'],
         categories: ['lesson', 'event', 'achievement', 'other']
-      },
-      lessonStatus: {
-        courses: ['キッズ', 'ジュニア']
       }
     };
   }
@@ -533,22 +530,32 @@ export class DataManager extends EventEmitter {
    * レッスン状況データのバリデーション
    */
   validateLessonStatus(data) {
-    const errors = [];
-    const rules = this.validationRules.lessonStatus;
-
-    // コース別状況の確認
-    rules.courses.forEach(course => {
-      const courseData = data[course];
-      if (courseData) {
-        ['体験会', '通常レッスン'].forEach(lessonType => {
-          const lessonData = courseData[lessonType];
-          if (lessonData && !['実施', '中止', 'TBD'].includes(lessonData.status)) {
-            errors.push(`${course}の${lessonType}のステータスが無効です`);
-          }
-        });
+    // LessonStatusManagerが利用可能な場合はそちらを使用
+    if (typeof LessonStatusManager !== 'undefined') {
+      // 基本的なデータ構造のチェックのみ
+      const errors = [];
+      
+      if (!data.globalStatus) {
+        errors.push('グローバルステータスが設定されていません');
       }
-    });
-
+      
+      if (!data.courses || typeof data.courses !== 'object') {
+        errors.push('コース情報が正しく設定されていません');
+      }
+      
+      return {
+        isValid: errors.length === 0,
+        errors
+      };
+    }
+    
+    // フォールバック: 従来のバリデーション
+    const errors = [];
+    
+    if (!data || typeof data !== 'object') {
+      errors.push('レッスン状況データが無効です');
+    }
+    
     return {
       isValid: errors.length === 0,
       errors

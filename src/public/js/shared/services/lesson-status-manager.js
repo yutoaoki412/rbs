@@ -5,9 +5,50 @@
 class LessonStatusManager {
   constructor() {
     this.storageKey = 'rbs_lesson_status';
+    
+    // 統一されたステータス定義
+    this.statusDefinitions = {
+      'scheduled': {
+        key: 'scheduled',
+        displayText: '通常開催',
+        adminText: '開催',
+        color: '#1abc9c', // primary-teal
+        backgroundColor: 'var(--primary-teal)',
+        icon: '✅',
+        cssClass: 'scheduled'
+      },
+      'cancelled': {
+        key: 'cancelled',
+        displayText: '中止',
+        adminText: '中止',
+        color: '#e74c3c',
+        backgroundColor: '#e74c3c',
+        icon: '❌',
+        cssClass: 'cancelled'
+      },
+      'indoor': {
+        key: 'indoor',
+        displayText: '室内開催',
+        adminText: '室内開催',
+        color: '#f39c12', // secondary-yellow
+        backgroundColor: 'var(--secondary-yellow)',
+        icon: '🏠',
+        cssClass: 'indoor'
+      },
+      'postponed': {
+        key: 'postponed',
+        displayText: '延期',
+        adminText: '延期',
+        color: '#3498db',
+        backgroundColor: 'var(--primary-blue)',
+        icon: '⏰',
+        cssClass: 'postponed'
+      }
+    };
+    
     this.defaultStatus = {
       date: null,
-      globalStatus: 'scheduled', // scheduled, cancelled, indoor, postponed
+      globalStatus: 'scheduled',
       globalMessage: '',
       courses: {
         basic: {
@@ -28,10 +69,21 @@ class LessonStatusManager {
   }
 
   /**
-   * 今日の日付を取得
+   * 今日の日付を取得（YYYY-MM-DD形式）
    */
   getTodayDate() {
     return new Date().toISOString().split('T')[0];
+  }
+
+  /**
+   * デフォルトステータスを作成
+   */
+  createDefaultStatus(date) {
+    return {
+      ...this.defaultStatus,
+      date: date,
+      lastUpdated: new Date().toISOString()
+    };
   }
 
   /**
@@ -52,17 +104,6 @@ class LessonStatusManager {
       console.error('レッスン状況の取得に失敗:', error);
       return this.createDefaultStatus(date || this.getTodayDate());
     }
-  }
-
-  /**
-   * デフォルトステータスを作成
-   */
-  createDefaultStatus(date) {
-    return {
-      ...this.defaultStatus,
-      date: date,
-      lastUpdated: new Date().toISOString()
-    };
   }
 
   /**
@@ -121,75 +162,68 @@ class LessonStatusManager {
   }
 
   /**
-   * 管理画面のフォームデータから変換
+   * ステータス更新イベントを発火
    */
-  convertFromAdminForm(formData) {
-    const globalStatus = this.getGlobalStatusFromForm();
-    const globalMessage = formData.globalMessage || document.getElementById('global-message')?.value || '';
-    
-    return {
-      globalStatus: globalStatus,
-      globalMessage: globalMessage,
-      courses: {
-        basic: {
-          status: this.mapAdminStatusToStandard(formData.basic?.status || '開催'),
-          message: formData.basic?.note || ''
-        },
-        advance: {
-          status: this.mapAdminStatusToStandard(formData.advance?.status || '開催'),
-          message: formData.advance?.note || ''
-        }
-      }
-    };
+  dispatchStatusUpdateEvent(statusData) {
+    const event = new CustomEvent('lessonStatusUpdated', {
+      detail: statusData,
+      bubbles: true
+    });
+    window.dispatchEvent(event);
   }
 
   /**
-   * グローバルステータスをフォームから取得
+   * 古いデータをクリーンアップ（30日以上前のデータを削除）
    */
-  getGlobalStatusFromForm() {
-    const globalStatusInput = document.querySelector('input[name="global-status"]:checked');
-    if (globalStatusInput) {
-      return this.mapGlobalStatusToStandard(globalStatusInput.value);
+  cleanupOldData() {
+    try {
+      const data = localStorage.getItem(this.storageKey);
+      if (!data) return;
+
+      const allStatus = JSON.parse(data);
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - 30);
+      const cutoffDateString = cutoffDate.toISOString().split('T')[0];
+
+      const cleanedData = {};
+      Object.keys(allStatus).forEach(date => {
+        if (date >= cutoffDateString) {
+          cleanedData[date] = allStatus[date];
+        }
+      });
+
+      localStorage.setItem(this.storageKey, JSON.stringify(cleanedData));
+    } catch (error) {
+      console.error('古いデータのクリーンアップに失敗:', error);
     }
-    return 'scheduled';
   }
 
   /**
    * 管理画面のステータスを標準形式にマップ
    */
   mapAdminStatusToStandard(adminStatus) {
-    const mapping = {
-      '開催': 'scheduled',
-      '中止': 'cancelled'
-    };
-    return mapping[adminStatus] || 'scheduled';
-  }
-
-  /**
-   * グローバルステータスを標準形式にマップ
-   */
-  mapGlobalStatusToStandard(globalStatus) {
-    const mapping = {
-      'normal': 'scheduled',
-      'scheduled': 'scheduled',
-      'cancelled': 'cancelled',
-      'indoor': 'indoor',
-      'postponed': 'postponed'
-    };
-    return mapping[globalStatus] || 'scheduled';
+    // 管理画面の表示テキストから標準ステータスキーを取得
+    for (const [key, definition] of Object.entries(this.statusDefinitions)) {
+      if (definition.adminText === adminStatus) {
+        return key;
+      }
+    }
+    return 'scheduled'; // デフォルト
   }
 
   /**
    * 標準ステータスを管理画面形式にマップ
    */
   mapStandardToAdminStatus(standardStatus) {
-    const mapping = {
-      'scheduled': '開催',
-      'cancelled': '中止',
-      'indoor': '開催',
-      'postponed': '開催'
-    };
-    return mapping[standardStatus] || '開催';
+    const definition = this.statusDefinitions[standardStatus];
+    return definition ? definition.adminText : '開催';
+  }
+
+  /**
+   * グローバルステータスを標準形式にマップ
+   */
+  mapStandardToGlobalStatus(standardStatus) {
+    return standardStatus; // 既に標準形式
   }
 
   /**
@@ -197,8 +231,7 @@ class LessonStatusManager {
    */
   populateAdminForm(statusData) {
     // グローバルステータスを設定
-    const globalStatusValue = this.mapStandardToGlobalStatus(statusData.globalStatus);
-    const globalStatusInput = document.querySelector(`input[name="global-status"][value="${globalStatusValue}"]`);
+    const globalStatusInput = document.querySelector(`input[name="global-status"][value="${statusData.globalStatus}"]`);
     if (globalStatusInput) {
       globalStatusInput.checked = true;
     }
@@ -221,19 +254,6 @@ class LessonStatusManager {
   }
 
   /**
-   * 標準ステータスをグローバルステータスにマップ
-   */
-  mapStandardToGlobalStatus(standardStatus) {
-    const mapping = {
-      'scheduled': 'scheduled',
-      'cancelled': 'cancelled',
-      'indoor': 'scheduled',
-      'postponed': 'scheduled'
-    };
-    return mapping[standardStatus] || 'scheduled';
-  }
-
-  /**
    * 管理画面のコース別ステータスを設定
    */
   setAdminCourseStatus(course, courseData) {
@@ -253,52 +273,81 @@ class LessonStatusManager {
   }
 
   /**
-   * ステータス更新イベントを発火
+   * 管理画面のフォームデータを標準形式に変換
    */
-  dispatchStatusUpdateEvent(statusData) {
-    const event = new CustomEvent('lessonStatusUpdated', {
-      detail: statusData
+  convertFromAdminForm(formData) {
+    const converted = {
+      date: formData.date,
+      globalStatus: formData.globalStatus || 'scheduled',
+      globalMessage: formData.globalMessage || '',
+      courses: {}
+    };
+
+    // コース別データを変換
+    ['basic', 'advance'].forEach(course => {
+      if (formData[course]) {
+        converted.courses[course] = {
+          status: this.mapAdminStatusToStandard(formData[course].status),
+          message: formData[course].note || ''
+        };
+      }
     });
-    window.dispatchEvent(event);
+
+    return converted;
   }
 
   /**
-   * ステータステキストを取得
+   * ステータステキストを取得（LP側表示用）
    */
   getStatusText(status) {
-    const texts = {
-      'scheduled': '開催予定',
-      'cancelled': '中止',
-      'indoor': '室内開催',
-      'postponed': '延期'
-    };
-    return texts[status] || '未定';
+    const definition = this.statusDefinitions[status];
+    return definition ? definition.displayText : '不明';
   }
 
   /**
    * ステータスカラーを取得
    */
   getStatusColor(status) {
-    const colors = {
-      'scheduled': '#28a745',
-      'cancelled': '#dc3545',
-      'indoor': '#ffc107',
-      'postponed': '#17a2b8'
-    };
-    return colors[status] || '#6c757d';
+    const definition = this.statusDefinitions[status];
+    return definition ? definition.color : '#6c757d';
+  }
+
+  /**
+   * ステータス背景色を取得
+   */
+  getStatusBackgroundColor(status) {
+    const definition = this.statusDefinitions[status];
+    return definition ? definition.backgroundColor : '#6c757d';
   }
 
   /**
    * ステータスアイコンを取得
    */
   getStatusIcon(status) {
-    const icons = {
-      'scheduled': '✅',
-      'cancelled': '❌',
-      'indoor': '🏠',
-      'postponed': '⏰'
-    };
-    return icons[status] || 'ℹ️';
+    const definition = this.statusDefinitions[status];
+    return definition ? definition.icon : 'ℹ️';
+  }
+
+  /**
+   * ステータスCSSクラスを取得
+   */
+  getStatusCssClass(status) {
+    const definition = this.statusDefinitions[status];
+    return definition ? definition.cssClass : 'unknown';
+  }
+
+  /**
+   * 利用可能なステータス一覧を取得
+   */
+  getAvailableStatuses() {
+    return Object.keys(this.statusDefinitions);
+  }
+
+  /**
+   * ステータス定義を取得
+   */
+  getStatusDefinition(status) {
+    return this.statusDefinitions[status] || null;
   }
 
   /**
@@ -316,30 +365,23 @@ class LessonStatusManager {
   }
 
   /**
-   * 古いデータをクリーンアップ
+   * ステータスサマリーを取得
    */
-  cleanupOldData(daysToKeep = 30) {
-    try {
-      const data = localStorage.getItem(this.storageKey);
-      if (!data) return;
-
-      const allStatus = JSON.parse(data);
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
-      const cutoffDateString = cutoffDate.toISOString().split('T')[0];
-
-      const cleanedData = {};
-      Object.keys(allStatus).forEach(date => {
-        if (date >= cutoffDateString) {
-          cleanedData[date] = allStatus[date];
-        }
-      });
-
-      localStorage.setItem(this.storageKey, JSON.stringify(cleanedData));
-      console.log(`${daysToKeep}日より古いレッスン状況データをクリーンアップしました`);
-    } catch (error) {
-      console.error('データクリーンアップに失敗:', error);
+  getStatusSummary(statusData) {
+    if (this.isNormalStatus(statusData)) {
+      return {
+        type: 'normal',
+        message: '通常通り開催予定です',
+        hasSpecialNotice: false
+      };
     }
+
+    return {
+      type: 'special',
+      message: this.getStatusText(statusData.globalStatus),
+      hasSpecialNotice: true,
+      globalMessage: statusData.globalMessage
+    };
   }
 
   /**
@@ -358,4 +400,6 @@ class LessonStatusManager {
 }
 
 // グローバルに公開
-window.LessonStatusManager = LessonStatusManager; 
+if (typeof window !== 'undefined') {
+  window.LessonStatusManager = LessonStatusManager;
+} 

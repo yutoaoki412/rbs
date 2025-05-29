@@ -825,10 +825,23 @@ export class UIManager extends EventEmitter {
   }
 
   getStatusLabel(status) {
+    // LessonStatusManagerが利用可能な場合は統一されたラベルを使用
+    if (typeof LessonStatusManager !== 'undefined') {
+      const manager = new LessonStatusManager();
+      return manager.getStatusText(status);
+    }
+    
+    // フォールバック用のラベル定義
     const labels = {
-      開催: '開催',
-      中止: '中止'
-      // 必要に応じて他のステータスも追加
+      '通常開催': '通常開催',
+      '開催': '通常開催',
+      '中止': '中止',
+      '室内開催': '室内開催',
+      '延期': '延期',
+      'scheduled': '通常開催',
+      'cancelled': '中止',
+      'indoor': '室内開催',
+      'postponed': '延期'
     };
     return labels[status] || status;
   }
@@ -907,15 +920,27 @@ export class UIManager extends EventEmitter {
     
     let html = '<div class="lesson-status-preview">';
     
+    // グローバル情報を表示
+    if (statusData.globalStatus && statusData.globalStatus !== 'scheduled') {
+      const globalStatusLabel = this.getStatusLabel(statusData.globalStatus);
+      html += `
+        <div class="global-status-info">
+          <h4>全体状況: <span class="status-indicator ${statusData.globalStatus}">${globalStatusLabel}</span></h4>
+          ${statusData.globalMessage ? `<p class="global-message">${this.escapeHtml(statusData.globalMessage)}</p>` : ''}
+        </div>
+      `;
+    }
+    
     courses.forEach(course => {
       const lesson = statusData[course.key];
       if (lesson) {
         const statusLabel = this.getStatusLabel(lesson.status);
+        const statusClass = this._getStatusClass(lesson.status);
         html += `
           <div class="lesson-item">
             <h3>${course.name}</h3>
             <p><strong>時間:</strong> ${course.time}</p>
-            <p><strong>状況:</strong> <span class="status status-${lesson.status}">${statusLabel}</span></p>
+            <p><strong>状況:</strong> <span class="status-indicator ${statusClass}">${statusLabel}</span></p>
             ${lesson.note ? `<p class="note"><strong>補足:</strong> ${this.escapeHtml(lesson.note)}</p>` : ''}
           </div>
         `;
@@ -924,6 +949,24 @@ export class UIManager extends EventEmitter {
     
     html += '</div>';
     return html;
+  }
+
+  _getStatusClass(status) {
+    // LessonStatusManagerが利用可能な場合は統一されたクラスを使用
+    if (typeof LessonStatusManager !== 'undefined') {
+      const manager = new LessonStatusManager();
+      return manager.getStatusCssClass(manager.mapAdminStatusToStandard(status));
+    }
+    
+    // フォールバック用のクラス定義
+    const classMap = {
+      '通常開催': 'scheduled',
+      '開催': 'scheduled',
+      '中止': 'cancelled',
+      '室内開催': 'indoor',
+      '延期': 'postponed'
+    };
+    return classMap[status] || 'scheduled';
   }
 
   showLessonStatusPreviewModal(statusData) {

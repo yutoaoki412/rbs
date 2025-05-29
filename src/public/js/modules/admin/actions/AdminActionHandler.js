@@ -571,23 +571,28 @@ export class AdminActionHandler extends EventEmitter {
     const courses = ['basic', 'advance'];
     const statusData = {};
     
+    // グローバルステータスを取得
+    const globalStatusInput = document.querySelector('input[name="global-status"]:checked');
+    statusData.globalStatus = globalStatusInput ? globalStatusInput.value : 'scheduled';
+    
+    // グローバルメッセージを取得
+    const globalMessage = document.getElementById('global-message')?.value || '';
+    statusData.globalMessage = globalMessage;
+    
+    // 対象日を取得
+    const lessonDate = document.getElementById('lesson-date')?.value || new Date().toISOString().split('T')[0];
+    statusData.date = lessonDate;
+    
+    // コース別データを取得
     courses.forEach(course => {
       const statusInput = document.querySelector(`input[name="${course}-lesson"]:checked`);
       const noteTextarea = document.getElementById(`${course}-lesson-note`);
       
       statusData[course] = {
-        status: statusInput?.value || '開催',
+        status: statusInput?.value || '通常開催',
         note: noteTextarea?.value || ''
       };
     });
-    
-    // グローバルメッセージも含める
-    const globalMessage = document.getElementById('global-message')?.value || '';
-    statusData.globalMessage = globalMessage;
-    
-    // 対象日も含める
-    const lessonDate = document.getElementById('lesson-date')?.value || new Date().toISOString().split('T')[0];
-    statusData.date = lessonDate;
     
     return statusData;
   }

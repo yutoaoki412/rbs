@@ -648,28 +648,6 @@
   overflow: hidden;
 }
 
-.status-display {
-  display: flex;
-  gap: 1rem;
-}
-
-.status-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.status-item input[type="radio"] {
-  margin: 0;
-}
-
-.status-item label {
-  margin: 0;
-  font-weight: 500;
-  color: var(--admin-gray-700);
-  cursor: pointer;
-}
-
 .courses-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -698,51 +676,6 @@
 
 .course-content {
   padding: 1rem;
-}
-
-.status-buttons {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.status-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  padding: 0.5rem;
-  border: 1px solid var(--admin-gray-300);
-  background: var(--admin-white);
-  border-radius: var(--admin-border-radius-sm);
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--admin-transition);
-  color: var(--admin-gray-700);
-}
-
-.status-btn:hover {
-  border-color: var(--admin-primary);
-  color: var(--admin-primary);
-}
-
-.status-btn.active {
-  background: var(--admin-primary);
-  border-color: var(--admin-primary);
-  color: var(--admin-white);
-}
-
-/* ラジオボタンのスタイリング */
-.status-buttons input[type="radio"] {
-  display: none;
-}
-
-.status-buttons input[type="radio"]:checked + .status-btn {
-  background: var(--admin-primary);
-  border-color: var(--admin-primary);
-  color: var(--admin-white);
 }
 
 .course-card h4 {
@@ -1199,96 +1132,4 @@
     transform: translateX(0);
     opacity: 1;
   }
-}
-
-/* レッスン状況表示 */
-.status-indicator {
-  padding: 4px 12px;
-  border-radius: 15px;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-block;
-}
-
-.status-indicator.scheduled {
-  background: var(--admin-success);
-  color: var(--admin-white);
-}
-
-.status-indicator.cancelled {
-  background: var(--admin-error);
-  color: var(--admin-white);
-}
-
-.status-indicator.indoor {
-  background: var(--admin-warning);
-  color: var(--admin-white);
-}
-
-.status-indicator.postponed {
-  background: var(--admin-secondary);
-  color: var(--admin-white);
-}
-
-.status-indicator.error {
-  background: var(--admin-gray-500);
-  color: var(--admin-white);
-}
-
-.normal-status {
-  text-align: center;
-  padding: 20px;
-  color: var(--admin-success);
-  font-weight: 600;
-}
-
-.error-status {
-  text-align: center;
-  padding: 20px;
-  color: var(--admin-error);
-}
-
-.global-message {
-  background: var(--admin-gray-100);
-  padding: 15px;
-  border-radius: var(--admin-border-radius-sm);
-  margin-bottom: 15px;
-  border-left: 4px solid var(--admin-primary);
-}
-
-.course-message {
-  background: var(--admin-gray-50);
-  padding: 10px;
-  border-radius: var(--admin-border-radius-sm);
-  margin-top: 8px;
-  font-size: 0.875rem;
-  color: var(--admin-gray-700);
-}
-
-.last-updated {
-  text-align: center;
-  font-size: 0.75rem;
-  color: var(--admin-gray-500);
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid var(--admin-gray-200);
-}
-
-/* スクロールバー */
-.list-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.list-content::-webkit-scrollbar-track {
-  background: var(--admin-gray-100);
-  border-radius: 3px;
-}
-
-.list-content::-webkit-scrollbar-thumb {
-  background: var(--admin-gray-300);
-  border-radius: 3px;
-}
-
-.list-content::-webkit-scrollbar-thumb:hover {
-  background: var(--admin-gray-500);
 } 
