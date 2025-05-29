@@ -277,7 +277,7 @@ export class AdminActionHandler extends EventEmitter {
         const lessonStatusManager = new LessonStatusManager();
         const convertedData = lessonStatusManager.convertFromAdminForm(statusData);
         const result = lessonStatusManager.saveLessonStatus(convertedData, statusData.date);
-        え
+        
         if (result.success) {
           this.adminCore.uiManager.showNotification('success', 'レッスン状況を更新しました');
           this.logger.info('レッスン状況を更新しました:', result.data);

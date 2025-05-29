@@ -269,79 +269,69 @@ function displayLessonStatus(statusData, lessonStatusManager) {
     return;
   }
   
-  // 通常開催の場合は簡潔に表示
-  if (lessonStatusManager.isNormalStatus(statusData)) {
-    statusIndicator.textContent = '通常開催';
-    statusIndicator.className = 'status-indicator scheduled';
-    
-    statusDetails.innerHTML = `
-      <div class="status-header-info">
-        <h4>本日のレッスンは通常通り開催いたします</h4>
-        <div class="default-message">
-          <p>ベーシックコース（年長〜小3）: 17:00-17:50</p>
-          <p>アドバンスコース（小4〜小6）: 18:00-18:50</p>
-        </div>
+  // グローバルステータスの表示
+  const globalStatusText = lessonStatusManager.getStatusText(statusData.globalStatus);
+  const globalStatusIcon = lessonStatusManager.getStatusIcon(statusData.globalStatus);
+  
+  statusIndicator.textContent = globalStatusText;
+  statusIndicator.className = `status-indicator ${statusData.globalStatus}`;
+  
+  // 詳細表示の構築（題名なし）
+  let detailsHTML = '';
+  
+  // グローバルメッセージがある場合
+  if (statusData.globalMessage) {
+    detailsHTML += `
+      <div class="global-message">
+        <p>${escapeHtml(statusData.globalMessage)}</p>
       </div>
     `;
-  } else {
-    // 特別な状況がある場合は詳細を表示
-    const globalStatusText = lessonStatusManager.getStatusText(statusData.globalStatus);
-    const globalStatusIcon = lessonStatusManager.getStatusIcon(statusData.globalStatus);
+  }
+  
+  detailsHTML += `<div class="courses-status">`;
+  
+  // 各コースの状況を表示
+  Object.entries(statusData.courses).forEach(([courseKey, courseData]) => {
+    const statusText = lessonStatusManager.getStatusText(courseData.status);
+    const statusIcon = lessonStatusManager.getStatusIcon(courseData.status);
+    const statusColor = lessonStatusManager.getStatusColor(courseData.status);
     
-    statusIndicator.textContent = `${globalStatusIcon} ${globalStatusText}`;
-    statusIndicator.className = `status-indicator ${statusData.globalStatus}`;
-    
-    let detailsHTML = `
-      <div class="status-header-info">
-        <h4>${statusData.date} のレッスン状況</h4>
+    detailsHTML += `
+      <div class="course-item">
+        <div class="course-header">
+          <div class="course-info">
+            <h5>${escapeHtml(courseData.name)}</h5>
+            <div class="course-time">${escapeHtml(courseData.time)}</div>
+          </div>
+          <div class="status-badge ${courseData.status}">
+            ${statusText}
+          </div>
+        </div>
     `;
     
-    // グローバルメッセージがある場合
-    if (statusData.globalMessage) {
+    // コース別メッセージがある場合
+    if (courseData.message) {
       detailsHTML += `
-        <div class="global-message">
-          <p>${escapeHtml(statusData.globalMessage)}</p>
+        <div class="course-message">
+          <p>${escapeHtml(courseData.message)}</p>
         </div>
       `;
     }
     
-    detailsHTML += `</div><div class="courses-status">`;
-    
-    // コース別状況を表示
-    Object.entries(statusData.courses).forEach(([courseKey, courseData]) => {
-      const statusText = lessonStatusManager.getStatusText(courseData.status);
-      const statusIcon = lessonStatusManager.getStatusIcon(courseData.status);
-      const statusColor = lessonStatusManager.getStatusColor(courseData.status);
-      
-      detailsHTML += `
-        <div class="course-item">
-          <div class="course-header">
-            <span class="course-icon" style="color: ${statusColor}">${statusIcon}</span>
-            <div class="course-info">
-              <h5>${escapeHtml(courseData.name)}</h5>
-              <div class="course-time">${escapeHtml(courseData.time)}</div>
-            </div>
-            <div class="status-badge ${courseData.status}" style="background-color: ${statusColor}">
-              ${statusText}
-            </div>
-          </div>
-      `;
-      
-      // コース別メッセージがある場合
-      if (courseData.message) {
-        detailsHTML += `
-          <div class="course-message">
-            <p>${escapeHtml(courseData.message)}</p>
-          </div>
-        `;
-      }
-      
-      detailsHTML += `</div>`;
-    });
-    
     detailsHTML += `</div>`;
-    statusDetails.innerHTML = detailsHTML;
-  }
+  });
+  
+  detailsHTML += `</div>`;
+  
+  // フッター情報を追加
+  detailsHTML += `
+    <div class="status-footer">
+      <div class="last-updated">最終更新: ${new Date().toLocaleString('ja-JP')}</div>
+      <div class="update-note">※ 状況は随時更新されます</div>
+    </div>
+  `;
+  
+  statusDetails.innerHTML = detailsHTML;
 }
 
 /**

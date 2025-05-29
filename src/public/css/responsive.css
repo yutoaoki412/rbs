@@ -181,19 +181,103 @@
   }
 
   .status-details {
-    padding: 30px 20px;
+    padding: 20px 15px;
+  }
+
+  .status-header {
+    padding: 18px 20px;
   }
 
   .status-header:hover {
-    margin: 0 10px;
+    margin: 0 8px;
+    transform: none;
   }
 
-  .weather-info {
-    padding: 20px 15px;
+  .status-info {
+    gap: 10px;
+  }
+
+  .status-indicator {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .toggle-icon {
+    width: 28px;
+    height: 28px;
     font-size: 14px;
-    text-align: center;
+  }
+
+  .status-header-info h4 {
+    font-size: 20px;
+  }
+
+  .courses-status {
+    grid-template-columns: 1fr;
     gap: 15px;
-    line-height: 1.5;
+  }
+
+  .course-item {
+    padding: 15px;
+  }
+
+  .course-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .course-info h5 {
+    font-size: 16px;
+  }
+
+  .course-time {
+    font-size: 12px;
+  }
+
+  .status-badge {
+    padding: 5px 10px;
+    font-size: 10px;
+    align-self: flex-end;
+  }
+
+  .global-message {
+    padding: 12px 15px;
+    font-size: 14px;
+  }
+
+  .global-message::before {
+    font-size: 16px;
+    top: 10px;
+    left: 10px;
+  }
+
+  .global-message p {
+    padding-left: 25px;
+    font-size: 14px;
+  }
+
+  .course-message {
+    padding: 10px 12px;
+    margin-top: 10px;
+  }
+
+  .course-message p {
+    font-size: 13px;
+  }
+
+  .status-footer {
+    margin-top: 15px;
+    padding-top: 12px;
+  }
+
+  .last-updated {
+    font-size: 11px;
+  }
+
+  .update-note {
+    font-size: 10px;
+    margin-top: 6px;
   }
 
   /* About セクションの4列グリッド */
@@ -268,22 +352,112 @@
 
   /* ステータスバナー */
   .status-banner {
-    position: sticky;
-    top: 104px;
-    z-index: var(--z-sticky);
-    transition: transform 0.3s ease, top 0.3s ease;
+    position: relative;
+    top: auto;
+    margin: 0;
+    border-radius: 0;
   }
 
   .status-banner-hidden {
-    transform: translateY(-100%);
+    display: none;
   }
 
   .status-details {
-    padding: 30px 20px;
+    padding: 20px 15px;
+  }
+
+  .status-header {
+    padding: 18px 20px;
   }
 
   .status-header:hover {
-    margin: 0 10px;
+    margin: 0 8px;
+    transform: none;
+  }
+
+  .status-text {
+    font-size: 16px;
+  }
+
+  .status-indicator {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .toggle-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .status-header-info h4 {
+    font-size: 20px;
+  }
+
+  .course-item {
+    padding: 15px;
+    border-radius: 15px;
+  }
+
+  .course-info h5 {
+    font-size: 16px;
+  }
+
+  .course-time {
+    font-size: 12px;
+  }
+
+  .status-badge {
+    padding: 5px 10px;
+    font-size: 10px;
+    align-self: flex-end;
+  }
+
+  .global-message {
+    padding: 12px 15px;
+    border-radius: 10px;
+  }
+
+  .global-message::before {
+    font-size: 16px;
+    top: 10px;
+    left: 10px;
+  }
+
+  .global-message p {
+    font-size: 13px;
+    padding-left: 25px;
+  }
+
+  .default-message {
+    padding: 15px;
+  }
+
+  .default-message p {
+    font-size: 13px;
+  }
+
+  .course-message {
+    padding: 10px 12px;
+  }
+
+  .course-message p {
+    font-size: 13px;
+    padding-left: 18px;
+  }
+
+  .status-footer {
+    margin-top: 15px;
+    padding-top: 12px;
+  }
+
+  .last-updated {
+    font-size: 11px;
+  }
+
+  .update-note {
+    font-size: 10px;
+    margin-top: 6px;
   }
 
   /* 天候情報 */
