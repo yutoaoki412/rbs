@@ -270,13 +270,29 @@ export class AdminActionHandler extends EventEmitter {
 
   async updateLessonStatus() {
     try {
-      if (!this.adminCore?.dataManager) {
-        throw new Error('DataManagerが初期化されていません');
-      }
-
       const statusData = this.getLessonStatusFormData();
-      await this.adminCore.dataManager.updateLessonStatus(statusData);
-      this.adminCore.uiManager.showNotification('success', 'レッスン状況を更新しました');
+      
+      if (typeof LessonStatusManager !== 'undefined') {
+        // LessonStatusManagerを使用してレッスン状況を保存
+        const lessonStatusManager = new LessonStatusManager();
+        const convertedData = lessonStatusManager.convertFromAdminForm(statusData);
+        const result = lessonStatusManager.saveLessonStatus(convertedData, statusData.date);
+        え
+        if (result.success) {
+          this.adminCore.uiManager.showNotification('success', 'レッスン状況を更新しました');
+          this.logger.info('レッスン状況を更新しました:', result.data);
+        } else {
+          throw new Error(result.error);
+        }
+      } else {
+        // フォールバック: DataManagerを使用
+        if (!this.adminCore?.dataManager) {
+          throw new Error('DataManagerが初期化されていません');
+        }
+
+        await this.adminCore.dataManager.updateLessonStatus(statusData);
+        this.adminCore.uiManager.showNotification('success', 'レッスン状況を更新しました');
+      }
     } catch (error) {
       this.logger.error('レッスン状況更新エラー:', error);
       this.adminCore.uiManager.showNotification('error', 'レッスン状況の更新に失敗しました');
@@ -299,13 +315,25 @@ export class AdminActionHandler extends EventEmitter {
 
   loadLessonStatusToForm() {
     try {
-      if (!this.adminCore?.dataManager) {
-        throw new Error('DataManagerが初期化されていません');
-      }
+      if (typeof LessonStatusManager !== 'undefined') {
+        const lessonStatusManager = new LessonStatusManager();
+        const statusData = lessonStatusManager.getLessonStatus();
+        
+        // フォームに状況を設定
+        lessonStatusManager.populateAdminForm(statusData);
+        
+        this.logger.debug('現在のレッスン状況をフォームに読み込みました:', statusData);
+        this.adminCore.uiManager.showNotification('info', '現在の状況を読み込みました');
+      } else {
+        // フォールバック: DataManagerから読み込み
+        if (!this.adminCore?.dataManager) {
+          throw new Error('DataManagerが初期化されていません');
+        }
 
-      const statusData = this.adminCore.dataManager.getLessonStatus();
-      this.logger.debug('現在のレッスン状況:', statusData);
-      this.adminCore.uiManager.showNotification('info', '現在の状況を読み込みました');
+        const statusData = this.adminCore.dataManager.getLessonStatus();
+        this.logger.debug('現在のレッスン状況:', statusData);
+        this.adminCore.uiManager.showNotification('info', '現在の状況を読み込みました');
+      }
     } catch (error) {
       this.logger.error('レッスン状況読み込みエラー:', error);
       this.adminCore.uiManager.showNotification('error', 'レッスン状況の読み込みに失敗しました');

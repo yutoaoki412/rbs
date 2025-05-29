@@ -250,8 +250,7 @@ moduleLoader.setBasePath('/src/public/js/');
 // 依存関係を設定
 moduleLoader.setDependenciesMap({
   'components/ui/NewsCard': ['core/base/Component'],
-  'components/ui/UIInteractionManager': ['core/base/Component', 'core/events/EventBus'],
-  'components/business/StatusBanner': ['core/base/Component', 'services/business/lesson-status-manager']
+  'components/ui/UIInteractionManager': ['core/base/Component', 'core/events/EventBus']
 });
 
 // グローバルに公開

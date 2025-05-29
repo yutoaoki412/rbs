@@ -348,25 +348,40 @@ export class DataManager extends EventEmitter {
    */
   async updateLessonStatus(statusData) {
     try {
-      const validation = this.validateLessonStatus(statusData);
-      if (!validation.isValid) {
-        throw new Error(`レッスン状況データが無効です: ${validation.errors.join(', ')}`);
+      // LessonStatusManagerを使用してレッスン状況を保存
+      if (typeof LessonStatusManager !== 'undefined') {
+        const lessonStatusManager = new LessonStatusManager();
+        const convertedData = lessonStatusManager.convertFromAdminForm(statusData);
+        const result = lessonStatusManager.saveLessonStatus(convertedData, statusData.date);
+        
+        if (result.success) {
+          this.logger.info('レッスン状況を更新しました:', result.data);
+          return { success: true, data: result.data };
+        } else {
+          throw new Error(result.error);
+        }
+      } else {
+        // フォールバック: 従来の方法で保存
+        const validation = this.validateLessonStatus(statusData);
+        if (!validation.isValid) {
+          throw new Error(`レッスン状況データが無効です: ${validation.errors.join(', ')}`);
+        }
+
+        this.data.lessonStatus = {
+          ...this.data.lessonStatus,
+          ...statusData,
+          updatedAt: new Date().toISOString()
+        };
+
+        await this.saveData('lessonStatus');
+        
+        this.emit('dataChanged', 'lessonStatus', this.data.lessonStatus);
+        this.emit('lessonStatusUpdated', this.data.lessonStatus);
+        
+        this.logger.info('レッスン状況を更新しました（フォールバック）');
+        
+        return { success: true, data: this.data.lessonStatus };
       }
-
-      this.data.lessonStatus = {
-        ...this.data.lessonStatus,
-        ...statusData,
-        updatedAt: new Date().toISOString()
-      };
-
-      await this.saveData('lessonStatus');
-      
-      this.emit('dataChanged', 'lessonStatus', this.data.lessonStatus);
-      this.emit('lessonStatusUpdated', this.data.lessonStatus);
-      
-      this.logger.info('レッスン状況を更新しました');
-      
-      return { success: true, data: this.data.lessonStatus };
     } catch (error) {
       this.logger.error('レッスン状況更新エラー:', error);
       if (this.errorHandler) {

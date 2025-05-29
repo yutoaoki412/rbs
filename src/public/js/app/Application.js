@@ -69,6 +69,7 @@ class Application {
       'shared/services/EventBus',
       'shared/services/StorageService',
       'shared/services/ActionHandler',
+      'shared/services/lesson-status-manager',
       'shared/utils/helpers'
     ];
 
@@ -87,6 +88,18 @@ class Application {
             console.log('✅ ActionHandler初期化完了');
           } else {
             console.warn('⚠️ actionHandlerインスタンスが見つかりません');
+          }
+        }
+        
+        // LessonStatusManagerの初期化
+        if (name === 'lesson-status-manager') {
+          console.log('🔧 LessonStatusManager初期化開始');
+          if (typeof LessonStatusManager !== 'undefined') {
+            const lessonStatusManager = new LessonStatusManager();
+            lessonStatusManager.init();
+            console.log('✅ LessonStatusManager初期化完了');
+          } else {
+            console.warn('⚠️ LessonStatusManagerが見つかりません');
           }
         }
       } catch (error) {

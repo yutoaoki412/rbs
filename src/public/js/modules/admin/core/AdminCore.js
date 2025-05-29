@@ -10,6 +10,7 @@ import { DataManager } from './DataManager.js';
 import { UIManager } from './UIManager.js';
 import { NewsFormManager } from '../forms/NewsFormManager.js';
 import { adminActionHandler } from '../handlers/AdminActionHandler.js';
+import { EventBus } from '../../../shared/services/EventBus.js';
 
 export class AdminCore extends EventEmitter {
   constructor() {
@@ -187,7 +188,30 @@ export class AdminCore extends EventEmitter {
       this.emit('dataChanged', type, data);
     });
 
+    // レッスン状況管理のイベントリスナーを設定
+    this.setupLessonStatusEvents();
+
     this.logger.debug('システム統合設定完了');
+  }
+
+  /**
+   * レッスン状況管理のイベントリスナーを設定
+   */
+  setupLessonStatusEvents() {
+    // EventBusからのイベントを監視
+    if (typeof EventBus !== 'undefined') {
+      EventBus.on('admin:load-lesson-status', () => {
+        this.actionHandler.loadLessonStatusToForm();
+      });
+
+      EventBus.on('admin:preview-lesson-status', () => {
+        this.actionHandler.previewLessonStatus();
+      });
+
+      EventBus.on('admin:update-lesson-status', () => {
+        this.actionHandler.updateLessonStatus();
+      });
+    }
   }
 
   /**
