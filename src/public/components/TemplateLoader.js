@@ -190,7 +190,14 @@ class TemplateLoader {
       activeSection
     } = options;
 
-    // 並行して読み込み
+    // 管理画面の場合はヘッダーのみ読み込み
+    if (currentPage === 'admin' || currentPage === 'admin-login') {
+      console.log('📝 管理画面のため、フッダーの読み込みをスキップします（古いTemplateLoader）');
+      await this.loadHeader(headerSelector, { currentPage, logoPath, activeSection });
+      return;
+    }
+
+    // 一般ページの場合はヘッダーとフッター両方を読み込み
     await Promise.all([
       this.loadHeader(headerSelector, { currentPage, logoPath, activeSection }),
       this.loadFooter(footerSelector, { currentPage })
@@ -204,16 +211,44 @@ class TemplateLoader {
    * コンポーネントを初期化
    */
   initializeComponents() {
+    // 現在のページを取得
+    const currentPage = this.getCurrentPage();
+    
     // CommonHeaderとCommonFooterを初期化
     if (window.CommonHeader) {
       const header = new window.CommonHeader();
       header.init();
     }
 
-    if (window.CommonFooter) {
+    // 管理画面以外の場合のみCommonFooterを初期化
+    if (window.CommonFooter && currentPage !== 'admin' && currentPage !== 'admin-login') {
       const footer = new window.CommonFooter();
       footer.init();
       footer.updateCopyright();
+    }
+  }
+
+  /**
+   * 現在のページを取得
+   * @private
+   */
+  getCurrentPage() {
+    const path = window.location.pathname;
+    const filename = path.split('/').pop().replace('.html', '');
+    
+    switch (filename) {
+      case 'admin':
+        return 'admin';
+      case 'admin-login':
+        return 'admin-login';
+      case 'news':
+        return 'news';
+      case 'news-detail':
+        return 'news-detail';
+      case 'index':
+      case '':
+      default:
+        return filename.startsWith('admin') ? 'admin' : 'index';
     }
   }
 

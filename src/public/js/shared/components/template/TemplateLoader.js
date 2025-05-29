@@ -289,7 +289,21 @@ class TemplateLoader extends BaseComponent {
     try {
       console.log('🔄 TemplateLoader一括読み込み開始', options);
       
-      // 並行して読み込み（エラーが出ても続行）
+      // 管理画面の場合はヘッダーのみ読み込み
+      if (currentPage === 'admin' || currentPage === 'admin-login') {
+        console.log('📝 管理画面のため、フッダーの読み込みをスキップします');
+        const headerResult = await this.loadHeader(headerSelector, { currentPage, logoPath, activeSection });
+        
+        if (headerResult) {
+          console.log('✅ TemplateLoader管理画面ヘッダー読み込み完了');
+          return true;
+        } else {
+          console.warn('⚠️ TemplateLoader管理画面ヘッダー読み込み失敗');
+          return false;
+        }
+      }
+      
+      // 一般ページの場合はヘッダーとフッター両方を読み込み
       const results = await Promise.allSettled([
         this.loadHeader(headerSelector, { currentPage, logoPath, activeSection }),
         this.loadFooter(footerSelector, { currentPage })
@@ -326,27 +340,34 @@ class TemplateLoader extends BaseComponent {
     try {
       console.log('🔧 CommonHeader/CommonFooter初期化開始');
       
+      // 現在のページを取得（optionsから取得できない場合は推定）
+      const currentPage = this.getCurrentPage();
+      
       // 動的にCommonHeaderとCommonFooterを読み込み・初期化
-      const [CommonHeader, CommonFooter] = await Promise.all([
-        import('../../../../components/CommonHeader.js'),
-        import('../../../../components/CommonFooter.js')
-      ]);
+      const headerModule = await import('../../../../components/CommonHeader.js');
 
-      if (CommonHeader.default) {
-        const header = new CommonHeader.default();
+      if (headerModule.default) {
+        const header = new headerModule.default();
         header.init();
         console.log('✅ CommonHeader初期化完了');
       } else {
         console.warn('⚠️ CommonHeader.defaultが見つかりません');
       }
 
-      if (CommonFooter.default) {
-        const footer = new CommonFooter.default();
-        footer.init();
-        footer.updateCopyright();
-        console.log('✅ CommonFooter初期化完了');
+      // 管理画面以外の場合のみCommonFooterを初期化
+      if (currentPage !== 'admin' && currentPage !== 'admin-login') {
+        const footerModule = await import('../../../../components/CommonFooter.js');
+        
+        if (footerModule.default) {
+          const footer = new footerModule.default();
+          footer.init();
+          footer.updateCopyright();
+          console.log('✅ CommonFooter初期化完了');
+        } else {
+          console.warn('⚠️ CommonFooter.defaultが見つかりません');
+        }
       } else {
-        console.warn('⚠️ CommonFooter.defaultが見つかりません');
+        console.log('📝 管理画面のため、CommonFooterの初期化をスキップします');
       }
       
       this.emit('templateLoader:componentsInitialized');
@@ -354,6 +375,30 @@ class TemplateLoader extends BaseComponent {
     } catch (error) {
       console.error('❌ コンポーネント初期化エラー:', error);
       this.emit('templateLoader:componentError', error);
+    }
+  }
+
+  /**
+   * 現在のページを取得
+   * @private
+   */
+  getCurrentPage() {
+    const path = window.location.pathname;
+    const filename = path.split('/').pop().replace('.html', '');
+    
+    switch (filename) {
+      case 'admin':
+        return 'admin';
+      case 'admin-login':
+        return 'admin-login';
+      case 'news':
+        return 'news';
+      case 'news-detail':
+        return 'news-detail';
+      case 'index':
+      case '':
+      default:
+        return filename.startsWith('admin') ? 'admin' : 'index';
     }
   }
 

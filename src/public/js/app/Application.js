@@ -246,7 +246,7 @@ class Application {
   }
 
   /**
-   * ヘッダーとフッターのテンプレートを読み込み
+   * テンプレートを読み込み
    */
   async loadTemplates() {
     const currentPage = this.getCurrentPage();
@@ -255,6 +255,12 @@ class Application {
     // まずフォールバック版を確実に表示
     this.createFallbackHeaderFooter();
     console.log('✅ フォールバック ヘッダー・フッター表示完了');
+    
+    // 管理画面の場合は、TemplateLoaderによるフッダー読み込みをスキップ
+    if (currentPage === 'admin' || currentPage === 'admin-login') {
+      console.log('📝 管理画面のため、フッダーの読み込みをスキップします');
+      return;
+    }
     
     try {
       // 新しいTemplateLoaderを使用してヘッダーとフッターを置き換え
@@ -296,6 +302,15 @@ class Application {
     
     const currentPage = this.getCurrentPage();
     
+    // 管理画面の場合、既存のフッダーがあれば削除
+    if (currentPage === 'admin' || currentPage === 'admin-login') {
+      const existingFooter = document.querySelector('footer');
+      if (existingFooter) {
+        console.log('🗑️ 管理画面の既存フッダーを削除します');
+        existingFooter.remove();
+      }
+    }
+    
     // 基本的なヘッダーの作成（元のheader.htmlと完全に同じ）
     if (!document.querySelector('header')) {
       const logoHref = currentPage === 'index' ? '#hero' : 'index.html';
@@ -326,8 +341,8 @@ class Application {
       document.body.insertAdjacentHTML('afterbegin', headerHTML);
     }
 
-    // 基本的なフッターの作成（元のfooter.htmlと完全に同じ）
-    if (!document.querySelector('footer')) {
+    // 管理画面以外の場合のみフッターを作成
+    if (!document.querySelector('footer') && currentPage !== 'admin' && currentPage !== 'admin-login') {
       const baseHref = currentPage === 'index' ? '' : 'index.html';
       
       const footerHTML = `
@@ -358,6 +373,8 @@ class Application {
     try {
       console.log('🔧 フォールバック版コンポーネント初期化開始');
       
+      const currentPage = this.getCurrentPage();
+      
       // グローバルに存在する場合はそれを使用
       if (window.CommonHeader) {
         const header = new window.CommonHeader();
@@ -365,7 +382,8 @@ class Application {
         console.log('✅ CommonHeader (グローバル版) 初期化完了');
       }
 
-      if (window.CommonFooter) {
+      // 管理画面以外の場合のみCommonFooterを初期化
+      if (window.CommonFooter && currentPage !== 'admin' && currentPage !== 'admin-login') {
         const footer = new window.CommonFooter();
         footer.init();
         footer.updateCopyright();
@@ -373,11 +391,16 @@ class Application {
       }
       
       // グローバル版がない場合は動的にインポート
-      if (!window.CommonHeader || !window.CommonFooter) {
-        const [CommonHeader, CommonFooter] = await Promise.all([
-          import('../components/CommonHeader.js'),
-          import('../components/CommonFooter.js')
-        ]);
+      if (!window.CommonHeader || (!window.CommonFooter && currentPage !== 'admin' && currentPage !== 'admin-login')) {
+        const importPromises = [import('../components/CommonHeader.js')];
+        
+        // 管理画面以外の場合のみCommonFooterをインポート
+        if (currentPage !== 'admin' && currentPage !== 'admin-login') {
+          importPromises.push(import('../components/CommonFooter.js'));
+        }
+        
+        const modules = await Promise.all(importPromises);
+        const [CommonHeader, CommonFooter] = modules;
 
         if (!window.CommonHeader && CommonHeader.default) {
           const header = new CommonHeader.default();
@@ -385,7 +408,7 @@ class Application {
           console.log('✅ CommonHeader (インポート版) 初期化完了');
         }
 
-        if (!window.CommonFooter && CommonFooter.default) {
+        if (!window.CommonFooter && CommonFooter && CommonFooter.default && currentPage !== 'admin' && currentPage !== 'admin-login') {
           const footer = new CommonFooter.default();
           footer.init();
           footer.updateCopyright();
@@ -626,4 +649,4 @@ class Application {
   }
 }
 
-export default Application; 
+export default Application;
