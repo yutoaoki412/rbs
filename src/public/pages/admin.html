@@ -160,10 +160,10 @@
       <!-- 記事管理 -->
       <section id="news-management" class="admin-section">
         <div class="section-header">
-          <h1><i class="fas fa-newspaper"></i> 記事管理</h1>
+          <h1>記事管理</h1>
           <div class="section-actions">
             <button class="btn btn-info" data-action="test-article-service">
-              <i class="fas fa-flask"></i> 連携テスト
+              連携テスト
             </button>
           </div>
         </div>
@@ -175,33 +175,33 @@
               <h2 id="editor-title">新規記事作成</h2>
               <div class="panel-actions">
                 <button class="btn btn-outline" data-action="clear-news-editor">
-                  <i class="fas fa-times"></i> クリア
+                  クリア
                 </button>
                 <button class="btn btn-secondary" data-action="preview-news">
-                  <i class="fas fa-eye"></i> プレビュー
+                  プレビュー
                 </button>
                 <button class="btn btn-primary" data-action="save-news">
-                  <i class="fas fa-save"></i> 保存
+                  保存
                 </button>
                 <button class="btn btn-success" data-action="publish-news">
-                  <i class="fas fa-globe"></i> 公開
+                  公開
                 </button>
               </div>
             </div>
             
-            <div class="editor-form">
+            <form class="editor-form">
               <input type="hidden" id="news-id">
               
               <div class="form-grid">
                 <div class="form-group">
                   <label for="news-title">
-                    <i class="fas fa-heading"></i> タイトル <span class="required">*</span>
+                    タイトル <span class="required">*</span>
                   </label>
-                  <input type="text" id="news-title" class="form-input" placeholder="記事のタイトルを入力" required>
+                  <input type="text" id="news-title" class="form-input" placeholder="記事のタイトルを入力してください" required>
                 </div>
                 <div class="form-group">
                   <label for="news-category">
-                    <i class="fas fa-tags"></i> カテゴリー
+                    カテゴリー
                   </label>
                   <select id="news-category" class="form-select">
                     <option value="announcement">お知らせ</option>
@@ -215,13 +215,13 @@
               <div class="form-grid">
                 <div class="form-group">
                   <label for="news-date">
-                    <i class="fas fa-calendar"></i> 公開日
+                    公開日
                   </label>
                   <input type="date" id="news-date" class="form-input">
                 </div>
                 <div class="form-group">
                   <label for="news-status">
-                    <i class="fas fa-eye"></i> ステータス
+                    ステータス
                   </label>
                   <select id="news-status" class="form-select">
                     <option value="draft">下書き</option>
@@ -232,42 +232,41 @@
               
               <div class="form-group">
                 <label for="news-summary">
-                  <i class="fas fa-align-left"></i> 概要
+                  概要
                 </label>
-                <textarea id="news-summary" class="form-textarea" placeholder="記事の概要を入力（一覧ページで表示されます）"></textarea>
+                <textarea id="news-summary" class="form-textarea" rows="3" placeholder="記事の概要を入力してください（記事一覧で表示されます）"></textarea>
               </div>
               
               <div class="form-group">
                 <label for="news-content">
-                  <i class="fas fa-file-alt"></i> 本文 <span class="required">*</span>
+                  本文 <span class="required">*</span>
                 </label>
                 <div class="editor-toolbar">
                   <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="**" data-end="**" title="太字">
-                    <i class="fas fa-bold"></i>
+                    <strong>B</strong>
                   </button>
                   <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="## " data-end="" title="見出し">
-                    <i class="fas fa-heading"></i>
+                    H2
                   </button>
                   <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="- " data-end="" title="リスト">
-                    <i class="fas fa-list"></i>
+                    List
                   </button>
                   <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="[" data-end="](URL)" title="リンク">
-                    <i class="fas fa-link"></i>
+                    Link
                   </button>
                 </div>
-                <textarea id="news-content" class="form-textarea editor-content" placeholder="記事の本文をMarkdown形式で入力" required></textarea>
+                <textarea id="news-content" class="form-textarea editor-content" placeholder="記事の本文をMarkdown形式で入力してください" required></textarea>
                 <div class="form-help">
-                  <small>Markdown記法が使用できます。**太字**、## 見出し、- リストなど</small>
+                  <small>Markdown記法: **太字**、## 見出し、- リスト、[リンク](URL)</small>
                 </div>
               </div>
               
-              <!-- 追加フィールド -->
               <div class="form-group">
                 <label>
-                  <input type="checkbox" id="news-featured"> 注目記事として表示
+                  <input type="checkbox" id="news-featured"> 注目記事として表示する
                 </label>
               </div>
-            </div>
+            </form>
           </div>
           
           <!-- 記事一覧 -->
@@ -281,14 +280,14 @@
                   <option value="draft">下書き</option>
                 </select>
                 <button class="btn btn-outline" data-action="refresh-news-list">
-                  <i class="fas fa-sync"></i> 更新
+                  更新
                 </button>
               </div>
             </div>
             <div id="news-list" class="list-content">
               <!-- 記事一覧がここに表示される -->
               <div class="loading-state">
-                <i class="fas fa-spinner fa-spin"></i> 記事を読み込み中...
+                記事を読み込み中...
               </div>
             </div>
           </div>

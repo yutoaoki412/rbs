@@ -1181,6 +1181,7 @@ export class ActionHandler {
     const statusClass = article.status === 'published' ? 'status-published' : 'status-draft';
     const statusText = article.status === 'published' ? '公開中' : '下書き';
     const date = new Date(article.date || article.createdAt).toLocaleDateString('ja-JP');
+    const categoryName = this.getCategoryLabel(article.category || 'announcement');
     
     return `
       <div class="news-item" data-id="${article.id}">
@@ -1190,17 +1191,17 @@ export class ActionHandler {
         </div>
         <div class="news-item-meta">
           <span class="news-item-date">${date}</span>
-          <span class="news-item-category">${this.escapeHtml(article.category || 'カテゴリ未設定')}</span>
+          <span class="news-item-category">${categoryName}</span>
         </div>
         <div class="news-item-summary">
-          ${this.escapeHtml((article.summary || '').substring(0, 100))}${(article.summary || '').length > 100 ? '...' : ''}
+          ${this.escapeHtml((article.summary || '').substring(0, 120))}${(article.summary || '').length > 120 ? '…' : ''}
         </div>
         <div class="news-item-actions">
           <button class="btn btn-sm btn-outline" onclick="actionHandler.editNewsItem('${article.id}')">
-            <i class="fas fa-edit"></i> 編集
+            編集
           </button>
           <button class="btn btn-sm btn-danger" onclick="actionHandler.deleteNewsItem('${article.id}')">
-            <i class="fas fa-trash"></i> 削除
+            削除
           </button>
         </div>
       </div>

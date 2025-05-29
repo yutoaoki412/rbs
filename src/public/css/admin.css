@@ -388,54 +388,67 @@
 /* 管理レイアウト */
 .management-layout {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 2rem;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 1.5rem;
+  margin-top: 0;
 }
 
+/* パネル共通スタイル */
 .editor-panel,
 .list-panel {
   background: var(--admin-white);
   border-radius: var(--admin-border-radius);
-  box-shadow: var(--admin-shadow);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--admin-gray-200);
   overflow: hidden;
+  transition: var(--admin-transition);
 }
 
+.editor-panel:hover,
+.list-panel:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* パネルヘッダー */
 .panel-header {
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--admin-gray-200);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: var(--admin-gray-50);
 }
 
 .panel-header h2 {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 600;
   color: var(--admin-gray-900);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .panel-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  align-items: center;
 }
 
 .panel-filters {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  align-items: center;
 }
 
-/* フォーム */
-.editor-form,
-.lesson-form {
+/* フォームスタイル */
+.editor-form {
   padding: 1.5rem;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
 }
 
 .form-group {
@@ -443,25 +456,41 @@
 }
 
 .form-group label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
   color: var(--admin-gray-700);
   font-size: 0.875rem;
+  line-height: 1.25;
 }
 
+/* アイコンを必要最低限に */
+.form-group label i {
+  margin-right: 0.375rem;
+  color: var(--admin-gray-500);
+  font-size: 0.75rem;
+  width: 0.875rem;
+  text-align: center;
+}
+
+.required {
+  color: var(--admin-error);
+  font-weight: 700;
+}
+
+/* 入力要素 */
 .form-input,
 .form-select,
 .form-textarea {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--admin-gray-300);
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--admin-gray-200);
   border-radius: var(--admin-border-radius-sm);
   font-size: 0.875rem;
-  transition: var(--admin-transition);
+  line-height: 1.5;
+  transition: all 0.15s ease;
   background: var(--admin-white);
+  font-family: inherit;
 }
 
 .form-input:focus,
@@ -469,69 +498,27 @@
 .form-textarea:focus {
   outline: none;
   border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.08);
+}
+
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+  border-color: var(--admin-gray-300);
 }
 
 .form-textarea {
   min-height: 100px;
   resize: vertical;
-  font-family: inherit;
-}
-
-.form-textarea.small {
-  min-height: 60px;
+  line-height: 1.6;
 }
 
 .form-textarea.editor-content {
-  min-height: 300px;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 0.8rem;
-}
-
-/* ボタン */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  border: none;
-  border-radius: var(--admin-border-radius-sm);
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: var(--admin-transition);
-  text-decoration: none;
-}
-
-.btn-primary {
-  background: var(--admin-primary);
-  color: var(--admin-white);
-}
-
-.btn-primary:hover {
-  background: var(--admin-primary-dark);
-  transform: translateY(-1px);
-}
-
-.btn-success {
-  background: var(--admin-success);
-  color: var(--admin-white);
-}
-
-.btn-success:hover {
-  background: #16a34a;
-  transform: translateY(-1px);
-}
-
-.btn-outline {
-  background: transparent;
-  color: var(--admin-gray-700);
-  border: 1px solid var(--admin-gray-300);
-}
-
-.btn-outline:hover {
-  background: var(--admin-gray-100);
-  border-color: var(--admin-gray-400);
+  min-height: 280px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  background: #fafbfc;
 }
 
 /* エディターツールバー */
@@ -539,285 +526,405 @@
   display: flex;
   gap: 0.25rem;
   margin-bottom: 0.75rem;
-  padding: 0.5rem;
+  padding: 0.75rem;
   background: var(--admin-gray-100);
   border-radius: var(--admin-border-radius-sm);
+  border: 1px solid var(--admin-gray-200);
 }
 
 .toolbar-btn {
-  padding: 0.5rem;
+  padding: 0.5rem 0.75rem;
   border: none;
   background: var(--admin-white);
   border-radius: 4px;
   cursor: pointer;
   transition: var(--admin-transition);
-  color: var(--admin-gray-700);
+  color: var(--admin-gray-600);
+  font-size: 0.8125rem;
+  border: 1px solid transparent;
 }
 
 .toolbar-btn:hover {
   background: var(--admin-primary);
   color: var(--admin-white);
-}
-
-/* リスト */
-.list-content {
-  max-height: 600px;
-  overflow-y: auto;
-  padding: 1rem;
-}
-
-.list-item {
-  padding: 1rem;
-  border: 1px solid var(--admin-gray-200);
-  border-radius: var(--admin-border-radius-sm);
-  margin-bottom: 0.75rem;
-  transition: var(--admin-transition);
-}
-
-.list-item:hover {
   border-color: var(--admin-primary);
-  box-shadow: 0 2px 4px rgba(74, 144, 226, 0.1);
 }
 
-.list-item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.5rem;
+.form-help {
+  margin-top: 0.5rem;
 }
 
-.list-item-title {
-  font-weight: 600;
-  color: var(--admin-gray-900);
-  margin: 0;
-  font-size: 0.875rem;
-}
-
-.list-item-actions {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.list-item-meta {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.75rem;
+.form-help small {
   color: var(--admin-gray-500);
-  margin-bottom: 0.5rem;
-}
-
-.list-item-summary {
-  color: var(--admin-gray-600);
   font-size: 0.75rem;
   line-height: 1.4;
 }
 
-/* バッジ */
-.status-badge {
-  padding: 0.125rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
+/* ボタンスタイル */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.125rem;
+  border: 1px solid transparent;
+  border-radius: var(--admin-border-radius-sm);
   font-weight: 600;
-  text-transform: uppercase;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  line-height: 1.25;
+  white-space: nowrap;
 }
 
-.status-published {
-  background: rgba(34, 197, 94, 0.1);
-  color: var(--admin-success);
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.status-draft {
-  background: rgba(251, 191, 36, 0.1);
-  color: var(--admin-warning);
+.btn-primary {
+  background: var(--admin-primary);
+  color: var(--admin-white);
+  border-color: var(--admin-primary);
 }
 
-.category-badge {
-  padding: 0.125rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  background: rgba(74, 144, 226, 0.1);
-  color: var(--admin-primary);
+.btn-primary:hover:not(:disabled) {
+  background: var(--admin-primary-dark);
+  border-color: var(--admin-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(74, 144, 226, 0.2);
 }
 
-/* レッスン状況 */
-.lesson-panel {
+.btn-success {
+  background: var(--admin-success);
+  color: var(--admin-white);
+  border-color: var(--admin-success);
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #16a34a;
+  border-color: #16a34a;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(34, 197, 94, 0.2);
+}
+
+.btn-secondary {
+  background: var(--admin-gray-600);
+  color: var(--admin-white);
+  border-color: var(--admin-gray-600);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--admin-gray-700);
+  border-color: var(--admin-gray-700);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
   background: var(--admin-white);
-  border-radius: var(--admin-border-radius);
-  box-shadow: var(--admin-shadow);
-  overflow: hidden;
+  color: var(--admin-gray-700);
+  border-color: var(--admin-gray-300);
 }
 
-.courses-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin: 1.5rem 0;
-}
-
-.course-card {
-  border: 1px solid var(--admin-gray-200);
-  border-radius: var(--admin-border-radius);
-  overflow: hidden;
-}
-
-.course-header {
-  padding: 1rem;
+.btn-outline:hover:not(:disabled) {
   background: var(--admin-gray-50);
-  border-bottom: 1px solid var(--admin-gray-200);
-}
-
-.course-header h3 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
+  border-color: var(--admin-gray-400);
   color: var(--admin-gray-900);
 }
 
-.course-content {
+.btn-danger {
+  background: var(--admin-error);
+  color: var(--admin-white);
+  border-color: var(--admin-error);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #dc2626;
+  border-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}
+
+.btn-info {
+  background: #0ea5e9;
+  color: var(--admin-white);
+  border-color: #0ea5e9;
+}
+
+.btn-info:hover:not(:disabled) {
+  background: #0284c7;
+  border-color: #0284c7;
+  transform: translateY(-1px);
+}
+
+.btn-sm {
+  padding: 0.5rem 0.875rem;
+  font-size: 0.75rem;
+}
+
+.btn-icon {
+  padding: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--admin-gray-300);
+  background: var(--admin-white);
+  color: var(--admin-gray-600);
+  border-radius: var(--admin-border-radius-sm);
+  cursor: pointer;
+  transition: var(--admin-transition);
+}
+
+.btn-icon:hover {
+  background: var(--admin-gray-50);
+  border-color: var(--admin-gray-400);
+  color: var(--admin-gray-900);
+}
+
+/* アイコンスタイルの最小化 */
+.btn i {
+  font-size: 0.75rem;
+  margin-right: 0.25rem;
+}
+
+.btn-icon i {
+  font-size: 0.8125rem;
+  margin: 0;
+}
+
+/* リストコンテンツ */
+.list-content {
+  max-height: 650px;
+  overflow-y: auto;
   padding: 1rem;
 }
 
-.course-card h4 {
-  margin: 1rem 0 0.5rem 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--admin-gray-700);
+.list-content::-webkit-scrollbar {
+  width: 4px;
 }
 
-.course-card h4:first-child {
-  margin-top: 0;
+.list-content::-webkit-scrollbar-track {
+  background: var(--admin-gray-100);
 }
 
-/* フォームアクション */
-.form-actions {
+.list-content::-webkit-scrollbar-thumb {
+  background: var(--admin-gray-300);
+  border-radius: 2px;
+}
+
+/* 記事アイテム */
+.news-items {
   display: flex;
+  flex-direction: column;
   gap: 1rem;
-  justify-content: flex-end;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--admin-gray-200);
 }
 
-/* 最近の記事カード */
-.recent-article-card {
-  background: var(--admin-white);
+.news-item {
+  padding: 1.25rem;
   border: 1px solid var(--admin-gray-200);
   border-radius: var(--admin-border-radius-sm);
-  padding: 1rem;
-  margin-bottom: 0.75rem;
-  transition: var(--admin-transition);
-  cursor: pointer;
+  background: var(--admin-white);
+  transition: all 0.15s ease;
 }
 
-.recent-article-card:hover {
+.news-item:hover {
   border-color: var(--admin-primary);
   box-shadow: 0 2px 8px rgba(74, 144, 226, 0.1);
   transform: translateY(-1px);
 }
 
-.recent-article-card:last-child {
-  margin-bottom: 0;
-}
-
-.recent-article-header {
+.news-item-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  gap: 1rem;
 }
 
-.recent-article-title {
+.news-item-title {
+  font-size: 1rem;
   font-weight: 600;
-  font-size: 0.875rem;
   color: var(--admin-gray-900);
-  line-height: 1.3;
+  margin: 0;
+  line-height: 1.4;
   flex: 1;
-  margin-right: 0.5rem;
 }
 
-.recent-article-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-shrink: 0;
+.news-item-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1px solid;
 }
 
-.recent-article-meta {
+.news-item-status.status-published {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.news-item-status.status-draft {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.news-item-meta {
   display: flex;
   gap: 1rem;
-  margin-bottom: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--admin-gray-500);
 }
 
-.meta-item i {
-  width: 0.875rem;
-  text-align: center;
-}
-
-.recent-article-summary {
-  font-size: 0.75rem;
-  color: var(--admin-gray-600);
-  line-height: 1.4;
-  margin-bottom: 0.75rem;
-}
-
-.recent-article-footer {
+.news-item-date,
+.news-item-category {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--admin-gray-100);
+  gap: 0.25rem;
 }
 
-.article-stats {
+.news-item-summary {
+  color: var(--admin-gray-600);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.news-item-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* 状態表示 */
+.loading-state,
+.empty-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--admin-gray-500);
+}
+
+.loading-state i,
+.empty-state i,
+.error-state i {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--admin-gray-400);
+}
+
+.loading-state i {
+  animation: spin 1s linear infinite;
+}
+
+.empty-state h3,
+.error-state h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--admin-gray-700);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state p,
+.error-state p {
+  font-size: 0.875rem;
+  color: var(--admin-gray-500);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+/* チェックボックス */
+input[type="checkbox"] {
+  margin-right: 0.5rem;
+  transform: scale(1.1);
+}
+
+/* セクションアクション */
+.section-actions {
   display: flex;
   gap: 0.75rem;
 }
 
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.75rem;
-  color: var(--admin-gray-500);
+/* レスポンシブ対応 */
+@media (max-width: 1400px) {
+  .management-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
 }
 
-.article-actions {
-  display: flex;
-  gap: 0.25rem;
+@media (max-width: 900px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
-.btn-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border: none;
-  background: var(--admin-gray-100);
-  border-radius: 4px;
-  color: var(--admin-gray-600);
-  cursor: pointer;
-  transition: var(--admin-transition);
-  font-size: 0.75rem;
+@media (max-width: 768px) {
+  .panel-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .panel-actions,
+  .panel-filters {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .editor-form {
+    padding: 1rem;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .news-item {
+    padding: 1rem;
+  }
+  
+  .news-item-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .news-item-meta {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  
+  .news-item-actions {
+    justify-content: stretch;
+    flex-wrap: wrap;
+  }
+  
+  .news-item-actions .btn {
+    flex: 1;
+    justify-content: center;
+  }
 }
 
-.btn-icon:hover {
-  background: var(--admin-primary);
-  color: var(--admin-white);
-}
-
-.btn-sm {
-  padding: 0.375rem 0.75rem;
-  font-size: 0.75rem;
+/* アニメーション */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* 設定 */
@@ -965,97 +1072,6 @@
   background: var(--admin-gray-700);
   border-color: var(--admin-gray-700);
   transform: translateY(-1px);
-}
-
-/* レスポンシブ */
-@media (max-width: 1024px) {
-  .admin-sidebar {
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-  
-  .admin-main {
-    margin-left: 0;
-  }
-  
-  .dashboard-widgets,
-  .management-layout {
-    grid-template-columns: 1fr;
-  }
-  
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .admin-header {
-    padding: 0 1rem;
-  }
-  
-  .admin-main {
-    padding: 1rem;
-  }
-  
-  .form-grid,
-  .courses-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .status-display {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .form-actions {
-    flex-direction: column;
-  }
-  
-  .panel-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-  
-  /* 最近の記事カードのモバイル対応 */
-  .recent-article-header {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .recent-article-actions {
-    justify-content: flex-start;
-  }
-  
-  .recent-article-meta {
-    gap: 0.5rem;
-  }
-  
-  .recent-article-footer {
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: stretch;
-  }
-  
-  .article-actions {
-    justify-content: center;
-  }
-}
-
-/* アニメーション */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* 通知システム */
@@ -1406,4 +1422,68 @@
 .badge-error {
   background-color: var(--admin-danger);
   color: white;
+}
+
+/* UI強化 */
+.form-input:valid {
+  border-color: var(--admin-success);
+}
+
+.form-input:invalid:not(:placeholder-shown) {
+  border-color: var(--admin-error);
+}
+
+.form-textarea:focus {
+  min-height: 120px;
+}
+
+.form-textarea.editor-content:focus {
+  min-height: 320px;
+}
+
+/* カテゴリーカラー */
+.news-item-category {
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  background: var(--admin-gray-100);
+  color: var(--admin-gray-600);
+}
+
+/* ボタンの改善 */
+.btn:focus {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 2px;
+}
+
+.btn-outline:focus {
+  outline-color: var(--admin-gray-500);
+}
+
+.btn-danger:focus {
+  outline-color: var(--admin-error);
+}
+
+/* アクセシビリティ向上 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ハイコントラストモード対応 */
+@media (prefers-contrast: high) {
+  .form-input,
+  .form-select,
+  .form-textarea {
+    border-width: 2px;
+  }
+  
+  .btn {
+    border-width: 2px;
+    font-weight: 700;
+  }
 } 
