@@ -3,7 +3,7 @@
  * @version 1.0.0
  */
 
-import BaseComponent from '../../../shared/base/BaseComponent.js';
+import BaseComponent from '../../../shared/components/BaseComponent.js';
 import { setVisible, setHTML } from '../../../shared/utils/domUtils.js';
 import { createCard } from '../../../shared/utils/htmlUtils.js';
 import { NEWS_CONFIG } from '../../../shared/constants/newsConstants.js';

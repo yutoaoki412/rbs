@@ -1,343 +1,215 @@
 /**
- * RBS陸上教室 メインエントリーポイント
- * 新しいアーキテクチャでのアプリケーション起動
- * @version 2.0.0
+ * メインアプリケーション起動スクリプト
+ * 統合記事管理システム対応版
+ * @version 3.0.0
  */
 
-import { app } from './core/Application.js';
+import { initializeApplication } from './Application.js';
+import { CONFIG } from './shared/constants/config.js';
 
 /**
- * アプリケーションの初期化と起動
+ * DOM読み込み完了時の初期化
  */
-async function initializeApplication() {
+document.addEventListener('DOMContentLoaded', async () => {
   try {
-    console.log('🚀 RBS陸上教室 v2.0 起動中...');
+    console.log('🚀 アプリケーション起動開始');
     
-    // テンプレート読み込み完了イベントのリスナー設定
-    setupTemplateEventListeners();
+    // グローバルエラーハンドラーの設定
+    setupGlobalErrorHandlers();
     
-    // アプリケーションの初期化
-    await app.init();
+    // デバッグ環境の設定
+    setupDebugEnvironment();
+    
+    // アプリケーション初期化（リトライ機能付き）
+    const app = await initializeApplicationWithRetry();
+    
+    // グローバルアクセス用
+    window.app = app;
     
     console.log('✅ アプリケーション起動完了');
     
-    // グローバルアクセス用（デバッグ・開発支援）
-    if (typeof window !== 'undefined') {
-      window.RBSApp = app;
-      
-      // デバッグ情報の表示（開発環境のみ）
-      if (isDevMode()) {
-        displayDevModeInfo();
-      }
+    // 開発環境での便利機能
+    if (CONFIG.debug.enabled) {
+      setupDevelopmentTools(app);
     }
     
   } catch (error) {
-    console.error('❌ アプリケーション初期化エラー:', error);
-    
-    // フォールバック処理
-    await initializeFallbackMode();
+    console.error('❌ アプリケーション起動エラー:', error);
+    showInitializationError(error);
   }
+});
+
+/**
+ * リトライ機能付きアプリケーション初期化
+ * @returns {Promise<Application>}
+ */
+async function initializeApplicationWithRetry() {
+  let lastError = null;
+  
+  for (let attempt = 1; attempt <= CONFIG.performance.initRetries; attempt++) {
+    try {
+      console.log(`📱 初期化試行 ${attempt}/${CONFIG.performance.initRetries}`);
+      return await initializeApplication();
+    } catch (error) {
+      lastError = error;
+      console.warn(`⚠️ 初期化試行 ${attempt} 失敗:`, error.message);
+      
+      if (attempt < CONFIG.performance.initRetries) {
+        const delay = 1000 * attempt; // 段階的に遅延を増加
+        console.log(`🔄 ${delay}ms後に再試行します...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  throw lastError;
 }
 
 /**
- * テンプレート関連イベントリスナーの設定
+ * グローバルエラーハンドラーの設定
  */
-function setupTemplateEventListeners() {
-  // テンプレート読み込み完了イベント
-  window.addEventListener('app:templates:loaded', (event) => {
-    const { page, templateManager, headerComponent, footerComponent } = event.detail;
-    console.log(`🎨 ページテンプレート読み込み完了: ${page}`);
+function setupGlobalErrorHandlers() {
+  // 未処理のエラー
+  window.addEventListener('error', (event) => {
+    console.error('🚨 グローバルエラー:', event.error);
     
-    // 開発モードでの詳細情報表示
-    if (isDevMode()) {
-      console.log('📋 テンプレート詳細情報:', {
-        page: page,
-        templateManager: !!templateManager,
-        headerComponent: !!headerComponent,
-        footerComponent: !!footerComponent
+    // 重要なモジュール読み込みエラーの場合は詳細ログ
+    if (event.error?.message?.includes('import') || event.error?.message?.includes('module')) {
+      console.error('📦 モジュール読み込みエラー詳細:', {
+        message: event.error.message,
+        filename: event.filename,
+        stack: event.error.stack
       });
     }
-    
-    // テンプレート読み込み完了の視覚的フィードバック
-    showTemplateLoadedFeedback(page);
   });
   
-  // フォールバック初期化完了イベント
-  window.addEventListener('app:fallback:initialized', (event) => {
-    const { error, page } = event.detail;
-    console.warn(`⚠️ フォールバック初期化完了: ${page} (原因: ${error})`);
+  // 未処理のPromise拒否
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('🚨 未処理のPromise拒否:', event.reason);
     
-    showFallbackNotification(error);
-  });
-  
-  // アプリケーション初期化完了イベント
-  window.addEventListener('app:initialized', (event) => {
-    const { page, templatesLoaded } = event.detail;
-    console.log(`✅ アプリケーション初期化完了: ${page} (テンプレート: ${templatesLoaded ? '正常' : 'フォールバック'})`);
-    
-    // ページ固有の初期化後処理
-    handlePageSpecificInitialization(page, templatesLoaded);
+    // モジュール読み込み関連のエラーの場合は詳細情報を表示
+    if (event.reason?.message?.includes('Failed to fetch dynamically imported module') ||
+        event.reason?.message?.includes('404')) {
+      console.error('📦 動的インポートエラー:', {
+        reason: event.reason,
+        stack: event.reason.stack
+      });
+    }
   });
 }
 
 /**
- * 開発モードかどうかの判定
- * @returns {boolean}
+ * デバッグ環境の設定
  */
-function isDevMode() {
-  return window.location.hostname === 'localhost' || 
-         window.location.hostname === '127.0.0.1' ||
-         window.location.search.includes('debug=true');
-}
-
-/**
- * 開発モード情報の表示
- */
-function displayDevModeInfo() {
-  console.log('🐛 開発モード - デバッグ情報:');
-  console.log('   - アプリケーション状態:', app.getStatus());
-  console.log('   - Layout機能:', app.hasLayoutFeature());
-  console.log('   - 利用可能な機能:', app.hasFeature.bind(app));
-  console.log('   - サービスアクセス:', app.getService.bind(app));
-  
-  // Layout パフォーマンス情報
-  const layoutPerf = app.getLayoutPerformanceInfo();
-  if (layoutPerf) {
-    console.log('   - Layout パフォーマンス:', layoutPerf);
+function setupDebugEnvironment() {
+  // パフォーマンス測定の開始
+  if (CONFIG.debug.performance) {
+    console.time('🕐 アプリケーション起動時間');
   }
   
-  // 開発者用グローバル関数の追加
-  window.RBSDebug = {
-    app: app,
-    status: () => app.getStatus(),
-    debug: () => app.debug(),
-    reloadTemplates: (pageType) => app.reloadTemplates(pageType),
-    layoutPerf: () => app.getLayoutPerformanceInfo()
+  // デバッグ情報の表示
+  if (CONFIG.debug.enabled) {
+    console.log('🔧 デバッグモード有効');
+    console.log('⚙️ 設定情報:', CONFIG);
+  }
+}
+
+/**
+ * 開発ツールの設定
+ * @param {Application} app - アプリケーションインスタンス
+ */
+function setupDevelopmentTools(app) {
+  // デバッグコマンドの登録
+  window.showAppStatus = () => app.showDebugInfo();
+  window.refreshNews = () => {
+    if (window.newsDisplayComponent) {
+      return window.newsDisplayComponent.refresh();
+    }
+    console.warn('NewsDisplayComponentが見つかりません');
   };
   
-  console.log('🔧 デバッグ用ツール: window.RBSDebug で利用可能');
-}
-
-/**
- * テンプレート読み込み完了の視覚的フィードバック
- * @param {string} page - ページタイプ
- */
-function showTemplateLoadedFeedback(page) {
-  if (!isDevMode()) return;
-  
-  // 開発モードでのみ表示
-  const feedback = document.createElement('div');
-  feedback.style.cssText = `
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    background: #d4edda;
-    border: 1px solid #c3e6cb;
-    color: #155724;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-size: 0.8em;
-    z-index: 9998;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  `;
-  feedback.textContent = `✅ ${page} テンプレート読み込み完了`;
-  
-  document.body.appendChild(feedback);
-  
-  // フェードイン → フェードアウト
-  setTimeout(() => feedback.style.opacity = '1', 100);
-  setTimeout(() => {
-    feedback.style.opacity = '0';
-    setTimeout(() => feedback.remove(), 300);
-  }, 2000);
-}
-
-/**
- * フォールバック通知の表示
- * @param {string} error - エラーメッセージ
- */
-function showFallbackNotification(error) {
-  const notification = document.createElement('div');
-  notification.style.cssText = `
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    background: #fff3cd;
-    border: 1px solid #ffeaa7;
-    color: #856404;
-    padding: 1rem;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    z-index: 9999;
-    max-width: 300px;
-    font-size: 0.9em;
-  `;
-  notification.innerHTML = `
-    <strong>⚠️ フォールバックモード</strong><br>
-    ${error}<br>
-    一部機能が制限されています。
-    <button onclick="this.parentElement.remove()" style="float: right; background: none; border: none; font-size: 1.2em; cursor: pointer;">×</button>
-  `;
-  
-  document.body.appendChild(notification);
-  
-  // 8秒後に自動削除
-  setTimeout(() => {
-    if (notification.parentElement) {
-      notification.remove();
+  // 記事ストレージサービスのデバッグ
+  window.showArticleStatus = () => {
+    if (app.articleStorageService) {
+      const status = app.articleStorageService.getStatus();
+      console.log('📰 記事ストレージ状況:', status);
+      return status;
     }
-  }, 8000);
-}
-
-/**
- * ページ固有の初期化後処理
- * @param {string} page - ページタイプ
- * @param {boolean} templatesLoaded - テンプレート読み込み成功フラグ
- */
-function handlePageSpecificInitialization(page, templatesLoaded) {
-  // ページ固有の追加処理
-  switch (page) {
-    case 'home':
-      if (templatesLoaded) {
-        // ホームページ固有の追加初期化
-        initializeHomePageFeatures();
-      }
-      break;
-      
-    case 'news-detail':
-    case 'news-list':
-      if (templatesLoaded) {
-        // ニュースページ固有の追加初期化
-        initializeNewsPageFeatures();
-      }
-      break;
-      
-    case 'admin':
-      if (templatesLoaded) {
-        // 管理ページ固有の追加初期化
-        initializeAdminPageFeatures();
-      }
-      break;
-  }
-}
-
-/**
- * ホームページ固有機能の初期化
- */
-function initializeHomePageFeatures() {
-  console.log('🏠 ホームページ固有機能を初期化中...');
-  
-  // スムーススクロールの確認
-  const headerComponent = app.getService('layout')?.headerComponent;
-  if (headerComponent) {
-    console.log('✅ ヘッダーナビゲーション機能有効');
-  }
-}
-
-/**
- * ニュースページ固有機能の初期化
- */
-function initializeNewsPageFeatures() {
-  console.log('📰 ニュースページ固有機能を初期化中...');
-  
-  // ソーシャルシェア機能などの確認
-  const templateManager = app.getService('layout')?.templateManager;
-  if (templateManager) {
-    console.log('✅ ニュース表示機能有効');
-  }
-}
-
-/**
- * 管理ページ固有機能の初期化
- */
-function initializeAdminPageFeatures() {
-  console.log('👨‍💼 管理ページ固有機能を初期化中...');
-  
-  // 管理者認証確認などの処理
-  if (app.hasFeature('admin')) {
-    console.log('✅ 管理者機能有効');
-  }
-}
-
-/**
- * フォールバック初期化（エラー時）
- */
-async function initializeFallbackMode() {
-  console.warn('🔄 フォールバックモードで起動中...');
-  
-  try {
-    // 最低限の機能のみ初期化
-    const { actionManager } = await import('./core/ActionManager.js');
-    await actionManager.init();
-    
-    console.log('✅ フォールバックモード起動完了');
-    
-    // エラー通知の表示
-    showFallbackNotification('アプリケーション初期化に失敗しました');
-    
-  } catch (fallbackError) {
-    console.error('❌ フォールバック初期化も失敗:', fallbackError);
-    
-    // 最終的なエラー表示
-    if (typeof window !== 'undefined') {
-      const criticalErrorDiv = document.createElement('div');
-      criticalErrorDiv.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #f8d7da;
-        border: 1px solid #f5c6cb;
-        color: #721c24;
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        z-index: 10000;
-        text-align: center;
-        max-width: 400px;
-      `;
-      criticalErrorDiv.innerHTML = `
-        <h3>🚨 重大なエラー</h3>
-        <p>アプリケーションを起動できませんでした。</p>
-        <button onclick="window.location.reload()" style="
-          background: #dc3545;
-          color: white;
-          border: none;
-          padding: 0.75rem 1.5rem;
-          border-radius: 4px;
-          cursor: pointer;
-          margin-top: 1rem;
-        ">ページを再読み込み</button>
-      `;
-      document.body.appendChild(criticalErrorDiv);
-    }
-  }
-}
-
-/**
- * レガシーサポート関数
- * 既存のHTMLページからの呼び出しに対応
- */
-window.initializeRBSApp = initializeApplication;
-
-// モジュールロード時の自動初期化（DOMContentLoaded時）
-if (typeof window !== 'undefined') {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeApplication);
-  } else {
-    // 既にDOMが読み込まれている場合は即座に実行
-    initializeApplication();
-  }
-}
-
-// ES Module環境での直接実行サポート
-export { initializeApplication, app };
-
-// CommonJS環境での互換性（Node.js環境等）
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    initializeApplication,
-    app
+    console.warn('ArticleStorageServiceが見つかりません');
   };
+  
+  // 設定情報の表示
+  window.showConfig = () => {
+    console.log('⚙️ アプリケーション設定:', CONFIG);
+    return CONFIG;
+  };
+  
+  // パフォーマンス測定終了
+  if (CONFIG.debug.performance) {
+    console.timeEnd('🕐 アプリケーション起動時間');
+  }
+  
+  console.log('🛠️ 開発ツールが利用可能です:');
+  console.log('  - showAppStatus(): アプリケーション状況表示');
+  console.log('  - refreshNews(): ニュース更新');
+  console.log('  - showArticleStatus(): 記事ストレージ状況表示');
+  console.log('  - showConfig(): 設定情報表示');
+}
+
+/**
+ * 初期化エラーの表示
+ * @param {Error} error - エラーオブジェクト
+ */
+function showInitializationError(error) {
+  // エラーメッセージを画面に表示
+  const errorContainer = document.createElement('div');
+  errorContainer.style.cssText = `
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    background: #f8d7da;
+    color: #721c24;
+    padding: 20px;
+    border: 1px solid #f5c6cb;
+    border-radius: 8px;
+    z-index: 10000;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  `;
+  
+  const isModuleError = error.message?.includes('import') || 
+                       error.message?.includes('module') || 
+                       error.message?.includes('404');
+  
+  errorContainer.innerHTML = `
+    <h3 style="margin: 0 0 10px 0; color: #721c24;">⚠️ アプリケーション初期化エラー</h3>
+    <p style="margin: 0 0 10px 0;">
+      ${isModuleError ? 
+        'モジュールの読み込みでエラーが発生しました。ファイルパスを確認してください。' : 
+        'アプリケーションの初期化中にエラーが発生しました。'}
+    </p>
+    ${CONFIG.debug.enabled ? `
+    <details style="margin: 10px 0 0 0;">
+      <summary style="cursor: pointer; font-weight: bold;">詳細情報</summary>
+      <pre style="margin: 10px 0 0 0; padding: 10px; background: #f8f9fa; border-radius: 3px; overflow-x: auto; font-size: 12px; max-height: 200px; overflow-y: auto;">${error.message}\n\n${error.stack || 'スタックトレースなし'}</pre>
+    </details>
+    ` : ''}
+    <div style="margin-top: 15px;">
+      <button onclick="location.reload()" style="margin-right: 10px; padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">ページを再読み込み</button>
+      ${CONFIG.debug.enabled ? `
+      <button onclick="console.error('アプリケーション初期化エラー:', '${error.message}'); console.error('${error.stack}')" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">コンソールに詳細出力</button>
+      ` : ''}
+    </div>
+  `;
+  
+  document.body.appendChild(errorContainer);
+  
+  // 自動で閉じる（開発環境では長めに表示）
+  const autoCloseDelay = CONFIG.debug.enabled ? 60000 : 30000;
+  setTimeout(() => {
+    if (errorContainer.parentNode) {
+      errorContainer.parentNode.removeChild(errorContainer);
+    }
+  }, autoCloseDelay);
 } 

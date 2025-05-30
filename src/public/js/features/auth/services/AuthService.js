@@ -479,10 +479,10 @@ export class AuthService {
       // 設定ファイルから読み込み（将来的に外部設定対応）
       const { CONFIG } = await import('../../../shared/constants/config.js');
       return {
-        adminPassword: CONFIG.ADMIN_PASSWORD || 'rbs2024admin',
-        sessionDuration: CONFIG.SESSION_DURATION || 24 * 60 * 60 * 1000, // 24時間
-        maxLoginAttempts: CONFIG.MAX_LOGIN_ATTEMPTS || 5,
-        lockoutDuration: CONFIG.LOCKOUT_DURATION || 15 * 60 * 1000 // 15分
+        adminPassword: CONFIG.security?.admin?.password || 'rbs2024admin',
+        sessionDuration: CONFIG.security?.admin?.sessionDuration || 24 * 60 * 60 * 1000, // 24時間
+        maxLoginAttempts: CONFIG.security?.maxLoginAttempts || 5,
+        lockoutDuration: CONFIG.security?.admin?.lockoutDuration || 15 * 60 * 1000 // 15分
       };
     } catch (error) {
       this.warn('設定ファイル読み込み失敗、デフォルト設定を使用:', error);

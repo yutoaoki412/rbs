@@ -1,9 +1,10 @@
 /**
  * 記事表示コンポーネント
  * @version 1.0.0
+ * 記事の本文表示とフォーマッティングを担当
  */
 
-import BaseComponent from '../../../shared/base/BaseComponent.js';
+import BaseComponent from '../../../shared/components/BaseComponent.js';
 import { setText, setHTML, querySelector } from '../../../shared/utils/domUtils.js';
 import { CATEGORY_COLORS } from '../../../shared/constants/newsConstants.js';
 import MetadataService from '../services/MetadataService.js';

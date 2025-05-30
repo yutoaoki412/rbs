@@ -1,9 +1,10 @@
 /**
  * シェアボタンコンポーネント
  * @version 1.0.0
+ * SNS共有機能を提供
  */
 
-import BaseComponent from '../../../shared/base/BaseComponent.js';
+import BaseComponent from '../../../shared/components/BaseComponent.js';
 import { setVisible, querySelectorAll } from '../../../shared/utils/domUtils.js';
 import ShareService from '../services/ShareService.js';
 
