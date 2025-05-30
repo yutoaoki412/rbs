@@ -30,10 +30,6 @@
       <span class="admin-logo-text">RBS陸上教室 管理画面</span>
     </div>
     <div class="header-right">
-      <!-- デバッグ情報表示ボタン -->
-      <button class="btn btn-outline" data-action="show-debug-info" title="デバッグ情報">
-        <i class="fas fa-bug"></i>
-      </button>
       <button class="logout-btn" data-action="logout">
         <i class="fas fa-sign-out-alt"></i>
         ログアウト
@@ -125,9 +121,6 @@
                 <button class="btn-icon" data-action="refresh-recent-articles" title="更新">
                   <i class="fas fa-sync-alt"></i>
                 </button>
-                <button class="btn-icon" onclick="window.actionHandler?.debugStatus()" title="ActionHandlerデバッグ">
-                  <i class="fas fa-bug"></i>
-                </button>
               </div>
             </div>
             <div class="widget-content">
@@ -173,11 +166,6 @@
       <section id="news-management" class="admin-section">
         <div class="section-header">
           <h1>記事管理</h1>
-          <div class="section-actions">
-            <button class="btn btn-info" data-action="test-article-service">
-              連携テスト
-            </button>
-          </div>
         </div>
         
         <div class="management-layout">
@@ -464,11 +452,14 @@
           </div>
           
           <div class="setting-group">
-            <h3><i class="fas fa-bug"></i> デバッグ</h3>
-            <p>開発者向けデバッグ機能</p>
+            <h3><i class="fas fa-tools"></i> 開発者ツール</h3>
+            <p>開発・デバッグ機能（本番環境では非表示）</p>
             <div class="setting-actions">
               <button class="btn btn-info" data-action="show-debug-info">
-                <i class="fas fa-info-circle"></i> デバッグ情報表示
+                <i class="fas fa-info-circle"></i> システム情報表示
+              </button>
+              <button class="btn btn-info" data-action="show-news-debug">
+                <i class="fas fa-bug"></i> ニュース連携デバッグ
               </button>
               <button class="btn btn-warning" data-action="reset-local-storage">
                 <i class="fas fa-redo"></i> LocalStorage リセット
