@@ -15,6 +15,9 @@ class FooterComponent extends BaseComponent {
         // BaseComponentのelementをcontainerとしても参照できるよう設定
         this.container = this.element;
         
+        // デバッグモードを有効にする（開発環境）
+        this.debugMode = window.location.hostname === 'localhost' || window.DEBUG;
+        
         /** @type {HTMLElement} ページトップボタン */
         this.pageTopBtn = null;
         
@@ -175,36 +178,45 @@ class FooterComponent extends BaseComponent {
      * フッターリンクの動的調整
      */
     adjustFooterLinks() {
-        this.footerLinks.forEach(link => {
-            const href = link.getAttribute('href');
+        try {
+            if (!this.footerLinks || this.footerLinks.length === 0) {
+                this.debug('フッターリンクが存在しません');
+                return;
+            }
             
-            // 外部リンクに target="_blank" を追加
-            if (href && (href.startsWith('http') || href.startsWith('//'))) {
-                link.setAttribute('target', '_blank');
-                link.setAttribute('rel', 'noopener noreferrer');
+            this.footerLinks.forEach(link => {
+                const href = link.getAttribute('href');
                 
-                // 外部リンクアイコンの追加
-                if (!link.querySelector('.external-icon')) {
-                    const icon = document.createElement('span');
-                    icon.className = 'external-icon';
-                    icon.setAttribute('aria-hidden', 'true');
-                    icon.textContent = '↗';
-                    link.appendChild(icon);
+                // 外部リンクに target="_blank" を追加
+                if (href && (href.startsWith('http') || href.startsWith('//'))) {
+                    link.setAttribute('target', '_blank');
+                    link.setAttribute('rel', 'noopener noreferrer');
+                    
+                    // 外部リンクアイコンの追加
+                    if (!link.querySelector('.external-icon')) {
+                        const icon = document.createElement('span');
+                        icon.className = 'external-icon';
+                        icon.setAttribute('aria-hidden', 'true');
+                        icon.textContent = '↗';
+                        link.appendChild(icon);
+                    }
                 }
-            }
+                
+                // 電話番号リンクの処理
+                if (href && href.startsWith('tel:')) {
+                    link.setAttribute('aria-label', `電話をかける: ${href.replace('tel:', '')}`);
+                }
+                
+                // メールリンクの処理
+                if (href && href.startsWith('mailto:')) {
+                    link.setAttribute('aria-label', `メールを送る: ${href.replace('mailto:', '')}`);
+                }
+            });
             
-            // 電話番号リンクの処理
-            if (href && href.startsWith('tel:')) {
-                link.setAttribute('aria-label', `電話をかける: ${href.replace('tel:', '')}`);
-            }
-            
-            // メールリンクの処理
-            if (href && href.startsWith('mailto:')) {
-                link.setAttribute('aria-label', `メールを送る: ${href.replace('mailto:', '')}`);
-            }
-        });
-        
-        this.debug('フッターリンク調整完了');
+            this.debug('フッターリンク調整完了');
+        } catch (error) {
+            this.error('フッターリンク調整エラー:', error);
+        }
     }
 
     /**

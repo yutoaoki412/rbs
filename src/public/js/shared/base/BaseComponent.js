@@ -12,6 +12,7 @@ export class BaseComponent {
     this.componentName = componentName;
     this.initialized = false;
     this.destroyed = false;
+    this.debugMode = false; // デバッグモードフラグ
     
     // DOM要素
     this.element = typeof elementOrSelector === 'string' 
