@@ -1,15 +1,17 @@
 /**
  * UI相互作用管理システム
  * ユーザーインターフェースの相互作用を統一管理
+ * @version 2.1.0 - 新アーキテクチャ対応
  */
 
-import { BaseComponent } from '../BaseComponent.js';
+import { Component } from '../../base/Component.js';
 import { EventBus } from '../../services/EventBus.js';
 
-class UIInteractionManager extends BaseComponent {
+class UIInteractionManager extends Component {
   constructor(config = {}) {
-    super(document.body, 'UIInteractionManager');
+    super({ autoInit: false, ...config });
     
+    this.componentName = 'UIInteractionManager';
     this.observers = new Map();
     
     // 設定
@@ -34,7 +36,12 @@ class UIInteractionManager extends BaseComponent {
   /**
    * 初期化処理の実行
    */
-  async doInit() {
+  async init() {
+    if (this.isInitialized) {
+      this.log('既に初期化済みです');
+      return;
+    }
+    
     try {
       this.log('UIInteractionManager v2.0 初期化開始');
       
@@ -46,6 +53,7 @@ class UIInteractionManager extends BaseComponent {
       this.setupVideoHandling();
       this.setupFloatingShapes();
       
+      this.isInitialized = true;
       this.log('UIInteractionManager v2.0 初期化完了');
       
     } catch (error) {
@@ -94,25 +102,30 @@ class UIInteractionManager extends BaseComponent {
    * モバイルメニューを閉じる
    */
   closeMobileMenu() {
-    const navLinks = this.safeQuerySelector('.nav-links');
     const mobileMenuBtn = this.safeQuerySelector('.mobile-menu-btn');
+    const navLinks = this.safeQuerySelector('.nav-links');
     
-    if (navLinks?.classList.contains('active')) {
+    if (mobileMenuBtn && navLinks) {
+      mobileMenuBtn.setAttribute('aria-expanded', 'false');
       navLinks.classList.remove('active');
-      mobileMenuBtn?.setAttribute('aria-expanded', 'false');
-      EventBus.emit('ui:mobileMenuClosed');
     }
   }
 
   /**
    * デバウンス関数
-   * @private
+   * @param {Function} func - 実行する関数
+   * @param {number} wait - 待機時間
+   * @returns {Function} デバウンスされた関数
    */
-  debounce(func, delay) {
-    let timeoutId;
-    return (...args) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => func.apply(this, args), delay);
+  debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func.apply(this, args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
     };
   }
 
@@ -449,6 +462,78 @@ class UIInteractionManager extends BaseComponent {
       observer.disconnect();
     });
     this.observers.clear();
+  }
+  
+  /**
+   * ログ出力
+   * @param {...any} args - ログ引数
+   */
+  log(...args) {
+    console.log(`[${this.componentName}]`, ...args);
+  }
+  
+  /**
+   * エラーログ出力
+   * @param {...any} args - エラーログ引数
+   */
+  error(...args) {
+    console.error(`[${this.componentName}]`, ...args);
+  }
+  
+  /**
+   * 安全なクエリセレクター
+   * @param {string} selector - セレクター
+   * @param {Element} context - コンテキスト要素
+   * @returns {Element|null} 見つかった要素
+   */
+  safeQuerySelector(selector, context = document) {
+    try {
+      return context.querySelector(selector);
+    } catch (error) {
+      this.error('セレクター実行エラー:', selector, error);
+      return null;
+    }
+  }
+  
+  /**
+   * 安全なクエリセレクター（複数）
+   * @param {string} selector - セレクター
+   * @param {Element} context - コンテキスト要素
+   * @returns {NodeList} 見つかった要素のリスト
+   */
+  safeQuerySelectorAll(selector, context = document) {
+    try {
+      return context.querySelectorAll(selector);
+    } catch (error) {
+      this.error('セレクター実行エラー:', selector, error);
+      return [];
+    }
+  }
+  
+  /**
+   * 安全なforEach処理
+   * @param {NodeList|Array} elements - 要素のリスト
+   * @param {Function} callback - コールバック関数
+   */
+  safeForEach(elements, callback) {
+    try {
+      if (elements && elements.length > 0) {
+        Array.from(elements).forEach(callback);
+      }
+    } catch (error) {
+      this.error('forEach実行エラー:', error);
+    }
+  }
+  
+  /**
+   * 子要素にイベントリスナーを追加
+   * @param {Element} element - 要素
+   * @param {string} event - イベント名
+   * @param {Function} handler - ハンドラー
+   * @param {Object} options - オプション
+   */
+  addEventListenerToChild(element, event, handler, options = {}) {
+    this.addEventListener(element, event, handler, options);
   }
 }
 

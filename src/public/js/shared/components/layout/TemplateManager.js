@@ -600,5 +600,5 @@ export class TemplateManager extends BaseService {
     }
 }
 
-// デフォルトエクスポートのみ追加（export classは既に存在するため）
+// デフォルトエクスポート
 export default TemplateManager; 

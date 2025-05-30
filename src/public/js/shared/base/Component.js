@@ -241,6 +241,23 @@ class Component {
   }
 
   /**
+   * コンポーネントの状態を取得
+   * @returns {Object} 状態情報
+   */
+  getStatus() {
+    return {
+      id: this.id,
+      componentName: this.constructor.name,
+      isInitialized: this.isInitialized,
+      isDestroyed: this.isDestroyed,
+      isVisible: this.isVisible(),
+      childComponentsCount: this.childComponents.size,
+      eventListenersCount: this.eventListeners.length,
+      config: { ...this.config }
+    };
+  }
+
+  /**
    * クリーンアップ処理
    */
   cleanup() {
@@ -291,4 +308,5 @@ class Component {
 }
 
 // エクスポート
-window.Component = Component; 
+export { Component };
+export default Component; 

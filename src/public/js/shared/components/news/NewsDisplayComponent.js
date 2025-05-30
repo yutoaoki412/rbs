@@ -2,21 +2,24 @@
  * ニュース表示コンポーネント
  * LP側での記事表示を担当
  * ArticleStorageServiceと統合してデータを取得・表示
- * @version 3.0.0 - リファクタリング統合版
+ * @version 3.1.0 - 新アーキテクチャ対応
  */
 
-import { BaseComponent } from '../BaseComponent.js';
+import { Component } from '../../base/Component.js';
 import { EventBus } from '../../services/EventBus.js';
 import { getArticleStorageService } from '../../services/ArticleStorageService.js';
 import { escapeHtml } from '../../utils/stringUtils.js';
 import { CONFIG } from '../../constants/config.js';
 
-export class NewsDisplayComponent extends BaseComponent {
+export class NewsDisplayComponent extends Component {
   constructor(container) {
-    super(container, 'NewsDisplayComponent');
+    super({ autoInit: false });
     
-    // BaseComponentのelementをcontainerとしても参照できるよう設定
-    this.container = this.element;
+    this.componentName = 'NewsDisplayComponent';
+    
+    // コンテナ要素を設定
+    this.container = container;
+    this.element = container;
     
     // デバッグモードを設定から取得
     this.debugMode = CONFIG.debug.enabled;
@@ -110,53 +113,35 @@ export class NewsDisplayComponent extends BaseComponent {
    * DOM要素の検索
    */
   findElements() {
-    if (!this.container) {
-      this.warn('コンテナが存在しません');
-      return;
+    this.newsListContainer = this.container.querySelector('.news-list') || this.container;
+    this.loadingElement = this.container.querySelector('.loading');
+    this.statusElement = this.container.querySelector('.status');
+  }
+
+  /**
+   * 安全なクエリセレクター
+   * @param {string} selector - セレクター
+   * @param {Element} context - コンテキスト要素
+   * @returns {Element|null} 見つかった要素
+   */
+  safeQuerySelector(selector, context = document) {
+    try {
+      return context.querySelector(selector);
+    } catch (error) {
+      this.error('セレクター実行エラー:', selector, error);
+      return null;
     }
-    
-    // 記事リストコンテナ
-    this.newsListContainer = this.safeQuerySelector('#news-list, .news-list, .news-grid');
-    
-    // コンテナが見つからない場合は作成
-    if (!this.newsListContainer) {
-      this.debug('ニュースリストコンテナが見つかりません。自動作成します。');
-      this.newsListContainer = document.createElement('div');
-      this.newsListContainer.id = 'news-list';
-      this.newsListContainer.className = 'news-list';
-      this.container.appendChild(this.newsListContainer);
-    }
-    
-    // ローディング表示
-    this.loadingElement = this.safeQuerySelector('#news-loading-status, .news-loading-status');
-    if (!this.loadingElement) {
-      this.debug('ローディング要素が見つかりません。自動作成します。');
-      this.loadingElement = document.createElement('div');
-      this.loadingElement.id = 'news-loading-status';
-      this.loadingElement.className = 'news-loading-status';
-      this.loadingElement.style.display = 'none';
-      this.loadingElement.textContent = '読み込み中...';
-      this.container.appendChild(this.loadingElement);
-    }
-    
-    // ステータス表示
-    this.statusElement = this.safeQuerySelector('#news-status-text, .news-status-text');
-    if (!this.statusElement) {
-      this.debug('ステータス要素が見つかりません。自動作成します。');
-      this.statusElement = document.createElement('div');
-      this.statusElement.id = 'news-status-text';
-      this.statusElement.className = 'news-status-text';
-      this.statusElement.style.display = 'none';
-      this.container.appendChild(this.statusElement);
-    }
-    
-    // 管理画面リンク（開発環境のみ表示）
-    const adminLink = this.safeQuerySelector('#news-admin-link, .admin-link');
-    if (adminLink && this.debugMode) {
-      adminLink.style.display = 'block';
-    }
-    
-    this.debug(`DOM要素検索完了 - newsList: ${!!this.newsListContainer}, loading: ${!!this.loadingElement}, status: ${!!this.statusElement}`);
+  }
+  
+  /**
+   * 子要素にイベントリスナーを追加
+   * @param {Element} element - 要素
+   * @param {string} event - イベント名
+   * @param {Function} handler - ハンドラー
+   * @param {Object} options - オプション
+   */
+  addEventListenerToChild(element, event, handler, options = {}) {
+    this.addEventListener(element, event, handler, options);
   }
 
   /**
@@ -535,6 +520,47 @@ export class NewsDisplayComponent extends BaseComponent {
     this.statusElement = null;
     
     super.destroy();
+  }
+
+  /**
+   * ログ出力
+   * @param {...any} args - ログ引数
+   */
+  log(...args) {
+    console.log(`[${this.componentName}]`, ...args);
+  }
+  
+  /**
+   * エラーログ出力
+   * @param {...any} args - エラーログ引数
+   */
+  error(...args) {
+    console.error(`[${this.componentName}]`, ...args);
+  }
+  
+  /**
+   * デバッグログ出力
+   * @param {...any} args - デバッグログ引数
+   */
+  debug(...args) {
+    if (this.debugMode) {
+      console.log(`[${this.componentName}:DEBUG]`, ...args);
+    }
+  }
+  
+  /**
+   * エラーメッセージを表示
+   * @param {string} message - エラーメッセージ
+   */
+  showErrorMessage(message) {
+    if (this.container) {
+      this.container.innerHTML = `
+        <div class="news-error">
+          <p>${message}</p>
+          <button onclick="location.reload()">再読み込み</button>
+        </div>
+      `;
+    }
   }
 }
 

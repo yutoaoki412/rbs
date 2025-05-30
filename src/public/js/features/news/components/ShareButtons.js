@@ -1,21 +1,25 @@
 /**
- * シェアボタンコンポーネント
+ * ソーシャルシェアボタンコンポーネント
+ * 記事のソーシャルメディア共有機能を提供
  * @version 1.0.0
- * SNS共有機能を提供
  */
 
-import BaseComponent from '../../../shared/components/BaseComponent.js';
+import { Component } from '../../../shared/base/Component.js';
+import { EventBus } from '../../../shared/services/EventBus.js';
 import { setVisible, querySelectorAll } from '../../../shared/utils/domUtils.js';
 import ShareService from '../services/ShareService.js';
 
-export default class ShareButtons extends BaseComponent {
+export class ShareButtons extends Component {
   /**
-   * @param {Element|string} element - 要素またはセレクタ
-   * @param {Object} options - オプション
+   * @param {Element|string} container - 要素またはセレクタ
    */
-  constructor(element, options = {}) {
-    super(element, 'ShareButtons');
-    this.options = options;
+  constructor(container) {
+    super({ autoInit: false });
+    
+    this.componentName = 'ShareButtons';
+    this.container = container;
+    this.element = container;
+    this.options = {};
     this.shareService = new ShareService();
   }
 
@@ -156,4 +160,39 @@ export default class ShareButtons extends BaseComponent {
       this.setButtonEnabled(platform, enabled);
     });
   }
-} 
+
+  /**
+   * ログ出力
+   * @param {...any} args - ログ引数
+   */
+  log(...args) {
+    console.log(`[${this.componentName}]`, ...args);
+  }
+  
+  /**
+   * エラーログ出力
+   * @param {...any} args - エラーログ引数
+   */
+  error(...args) {
+    console.error(`[${this.componentName}]`, ...args);
+  }
+  
+  /**
+   * デバッグログ出力
+   * @param {...any} args - デバッグログ引数
+   */
+  debug(...args) {
+    console.log(`[${this.componentName}:DEBUG]`, ...args);
+  }
+  
+  /**
+   * 警告ログ出力
+   * @param {...any} args - 警告ログ引数
+   */
+  warn(...args) {
+    console.warn(`[${this.componentName}]`, ...args);
+  }
+}
+
+// デフォルトエクスポート
+export default ShareButtons; 

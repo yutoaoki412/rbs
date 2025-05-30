@@ -387,49 +387,73 @@ export class Application {
       // 統合レッスン状況ストレージサービス初期化
       const { getLessonStatusStorageService } = await import('./shared/services/LessonStatusStorageService.js');
       const lessonStatusService = getLessonStatusStorageService();
-      await lessonStatusService.init();
+      
+      // サービス初期化
+      if (!lessonStatusService.initialized) {
+        await lessonStatusService.init();
+        this.debug('レッスンステータスストレージサービス初期化完了');
+      }
       
       // ページタイプに応じた初期化
       if (this.pageType === 'admin') {
-        // 管理画面: レッスン状況管理コンポーネント
-        const { default: LessonStatusAdminComponent } = await import('./features/admin/components/LessonStatusAdminComponent.js');
-        
-        // 管理画面用のコンテナを探すか、作成
-        let adminContainer = document.querySelector('#lesson-status-form, .lesson-status-admin, .admin-lesson-status');
-        if (!adminContainer) {
-          // コンテナが見つからない場合は、適切な場所に作成
-          const targetParent = document.querySelector('main, #main-content, .admin-content, body');
-          if (targetParent) {
-            adminContainer = document.createElement('div');
-            adminContainer.id = 'lesson-status-form';
-            adminContainer.className = 'lesson-status-admin admin-lesson-status';
-            targetParent.appendChild(adminContainer);
-          } else {
-            // 最終フォールバック: body要素を使用
-            adminContainer = document.body;
-          }
-        }
-        
-        const lessonStatusAdmin = new LessonStatusAdminComponent(adminContainer);
-        await lessonStatusAdmin.init();
-        
-        // グローバル参照設定
-        window.lessonStatusAdmin = lessonStatusAdmin;
-        
+        await this.initializeAdminLessonStatus();
       } else {
-        // LP側: レッスン状況表示コンポーネント
-        if (this.pageType === 'home' || this.hasLessonStatusSection()) {
-          this.debug('レッスン状況セクションの初期化を実行します。');
-          await this.initializeLessonStatusDisplayComponent();
-        } else {
-          this.debug('レッスン状況セクションが見つかりません。LessonStatusDisplayComponentの初期化をスキップします。');
-        }
+        await this.initializeLPLessonStatus();
       }
       
       this.debug('レッスン状況機能初期化完了');
       
     } catch (error) {
       this.error('レッスン状況機能初期化エラー:', error);
+      // エラー時もフォールバック処理を行う
+      this.showInitializationWarning('レッスン状況機能の初期化に失敗しました');
+    }
+  }
+
+  /**
+   * 管理画面のレッスンステータス初期化
+   * @private
+   */
+  async initializeAdminLessonStatus() {
+    try {
+      const { default: LessonStatusAdminComponent } = await import('./features/admin/components/LessonStatusAdminComponent.js');
+      
+      // 管理画面用のコンテナを探すか、作成
+      let adminContainer = document.querySelector('#lesson-status-form, .lesson-status-admin, .admin-lesson-status, #lesson-status');
+      
+      if (!adminContainer) {
+        this.debug('管理画面レッスンステータスコンテナが見つからないため、作成をスキップします');
+        return;
+      }
+      
+      const lessonStatusAdmin = new LessonStatusAdminComponent(adminContainer);
+      await lessonStatusAdmin.init();
+      
+      // グローバル参照設定
+      window.lessonStatusAdmin = lessonStatusAdmin;
+      this.debug('管理画面レッスンステータス初期化完了');
+      
+    } catch (error) {
+      this.error('管理画面レッスンステータス初期化エラー:', error);
+    }
+  }
+
+  /**
+   * LP側のレッスンステータス初期化
+   * @private
+   */
+  async initializeLPLessonStatus() {
+    try {
+      // レッスン状況セクションの存在確認
+      if (this.pageType === 'home' || this.hasLessonStatusSection()) {
+        this.debug('レッスン状況セクションを検出、初期化を実行します');
+        await this.initializeLessonStatusDisplayComponent();
+      } else {
+        this.debug('レッスン状況セクションが見つかりません、初期化をスキップします');
+      }
+      
+    } catch (error) {
+      this.error('LP側レッスンステータス初期化エラー:', error);
     }
   }
 
@@ -441,44 +465,90 @@ export class Application {
     try {
       const { default: LessonStatusDisplayComponent } = await import('./features/lesson/components/LessonStatusDisplayComponent.js');
       
-      // レッスン状況表示用のコンテナを探すか、作成
+      // レッスン状況表示用のコンテナを探す
       let statusContainer = document.querySelector('#today-status, .status-banner, .lesson-status');
       
       if (!statusContainer) {
         this.debug('既存のステータスコンテナが見つからないため、新規作成します');
-        // コンテナが見つからない場合は、適切な場所に作成
-        const targetParent = document.querySelector('main, #main-content, .hero-section, body');
-        if (targetParent) {
-          statusContainer = document.createElement('section');
-          statusContainer.id = 'today-status';
-          statusContainer.className = 'status-banner lesson-status';
-          statusContainer.style.display = 'none'; // 必要時に表示
-          
-          // ヒーローセクションの後か、main要素の最初に挿入
-          const heroSection = document.querySelector('.hero-section, #hero');
-          if (heroSection && heroSection.parentNode) {
-            heroSection.parentNode.insertBefore(statusContainer, heroSection.nextSibling);
-          } else {
-            targetParent.insertBefore(statusContainer, targetParent.firstChild);
-          }
-        } else {
-          // 最終フォールバック: body要素を使用
-          statusContainer = document.body;
-        }
+        statusContainer = this.createStatusContainer();
       } else {
         this.debug('既存のステータスコンテナを使用:', statusContainer.id || statusContainer.className);
       }
       
-      const lessonStatusDisplay = new LessonStatusDisplayComponent(statusContainer);
-      await lessonStatusDisplay.init();
-      
-      // グローバル参照設定
-      window.lessonStatusDisplay = lessonStatusDisplay;
-      
-      this.debug('LessonStatusDisplayComponent初期化完了');
+      if (statusContainer) {
+        const lessonStatusDisplay = new LessonStatusDisplayComponent(statusContainer);
+        await lessonStatusDisplay.init();
+        
+        // グローバル参照設定
+        window.lessonStatusDisplay = lessonStatusDisplay;
+        
+        this.debug('LessonStatusDisplayComponent初期化完了');
+      } else {
+        this.warn('ステータスコンテナの作成に失敗しました');
+      }
       
     } catch (error) {
       this.error('LessonStatusDisplayComponent初期化エラー:', error);
+    }
+  }
+
+  /**
+   * ステータスコンテナを新規作成
+   * @private
+   * @returns {HTMLElement|null}
+   */
+  createStatusContainer() {
+    try {
+      // 適切な挿入位置を探す
+      const targetParent = document.querySelector('main, #main-content, .hero-section, body');
+      
+      if (targetParent) {
+        const statusContainer = document.createElement('section');
+        statusContainer.id = 'today-status';
+        statusContainer.className = 'status-banner lesson-status';
+        statusContainer.innerHTML = `
+          <div class="container">
+            <div class="status-header" data-action="toggle-status" style="cursor: pointer;" aria-expanded="false">
+              <div class="status-info">
+                <span class="status-dot"></span>
+                <span class="status-text">本日のレッスン開催状況</span>
+                <span class="status-indicator" id="global-status-indicator">読み込み中...</span>
+              </div>
+              <span class="toggle-icon">▼</span>
+            </div>
+            <div class="status-content">
+              <div class="status-details" id="status-details">
+                <div class="loading-status">
+                  <p>レッスン状況を読み込み中...</p>
+                </div>
+              </div>
+              <div class="status-message" id="global-status-message" style="display: none;">
+                <div class="message-content">
+                  <i class="fas fa-info-circle"></i>
+                  <span id="global-message-text"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // ヒーローセクションの後に挿入
+        const heroSection = document.querySelector('.hero-section, #hero');
+        if (heroSection && heroSection.parentNode) {
+          heroSection.parentNode.insertBefore(statusContainer, heroSection.nextSibling);
+        } else {
+          targetParent.insertBefore(statusContainer, targetParent.firstChild);
+        }
+        
+        this.debug('ステータスコンテナを動的作成しました');
+        return statusContainer;
+      }
+      
+      return null;
+      
+    } catch (error) {
+      this.error('ステータスコンテナ作成エラー:', error);
+      return null;
     }
   }
 
@@ -830,6 +900,45 @@ export class Application {
    */
   error(...args) {
     console.error(`❌ ${this.componentName}:`, ...args);
+  }
+
+  /**
+   * 初期化警告を表示
+   * @private
+   * @param {string} message - 警告メッセージ
+   */
+  showInitializationWarning(message) {
+    try {
+      console.warn(`⚠️ ${message}`);
+      
+      // 開発環境では画面上にも表示
+      if (CONFIG.debug.enabled) {
+        const warningDiv = document.createElement('div');
+        warningDiv.style.cssText = `
+          position: fixed;
+          top: 10px;
+          right: 10px;
+          background: #f39c12;
+          color: white;
+          padding: 10px;
+          border-radius: 4px;
+          z-index: 9999;
+          font-size: 14px;
+          max-width: 300px;
+        `;
+        warningDiv.textContent = message;
+        document.body.appendChild(warningDiv);
+        
+        // 5秒後に自動削除
+        setTimeout(() => {
+          if (warningDiv.parentNode) {
+            warningDiv.parentNode.removeChild(warningDiv);
+          }
+        }, 5000);
+      }
+    } catch (error) {
+      console.error('警告表示エラー:', error);
+    }
   }
 }
 

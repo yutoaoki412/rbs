@@ -1,16 +1,25 @@
 /**
- * レッスン状況管理コンポーネント（管理画面）
- * 管理画面でレッスン開催状況を設定・管理
+ * レッスン状況管理コンポーネント
+ * 管理画面でのレッスン状況管理を担当
  * @version 1.1.0 - 新アーキテクチャ対応
  */
 
-import { BaseComponent } from '../../../shared/base/BaseComponent.js';
+import { Component } from '../../../shared/base/Component.js';
 import { getLessonStatusStorageService } from '../../../shared/services/LessonStatusStorageService.js';
 import { EventBus } from '../../../shared/services/EventBus.js';
 
-export class LessonStatusAdminComponent extends BaseComponent {
-  constructor(element = '#lesson-status-form, .lesson-status-admin, .admin-lesson-status') {
-    super(element, 'LessonStatusAdminComponent');
+export class LessonStatusAdminComponent extends Component {
+  constructor(element = '#lesson-status-admin, .lesson-status-admin') {
+    super({ autoInit: false });
+    
+    this.componentName = 'LessonStatusAdminComponent';
+    
+    // DOM要素の設定
+    if (typeof element === 'string') {
+      this.element = document.querySelector(element);
+    } else {
+      this.element = element;
+    }
     
     // サービス参照
     this.lessonStatusService = null;
@@ -37,33 +46,29 @@ export class LessonStatusAdminComponent extends BaseComponent {
    * 初期化
    * @returns {Promise<void>}
    */
-  async doInit() {
+  async init() {
+    if (this.isInitialized) {
+      this.log('既に初期化済みです');
+      return;
+    }
+    
     try {
       this.log('レッスン状況管理コンポーネント初期化開始');
       
-      // サービス取得・初期化
+      // サービス取得
       this.lessonStatusService = getLessonStatusStorageService();
+      
+      // サービスが初期化されていない場合は初期化
       if (!this.lessonStatusService.initialized) {
         await this.lessonStatusService.init();
       }
       
-      // DOM要素の設定
-      this.findDOMElements();
-      
-      // フォーム初期化
-      this.initializeForm();
-      
-      // イベントリスナー設定
-      this.setupEventListeners();
-      
-      // 今日のデータを読み込み
-      await this.loadTodayData();
-      
+      this.isInitialized = true;
       this.log('レッスン状況管理コンポーネント初期化完了');
       
     } catch (error) {
-      this.error('初期化エラー:', error);
-      this.showErrorMessage('初期化に失敗しました: ' + error.message);
+      this.error('レッスン状況管理コンポーネント初期化エラー:', error);
+      throw error;
     }
   }
 
@@ -239,33 +244,41 @@ export class LessonStatusAdminComponent extends BaseComponent {
 
   /**
    * フォームにデータを設定
-   * @private
-   * @param {Object} statusData - レッスン状況データ
+   * @param {Object} statusData - ステータスデータ
    */
-  async populateForm(statusData) {
+  populateForm(statusData) {
     try {
-      // 日付設定
-      if (this.dateInput) {
-        this.dateInput.value = statusData.date || this.getTodayDate();
-      }
-      
       // グローバルステータス設定
-      this.setGlobalStatus(statusData.globalStatus);
-      
-      // グローバルメッセージ設定
-      if (this.globalMessageInput) {
-        this.globalMessageInput.value = statusData.globalMessage || '';
-      }
-      
-      // コース別設定
-      this.courses.forEach(course => {
-        const courseData = statusData.courses?.[course];
-        if (courseData) {
-          this.setCourseStatus(course, courseData.status);
-          this.setCourseMessage(course, courseData.message);
+      if (this.globalStatusInputs) {
+        const globalInput = this.globalStatusInputs.querySelector(`input[value="${statusData.globalStatus}"]`);
+        if (globalInput) {
+          globalInput.checked = true;
         }
-      });
-      
+      }
+
+      // グローバルメッセージ設定
+      if (this.globalMessageInput && statusData.globalMessage) {
+        this.globalMessageInput.value = statusData.globalMessage;
+      }
+
+      // コース別ステータス設定
+      if (statusData.courses) {
+        this.courses.forEach(courseKey => {
+          const courseData = statusData.courses[courseKey];
+          if (courseData && this.courseInputs[courseKey]) {
+            const statusInput = this.courseInputs[courseKey].querySelector(`input[value="${courseData.status}"]`);
+            if (statusInput) {
+              statusInput.checked = true;
+            }
+            
+            const messageInput = this.courseInputs[courseKey].querySelector('textarea, input[type="text"]');
+            if (messageInput && courseData.message) {
+              messageInput.value = courseData.message;
+            }
+          }
+        });
+      }
+
       this.debug('フォームデータ設定完了');
       
     } catch (error) {
@@ -857,6 +870,97 @@ export class LessonStatusAdminComponent extends BaseComponent {
     } catch (error) {
       this.error('コンポーネント破棄エラー:', error);
     }
+  }
+
+  /**
+   * 今日のデータを読み込み
+   * @returns {Promise<void>}
+   */
+  async loadTodayData() {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const todayStatus = this.lessonStatusService.getStatusByDate(today);
+      
+      if (todayStatus) {
+        this.populateForm(todayStatus);
+      } else {
+        this.resetForm();
+      }
+      
+    } catch (error) {
+      this.error('今日のデータ読み込みエラー:', error);
+      this.showErrorMessage('データの読み込みに失敗しました');
+    }
+  }
+
+  /**
+   * エラーメッセージ表示
+   * @param {string} message - エラーメッセージ
+   */
+  showErrorMessage(message) {
+    this.error(message);
+    
+    // 実際の管理画面でのエラー表示実装
+    if (this.formContainer) {
+      let errorDiv = this.formContainer.querySelector('.error-message');
+      if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.style.cssText = `
+          background: #f8d7da;
+          color: #721c24;
+          padding: 10px;
+          border: 1px solid #f5c6cb;
+          border-radius: 4px;
+          margin: 10px 0;
+        `;
+        this.formContainer.insertBefore(errorDiv, this.formContainer.firstChild);
+      }
+      
+      errorDiv.innerHTML = `
+        <i class="fas fa-exclamation-triangle"></i>
+        ${message}
+      `;
+      
+      // 5秒後に自動削除
+      setTimeout(() => {
+        if (errorDiv.parentNode) {
+          errorDiv.parentNode.removeChild(errorDiv);
+        }
+      }, 5000);
+    }
+  }
+
+  /**
+   * ログ出力
+   * @param {...any} args - ログ引数
+   */
+  log(...args) {
+    console.log(`[${this.componentName}]`, ...args);
+  }
+  
+  /**
+   * エラーログ出力
+   * @param {...any} args - エラーログ引数
+   */
+  error(...args) {
+    console.error(`[${this.componentName}]`, ...args);
+  }
+  
+  /**
+   * デバッグログ出力
+   * @param {...any} args - デバッグログ引数
+   */
+  debug(...args) {
+    console.log(`[${this.componentName}:DEBUG]`, ...args);
+  }
+  
+  /**
+   * 警告ログ出力
+   * @param {...any} args - 警告ログ引数
+   */
+  warn(...args) {
+    console.warn(`[${this.componentName}]`, ...args);
   }
 }
 

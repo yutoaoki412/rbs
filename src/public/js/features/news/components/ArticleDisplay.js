@@ -1,22 +1,27 @@
 /**
  * 記事表示コンポーネント
+ * 記事詳細ページでの記事表示を担当
  * @version 1.0.0
- * 記事の本文表示とフォーマッティングを担当
  */
 
-import BaseComponent from '../../../shared/components/BaseComponent.js';
+import { Component } from '../../../shared/base/Component.js';
+import { EventBus } from '../../../shared/services/EventBus.js';
+import { getArticleStorageService } from '../../../shared/services/ArticleStorageService.js';
 import { setText, setHTML, querySelector } from '../../../shared/utils/domUtils.js';
 import { CATEGORY_COLORS } from '../../../shared/constants/newsConstants.js';
 import MetadataService from '../services/MetadataService.js';
 
-export default class ArticleDisplay extends BaseComponent {
+export class ArticleDisplay extends Component {
   /**
-   * @param {Element|string} element - 要素またはセレクタ
-   * @param {Object} options - オプション
+   * @param {Element|string} container - 要素またはセレクタ
    */
-  constructor(element, options = {}) {
-    super(element, 'ArticleDisplay');
-    this.options = options;
+  constructor(container) {
+    super({ autoInit: false });
+    
+    this.componentName = 'ArticleDisplay';
+    this.container = container;
+    this.element = container;
+    this.options = {};
     this.metadataService = new MetadataService();
   }
 
@@ -143,4 +148,39 @@ export default class ArticleDisplay extends BaseComponent {
   getCurrentArticle() {
     return this.options.article;
   }
-} 
+
+  /**
+   * ログ出力
+   * @param {...any} args - ログ引数
+   */
+  log(...args) {
+    console.log(`[${this.componentName}]`, ...args);
+  }
+  
+  /**
+   * エラーログ出力
+   * @param {...any} args - エラーログ引数
+   */
+  error(...args) {
+    console.error(`[${this.componentName}]`, ...args);
+  }
+  
+  /**
+   * デバッグログ出力
+   * @param {...any} args - デバッグログ引数
+   */
+  debug(...args) {
+    console.log(`[${this.componentName}:DEBUG]`, ...args);
+  }
+  
+  /**
+   * 警告ログ出力
+   * @param {...any} args - 警告ログ引数
+   */
+  warn(...args) {
+    console.warn(`[${this.componentName}]`, ...args);
+  }
+}
+
+// デフォルトエクスポート
+export default ArticleDisplay; 

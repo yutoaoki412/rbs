@@ -1,21 +1,24 @@
 /**
- * 関連記事コンポーネント
+ * 関連記事表示コンポーネント
  * @version 1.0.0
  */
 
-import BaseComponent from '../../../shared/components/BaseComponent.js';
+import { Component } from '../../../shared/base/Component.js';
+import { CONFIG } from '../../../shared/constants/config.js';
 import { setVisible, setHTML } from '../../../shared/utils/domUtils.js';
 import { createCard } from '../../../shared/utils/htmlUtils.js';
 import { NEWS_CONFIG } from '../../../shared/constants/newsConstants.js';
 
-export default class RelatedArticles extends BaseComponent {
+export class RelatedArticles extends Component {
   /**
-   * @param {Element|string} element - 要素またはセレクタ
-   * @param {Object} options - オプション
+   * @param {Element|string} container - 要素またはセレクタ
    */
-  constructor(element, options = {}) {
-    super(element, 'RelatedArticles');
-    this.options = options;
+  constructor(container) {
+    super({ autoInit: false });
+    
+    this.componentName = 'RelatedArticles';
+    this.container = container;
+    this.element = container;
   }
 
   /**
@@ -222,4 +225,39 @@ export default class RelatedArticles extends BaseComponent {
   getCurrentArticle() {
     return this.options.currentArticle;
   }
-} 
+
+  /**
+   * ログ出力
+   * @param {...any} args - ログ引数
+   */
+  log(...args) {
+    console.log(`[${this.componentName}]`, ...args);
+  }
+  
+  /**
+   * エラーログ出力
+   * @param {...any} args - エラーログ引数
+   */
+  error(...args) {
+    console.error(`[${this.componentName}]`, ...args);
+  }
+  
+  /**
+   * デバッグログ出力
+   * @param {...any} args - デバッグログ引数
+   */
+  debug(...args) {
+    console.log(`[${this.componentName}:DEBUG]`, ...args);
+  }
+  
+  /**
+   * 警告ログ出力
+   * @param {...any} args - 警告ログ引数
+   */
+  warn(...args) {
+    console.warn(`[${this.componentName}]`, ...args);
+  }
+}
+
+// デフォルトエクスポート
+export default RelatedArticles; 

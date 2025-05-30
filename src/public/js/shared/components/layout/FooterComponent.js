@@ -1,19 +1,23 @@
-import { BaseComponent } from '../BaseComponent.js';
+import { Component } from '../../base/Component.js';
 import { EventBus } from '../../services/EventBus.js';
 
 /**
- * フッター専用コンポーネント
- * - 著作権年自動更新
- * - ページトップへのスクロール
- * - リンク動的調整
- * - フッター固有機能
+ * フッター専用コンポーネント（新アーキテクチャ対応）
+ * - フッターリンク管理
+ * - ページトップスクロール機能
+ * - SNSリンク管理
+ * - 著作権表示管理
+ * @version 1.1.0 - 新アーキテクチャ対応
  */
-class FooterComponent extends BaseComponent {
+class FooterComponent extends Component {
     constructor(container) {
-        super(container, 'FooterComponent');
+        super({ autoInit: false });
         
-        // BaseComponentのelementをcontainerとしても参照できるよう設定
-        this.container = this.element;
+        this.componentName = 'FooterComponent';
+        
+        // コンテナ要素を設定
+        this.container = container;
+        this.element = container;
         
         // デバッグモードを有効にする（開発環境）
         this.debugMode = window.location.hostname === 'localhost' || window.DEBUG;
@@ -496,7 +500,98 @@ class FooterComponent extends BaseComponent {
         
         super.destroy();
     }
+
+    /**
+     * ログ出力
+     * @param {...any} args - ログ引数
+     */
+    log(...args) {
+        console.log(`[${this.componentName}]`, ...args);
+    }
+    
+    /**
+     * エラーログ出力
+     * @param {...any} args - エラーログ引数
+     */
+    error(...args) {
+        console.error(`[${this.componentName}]`, ...args);
+    }
+    
+    /**
+     * デバッグログ出力
+     * @param {...any} args - デバッグログ引数
+     */
+    debug(...args) {
+        if (this.debugMode) {
+            console.log(`[${this.componentName}:DEBUG]`, ...args);
+        }
+    }
+    
+    /**
+     * 警告ログ出力
+     * @param {...any} args - 警告ログ引数
+     */
+    warn(...args) {
+        console.warn(`[${this.componentName}]`, ...args);
+    }
+    
+    /**
+     * 安全なクエリセレクター
+     * @param {string} selector - セレクター
+     * @param {Element} context - コンテキスト要素
+     * @returns {Element|null} 見つかった要素
+     */
+    safeQuerySelector(selector, context = document) {
+        try {
+            return context.querySelector(selector);
+        } catch (error) {
+            this.error('セレクター実行エラー:', selector, error);
+            return null;
+        }
+    }
+    
+    /**
+     * 安全なクエリセレクター（複数）
+     * @param {string} selector - セレクター
+     * @param {Element} context - コンテキスト要素
+     * @returns {NodeList} 見つかった要素のリスト
+     */
+    safeQuerySelectorAll(selector, context = document) {
+        try {
+            return context.querySelectorAll(selector);
+        } catch (error) {
+            this.error('セレクター実行エラー:', selector, error);
+            return [];
+        }
+    }
+    
+    /**
+     * 安全なforEach処理
+     * @param {NodeList|Array} elements - 要素のリスト
+     * @param {Function} callback - コールバック関数
+     * @param {string} description - 処理の説明（デバッグ用）
+     */
+    safeForEach(elements, callback, description = '') {
+        try {
+            if (elements && elements.length > 0) {
+                Array.from(elements).forEach(callback);
+            }
+        } catch (error) {
+            this.error(`forEach実行エラー${description}:`, error);
+        }
+    }
+    
+    /**
+     * 子要素にイベントリスナーを追加
+     * @param {Element} element - 要素
+     * @param {string} event - イベント名
+     * @param {Function} handler - ハンドラー
+     * @param {Object} options - オプション
+     */
+    addEventListenerToChild(element, event, handler, options = {}) {
+        this.addEventListener(element, event, handler, options);
+    }
 }
 
-// デフォルトエクスポートのみ追加（export classは既に存在するため）
+// デフォルトエクスポート
 export default FooterComponent; 
