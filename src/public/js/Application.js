@@ -40,7 +40,7 @@ export class Application {
     }
 
     try {
-      this.log('アプリケーション初期化開始');
+      console.log('🚀 アプリケーション初期化開始');
       
       // ページタイプの検出
       this.detectPageType();
@@ -54,6 +54,9 @@ export class Application {
       // ニュース機能の初期化
       await this.initializeNewsFeatures();
       
+      // レッスン状況機能の初期化
+      await this.initializeLessonStatusFeatures();
+      
       // ページ固有機能の初期化
       await this.initializePageFeatures();
       
@@ -61,17 +64,17 @@ export class Application {
       this.initialized = true;
       const initTime = Math.round(performance.now() - this.initStartTime);
       
-      this.log(`アプリケーション初期化完了 (${initTime}ms) - ページ: ${this.currentPageType}`);
+      console.log(`✅ アプリケーション初期化完了 (${initTime}ms) - ページ: ${this.pageType}`);
       
       // 初期化完了イベント
       EventBus.emit('application:initialized', {
-        pageType: this.currentPageType,
+        pageType: this.pageType,
         initTime,
         services: {
           actionManager: !!this.actionManager,
-          articleStorage: !!this.articleStorageService,
-          layout: !!this.layoutInitializer,
-          newsDisplay: !!this.newsDisplayComponent
+          lessonStatusService: !!(window.lessonStatusAdmin || window.lessonStatusDisplay),
+          articleService: !!window.articleDataService,
+          layout: this.layoutInitialized
         }
       });
       
@@ -87,16 +90,23 @@ export class Application {
    */
   async initializeCoreServices() {
     try {
-      this.log('コアサービス初期化開始');
+      // デバッグログを最小限に
+      if (CONFIG.debug.enabled) {
+        this.log('コアサービス初期化開始');
+      }
       
       // ActionManager の初期化
+      console.log('🔧 ActionManager初期化開始...');
       actionManager.init();
       this.actionManager = actionManager;
+      console.log('✅ ActionManager初期化完了');
       
       // UI相互作用管理システムの初期化
       await this.initializeUIInteractionManager();
       
-      this.debug('ActionManager初期化完了');
+      if (CONFIG.debug.enabled) {
+        this.debug('ActionManager初期化完了');
+      }
       
     } catch (error) {
       this.error('コアサービス初期化エラー:', error);
@@ -117,7 +127,7 @@ export class Application {
    */
   async initializeUIInteractionManager() {
     try {
-      this.debug('UI相互作用管理システム初期化開始');
+      console.log('🎨 UI相互作用管理システム初期化開始...');
       
       // RBSHelpersのフォールバック実装を設定
       this.setupRBSHelpersFallback();
@@ -128,19 +138,25 @@ export class Application {
         
         // UIInteractionManagerが既にグローバルに初期化されているかチェック
         if (!window.uiManager) {
-          // UIInteractionManagerのインスタンスを作成
+          // UIInteractionManagerのインスタンスを作成・初期化
+          console.log('🔨 UIInteractionManagerインスタンス作成中...');
           window.uiManager = new UIInteractionManager();
-          this.debug('UIInteractionManager初期化完了');
+          console.log('🚀 UIInteractionManager初期化実行中...');
+          await window.uiManager.init();
+          console.log('✅ UIInteractionManager初期化完了');
         } else {
           this.debug('UIInteractionManager既に初期化済み');
         }
       } catch (uiError) {
-        this.warn('UIInteractionManager初期化失敗:', uiError);
-        // UIInteractionManagerが失敗してもActionManagerで十分
+        console.warn('⚠️ UIInteractionManager初期化失敗:', uiError);
+        console.error('詳細エラー:', uiError.stack);
+        // UIInteractionManagerが失敗してもActionManagerで十分機能する
+        this.debug('ActionManagerのみで動作を継続');
       }
       
     } catch (error) {
-      this.warn('UI相互作用管理システム初期化エラー:', error);
+      console.warn('⚠️ UI相互作用管理システム初期化エラー:', error);
+      console.error('詳細エラー:', error.stack);
     }
   }
 
@@ -224,18 +240,21 @@ export class Application {
     
     // URLパスベースの判定
     if (path.includes('/admin') || fileName.includes('admin')) {
-      this.currentPageType = 'admin';
+      this.pageType = 'admin';
     } else if (path.includes('/news-detail') || fileName.includes('news-detail')) {
-      this.currentPageType = 'news-detail';
+      this.pageType = 'news-detail';
     } else if (path.includes('/news') || fileName.includes('news')) {
-      this.currentPageType = 'news';
+      this.pageType = 'news';
     } else if (fileName === 'index.html' || fileName === '' || path === '/') {
-      this.currentPageType = 'home';
+      this.pageType = 'home';
     } else {
-      this.currentPageType = 'other';
+      this.pageType = 'other';
     }
     
-    this.debug(`ページタイプ検出: ${this.currentPageType} (${fileName})`);
+    // 後方互換性
+    this.currentPageType = this.pageType;
+    
+    this.debug(`ページタイプ検出: ${this.pageType} (${fileName})`);
   }
 
   /**
@@ -276,38 +295,30 @@ export class Application {
    */
   async initializeNewsFeatures() {
     try {
-      this.log('ニュース機能初期化開始');
+      this.debug('ニュース機能初期化開始');
       
-      // 統合記事ストレージサービスの初期化
+      // 統合記事ストレージサービス初期化
       const { getArticleStorageService } = await import('./shared/services/ArticleStorageService.js');
-      this.articleStorageService = getArticleStorageService();
-      await this.articleStorageService.init();
+      const articleStorageService = getArticleStorageService();
+      await articleStorageService.init();
       
-      // ニュース表示コンポーネントの初期化（ホームページのみ）
-      if (this.currentPageType === 'home') {
-        const newsSection = document.getElementById('news');
-        if (newsSection) {
-          const { default: NewsDisplayComponent } = await import('./shared/components/news/NewsDisplayComponent.js');
-          this.newsDisplayComponent = new NewsDisplayComponent(newsSection);
-          await this.newsDisplayComponent.init();
-          
-          // グローバルアクセス用
-          window.newsDisplayComponent = this.newsDisplayComponent;
+      // ページタイプに応じた初期化
+      if (this.pageType === 'admin') {
+        // 管理画面: 記事管理コンポーネント
+        const { default: ArticleDataService } = await import('./features/admin/services/ArticleDataService.js');
+        window.articleDataService = new ArticleDataService();
+        await window.articleDataService.init();
+      } else if (this.pageType === 'home') {
+        // ホームページでニュースセクションが必要な場合のみ初期化
+        if (this.hasNewsSection()) {
+          this.debug('ニュースセクションが検出されました。NewsDisplayComponentを初期化します。');
+          await this.initializeNewsDisplayComponent();
+        } else {
+          this.debug('ニュースセクションが見つかりません。NewsDisplayComponentの初期化をスキップします。');
         }
       }
       
-      // ニュース詳細ページの初期化
-      if (this.currentPageType === 'news-detail') {
-        const { initNewsFeature } = await import('./features/news/index.js');
-        await initNewsFeature();
-      }
-      
-      // 管理画面の記事管理機能初期化
-      if (this.currentPageType === 'admin') {
-        await this.initializeAdminFeatures();
-      }
-      
-      this.log('ニュース機能初期化完了');
+      this.debug('ニュース機能初期化完了');
       
     } catch (error) {
       this.error('ニュース機能初期化エラー:', error);
@@ -315,27 +326,180 @@ export class Application {
   }
 
   /**
-   * 管理画面機能の初期化
+   * NewsDisplayComponentの初期化
    * @private
    */
-  async initializeAdminFeatures() {
+  async initializeNewsDisplayComponent() {
     try {
-      this.log('管理画面機能初期化開始');
+      const { default: NewsDisplayComponent } = await import('./shared/components/news/NewsDisplayComponent.js');
       
-      // 管理画面の記事データサービス初期化
-      const { getArticleDataService } = await import('./features/admin/services/ArticleDataService.js');
-      const articleDataService = getArticleDataService();
-      await articleDataService.init();
+      // ニュース表示用のコンテナを探すか、作成
+      let newsContainer = document.querySelector('#news-section, .news-section, .news-container');
+      if (!newsContainer) {
+        // コンテナが見つからない場合は、main要素内に作成
+        const mainElement = document.querySelector('main, #main-content, body');
+        if (mainElement) {
+          newsContainer = document.createElement('div');
+          newsContainer.id = 'news-section';
+          newsContainer.className = 'news-section';
+          newsContainer.style.display = 'none'; // 必要時に表示
+          mainElement.appendChild(newsContainer);
+        } else {
+          // 最終フォールバック: body要素を使用
+          newsContainer = document.body;
+        }
+      }
       
-      // 管理画面のコンポーネント初期化
-      const { initAdminFeatures } = await import('./features/admin/index.js');
-      await initAdminFeatures();
+      const newsDisplay = new NewsDisplayComponent(newsContainer);
+      await newsDisplay.init();
+      this.newsDisplayComponent = newsDisplay;
       
-      this.log('管理画面機能初期化完了');
+      this.debug('NewsDisplayComponent初期化完了');
       
     } catch (error) {
-      this.error('管理画面機能初期化エラー:', error);
+      this.error('NewsDisplayComponent初期化エラー:', error);
     }
+  }
+
+  /**
+   * ニュースセクションの存在確認
+   * @returns {boolean}
+   */
+  hasNewsSection() {
+    const hasNewsElements = !!(
+      document.querySelector('#news-section, .news-section, .news-container, #news, .news') ||
+      document.querySelector('[data-component="news"], [data-role="news"]') ||
+      document.querySelector('a[href*="news"], button[data-action*="news"]')
+    );
+    
+    this.debug(`ニュースセクション存在確認: ${hasNewsElements}`);
+    return hasNewsElements;
+  }
+
+  /**
+   * レッスン状況機能の初期化
+   * @private
+   */
+  async initializeLessonStatusFeatures() {
+    try {
+      this.debug('レッスン状況機能初期化開始');
+      
+      // 統合レッスン状況ストレージサービス初期化
+      const { getLessonStatusStorageService } = await import('./shared/services/LessonStatusStorageService.js');
+      const lessonStatusService = getLessonStatusStorageService();
+      await lessonStatusService.init();
+      
+      // ページタイプに応じた初期化
+      if (this.pageType === 'admin') {
+        // 管理画面: レッスン状況管理コンポーネント
+        const { default: LessonStatusAdminComponent } = await import('./features/admin/components/LessonStatusAdminComponent.js');
+        
+        // 管理画面用のコンテナを探すか、作成
+        let adminContainer = document.querySelector('#lesson-status-form, .lesson-status-admin, .admin-lesson-status');
+        if (!adminContainer) {
+          // コンテナが見つからない場合は、適切な場所に作成
+          const targetParent = document.querySelector('main, #main-content, .admin-content, body');
+          if (targetParent) {
+            adminContainer = document.createElement('div');
+            adminContainer.id = 'lesson-status-form';
+            adminContainer.className = 'lesson-status-admin admin-lesson-status';
+            targetParent.appendChild(adminContainer);
+          } else {
+            // 最終フォールバック: body要素を使用
+            adminContainer = document.body;
+          }
+        }
+        
+        const lessonStatusAdmin = new LessonStatusAdminComponent(adminContainer);
+        await lessonStatusAdmin.init();
+        
+        // グローバル参照設定
+        window.lessonStatusAdmin = lessonStatusAdmin;
+        
+      } else {
+        // LP側: レッスン状況表示コンポーネント
+        if (this.pageType === 'home' || this.hasLessonStatusSection()) {
+          this.debug('レッスン状況セクションの初期化を実行します。');
+          await this.initializeLessonStatusDisplayComponent();
+        } else {
+          this.debug('レッスン状況セクションが見つかりません。LessonStatusDisplayComponentの初期化をスキップします。');
+        }
+      }
+      
+      this.debug('レッスン状況機能初期化完了');
+      
+    } catch (error) {
+      this.error('レッスン状況機能初期化エラー:', error);
+    }
+  }
+
+  /**
+   * LessonStatusDisplayComponentの初期化
+   * @private
+   */
+  async initializeLessonStatusDisplayComponent() {
+    try {
+      const { default: LessonStatusDisplayComponent } = await import('./features/lesson/components/LessonStatusDisplayComponent.js');
+      
+      // レッスン状況表示用のコンテナを探すか、作成
+      let statusContainer = document.querySelector('#today-status, .status-banner, .lesson-status');
+      
+      if (!statusContainer) {
+        this.debug('既存のステータスコンテナが見つからないため、新規作成します');
+        // コンテナが見つからない場合は、適切な場所に作成
+        const targetParent = document.querySelector('main, #main-content, .hero-section, body');
+        if (targetParent) {
+          statusContainer = document.createElement('section');
+          statusContainer.id = 'today-status';
+          statusContainer.className = 'status-banner lesson-status';
+          statusContainer.style.display = 'none'; // 必要時に表示
+          
+          // ヒーローセクションの後か、main要素の最初に挿入
+          const heroSection = document.querySelector('.hero-section, #hero');
+          if (heroSection && heroSection.parentNode) {
+            heroSection.parentNode.insertBefore(statusContainer, heroSection.nextSibling);
+          } else {
+            targetParent.insertBefore(statusContainer, targetParent.firstChild);
+          }
+        } else {
+          // 最終フォールバック: body要素を使用
+          statusContainer = document.body;
+        }
+      } else {
+        this.debug('既存のステータスコンテナを使用:', statusContainer.id || statusContainer.className);
+      }
+      
+      const lessonStatusDisplay = new LessonStatusDisplayComponent(statusContainer);
+      await lessonStatusDisplay.init();
+      
+      // グローバル参照設定
+      window.lessonStatusDisplay = lessonStatusDisplay;
+      
+      this.debug('LessonStatusDisplayComponent初期化完了');
+      
+    } catch (error) {
+      this.error('LessonStatusDisplayComponent初期化エラー:', error);
+    }
+  }
+
+  /**
+   * レッスン状況セクションの存在確認
+   * @returns {boolean}
+   */
+  hasLessonStatusSection() {
+    const hasStatusElements = !!(
+      document.querySelector('#today-status, .status-banner, .lesson-status') ||
+      document.querySelector('[data-component="lesson-status"], [data-role="lesson-status"]') ||
+      document.querySelector('[data-action="toggle-status"]') ||
+      document.querySelector('.status-header, .lesson-info') ||
+      // HTMLに既存のレッスン状況要素があるかチェック
+      document.querySelector('.status-content, .status-details') ||
+      // より一般的なレッスン関連要素
+      document.querySelector('[id*="status"], [class*="status"]')
+    );
+    
+    this.debug(`レッスン状況セクション存在確認: ${hasStatusElements}`);
+    return hasStatusElements;
   }
 
   /**
@@ -344,24 +508,63 @@ export class Application {
    */
   async initializePageFeatures() {
     try {
-      switch (this.currentPageType) {
+      this.debug('ページ固有機能初期化開始');
+      
+      switch (this.pageType) {
         case 'home':
           await this.initializeHomePageFeatures();
           break;
-        
+        case 'admin':
+          await this.initializeAdminPageFeatures();
+          break;
         case 'news':
+        case 'news-detail':
           await this.initializeNewsPageFeatures();
           break;
-          
-        case 'admin':
-          // 管理画面機能は既に初期化済み
-          break;
-          
         default:
-          this.debug('ページ固有機能の初期化はスキップします');
+          this.debug('特別なページ固有機能はありません');
       }
+      
+      this.debug('ページ固有機能初期化完了');
+      
     } catch (error) {
       this.error('ページ固有機能初期化エラー:', error);
+    }
+  }
+
+  /**
+   * 管理画面ページ機能の初期化
+   * @private
+   */
+  async initializeAdminPageFeatures() {
+    try {
+      this.debug('管理画面ページ機能初期化開始');
+      
+      // 管理画面用の共通機能を初期化
+      // （必要に応じて追加の管理画面機能を実装）
+      
+      this.debug('管理画面ページ機能初期化完了');
+      
+    } catch (error) {
+      this.error('管理画面ページ機能初期化エラー:', error);
+    }
+  }
+
+  /**
+   * ニュースページ機能の初期化
+   * @private
+   */
+  async initializeNewsPageFeatures() {
+    try {
+      this.debug('ニュースページ機能初期化開始');
+      
+      // ニュースページ用の追加機能
+      // （必要に応じて実装）
+      
+      this.debug('ニュースページ機能初期化完了');
+      
+    } catch (error) {
+      this.error('ニュースページ機能初期化エラー:', error);
     }
   }
 
@@ -371,10 +574,17 @@ export class Application {
    */
   async initializeHomePageFeatures() {
     try {
-      // FAQ初期状態の設定
+      this.debug('ホームページ機能初期化開始');
+      
+      // FAQ機能の初期化
       this.initializeFAQs();
       
-      // 現在は追加の機能なし（将来の拡張用）
+      // ステータスバナー機能の初期化
+      this.initializeStatusBanner();
+      
+      // その他のホームページ固有機能
+      // （必要に応じて追加）
+      
       this.debug('ホームページ機能初期化完了');
       
     } catch (error) {
@@ -383,53 +593,133 @@ export class Application {
   }
 
   /**
-   * FAQ初期状態の設定
+   * FAQ機能の初期化
    * @private
    */
   initializeFAQs() {
     try {
+      this.debug('FAQ機能初期化開始');
+      
+      // FAQ要素の検索
       const faqItems = document.querySelectorAll('.faq-item');
-      const faqAnswers = document.querySelectorAll('.faq-answer');
+      const faqQuestions = document.querySelectorAll('.faq-question[data-action="toggle-faq"]');
       
-      // FAQ回答の初期状態設定（CSSアニメーションに対応）
-      faqAnswers.forEach(answer => {
-        // activeクラスがない場合の初期状態を設定
-        if (!answer.closest('.faq-item')?.classList.contains('active')) {
-          // CSSのmax-height: 0とopacity: 0に任せる
-          // display: noneは削除（CSSアニメーションのため）
-          answer.style.maxHeight = '0';
-          answer.style.opacity = '0';
-          answer.style.transition = 'max-height 0.4s ease, padding 0.4s ease, opacity 0.3s ease';
-          answer.style.overflow = 'hidden';
+      this.debug(`FAQ要素を検出: ${faqItems.length}個, 質問: ${faqQuestions.length}個`);
+      
+      if (faqItems.length === 0) {
+        this.debug('FAQ要素が見つかりません');
+        return;
+      }
+      
+      // 各FAQ要素の初期状態を設定
+      faqItems.forEach((faqItem, index) => {
+        const faqAnswer = faqItem.querySelector('.faq-answer');
+        if (faqAnswer) {
+          // 初期状態で非表示に設定（CSSアニメーション準備）
+          faqAnswer.style.maxHeight = '0';
+          faqAnswer.style.opacity = '0';
+          faqAnswer.style.overflow = 'hidden';
+          faqAnswer.style.transition = 'max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease';
+          
+          // aria-hidden属性を設定
+          faqAnswer.setAttribute('aria-hidden', 'true');
+          
+          this.debug(`FAQ ${index + 1} 初期化完了`);
         }
       });
       
-      // FAQ質問の初期aria-expanded設定
-      const faqQuestions = document.querySelectorAll('.faq-question');
-      faqQuestions.forEach(question => {
-        if (question.getAttribute('aria-expanded') !== 'true') {
-          question.setAttribute('aria-expanded', 'false');
+      // FAQ質問要素の初期化
+      faqQuestions.forEach((question, index) => {
+        // aria-expanded属性を初期化
+        question.setAttribute('aria-expanded', 'false');
+        
+        // tabindex属性を確保
+        if (!question.hasAttribute('tabindex')) {
+          question.setAttribute('tabindex', '0');
         }
+        
+        // キーボードアクセシビリティ対応
+        question.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            this.actionManager.handleAction(question, event);
+          }
+        });
+        
+        this.debug(`FAQ質問 ${index + 1} 初期化完了`);
       });
       
-      this.debug(`FAQ初期化完了: ${faqItems.length}個のアイテム`);
+      this.debug('FAQ機能初期化完了');
       
     } catch (error) {
-      this.warn('FAQ初期化エラー:', error);
+      this.error('FAQ機能初期化エラー:', error);
     }
   }
 
   /**
-   * ニュース一覧ページ機能の初期化
+   * ステータスバナー機能の初期化
    * @private
    */
-  async initializeNewsPageFeatures() {
+  initializeStatusBanner() {
     try {
-      // 現在は追加の機能なし（将来の拡張用）
-      this.debug('ニュース一覧ページ機能初期化完了');
+      this.debug('ステータスバナー機能初期化開始');
+      
+      // ステータスバナー要素の検索
+      const statusBanner = document.querySelector('#today-status');
+      const statusHeader = document.querySelector('.status-header[data-action="toggle-status"]');
+      const statusContent = document.querySelector('#today-status .status-content');
+      
+      this.debug(`ステータスバナー要素: banner=${!!statusBanner}, header=${!!statusHeader}, content=${!!statusContent}`);
+      
+      if (!statusBanner || !statusHeader || !statusContent) {
+        this.debug('ステータスバナー要素が見つかりません');
+        return;
+      }
+      
+      // 初期状態を設定（折りたたみ状態）
+      statusContent.style.maxHeight = '0';
+      statusContent.style.overflow = 'hidden';
+      statusContent.style.transition = 'max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+      statusHeader.setAttribute('aria-expanded', 'false');
+      
+      // ActionManagerにtoggle-statusアクションを強化登録
+      if (this.actionManager) {
+        this.actionManager.registerAction('toggle-status', (element, params) => {
+          const isExpanded = element.getAttribute('aria-expanded') === 'true';
+          const statusContent = document.querySelector('#today-status .status-content');
+          const toggleIcon = element.querySelector('.toggle-icon');
+          
+          this.debug(`ステータスバナートグル: ${isExpanded ? '折りたたみ' : '展開'}`);
+          
+          if (statusContent) {
+            element.setAttribute('aria-expanded', (!isExpanded).toString());
+            
+            if (isExpanded) {
+              // 折りたたむ
+              statusContent.style.maxHeight = '0';
+              if (toggleIcon) toggleIcon.textContent = '▼';
+            } else {
+              // 展開
+              const scrollHeight = statusContent.scrollHeight;
+              statusContent.style.maxHeight = `${scrollHeight + 20}px`;
+              if (toggleIcon) toggleIcon.textContent = '▲';
+            }
+          }
+        });
+      }
+      
+      // キーボードアクセシビリティ対応
+      statusHeader.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          this.actionManager.handleAction(statusHeader, event);
+        }
+      });
+      
+      this.debug('ステータスバナー機能初期化完了');
       
     } catch (error) {
-      this.error('ニュース一覧ページ機能初期化エラー:', error);
+      this.error('ステータスバナー機能初期化エラー:', error);
     }
   }
 

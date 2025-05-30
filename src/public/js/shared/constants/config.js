@@ -24,12 +24,16 @@ const config = {
     prefix: 'rbs_',
     version: '3.0.0',
     keys: {
-      articles: 'articles',
+      articles: 'rbs_articles',
       content: 'articles_content',
       config: 'articles_config',
       auth: 'auth_token',
-      settings: 'user_settings'
-    }
+      lessonStatus: 'rbs_lesson_status',
+      settings: 'rbs_settings'
+    },
+    autoSaveInterval: 3000,
+    cleanupInterval: 30 * 60 * 1000,
+    dataRetentionDays: 30
   },
 
   // 記事管理設定
@@ -58,9 +62,8 @@ const config = {
 
   // デバッグ設定
   debug: {
-    enabled: location.hostname === 'localhost' || 
-             new URLSearchParams(location.search).has('debug'),
-    logLevel: 'info', // error, warn, info, debug
+    enabled: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.DEBUG === true,
+    verbose: false,
     performance: true
   },
 

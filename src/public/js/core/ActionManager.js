@@ -66,7 +66,10 @@ export class ActionManager {
     }
     
     this.#actions.set(actionName, handler);
-    console.log(`📝 ActionManager: アクション登録完了 "${actionName}"`);
+    // 登録ログは開発時のみ表示
+    if (window.location.hostname === 'localhost') {
+      console.log(`📝 ActionManager: アクション登録完了 "${actionName}"`);
+    }
   }
 
   /**
@@ -93,7 +96,10 @@ export class ActionManager {
       return;
     }
 
-    console.log(`🔧 アクション処理開始: "${actionName}"`);
+    // デバッグログは重要なアクションのみ
+    if (['toggle-faq', 'toggle-status'].includes(actionName)) {
+      console.log(`🔧 アクション処理開始: "${actionName}"`);
+    }
     
     const params = this.#extractParams(element);
     
@@ -101,8 +107,13 @@ export class ActionManager {
       if (this.#actions.has(actionName)) {
         const handler = this.#actions.get(actionName);
         await handler(element, params, event);
-        console.log(`✅ アクション処理完了: "${actionName}"`);
+        
+        // 成功ログは重要なアクションのみ
+        if (['toggle-faq', 'toggle-status'].includes(actionName)) {
+          console.log(`✅ アクション処理完了: "${actionName}"`);
+        }
       } else {
+        // 未登録アクションは警告を表示
         console.log(`📢 未登録アクションをEventBusに配信: "${actionName}"`);
         EventBus.emit(`action:${actionName}`, {
           element,
@@ -240,53 +251,63 @@ export class ActionManager {
         }
       },
 
-      // ステータスバナー トグル
-      'toggle-status': (element) => {
+      // ステータス トグル
+      'toggle-status': (element, params) => {
+        const statusHeader = element.closest('.status-header') || element;
+        const statusContent = statusHeader?.nextElementSibling;
         const isExpanded = element.getAttribute('aria-expanded') === 'true';
-        const statusContent = element.parentElement?.querySelector('.status-content');
-        const toggleIcon = element.querySelector('.toggle-icon');
+        
+        console.log(`🏃 ステータストグル処理: 現在の状態: ${isExpanded ? '展開' : '折りたたみ'}`);
         
         if (statusContent) {
-          // トグル状態を切り替え
+          // aria-expanded 属性を更新
           element.setAttribute('aria-expanded', (!isExpanded).toString());
+          statusContent.setAttribute('aria-hidden', isExpanded.toString());
           
-          // アイコンを更新
-          if (toggleIcon) {
-            toggleIcon.textContent = isExpanded ? '▼' : '▲';
+          // active クラスを切り替え
+          const statusContainer = statusHeader.closest('.status-container, .lesson-status');
+          if (statusContainer) {
+            statusContainer.classList.toggle('active');
           }
           
-          // アニメーション付きで表示/非表示
+          // アニメーション処理
           if (isExpanded) {
+            // 折りたたむ場合
             statusContent.style.maxHeight = '0';
             statusContent.style.opacity = '0';
-            setTimeout(() => {
-              statusContent.style.display = 'none';
-            }, 300);
+            statusContent.style.padding = '0';
           } else {
+            // 展開する場合
             statusContent.style.display = 'block';
-            statusContent.style.maxHeight = statusContent.scrollHeight + 'px';
+            const scrollHeight = statusContent.scrollHeight;
+            statusContent.style.maxHeight = scrollHeight + 'px';
             statusContent.style.opacity = '1';
+            statusContent.style.padding = '1rem';
+            
+            // レッスン状況データの更新確認
+            this.checkLessonStatusUpdate();
           }
+          
+          // アイコン更新
+          const icon = element.querySelector('.status-icon, .toggle-icon');
+          if (icon) {
+            if (isExpanded) {
+              icon.textContent = '▼';
+              icon.style.transform = 'rotate(0deg)';
+            } else {
+              icon.textContent = '▲';
+              icon.style.transform = 'rotate(180deg)';
+            }
+          }
+          
+          console.log(`✅ ステータストグル完了: ${!isExpanded ? '展開' : '折りたたみ'}`);
+        } else {
+          console.warn('⚠️ ステータスコンテンツが見つかりません');
         }
       },
 
       // モーダル・UI
       'close-modal': () => this.#closeModal(),
-
-      // デバッグ情報表示
-      'show-debug-info': () => {
-        console.log('📊 ActionManager Debug Info:', {
-          initialized: this.#initialized,
-          actionsCount: this.#actions.size,
-          registeredActions: Array.from(this.#actions.keys())
-        });
-      },
-
-      // ニュースデバッグ表示（開発用）
-      'show-news-debug': () => {
-        console.log('📰 ニュース機能デバッグ情報');
-        EventBus.emit('news:debug');
-      },
 
       // モバイルメニュー トグル
       'toggle-mobile-menu': (element) => {
@@ -374,6 +395,58 @@ export class ActionManager {
     
     console.log('🗑️ ActionManager: 破棄完了');
   }
+
+  /**
+   * レッスン状況の更新確認
+   * @private
+   */
+  checkLessonStatusUpdate() {
+    try {
+      // レッスン状況表示コンポーネントがある場合は更新
+      if (window.lessonStatusDisplay && typeof window.lessonStatusDisplay.refreshStatus === 'function') {
+        window.lessonStatusDisplay.refreshStatus();
+        console.log('🔄 レッスン状況表示を更新しました');
+      }
+    } catch (error) {
+      console.warn('⚠️ レッスン状況更新確認エラー:', error);
+    }
+  }
+
+  /**
+   * カスタムアクションを登録
+   * @param {string} actionName - アクション名
+   * @param {Function} handler - ハンドラー関数
+   */
+  registerAction(actionName, handler) {
+    if (typeof actionName !== 'string' || !actionName.trim()) {
+      console.warn('⚠️ ActionManager: 無効なアクション名です');
+      return;
+    }
+    
+    if (typeof handler !== 'function') {
+      console.warn('⚠️ ActionManager: ハンドラーは関数である必要があります');
+      return;
+    }
+    
+    this.#actions.set(actionName, handler);
+    console.log(`🔧 ActionManager: カスタムアクション登録 - ${actionName}`);
+  }
+
+  /**
+   * アクションの登録解除
+   * @param {string} actionName - アクション名
+   */
+  unregisterAction(actionName) {
+    if (this.#actions.has(actionName)) {
+      this.#actions.delete(actionName);
+      console.log(`🗑️ ActionManager: アクション登録解除 - ${actionName}`);
+    }
+  }
+
+  /**
+   * サービス状態の取得
+   * @returns {Object} 状態情報
+   */
 }
 
 // シングルトンインスタンス

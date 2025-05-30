@@ -118,11 +118,37 @@ export class NewsDisplayComponent extends BaseComponent {
     // 記事リストコンテナ
     this.newsListContainer = this.safeQuerySelector('#news-list, .news-list, .news-grid');
     
+    // コンテナが見つからない場合は作成
+    if (!this.newsListContainer) {
+      this.debug('ニュースリストコンテナが見つかりません。自動作成します。');
+      this.newsListContainer = document.createElement('div');
+      this.newsListContainer.id = 'news-list';
+      this.newsListContainer.className = 'news-list';
+      this.container.appendChild(this.newsListContainer);
+    }
+    
     // ローディング表示
     this.loadingElement = this.safeQuerySelector('#news-loading-status, .news-loading-status');
+    if (!this.loadingElement) {
+      this.debug('ローディング要素が見つかりません。自動作成します。');
+      this.loadingElement = document.createElement('div');
+      this.loadingElement.id = 'news-loading-status';
+      this.loadingElement.className = 'news-loading-status';
+      this.loadingElement.style.display = 'none';
+      this.loadingElement.textContent = '読み込み中...';
+      this.container.appendChild(this.loadingElement);
+    }
     
     // ステータス表示
     this.statusElement = this.safeQuerySelector('#news-status-text, .news-status-text');
+    if (!this.statusElement) {
+      this.debug('ステータス要素が見つかりません。自動作成します。');
+      this.statusElement = document.createElement('div');
+      this.statusElement.id = 'news-status-text';
+      this.statusElement.className = 'news-status-text';
+      this.statusElement.style.display = 'none';
+      this.container.appendChild(this.statusElement);
+    }
     
     // 管理画面リンク（開発環境のみ表示）
     const adminLink = this.safeQuerySelector('#news-admin-link, .admin-link');

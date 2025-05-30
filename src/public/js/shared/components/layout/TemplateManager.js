@@ -37,7 +37,8 @@ export class TemplateManager extends BaseService {
      */
     async init() {
         try {
-            this.log('TemplateManager初期化開始');
+            // 初期化開始ログは必要最小限に
+            this.debug('TemplateManager初期化開始');
             
             // HttpServiceのインスタンス取得
             this.httpService = new HttpService();
@@ -47,7 +48,7 @@ export class TemplateManager extends BaseService {
             await this.preloadEssentialTemplates();
             
             this.isInitialized = true;
-            this.log('TemplateManager初期化完了');
+            this.debug('TemplateManager初期化完了');
             
         } catch (error) {
             this.error('TemplateManager初期化エラー:', error);
@@ -56,7 +57,7 @@ export class TemplateManager extends BaseService {
     }
 
     /**
-     * 必須テンプレートの事前読み込み
+     * 重要テンプレートの事前読み込み
      * @returns {Promise<void>}
      */
     async preloadEssentialTemplates() {
@@ -65,7 +66,7 @@ export class TemplateManager extends BaseService {
         const loadPromises = essentialTemplates.map(async (templateName) => {
             try {
                 await this.loadTemplate(templateName);
-                this.log(`テンプレート事前読み込み完了: ${templateName}`);
+                // 事前読み込み成功のログは省略（冗長なため）
             } catch (error) {
                 this.warn(`テンプレート事前読み込み失敗: ${templateName}`, error);
             }
@@ -82,7 +83,7 @@ export class TemplateManager extends BaseService {
     async loadTemplate(templateName) {
         // キャッシュ確認
         if (this.templateCache.has(templateName)) {
-            this.debug(`テンプレートキャッシュ使用: ${templateName}`);
+            // キャッシュ使用のログは省略（冗長なため）
             return this.templateCache.get(templateName);
         }
 
@@ -94,7 +95,11 @@ export class TemplateManager extends BaseService {
             
             // キャッシュに保存
             this.templateCache.set(templateName, templateContent);
-            this.log(`テンプレート読み込み完了: ${templateName}`);
+            // 最初の読み込み成功ログのみ表示
+            if (!this.templateCache.has(`${templateName}_logged`)) {
+                this.debug(`テンプレート読み込み: ${templateName}`);
+                this.templateCache.set(`${templateName}_logged`, true);
+            }
             
             return templateContent;
             
@@ -127,7 +132,7 @@ export class TemplateManager extends BaseService {
             
             // キャッシュに保存
             this.pageConfigCache.set(pageType, config);
-            this.log(`ページ設定読み込み完了: ${pageType}`);
+            this.debug(`ページ設定読み込み: ${pageType}`);
             
             return config;
             
@@ -143,8 +148,8 @@ export class TemplateManager extends BaseService {
     }
 
     /**
-     * ヘッダーの動的挿入
-     * @param {string} containerId - コンテナ要素のID
+     * ヘッダーテンプレートの挿入
+     * @param {string} containerId - ヘッダーコンテナID
      * @param {Object} options - オプション設定
      * @returns {Promise<void>}
      */
@@ -161,7 +166,7 @@ export class TemplateManager extends BaseService {
             const processedHeader = this.applyPageConfig(headerTemplate, options);
             
             container.innerHTML = processedHeader;
-            this.log(`ヘッダー挿入完了: ${containerId}`);
+            // 成功ログは省略（冗長なため）
             
             // ヘッダー固有の機能初期化
             this.initializeHeaderFeatures(container);
@@ -173,8 +178,8 @@ export class TemplateManager extends BaseService {
     }
 
     /**
-     * フッターの動的挿入
-     * @param {string} containerId - コンテナ要素のID
+     * フッターテンプレートの挿入
+     * @param {string} containerId - フッターコンテナID
      * @param {Object} options - オプション設定
      * @returns {Promise<void>}
      */
@@ -191,7 +196,7 @@ export class TemplateManager extends BaseService {
             const processedFooter = this.applyPageConfig(footerTemplate, options);
             
             container.innerHTML = processedFooter;
-            this.log(`フッター挿入完了: ${containerId}`);
+            // 成功ログは省略（冗長なため）
             
             // フッター固有の機能初期化
             this.initializeFooterFeatures(container);
@@ -356,7 +361,7 @@ export class TemplateManager extends BaseService {
      */
     async insertAllTemplates(pageType = 'default', options = {}) {
         try {
-            this.log(`全テンプレート挿入開始: ${pageType}`);
+            this.debug(`全テンプレート挿入: ${pageType}`);
             
             // ページ設定の読み込み
             this.currentPageConfig = await this.loadPageConfig(pageType);
@@ -370,7 +375,7 @@ export class TemplateManager extends BaseService {
             // ページクラスの適用
             this.applyPageClasses();
             
-            this.log(`全テンプレート挿入完了: ${pageType}`);
+            this.debug(`テンプレート挿入完了: ${pageType}`);
             
         } catch (error) {
             this.error('全テンプレート挿入エラー:', error);

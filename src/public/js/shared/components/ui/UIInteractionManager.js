@@ -2,19 +2,18 @@
  * UI相互作用管理システム
  * ユーザーインターフェースの相互作用を統一管理
  */
-class UIInteractionManager extends Component {
+
+import { BaseComponent } from '../BaseComponent.js';
+import { EventBus } from '../../services/EventBus.js';
+
+class UIInteractionManager extends BaseComponent {
   constructor(config = {}) {
-    super({
-      autoInit: false,
-      enableEvents: true,
-      ...config
-    });
+    super(document.body, 'UIInteractionManager');
     
     this.observers = new Map();
     
     // 設定
     this.config = {
-      ...this.config,
       animation: {
         threshold: 0.15,
         rootMargin: '0px 0px -80px 0px'
@@ -27,39 +26,40 @@ class UIInteractionManager extends Component {
       video: {
         loadTimeout: 1000,
         animationDelay: 200
-      }
+      },
+      ...config
     };
-    
-    // 初期化
-    this.init();
   }
 
   /**
    * 初期化処理の実行
    */
-  doInit() {
-    console.log('📱 UIInteractionManager v2.0 初期化開始');
-    
-    this.setupMobileMenu();
-    this.setupSmoothScroll();
-    this.setupScrollAnimations();
-    this.setupHeaderEffects();
-    this.setupHeroAnimations();
-    this.setupVideoHandling();
-    this.setupFloatingShapes();
-    
-    // ステータスバナーの初期化
-    StatusManager.init();
-    
-    console.log('✅ UIInteractionManager v2.0 初期化完了');
+  async doInit() {
+    try {
+      this.log('UIInteractionManager v2.0 初期化開始');
+      
+      this.setupMobileMenu();
+      this.setupSmoothScroll();
+      this.setupScrollAnimations();
+      this.setupHeaderEffects();
+      this.setupHeroAnimations();
+      this.setupVideoHandling();
+      this.setupFloatingShapes();
+      
+      this.log('UIInteractionManager v2.0 初期化完了');
+      
+    } catch (error) {
+      this.error('UIInteractionManager初期化エラー:', error);
+      throw error;
+    }
   }
 
   /**
    * モバイルメニューのセットアップ
    */
   setupMobileMenu() {
-    const mobileMenuBtn = RBSHelpers.getElement('.mobile-menu-btn');
-    const navLinks = RBSHelpers.getElement('.nav-links');
+    const mobileMenuBtn = this.safeQuerySelector('.mobile-menu-btn');
+    const navLinks = this.safeQuerySelector('.nav-links');
     
     if (!mobileMenuBtn || !navLinks) return;
 
@@ -70,23 +70,22 @@ class UIInteractionManager extends Component {
         mobileMenuBtn.setAttribute('aria-expanded', !isExpanded);
         navLinks.classList.toggle('active');
         
-        this.emit('ui:mobileMenuToggled', { isOpen: !isExpanded });
-        eventBus.emit('ui:mobileMenuToggled', { isOpen: !isExpanded });
+        EventBus.emit('ui:mobileMenuToggled', { isOpen: !isExpanded });
       } catch (error) {
-        console.error('モバイルメニュー切り替えエラー:', error);
+        this.error('モバイルメニュー切り替えエラー:', error);
       }
     };
 
     // ナビゲーションリンククリック時の処理
     const navLinksElements = navLinks.querySelectorAll('a');
     navLinksElements.forEach(link => {
-      this.addEventListener(link, 'click', () => {
+      this.addEventListenerToChild(link, 'click', () => {
         this.closeMobileMenu();
       });
     });
 
     // リサイズ時の処理
-    this.addEventListener(window, 'resize', RBSHelpers.debounce(() => {
+    this.addEventListener(window, 'resize', this.debounce(() => {
       this.closeMobileMenu();
     }, 250));
   }
@@ -95,15 +94,55 @@ class UIInteractionManager extends Component {
    * モバイルメニューを閉じる
    */
   closeMobileMenu() {
-    const navLinks = RBSHelpers.getElement('.nav-links');
-    const mobileMenuBtn = RBSHelpers.getElement('.mobile-menu-btn');
+    const navLinks = this.safeQuerySelector('.nav-links');
+    const mobileMenuBtn = this.safeQuerySelector('.mobile-menu-btn');
     
     if (navLinks?.classList.contains('active')) {
       navLinks.classList.remove('active');
       mobileMenuBtn?.setAttribute('aria-expanded', 'false');
-      this.emit('ui:mobileMenuClosed');
-      eventBus.emit('ui:mobileMenuClosed');
+      EventBus.emit('ui:mobileMenuClosed');
     }
+  }
+
+  /**
+   * デバウンス関数
+   * @private
+   */
+  debounce(func, delay) {
+    let timeoutId;
+    return (...args) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func.apply(this, args), delay);
+    };
+  }
+
+  /**
+   * スロットル関数
+   * @private
+   */
+  throttle(func, delay) {
+    let lastCall = 0;
+    return (...args) => {
+      const now = Date.now();
+      if (now - lastCall >= delay) {
+        lastCall = now;
+        return func.apply(this, args);
+      }
+    };
+  }
+
+  /**
+   * 要素がビューポート内にあるかチェック
+   * @private
+   */
+  isElementInViewport(element) {
+    const rect = element.getBoundingClientRect();
+    return (
+      rect.top >= 0 &&
+      rect.left >= 0 &&
+      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+      rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    );
   }
 
   /**
@@ -116,36 +155,36 @@ class UIInteractionManager extends Component {
         if (event) event.preventDefault();
         this.closeMobileMenu();
         
-        RBSHelpers.smoothScrollTo(document.body, 0)
-          .then(() => {
-            this.emit('ui:scrolledToTop');
-            eventBus.emit('ui:scrolledToTop');
-          })
-          .catch(error => console.error('スクロールエラー:', error));
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+        
+        EventBus.emit('ui:scrolledToTop');
       } catch (error) {
-        console.error('トップスクロールエラー:', error);
+        this.error('トップスクロールエラー:', error);
       }
     };
 
     // アンカーリンクのスムーススクロール
-    const anchorLinks = RBSHelpers.getElements('a[href^="#"]');
-    anchorLinks.forEach(anchor => {
-      this.addEventListener(anchor, 'click', (e) => {
+    const anchorLinks = this.safeQuerySelectorAll('a[href^="#"]');
+    this.safeForEach(anchorLinks, (anchor) => {
+      this.addEventListenerToChild(anchor, 'click', (e) => {
         e.preventDefault();
         this.closeMobileMenu();
         
         const targetId = anchor.getAttribute('href');
-        const targetElement = RBSHelpers.getElement(targetId);
+        const targetElement = this.safeQuerySelector(targetId);
         
         if (targetElement) {
           const totalOffset = this.calculateScrollOffset();
           
-          RBSHelpers.smoothScrollTo(targetElement, totalOffset)
-            .then(() => {
-              this.emit('ui:scrolledToAnchor', { target: targetId });
-              eventBus.emit('ui:scrolledToAnchor', { target: targetId });
-            })
-            .catch(error => console.error('アンカースクロールエラー:', error));
+          window.scrollTo({
+            top: targetElement.offsetTop - totalOffset,
+            behavior: 'smooth'
+          });
+          
+          EventBus.emit('ui:scrolledToAnchor', { target: targetId });
         }
       });
     });
@@ -155,8 +194,8 @@ class UIInteractionManager extends Component {
    * スクロールオフセットを計算
    */
   calculateScrollOffset() {
-    const header = RBSHelpers.getElement('header');
-    const statusBanner = RBSHelpers.getElement('.status-banner');
+    const header = this.safeQuerySelector('header');
+    const statusBanner = this.safeQuerySelector('.status-banner');
     
     const headerHeight = header?.offsetHeight || this.config.scroll.headerOffset;
     const bannerHeight = statusBanner?.offsetHeight || this.config.scroll.bannerOffset;
@@ -168,7 +207,7 @@ class UIInteractionManager extends Component {
    * スクロールアニメーションのセットアップ
    */
   setupScrollAnimations() {
-    const animatedElements = RBSHelpers.getElements('.feature-card, .reason-item, .price-card, .faq-item, .news-item, .bottom-message, .feature-number');
+    const animatedElements = this.safeQuerySelectorAll('.feature-card, .reason-item, .price-card, .faq-item, .news-item, .bottom-message, .feature-number');
     
     if (animatedElements.length === 0) return;
 
@@ -183,13 +222,14 @@ class UIInteractionManager extends Component {
           }
           
           observer.unobserve(entry.target);
-          this.emit('ui:elementAnimated', { element: entry.target });
-          eventBus.emit('ui:elementAnimated', { element: entry.target });
+          EventBus.emit('ui:elementAnimated', { element: entry.target });
         }
       });
     }, this.config.animation);
 
-    animatedElements.forEach(element => observer.observe(element));
+    this.safeForEach(animatedElements, (element) => {
+      observer.observe(element);
+    });
     this.observers.set('scrollAnimation', observer);
   }
 
@@ -197,10 +237,10 @@ class UIInteractionManager extends Component {
    * ヘッダー効果のセットアップ
    */
   setupHeaderEffects() {
-    const header = RBSHelpers.getElement('header');
+    const header = this.safeQuerySelector('header');
     if (!header) return;
 
-    const scrollHandler = RBSHelpers.throttle(() => {
+    const scrollHandler = this.throttle(() => {
       this.updateHeaderBackground();
       this.updateStatusBannerPosition();
     }, 16); // 60fps
@@ -212,7 +252,7 @@ class UIInteractionManager extends Component {
    * ヘッダー背景を更新
    */
   updateHeaderBackground() {
-    const header = RBSHelpers.getElement('header');
+    const header = this.safeQuerySelector('header');
     if (!header) return;
 
     if (window.scrollY > 100) {
@@ -228,8 +268,8 @@ class UIInteractionManager extends Component {
    * ステータスバナー位置を更新
    */
   updateStatusBannerPosition() {
-    const header = RBSHelpers.getElement('header');
-    const statusBanner = RBSHelpers.getElement('.status-banner');
+    const header = this.safeQuerySelector('header');
+    const statusBanner = this.safeQuerySelector('.status-banner');
     
     if (statusBanner && header) {
       const headerHeight = header.offsetHeight;
@@ -252,7 +292,7 @@ class UIInteractionManager extends Component {
    * ヒーローコンテンツを初期化
    */
   initializeHeroContent() {
-    const heroContent = RBSHelpers.getElement('.hero-content');
+    const heroContent = this.safeQuerySelector('.hero-content');
     if (!heroContent) return;
 
     heroContent.style.opacity = '0';
@@ -263,8 +303,7 @@ class UIInteractionManager extends Component {
       heroContent.style.opacity = '1';
       heroContent.style.transform = 'translateY(0)';
       
-      this.emit('ui:heroAnimated');
-      eventBus.emit('ui:heroAnimated');
+      EventBus.emit('ui:heroAnimated');
     }, this.config.video.animationDelay);
   }
 
@@ -272,21 +311,19 @@ class UIInteractionManager extends Component {
    * 動画処理のセットアップ
    */
   setupVideoHandling() {
-    const heroVideo = RBSHelpers.getElement('#hero-video');
+    const heroVideo = this.safeQuerySelector('#hero-video');
     if (!heroVideo) return;
 
     // 動画読み込み完了時
     this.addEventListener(heroVideo, 'loadeddata', () => {
-      this.emit('ui:videoLoaded');
-      eventBus.emit('ui:videoLoaded');
+      EventBus.emit('ui:videoLoaded');
     });
 
     // 動画エラー時
     this.addEventListener(heroVideo, 'error', () => {
       console.log('動画の読み込みでエラーが発生しました。グラデーション背景を使用します。');
       heroVideo.style.display = 'none';
-      this.emit('ui:videoError');
-      eventBus.emit('ui:videoError');
+      EventBus.emit('ui:videoError');
     });
 
     // タイムアウト処理
@@ -294,8 +331,7 @@ class UIInteractionManager extends Component {
       if (heroVideo.readyState === 0) {
         console.log('動画の読み込みがタイムアウトしました。');
         heroVideo.style.display = 'none';
-        this.emit('ui:videoTimeout');
-        eventBus.emit('ui:videoTimeout');
+        EventBus.emit('ui:videoTimeout');
       }
     }, this.config.video.loadTimeout);
 
@@ -324,7 +360,7 @@ class UIInteractionManager extends Component {
     this.addEventListener(document, 'visibilitychange', () => {
       if (document.hidden) {
         heroVideo.pause();
-      } else if (RBSHelpers.isElementInViewport(heroVideo)) {
+      } else if (this.isElementInViewport(heroVideo)) {
         heroVideo.play().catch(() => {});
       }
     });
@@ -344,7 +380,7 @@ class UIInteractionManager extends Component {
    */
   createFloatingShapes() {
     const shapes = ['🏃‍♂️', '⚡', '🎯', '🏆', '💪', '🌟'];
-    const hero = RBSHelpers.getElement('#hero');
+    const hero = this.safeQuerySelector('#hero');
     
     if (!hero) return;
 
@@ -416,144 +452,5 @@ class UIInteractionManager extends Component {
   }
 }
 
-/**
- * ステータス管理クラス
- */
-class StatusManager {
-  /**
-   * ステータス切り替え（グローバル関数として公開）
-   */
-  static toggle() {
-    try {
-      console.log('📊 ステータストグル開始');
-      
-      const statusBanner = RBSHelpers.getElement('.status-banner');
-      if (!statusBanner) {
-        console.warn('⚠️ ステータスバナーが見つかりません');
-        return;
-      }
-
-      const statusContent = statusBanner.querySelector('.status-content');
-      const toggleIcon = statusBanner.querySelector('.toggle-icon');
-      
-      // activeクラスの切り替え
-      const isCurrentlyActive = statusBanner.classList.contains('active');
-      statusBanner.classList.toggle('active');
-      const isActive = statusBanner.classList.contains('active');
-      
-      console.log('📊 ステータス状態変更:', 
-        `${isCurrentlyActive ? '展開' : '折りたたみ'} → ${isActive ? '展開' : '折りたたみ'}`);
-      
-      // コンテンツの表示制御
-      if (statusContent) {
-        if (isActive) {
-          // 展開
-          statusContent.style.display = 'block';
-          statusContent.style.maxHeight = '0';
-          statusContent.style.opacity = '0';
-          
-          // 次のフレームで展開アニメーション開始
-          requestAnimationFrame(() => {
-            statusContent.style.maxHeight = '500px';
-            statusContent.style.opacity = '1';
-          });
-        } else {
-          // 折りたたみ
-          statusContent.style.maxHeight = '0';
-          statusContent.style.opacity = '0';
-          
-          // アニメーション完了後にdisplay: noneを設定
-          setTimeout(() => {
-            if (!statusBanner.classList.contains('active')) {
-              statusContent.style.display = 'none';
-            }
-          }, 300);
-        }
-      }
-      
-      // アイコンの回転
-      if (toggleIcon) {
-        toggleIcon.style.transform = isActive ? 'rotate(180deg)' : 'rotate(0deg)';
-      }
-      
-      // statusBannerにdata属性を追加して状態を明示
-      statusBanner.setAttribute('data-status', isActive ? 'open' : 'closed');
-      
-      // カスタムイベントの発行
-      const event = new CustomEvent('statusToggled', {
-        detail: { isActive, element: statusBanner }
-      });
-      document.dispatchEvent(event);
-      
-      // eventBusが利用可能な場合は従来のイベントも発行
-      if (typeof eventBus !== 'undefined') {
-        eventBus.emit('ui:statusToggled', { isActive });
-      }
-      
-      console.log('✅ ステータストグル完了 - 状態:', isActive ? '展開' : '折りたたみ');
-      
-    } catch (error) {
-      console.error('❌ ステータス切り替えエラー:', error);
-    }
-  }
-  
-  /**
-   * ステータスバナーを初期化
-   */
-  static init() {
-    try {
-      console.log('📊 ステータスバナー初期化開始');
-      
-      const statusBanner = RBSHelpers.getElement('.status-banner');
-      if (!statusBanner) {
-        console.warn('⚠️ ステータスバナーが見つかりません');
-        return false;
-      }
-      
-      const statusContent = statusBanner.querySelector('.status-content');
-      if (statusContent) {
-        // 初期状態を設定
-        statusContent.style.display = 'none';
-        statusContent.style.maxHeight = '0';
-        statusContent.style.opacity = '0';
-        statusContent.style.transition = 'max-height 0.3s ease, opacity 0.3s ease';
-        statusContent.style.overflow = 'hidden';
-      }
-      
-      const toggleIcon = statusBanner.querySelector('.toggle-icon');
-      if (toggleIcon) {
-        toggleIcon.style.transition = 'transform 0.3s ease';
-        toggleIcon.style.transform = 'rotate(0deg)';
-      }
-      
-      // 初期状態の設定
-      statusBanner.classList.remove('active');
-      statusBanner.setAttribute('data-status', 'closed');
-      
-      console.log('✅ ステータスバナー初期化完了');
-      return true;
-      
-    } catch (error) {
-      console.error('❌ ステータスバナー初期化エラー:', error);
-      return false;
-    }
-  }
-}
-
-// グローバル関数として公開（HTMLから呼び出されるため）
-// FAQトグル機能はindex.jsで直接処理されます
-window.toggleStatus = StatusManager.toggle;
-
-// UIインタラクションマネージャーのインスタンスを作成
-const uiManager = new UIInteractionManager();
-
-// DOMContentLoaded後に初期化
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => uiManager.init());
-} else {
-  uiManager.init();
-}
-
-// グローバルに公開
-window.UIInteractionManager = UIInteractionManager;
-window.uiManager = uiManager; 
+// デフォルトエクスポート
+export default UIInteractionManager; 
