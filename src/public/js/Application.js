@@ -541,8 +541,9 @@ export class Application {
    */
   createStatusContainer() {
     try {
-      // 適切な挿入位置を探す
-      const targetParent = document.querySelector('main, #main-content, .hero-section, body');
+      // 適切な挿入位置を探す - ヘッダー直後を優先
+      const headerContainer = document.querySelector('#header-container');
+      const targetParent = headerContainer?.parentNode || document.querySelector('main, #main-content, body');
       
       if (targetParent) {
         const statusContainer = document.createElement('section');
@@ -574,15 +575,26 @@ export class Application {
           </div>
         `;
         
-        // ヒーローセクションの後に挿入
-        const heroSection = document.querySelector('.hero-section, #hero');
-        if (heroSection && heroSection.parentNode) {
-          heroSection.parentNode.insertBefore(statusContainer, heroSection.nextSibling);
+        // ヘッダーコンテナの直後に挿入（推奨位置）
+        if (headerContainer && headerContainer.nextSibling) {
+          targetParent.insertBefore(statusContainer, headerContainer.nextSibling);
+          this.debug('ステータスコンテナをヘッダー直後に動的作成しました');
+        } else if (headerContainer) {
+          // ヘッダーコンテナの後に挿入
+          headerContainer.insertAdjacentElement('afterend', statusContainer);
+          this.debug('ステータスコンテナをヘッダー直後に動的作成しました（afterend）');
         } else {
-          targetParent.insertBefore(statusContainer, targetParent.firstChild);
+          // フォールバック: ヒーローセクションの前、またはbodyの先頭
+          const heroSection = document.querySelector('.hero-section, #hero');
+          if (heroSection) {
+            heroSection.parentNode.insertBefore(statusContainer, heroSection);
+            this.debug('ステータスコンテナをヒーローセクション前に動的作成しました');
+          } else {
+            targetParent.insertBefore(statusContainer, targetParent.firstChild);
+            this.debug('ステータスコンテナをページ先頭に動的作成しました');
+          }
         }
         
-        this.debug('ステータスコンテナを動的作成しました');
         return statusContainer;
       }
       

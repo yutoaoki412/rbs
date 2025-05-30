@@ -259,23 +259,51 @@ export class LessonStatusDisplayComponent extends Component {
    */
   setupEventListeners() {
     if (this.statusHeader) {
-      this.statusHeader.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.toggleContent();
-      });
+      // 既存のイベントリスナーを削除（重複防止）
+      this.statusHeader.removeEventListener('click', this.handleToggleClick);
+      this.statusHeader.removeEventListener('keydown', this.handleToggleKeydown);
       
-      this.statusHeader.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          this.toggleContent();
-        }
-      });
+      // イベントハンドラーをバインド
+      this.handleToggleClick = this.handleToggleClick.bind(this);
+      this.handleToggleKeydown = this.handleToggleKeydown.bind(this);
+      
+      // イベントリスナーを設定
+      this.statusHeader.addEventListener('click', this.handleToggleClick);
+      this.statusHeader.addEventListener('keydown', this.handleToggleKeydown);
+      
+      this.debug('イベントリスナー設定完了');
     }
     
     // リサイズイベント
-    window.addEventListener('resize', this.debounce(() => {
+    this.handleResize = this.debounce(() => {
       this.adjustLayout();
-    }, 250));
+    }, 250);
+    
+    window.addEventListener('resize', this.handleResize);
+  }
+
+  /**
+   * クリックイベントハンドラー
+   * @private
+   * @param {Event} e 
+   */
+  handleToggleClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    this.toggleContent();
+  }
+
+  /**
+   * キーダウンイベントハンドラー
+   * @private
+   * @param {Event} e 
+   */
+  handleToggleKeydown(e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      e.stopPropagation();
+      this.toggleContent();
+    }
   }
 
   /**
@@ -420,19 +448,11 @@ export class LessonStatusDisplayComponent extends Component {
    * @returns {string}
    */
   generateStatusHTML(status) {
-    const { globalStatus, globalMessage, courses } = status;
-    const statusDef = this.getStatusDefinition(globalStatus);
+    const { globalMessage, courses } = status;
     
-    let html = `
-      <div class="global-status">
-        <div class="status-icon">${statusDef.icon}</div>
-        <div class="status-text">
-          <h3>${statusDef.displayText}</h3>
-        </div>
-      </div>
-    `;
+    let html = '';
 
-    // グローバルメッセージ
+    // グローバルメッセージ（必要な場合のみ）
     if (globalMessage) {
       html += `
         <div class="global-message">
@@ -441,7 +461,7 @@ export class LessonStatusDisplayComponent extends Component {
       `;
     }
 
-    // コース状況
+    // コース状況（メインコンテンツ）
     if (courses && Object.keys(courses).length > 0) {
       html += '<div class="courses-status">';
       
@@ -468,6 +488,13 @@ export class LessonStatusDisplayComponent extends Component {
       });
       
       html += '</div>';
+    } else {
+      // コース情報がない場合のフォールバック
+      html += `
+        <div class="loading-status">
+          <p>コース情報を読み込み中...</p>
+        </div>
+      `;
     }
 
     return html;
@@ -536,13 +563,18 @@ export class LessonStatusDisplayComponent extends Component {
   }
 
   /**
-   * コンテンツの表示・非表示切り替え - 修正版
+   * コンテンツの表示・非表示切り替え - 改善版
    * @private
    */
   toggleContent() {
-    if (!this.statusContent || !this.statusHeader) return;
+    if (!this.statusContent || !this.statusHeader) {
+      this.warn('必要な要素が見つかりません');
+      return;
+    }
     
     this.isExpanded = !this.isExpanded;
+    
+    this.debug(`コンテンツトグル開始: ${this.isExpanded ? '展開' : '折りたたみ'}`);
     
     // アリア属性更新
     this.statusHeader.setAttribute('aria-expanded', this.isExpanded.toString());
@@ -555,34 +587,65 @@ export class LessonStatusDisplayComponent extends Component {
       this.toggleIcon.textContent = this.isExpanded ? '▲' : '▼';
     }
     
-    // 高さアニメーション - 修正版
+    // 高さアニメーション - 改善版
     if (this.isExpanded) {
-      // まず auto で実際の高さを測定
-      this.statusContent.style.maxHeight = 'none';
-      const fullHeight = this.statusContent.scrollHeight;
-      this.statusContent.style.maxHeight = '0';
-      
-      // 少し遅延を入れてから実際の高さを設定
-      requestAnimationFrame(() => {
-        this.statusContent.style.maxHeight = `${fullHeight + 20}px`;
-      });
+      // 展開処理
+      this.expandContent();
     } else {
-      this.statusContent.style.maxHeight = '0';
+      // 折りたたみ処理
+      this.collapseContent();
     }
     
-    this.debug(`コンテンツ ${this.isExpanded ? '展開' : '折りたたみ'}`);
+    this.debug(`コンテンツトグル完了: ${this.isExpanded ? '展開' : '折りたたみ'}`);
   }
 
   /**
-   * レイアウト調整
+   * コンテンツ展開
+   * @private
+   */
+  expandContent() {
+    // まず現在の高さを0に設定
+    this.statusContent.style.maxHeight = '0';
+    this.statusContent.style.overflow = 'hidden';
+    
+    // 次のフレームで実際の高さを測定して設定
+    requestAnimationFrame(() => {
+      // 一時的にautoにして高さを測定
+      this.statusContent.style.maxHeight = 'auto';
+      const fullHeight = this.statusContent.scrollHeight;
+      
+      // 再度0に戻してアニメーション準備
+      this.statusContent.style.maxHeight = '0';
+      
+      // さらに次のフレームで実際の高さを設定（アニメーション開始）
+      requestAnimationFrame(() => {
+        this.statusContent.style.maxHeight = `${fullHeight + 20}px`;
+      });
+    });
+  }
+
+  /**
+   * コンテンツ折りたたみ
+   * @private
+   */
+  collapseContent() {
+    // 現在の高さから0へアニメーション
+    this.statusContent.style.maxHeight = '0';
+    this.statusContent.style.overflow = 'hidden';
+  }
+
+  /**
+   * レイアウト調整 - 改善版
    * @private
    */
   adjustLayout() {
     if (this.isExpanded && this.statusContent) {
       // 現在の高さを再計算
-      this.statusContent.style.maxHeight = 'none';
+      this.statusContent.style.maxHeight = 'auto';
       const fullHeight = this.statusContent.scrollHeight;
       this.statusContent.style.maxHeight = `${fullHeight + 20}px`;
+      
+      this.debug('レイアウト調整完了:', { fullHeight });
     }
   }
 
@@ -675,16 +738,28 @@ export class LessonStatusDisplayComponent extends Component {
   }
 
   /**
-   * 破棄処理
+   * 破棄処理 - 改善版
    */
   destroy() {
     if (this.autoRefreshInterval) {
       clearInterval(this.autoRefreshInterval);
     }
     
+    // イベントリスナーの削除
+    if (this.statusHeader) {
+      this.statusHeader.removeEventListener('click', this.handleToggleClick);
+      this.statusHeader.removeEventListener('keydown', this.handleToggleKeydown);
+    }
+    
+    if (this.handleResize) {
+      window.removeEventListener('resize', this.handleResize);
+    }
+    
     this.currentStatus = null;
     this.isVisible = false;
     this.isExpanded = false;
+    
+    this.debug('コンポーネント破棄完了');
     
     super.destroy();
   }

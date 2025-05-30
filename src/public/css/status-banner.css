@@ -7,6 +7,7 @@
   background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
   color: white;
   margin: 0;
+  margin-top: -2px; /* ヘッダーとの隙間を完全に除去 */
   padding: 0;
   border-radius: 0;
   box-shadow: 0 4px 20px rgba(74, 144, 226, 0.25);
@@ -17,8 +18,76 @@
   visibility: visible;
   opacity: 1;
   transform: translateY(0);
-  z-index: 10;
+  z-index: 50; /* ヘッダー・フッター（1000）より下の階層に配置 */
   width: 100%;
+  /* ヘッダーとの統合を強化 */
+  border-top: none; /* ヘッダーとの境界線を削除 */
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  scroll-margin-top: 78px; /* ヘッダー統合に合わせて調整 */
+  
+  /* ページ読み込み時のアニメーション */
+  animation: slideInFromTop 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ページ読み込み時のアニメーション定義 */
+@keyframes slideInFromTop {
+  0% {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 初期状態（JavaScript読み込み前） */
+.status-banner.loading {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* 表示状態 */
+.status-banner.loaded {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ヘッダーが固定されている場合の対応 */
+body.header-fixed .status-banner {
+  margin-top: -2px; /* ヘッダーとの隙間を除去 */
+  position: relative;
+  top: 0;
+  /* ヘッダーとの統合境界線を削除 */
+  border-top: none;
+}
+
+/* ヘッダーとの統合効果 */
+.status-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.4) 25%, 
+    rgba(255, 255, 255, 0.6) 50%, 
+    rgba(255, 255, 255, 0.4) 75%, 
+    transparent 100%);
+  animation: shimmer 3s ease-in-out infinite;
+  opacity: 0.8;
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.8;
+  }
 }
 
 /* コンテナー */
@@ -47,21 +116,25 @@
 
 /* ステータスヘッダー */
 .status-header {
-  padding: 20px 0;
+  padding: 18px 0; /* ヘッダーとの一体感のため少し調整 */
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  min-height: 70px;
+  background: rgba(255, 255, 255, 0.08); /* より透明度を上げて統合感をアップ */
+  backdrop-filter: blur(15px); /* ブラー効果を強化 */
+  min-height: 68px; /* ヘッダーとの高さバランス調整 */
   border-radius: 0;
+  z-index: 48; /* ステータスバナー内で適切な階層 */
+  /* ヘッダーからの自然な継続感 */
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .status-header:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12); /* ホバー時もヘッダーとの調和を保つ */
 }
 
 /* ステータス情報エリア */
@@ -193,14 +266,18 @@
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  background: white;
-  color: #2c3e50;
-  border-radius: 0;
-  box-shadow: none;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 45; /* ステータスバナー本体より少し下 */
 }
 
+/* 展開時のスタイル */
 .status-banner.expanded .status-content {
-  /* max-heightはJavaScriptで動的に設定される */
+  /* JavaScriptで動的に設定されるため、ここでは基本設定のみ */
+  opacity: 1;
 }
 
 /* ステータス詳細 */
@@ -209,6 +286,7 @@
   background: #f8f9fa;
   border-radius: 0;
   position: relative;
+  z-index: 40; /* さらに下の階層 */
 }
 
 .status-details::before {
@@ -422,13 +500,18 @@
 
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
+  .status-banner {
+    margin-top: -1px; /* モバイルでのヘッダー統合 */
+  }
+  
   .status-banner .container {
     padding: 0 15px;
   }
   
   .status-header {
-    padding: 15px 0;
-    min-height: 60px;
+    padding: 14px 0; /* モバイルでの適切なパディング */
+    min-height: 58px; /* モバイルヘッダーとのバランス */
+    background: rgba(255, 255, 255, 0.1); /* モバイルでの視認性向上 */
   }
   
   .status-info {
@@ -465,53 +548,90 @@
   }
   
   .course-header {
-    flex-direction: column;
-    align-items: flex-start;
     gap: 10px;
-  }
-  
-  .status-badge {
-    align-self: flex-start;
   }
   
   .status-footer {
     margin-left: -15px;
     margin-right: -15px;
-    padding: 15px;
+    padding: 12px 15px;
   }
 }
 
 @media (max-width: 480px) {
-  .status-banner .container {
-    padding: 0 10px;
+  .status-banner {
+    /* モバイルでの追加最適化 */
+    box-shadow: 0 2px 12px rgba(74, 144, 226, 0.2);
+    margin-top: -1px; /* 小画面でも統合感を維持 */
   }
   
   .status-header {
     padding: 12px 0;
+    min-height: 52px; /* 小画面での高さ調整 */
+    background: rgba(255, 255, 255, 0.12); /* 小画面での視認性 */
+  }
+  
+  .status-info {
+    gap: 8px;
   }
   
   .status-text {
-    font-size: 14px;
+    font-size: 15px;
+    letter-spacing: 0.3px;
   }
   
   .status-indicator {
-    padding: 4px 8px;
+    padding: 5px 10px;
     font-size: 11px;
+    border-radius: 15px;
   }
   
-  .courses-status {
-    gap: 12px;
+  .toggle-icon {
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+    margin-left: 8px;
+  }
+  
+  .status-details {
+    padding: 15px 12px;
   }
   
   .course-item {
     padding: 12px;
+    border-radius: 8px;
   }
   
   .course-info h5 {
-    font-size: 14px;
+    font-size: 15px;
+    line-height: 1.2;
   }
   
   .course-time {
-    font-size: 12px;
+    font-size: 13px;
+  }
+  
+  .status-badge {
+    padding: 5px 10px;
+    font-size: 10px;
+    min-width: 60px;
+    border-radius: 12px;
+  }
+}
+
+/* ヘッダー固定時の追加調整 */
+@media (max-width: 768px) {
+  body.header-fixed .status-banner {
+    /* モバイルでヘッダーが固定されている場合の調整 */
+    position: relative;
+    top: 0;
+    margin-top: -1px; /* モバイルでもヘッダーとの統合を維持 */
+  }
+}
+
+/* スムーズスクロール対応 - ヘッダー統合版 */
+@media (max-width: 768px) {
+  .status-banner {
+    scroll-margin-top: 58px; /* モバイルヘッダー統合版 */
   }
 } 
