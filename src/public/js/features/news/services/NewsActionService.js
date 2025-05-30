@@ -61,11 +61,6 @@ export class NewsActionService {
         await this.#handleUrlCopy(element, params);
       },
 
-      // FAQ トグル（ニュース詳細ページで使用される場合）
-      'toggle-faq': (element, params) => {
-        this.#handleFaqToggle(element, params);
-      },
-
       // モバイルメニュー切り替え
       'toggle-mobile-menu': (element) => {
         this.#handleMobileMenuToggle(element);
@@ -137,41 +132,6 @@ export class NewsActionService {
       console.error('❌ URL コピーエラー:', error);
       this.#showError('URLのコピーに失敗しました');
     }
-  }
-
-  /**
-   * FAQ トグル処理
-   * @private
-   * @param {HTMLElement} element - 要素
-   * @param {Record<string, string>} params - パラメータ
-   */
-  #handleFaqToggle(element, params) {
-    const targetId = params.target || element.getAttribute('data-target');
-    
-    if (!targetId) {
-      console.warn('⚠️ FAQ トグル: ターゲットIDが指定されていません');
-      return;
-    }
-    
-    const targetElement = document.getElementById(targetId);
-    if (!targetElement) {
-      console.warn(`⚠️ FAQ トグル: ターゲット要素が見つかりません (ID: ${targetId})`);
-      return;
-    }
-    
-    const isExpanded = targetElement.style.display !== 'none';
-    
-    if (isExpanded) {
-      targetElement.style.display = 'none';
-      element.setAttribute('aria-expanded', 'false');
-      targetElement.setAttribute('aria-hidden', 'true');
-    } else {
-      targetElement.style.display = 'block';
-      element.setAttribute('aria-expanded', 'true');
-      targetElement.setAttribute('aria-hidden', 'false');
-    }
-    
-    console.log(`🔄 FAQ トグル: ${targetId} を ${isExpanded ? '非表示' : '表示'}`);
   }
 
   /**

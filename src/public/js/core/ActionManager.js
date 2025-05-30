@@ -175,34 +175,68 @@ export class ActionManager {
       // FAQ トグル
       'toggle-faq': (element, params) => {
         const targetId = params.target;
-        if (!targetId) return;
+        if (!targetId) {
+          console.warn('⚠️ FAQ トグル: ターゲットIDが指定されていません');
+          return;
+        }
         
         const faqAnswer = document.getElementById(targetId);
+        const faqItem = element.closest('.faq-item');
         const isExpanded = element.getAttribute('aria-expanded') === 'true';
         
-        if (faqAnswer) {
-          // トグル状態を切り替え
+        console.log(`🔄 FAQ トグル処理: ${targetId}, 現在の状態: ${isExpanded ? '展開' : '折りたたみ'}`);
+        
+        if (faqAnswer && faqItem) {
+          // aria-expanded 属性を更新
           element.setAttribute('aria-expanded', (!isExpanded).toString());
           faqAnswer.setAttribute('aria-hidden', isExpanded.toString());
+          
+          if (isExpanded) {
+            // 折りたたむ場合
+            faqItem.classList.remove('active');
+            faqAnswer.style.maxHeight = '0';
+            faqAnswer.style.opacity = '0';
+          } else {
+            // 展開する場合 - 正確な高さを計算
+            // 一時的にactiveクラスを追加して高さを測定
+            faqItem.classList.add('active');
+            
+            // nextTickでDOM更新を待つ
+            requestAnimationFrame(() => {
+              const scrollHeight = faqAnswer.scrollHeight;
+              console.log(`📏 測定されたscrollHeight: ${scrollHeight}px`);
+              
+              // CSSから初期状態に戻してからアニメーション開始
+              faqAnswer.style.maxHeight = '0';
+              faqAnswer.style.opacity = '0';
+              
+              // 次のフレームでアニメーション開始
+              requestAnimationFrame(() => {
+                faqAnswer.style.maxHeight = `${scrollHeight + 20}px`;
+                faqAnswer.style.opacity = '1';
+              });
+            });
+          }
+          
+          console.log(`🎨 activeクラス切り替え: ${faqItem.classList.contains('active') ? '追加' : '削除'}`);
           
           // アイコンを更新
           const icon = element.querySelector('.faq-icon');
           if (icon) {
             icon.textContent = isExpanded ? '+' : '−';
+            console.log(`🎯 アイコン更新: ${icon.textContent}`);
           }
           
-          // アニメーション付きで表示/非表示
-          if (isExpanded) {
-            faqAnswer.style.maxHeight = '0';
-            faqAnswer.style.opacity = '0';
-            setTimeout(() => {
-              faqAnswer.style.display = 'none';
-            }, 300);
-          } else {
-            faqAnswer.style.display = 'block';
-            faqAnswer.style.maxHeight = faqAnswer.scrollHeight + 'px';
-            faqAnswer.style.opacity = '1';
-          }
+          // FAQ開閉のイベントを発行
+          EventBus.emit('faq:toggled', {
+            targetId,
+            isExpanded: !isExpanded,
+            element: faqItem
+          });
+          
+          console.log(`✅ FAQ トグル完了: ${targetId} は ${!isExpanded ? '展開' : '折りたたみ'} 状態`);
+        } else {
+          console.error(`❌ FAQ要素が見つかりません: answer=${!!faqAnswer}, item=${!!faqItem}`);
         }
       },
 

@@ -215,16 +215,6 @@ export class Application {
   }
 
   /**
-   * フォールバック用のトグル機能設定（削除）
-   * ActionManagerで処理するため不要
-   * @deprecated
-   */
-  setupFallbackToggleFunctions() {
-    // ActionManagerが正常に動作するため、この関数は不要
-    this.debug('フォールバック用トグル機能は、ActionManagerで処理されるため設定をスキップします');
-  }
-
-  /**
    * ページタイプの検出
    * @private
    */
@@ -381,11 +371,51 @@ export class Application {
    */
   async initializeHomePageFeatures() {
     try {
+      // FAQ初期状態の設定
+      this.initializeFAQs();
+      
       // 現在は追加の機能なし（将来の拡張用）
       this.debug('ホームページ機能初期化完了');
       
     } catch (error) {
       this.error('ホームページ機能初期化エラー:', error);
+    }
+  }
+
+  /**
+   * FAQ初期状態の設定
+   * @private
+   */
+  initializeFAQs() {
+    try {
+      const faqItems = document.querySelectorAll('.faq-item');
+      const faqAnswers = document.querySelectorAll('.faq-answer');
+      
+      // FAQ回答の初期状態設定（CSSアニメーションに対応）
+      faqAnswers.forEach(answer => {
+        // activeクラスがない場合の初期状態を設定
+        if (!answer.closest('.faq-item')?.classList.contains('active')) {
+          // CSSのmax-height: 0とopacity: 0に任せる
+          // display: noneは削除（CSSアニメーションのため）
+          answer.style.maxHeight = '0';
+          answer.style.opacity = '0';
+          answer.style.transition = 'max-height 0.4s ease, padding 0.4s ease, opacity 0.3s ease';
+          answer.style.overflow = 'hidden';
+        }
+      });
+      
+      // FAQ質問の初期aria-expanded設定
+      const faqQuestions = document.querySelectorAll('.faq-question');
+      faqQuestions.forEach(question => {
+        if (question.getAttribute('aria-expanded') !== 'true') {
+          question.setAttribute('aria-expanded', 'false');
+        }
+      });
+      
+      this.debug(`FAQ初期化完了: ${faqItems.length}個のアイテム`);
+      
+    } catch (error) {
+      this.warn('FAQ初期化エラー:', error);
     }
   }
 
