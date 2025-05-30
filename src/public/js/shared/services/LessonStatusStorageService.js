@@ -490,7 +490,7 @@ export class LessonStatusStorageService {
       });
       
       if (Object.keys(migratedData).length > 0) {
-        this.log(`データマイグレーション完了: ${Object.keys(migratedData).length}件`);
+        this.debug(`データマイグレーション完了: ${Object.keys(migratedData).length}件`);
       }
       
       return migratedData;

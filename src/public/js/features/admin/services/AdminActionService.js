@@ -7,17 +7,19 @@
 import { actionManager } from '../../../core/ActionManager.js';
 import { EventBus } from '../../../shared/services/EventBus.js';
 import { getArticleDataService } from './ArticleDataService.js';
-import { instagramDataService } from './InstagramDataService.js';
-import { lessonStatusService } from './LessonStatusService.js';
-import { uiManagerService } from './UIManagerService.js';
-import { newsFormManager } from '../components/NewsFormManager.js';
-import { authService } from '../../auth/services/AuthService.js';
+import { getLessonStatusStorageService } from '../../../shared/services/LessonStatusStorageService.js';
+import { CONFIG } from '../../../shared/constants/config.js';
 
 export class AdminActionService {
   constructor() {
     this.currentTab = 'dashboard';
     this.initialized = false;
     this.articleDataService = null;
+    this.lessonStatusService = null;
+    this.instagramDataService = null;
+    this.uiManagerService = null;
+    this.newsFormManager = null;
+    this.authService = null;
   }
 
   /**
@@ -33,10 +35,47 @@ export class AdminActionService {
     
     // サービス依存関係の取得
     this.articleDataService = getArticleDataService();
+    this.lessonStatusService = getLessonStatusStorageService();
+    
+    // InstagramDataServiceのインポートと初期化
+    const { instagramDataService } = await import('./InstagramDataService.js');
+    this.instagramDataService = instagramDataService;
+    
+    // UIManagerServiceのインポートと初期化
+    const { uiManagerService } = await import('./UIManagerService.js');
+    this.uiManagerService = uiManagerService;
+    
+    // NewsFormManagerのインポートと初期化
+    const { newsFormManager } = await import('../components/NewsFormManager.js');
+    this.newsFormManager = newsFormManager;
+    
+    // AuthServiceのインポートと初期化
+    const { authService } = await import('../../auth/services/AuthService.js');
+    this.authService = authService;
     
     // サービスの初期化確認
     if (!this.articleDataService.initialized) {
       await this.articleDataService.init();
+    }
+    
+    if (!this.lessonStatusService.initialized) {
+      await this.lessonStatusService.init();
+    }
+    
+    if (!this.instagramDataService.initialized) {
+      this.instagramDataService.init();
+    }
+    
+    if (!this.uiManagerService.initialized) {
+      this.uiManagerService.init();
+    }
+    
+    if (!this.newsFormManager.initialized) {
+      this.newsFormManager.init();
+    }
+    
+    if (!this.authService.initialized) {
+      await this.authService.init();
     }
     
     this.#registerAdminActions();
@@ -51,6 +90,9 @@ export class AdminActionService {
    */
   #registerAdminActions() {
     const adminActions = {
+      // 認証関連
+      'logout': () => this.logout(),
+      
       // タブ切り替え
       'switch-tab': (element, params) => {
         const tabName = params.tab;
@@ -98,22 +140,17 @@ export class AdminActionService {
           this.resetLocalStorage();
         }
       },
+      'show-debug-info': () => this.showDebugInfo(),
+      'show-news-debug': () => this.showNewsDebug(),
+      'close-modal': () => this.closeModal(),
       'open-external': (element, params) => this.openExternalUrl(params.url),
 
-      // 認証・デバッグ
-      'logout': () => {
-        if (confirm('ログアウトしますか？')) {
-          this.logout();
-        }
-      },
-      'show-debug-info': () => this.showDebugInfo(),
-      'show-news-debug': () => this.showLPNewsDebug(),
-
-      // モーダル管理
-      'close-modal': () => this.closeModal()
+      // UIイベント
+      'toggle-mobile-menu': (element) => this.toggleMobileMenu(element)
     };
 
     actionManager.registerMultiple(adminActions);
+    this.log('管理画面アクション登録完了');
   }
 
   /**
@@ -499,6 +536,17 @@ export class AdminActionService {
       
     } catch (error) {
       console.error('❌ 最近の記事更新エラー:', error);
+      
+      // エラー時の表示
+      const recentContainer = document.getElementById('recent-articles');
+      if (recentContainer) {
+        recentContainer.innerHTML = `
+          <div class="error-state">
+            <p>記事の読み込みでエラーが発生しました</p>
+            <button class="btn btn-sm btn-outline" onclick="adminActionService.refreshRecentArticles()">再試行</button>
+          </div>
+        `;
+      }
     }
   }
 
@@ -511,7 +559,7 @@ export class AdminActionService {
     try {
       console.log('📚 レッスン状況読み込み');
       
-      const status = await lessonStatusService.getCurrentStatus();
+      const status = await this.lessonStatusService.getCurrentStatus();
       this.#loadLessonStatusToForm(status);
       
       this.#showFeedback('レッスン状況を読み込みました');
@@ -545,7 +593,7 @@ export class AdminActionService {
       const statusData = this.#getLessonStatusFromForm();
       console.log('📝 レッスン状況更新:', statusData);
       
-      const result = await lessonStatusService.updateStatus(statusData);
+      const result = await this.lessonStatusService.updateStatus(statusData);
       
       if (result.success) {
         this.#showFeedback('レッスン状況を更新しました');
@@ -570,8 +618,8 @@ export class AdminActionService {
       
       const exportData = {
         articles: this.articleDataService.getExportData(),
-        instagram: instagramDataService.getExportData(),
-        lessons: lessonStatusService.getExportData(),
+        instagram: this.instagramDataService.getExportData(),
+        lessons: this.lessonStatusService.getExportData(),
         exportedAt: new Date().toISOString(),
         version: '3.0.0'
       };
@@ -601,8 +649,8 @@ export class AdminActionService {
       
       // 各サービスのデータクリア
       await this.articleDataService.clearAllData();
-      await instagramDataService.clearAllData();
-      await lessonStatusService.clearAllData();
+      await this.instagramDataService.clearAllData();
+      await this.lessonStatusService.clearAllData();
       
       // UI更新
       this.refreshNewsList();
@@ -699,35 +747,46 @@ export class AdminActionService {
    */
   openExternalUrl(url) {
     try {
-      console.log('🔗 外部URL開く:', url);
-      window.open(url, '_blank');
-      
+      if (url) {
+        // 相対パスの場合は適切なベースURLを設定
+        if (url.startsWith('../') || url.startsWith('./') || !url.includes('://')) {
+          const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
+          const fullUrl = new URL(url, baseUrl).href;
+          window.open(fullUrl, '_blank', 'noopener,noreferrer');
+        } else {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        }
+      }
     } catch (error) {
-      console.error('❌ 外部URL開くエラー:', error);
-      this.#showFeedback('ページを開けませんでした', 'error');
+      this.error('外部URL開くエラー:', error);
     }
   }
 
   // === 認証・デバッグメソッド ===
 
   /**
-   * ログアウト
+   * ログアウト処理
    */
-  async logout() {
+  logout() {
     try {
-      console.log('🚪 ログアウト実行');
+      this.log('ログアウト処理開始');
       
-      await authService.logout();
-      this.#showFeedback('ログアウトしました');
+      // 認証状態をクリア
+      if (this.authService) {
+        this.authService.logout();
+      } else {
+        // フォールバック: 手動で認証データをクリア
+        localStorage.removeItem(CONFIG.storage.keys.auth);
+        sessionStorage.clear();
+      }
       
-      // ページリロード
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      // 管理画面から離脱
+      window.location.href = '../index.html';
       
     } catch (error) {
-      console.error('❌ ログアウトエラー:', error);
-      this.#showFeedback('ログアウトに失敗しました', 'error');
+      this.error('ログアウト処理エラー:', error);
+      // フォールバック
+      window.location.href = '../index.html';
     }
   }
 
@@ -742,9 +801,9 @@ export class AdminActionService {
         currentTab: this.currentTab,
         initialized: this.initialized,
         articleService: this.articleDataService?.getStatus(),
-        instagramService: instagramDataService.getStatus(),
-        lessonService: lessonStatusService.getStatus(),
-        uiManager: uiManagerService.getStatus(),
+        instagramService: this.instagramDataService.getStatus(),
+        lessonService: this.lessonStatusService.getStatus(),
+        uiManager: this.uiManagerService.getStatus(),
         browser: {
           userAgent: navigator.userAgent,
           language: navigator.language,
@@ -768,7 +827,7 @@ export class AdminActionService {
   /**
    * LP ニュースデバッグ
    */
-  showLPNewsDebug() {
+  showNewsDebug() {
     try {
       console.log('🐛 LP ニュースデバッグ');
       
@@ -804,12 +863,44 @@ export class AdminActionService {
     try {
       const modal = document.getElementById('modal');
       if (modal) {
+        modal.style.display = 'none';
         modal.classList.remove('active');
-        console.log('📱 モーダルを閉じました');
+        
+        // モーダル内容をクリア
+        const modalBody = modal.querySelector('#modal-body, .modal-body');
+        if (modalBody) {
+          modalBody.innerHTML = '';
+        }
+        
+        this.debug('モーダルを閉じました');
       }
-      
     } catch (error) {
-      console.error('❌ モーダル閉じるエラー:', error);
+      this.error('モーダル閉じる処理エラー:', error);
+    }
+  }
+
+  /**
+   * モバイルメニュートグル
+   */
+  toggleMobileMenu(element) {
+    try {
+      const isExpanded = element.getAttribute('aria-expanded') === 'true';
+      const navLinks = document.querySelector('.nav-links');
+      
+      if (navLinks) {
+        element.setAttribute('aria-expanded', (!isExpanded).toString());
+        element.textContent = isExpanded ? '☰' : '✕';
+        
+        if (isExpanded) {
+          navLinks.classList.remove('active');
+          document.body.classList.remove('menu-open');
+        } else {
+          navLinks.classList.add('active');
+          document.body.classList.add('menu-open');
+        }
+      }
+    } catch (error) {
+      this.error('モバイルメニュートグルエラー:', error);
     }
   }
 
@@ -879,6 +970,15 @@ export class AdminActionService {
    */
   #renderRecentArticles() {
     try {
+      // ArticleDataServiceが初期化されているかチェック
+      if (!this.articleDataService || !this.articleDataService.initialized) {
+        const recentContainer = document.getElementById('recent-articles');
+        if (recentContainer) {
+          recentContainer.innerHTML = '<div class="loading-state">記事サービスを初期化中...</div>';
+        }
+        return;
+      }
+      
       const articles = this.articleDataService.loadArticles();
       const recentArticles = articles
         .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
@@ -891,6 +991,11 @@ export class AdminActionService {
       
     } catch (error) {
       console.error('❌ 最近の記事レンダリングエラー:', error);
+      
+      const recentContainer = document.getElementById('recent-articles');
+      if (recentContainer) {
+        recentContainer.innerHTML = '<div class="error-state">記事の表示でエラーが発生しました</div>';
+      }
     }
   }
 
@@ -1190,8 +1295,8 @@ export class AdminActionService {
   #showFeedback(message, type = 'success') {
     console.log(`${type === 'error' ? '❌' : '✅'} ${message}`);
     
-    if (uiManagerService?.showNotification) {
-      uiManagerService.showNotification(type, message);
+    if (this.uiManagerService?.showNotification) {
+      this.uiManagerService.showNotification(type, message);
     } else if (typeof window.showFeedback === 'function') {
       window.showFeedback(message, type);
     }
@@ -1202,7 +1307,27 @@ export class AdminActionService {
    */
   updateDashboardStats() {
     try {
-      const stats = this.articleDataService.getStats();
+      // ArticleDataServiceのgetStatsメソッドを使用
+      let stats;
+      if (this.articleDataService && typeof this.articleDataService.getStats === 'function') {
+        stats = this.articleDataService.getStats();
+      } else {
+        // フォールバック: 手動で統計を計算
+        const articles = this.articleDataService?.articles || [];
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        
+        stats = {
+          total: articles.length,
+          published: articles.filter(a => a.status === 'published').length,
+          drafts: articles.filter(a => a.status === 'draft').length,
+          currentMonth: articles.filter(a => {
+            const articleDate = new Date(a.createdAt || a.date);
+            return articleDate.getMonth() === currentMonth && articleDate.getFullYear() === currentYear;
+          }).length
+        };
+      }
       
       // 統計要素の更新
       this.#updateStatsElement('total-articles', stats.total);
@@ -1234,6 +1359,42 @@ export class AdminActionService {
     if (element) {
       element.textContent = value;
     }
+  }
+
+  // === ログメソッド ===
+
+  /**
+   * ログ出力
+   * @private
+   */
+  log(...args) {
+    console.log('🔧 AdminActionService:', ...args);
+  }
+
+  /**
+   * デバッグログ出力
+   * @private
+   */
+  debug(...args) {
+    if (CONFIG.debug.enabled) {
+      console.debug('🔍 AdminActionService:', ...args);
+    }
+  }
+
+  /**
+   * 警告ログ出力
+   * @private
+   */
+  warn(...args) {
+    console.warn('⚠️ AdminActionService:', ...args);
+  }
+
+  /**
+   * エラーログ出力
+   * @private
+   */
+  error(...args) {
+    console.error('❌ AdminActionService:', ...args);
   }
 }
 

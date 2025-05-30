@@ -525,8 +525,7 @@ export class AuthService {
   }
 
   /**
-   * 認証セッションの保存
-   * @private
+   * 認証セッションを保存
    * @param {string} token - トークン
    * @param {boolean} isDev - 開発モードフラグ
    */
@@ -542,6 +541,42 @@ export class AuthService {
     this.isAuthenticatedCache = true;
     
     this.log(`認証セッションを保存: ${isDev ? '開発モード' : '通常モード'}`);
+  }
+
+  // === ログメソッド ===
+
+  /**
+   * ログ出力
+   * @private
+   */
+  log(...args) {
+    console.log('🔐 AuthService:', ...args);
+  }
+
+  /**
+   * デバッグログ出力
+   * @private
+   */
+  debug(...args) {
+    if (config.debug?.enabled) {
+      console.debug('🔍 AuthService:', ...args);
+    }
+  }
+
+  /**
+   * 警告ログ出力
+   * @private
+   */
+  warn(...args) {
+    console.warn('⚠️ AuthService:', ...args);
+  }
+
+  /**
+   * エラーログ出力
+   * @private
+   */
+  error(...args) {
+    console.error('❌ AuthService:', ...args);
   }
 }
 

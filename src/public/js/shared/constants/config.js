@@ -62,9 +62,16 @@ const config = {
 
   // デバッグ設定
   debug: {
-    enabled: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.DEBUG === true,
+    enabled: false,
     verbose: false,
-    performance: true
+    logLevel: 'info' // 'debug', 'info', 'warn', 'error'
+  },
+
+  // パフォーマンス設定
+  performance: {
+    moduleLoadTimeout: 10000, // 10秒
+    initRetries: 3,
+    cacheMaxAge: 5 * 60 * 1000 // 5分
   },
 
   // セキュリティ設定
@@ -76,19 +83,13 @@ const config = {
       sessionDuration: 8 * 60 * 60 * 1000, // 8時間
       lockoutDuration: 15 * 60 * 1000 // 15分
     }
-  },
-
-  // パフォーマンス設定
-  performance: {
-    moduleLoadTimeout: 10000, // 10秒
-    initRetries: 3,
-    cacheMaxAge: 5 * 60 * 1000 // 5分
   }
 };
 
 // 環境別設定の上書き
 if (config.app.environment === 'development') {
   config.debug.enabled = true;
+  config.debug.verbose = true;
   config.debug.logLevel = 'debug';
   config.performance.moduleLoadTimeout = 30000; // 開発環境では長めに設定
 }

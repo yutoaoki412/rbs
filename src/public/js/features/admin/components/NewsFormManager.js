@@ -1,10 +1,11 @@
 /**
- * 記事フォーム管理コンポーネント
- * 記事の作成・編集フォームの操作とバリデーションを管理
+ * ニュースフォーム管理コンポーネント
+ * 記事編集フォームの管理とバリデーションを担当
  * @version 2.0.0
  */
 
 import { EventBus } from '../../../shared/services/EventBus.js';
+import { CONFIG } from '../../../shared/constants/config.js';
 import { articleDataService } from '../services/ArticleDataService.js';
 import { querySelector, show, hide, setValue, getValue } from '../../../shared/utils/domUtils.js';
 import { escapeHtml, truncate } from '../../../shared/utils/stringUtils.js';
@@ -603,6 +604,42 @@ export class NewsFormManager {
     this.initialized = false;
     
     console.log('🗑️ NewsFormManager: 破棄完了');
+  }
+
+  // === ログメソッド ===
+
+  /**
+   * ログ出力
+   * @private
+   */
+  log(...args) {
+    console.log('📝 NewsFormManager:', ...args);
+  }
+
+  /**
+   * デバッグログ出力
+   * @private
+   */
+  debug(...args) {
+    if (CONFIG.debug?.enabled) {
+      console.debug('🔍 NewsFormManager:', ...args);
+    }
+  }
+
+  /**
+   * 警告ログ出力
+   * @private
+   */
+  warn(...args) {
+    console.warn('⚠️ NewsFormManager:', ...args);
+  }
+
+  /**
+   * エラーログ出力
+   * @private
+   */
+  error(...args) {
+    console.error('❌ NewsFormManager:', ...args);
   }
 }
 

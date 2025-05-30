@@ -24,8 +24,9 @@ export class ArticleDataService {
     
     // 設定（統合サービスと統一）
     this.storageKeys = {
-      articles: `${CONFIG.storage.prefix}${CONFIG.storage.keys.articles}`,
-      content: `${CONFIG.storage.prefix}${CONFIG.storage.keys.content}`
+      articles: CONFIG.storage.keys.articles,
+      content: CONFIG.storage.keys.content,
+      config: CONFIG.storage.keys.config
     };
     
     // 自動保存間隔（統合サービスが管理）
@@ -548,6 +549,51 @@ export class ArticleDataService {
    */
   error(...args) {
     console.error(`❌ ${this.componentName}:`, ...args);
+  }
+
+  /**
+   * 統計情報の取得
+   * @returns {Object} 統計情報
+   */
+  getStats() {
+    try {
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      
+      const stats = {
+        total: this.articles.length,
+        published: 0,
+        drafts: 0,
+        currentMonth: 0
+      };
+      
+      this.articles.forEach(article => {
+        // ステータス別カウント
+        if (article.status === 'published') {
+          stats.published++;
+        } else if (article.status === 'draft') {
+          stats.drafts++;
+        }
+        
+        // 今月の記事カウント
+        const articleDate = new Date(article.createdAt || article.date);
+        if (articleDate.getMonth() === currentMonth && articleDate.getFullYear() === currentYear) {
+          stats.currentMonth++;
+        }
+      });
+      
+      return stats;
+      
+    } catch (error) {
+      this.error('統計情報取得エラー:', error);
+      return {
+        total: 0,
+        published: 0,
+        drafts: 0,
+        currentMonth: 0
+      };
+    }
   }
 }
 

@@ -15,11 +15,11 @@ export class ArticleStorageService {
     this.initialized = false;
     this.componentName = 'ArticleStorageService';
     
-    // 統一ストレージキー（既存データとの互換性を保持）
+    // 統一ストレージキー（CONFIG.storage.keysに含まれるキーは既にプレフィックス付き）
     this.storageKeys = {
-      articles: `${CONFIG.storage.prefix}${CONFIG.storage.keys.articles}`,
-      content: `${CONFIG.storage.prefix}${CONFIG.storage.keys.content}`,
-      config: `${CONFIG.storage.prefix}${CONFIG.storage.keys.config}`
+      articles: CONFIG.storage.keys.articles,
+      content: CONFIG.storage.keys.content,
+      config: CONFIG.storage.keys.config
     };
     
     // データキャッシュ
@@ -145,7 +145,7 @@ export class ArticleStorageService {
       for (const legacyKey of legacyKeys) {
         const legacyData = localStorage.getItem(legacyKey);
         if (legacyData) {
-          this.log(`旧データをマイグレーション中: ${legacyKey}`);
+          this.debug(`旧データをマイグレーション中: ${legacyKey}`);
           
           const articles = JSON.parse(legacyData);
           if (Array.isArray(articles)) {
@@ -156,7 +156,7 @@ export class ArticleStorageService {
             this.articles.push(...newArticles);
             migrated = true;
             
-            this.log(`マイグレーション完了: ${newArticles.length}件の記事を統合`);
+            this.debug(`マイグレーション完了: ${newArticles.length}件の記事を統合`);
           }
         }
       }

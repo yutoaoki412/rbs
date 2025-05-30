@@ -7,6 +7,7 @@
 import { EventBus } from '../../../shared/services/EventBus.js';
 import { querySelector, show, hide, setText, getValue } from '../../../shared/utils/domUtils.js';
 import { createSuccessMessage, createErrorMessage } from '../../../shared/utils/htmlUtils.js';
+import { CONFIG } from '../../../shared/constants/config.js';
 
 export class UIManagerService {
   constructor() {
@@ -472,6 +473,42 @@ export class UIManagerService {
     this.initialized = false;
     
     console.log('🗑️ UIManagerService: 破棄完了');
+  }
+
+  // === ログメソッド ===
+
+  /**
+   * ログ出力
+   * @private
+   */
+  log(...args) {
+    console.log('🎨 UIManagerService:', ...args);
+  }
+
+  /**
+   * デバッグログ出力
+   * @private
+   */
+  debug(...args) {
+    if (CONFIG.debug?.enabled) {
+      console.debug('🔍 UIManagerService:', ...args);
+    }
+  }
+
+  /**
+   * 警告ログ出力
+   * @private
+   */
+  warn(...args) {
+    console.warn('⚠️ UIManagerService:', ...args);
+  }
+
+  /**
+   * エラーログ出力
+   * @private
+   */
+  error(...args) {
+    console.error('❌ UIManagerService:', ...args);
   }
 }
 

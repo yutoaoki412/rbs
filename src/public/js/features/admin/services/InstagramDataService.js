@@ -1,10 +1,11 @@
 /**
- * Instagram投稿データサービス
- * Instagram投稿データの保存・読み込み・バリデーションを管理
+ * Instagram データ管理サービス
+ * Instagram投稿データの管理とLPサイトとの同期を担当
  * @version 2.0.0
  */
 
 import { EventBus } from '../../../shared/services/EventBus.js';
+import { CONFIG } from '../../../shared/constants/config.js';
 import { randomString } from '../../../shared/utils/stringUtils.js';
 import { isValidDate } from '../../../shared/utils/dateUtils.js';
 
@@ -426,6 +427,42 @@ export class InstagramDataService {
     this.initialized = false;
     
     console.log('🗑️ InstagramDataService: 破棄完了');
+  }
+
+  // === ログメソッド ===
+
+  /**
+   * ログ出力
+   * @private
+   */
+  log(...args) {
+    console.log('📸 InstagramDataService:', ...args);
+  }
+
+  /**
+   * デバッグログ出力
+   * @private
+   */
+  debug(...args) {
+    if (CONFIG.debug?.enabled) {
+      console.debug('🔍 InstagramDataService:', ...args);
+    }
+  }
+
+  /**
+   * 警告ログ出力
+   * @private
+   */
+  warn(...args) {
+    console.warn('⚠️ InstagramDataService:', ...args);
+  }
+
+  /**
+   * エラーログ出力
+   * @private
+   */
+  error(...args) {
+    console.error('❌ InstagramDataService:', ...args);
   }
 }
 

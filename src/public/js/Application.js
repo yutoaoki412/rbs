@@ -58,7 +58,7 @@ export class Application {
       await this.initializeLessonStatusFeatures();
       
       // ページ固有機能の初期化
-      await this.initializePageFeatures();
+      await this.initializePageSpecificFeatures();
       
       // 初期化完了
       this.initialized = true;
@@ -263,6 +263,12 @@ export class Application {
    */
   async initializeLayout() {
     try {
+      // 管理画面では独自のレイアウトを使用するため、レイアウト初期化をスキップ
+      if (this.pageType === 'admin') {
+        this.debug('管理画面のため、レイアウト初期化をスキップします');
+        return;
+      }
+      
       this.log('レイアウト機能初期化開始');
       
       const { initializeLayout } = await import('./shared/components/layout/index.js');
@@ -602,65 +608,60 @@ export class Application {
    * ページ固有機能の初期化
    * @private
    */
-  async initializePageFeatures() {
+  async initializePageSpecificFeatures() {
     try {
-      this.debug('ページ固有機能初期化開始');
+      this.debug(`ページ別機能初期化開始: ${this.pageType}`);
       
       switch (this.pageType) {
+        case 'admin':
+          await this.initializeAdminFeatures();
+          break;
         case 'home':
           await this.initializeHomePageFeatures();
           break;
-        case 'admin':
-          await this.initializeAdminPageFeatures();
-          break;
         case 'news':
-        case 'news-detail':
           await this.initializeNewsPageFeatures();
           break;
+        case 'news-detail':
+          await this.initializeNewsDetailFeatures();
+          break;
         default:
-          this.debug('特別なページ固有機能はありません');
+          this.debug('特別な初期化が不要なページタイプです');
       }
       
-      this.debug('ページ固有機能初期化完了');
+      this.debug('ページ別機能初期化完了');
       
     } catch (error) {
-      this.error('ページ固有機能初期化エラー:', error);
+      this.error('ページ別機能初期化エラー:', error);
     }
   }
 
   /**
-   * 管理画面ページ機能の初期化
+   * 管理画面機能の初期化
    * @private
    */
-  async initializeAdminPageFeatures() {
+  async initializeAdminFeatures() {
     try {
-      this.debug('管理画面ページ機能初期化開始');
-      
-      // 管理画面用の共通機能を初期化
-      // （必要に応じて追加の管理画面機能を実装）
-      
-      this.debug('管理画面ページ機能初期化完了');
-      
-    } catch (error) {
-      this.error('管理画面ページ機能初期化エラー:', error);
-    }
-  }
+      this.debug('管理画面機能初期化開始');
 
-  /**
-   * ニュースページ機能の初期化
-   * @private
-   */
-  async initializeNewsPageFeatures() {
-    try {
-      this.debug('ニュースページ機能初期化開始');
+      // 管理画面機能の初期化
+      const { initializeAdminFeatures } = await import('./features/admin/index.js');
+      const adminComponents = await initializeAdminFeatures();
       
-      // ニュースページ用の追加機能
-      // （必要に応じて実装）
+      // アプリケーションにサービスを追加
+      this.adminActionService = adminComponents.adminActionService;
+      this.uiManagerService = adminComponents.uiManagerService;
+      this.articleDataService = adminComponents.articleDataService;
       
-      this.debug('ニュースページ機能初期化完了');
+      // グローバルアクセス用（HTML内のdata-actionから使用）
+      window.adminActionService = this.adminActionService;
+      
+      this.debug('管理画面機能初期化完了');
       
     } catch (error) {
-      this.error('ニュースページ機能初期化エラー:', error);
+      this.error('管理画面機能初期化エラー:', error);
+      // フォールバック処理
+      this.showInitializationWarning('管理画面機能の初期化に失敗しました');
     }
   }
 
@@ -816,6 +817,42 @@ export class Application {
       
     } catch (error) {
       this.error('ステータスバナー機能初期化エラー:', error);
+    }
+  }
+
+  /**
+   * ニュースページ機能の初期化
+   * @private
+   */
+  async initializeNewsPageFeatures() {
+    try {
+      this.debug('ニュースページ機能初期化開始');
+      
+      // ニュースページ用の追加機能
+      // （必要に応じて実装）
+      
+      this.debug('ニュースページ機能初期化完了');
+      
+    } catch (error) {
+      this.error('ニュースページ機能初期化エラー:', error);
+    }
+  }
+
+  /**
+   * ニュース詳細ページ機能の初期化
+   * @private
+   */
+  async initializeNewsDetailFeatures() {
+    try {
+      this.debug('ニュース詳細ページ機能初期化開始');
+      
+      // ニュース詳細ページ用の追加機能
+      // （必要に応じて実装）
+      
+      this.debug('ニュース詳細ページ機能初期化完了');
+      
+    } catch (error) {
+      this.error('ニュース詳細ページ機能初期化エラー:', error);
     }
   }
 

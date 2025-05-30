@@ -7,7 +7,7 @@
 import { EventBus } from '../../../shared/services/EventBus.js';
 import { articleDataService } from './ArticleDataService.js';
 import { instagramDataService } from './InstagramDataService.js';
-import { lessonStatusService } from './LessonStatusService.js';
+import { getLessonStatusStorageService } from '../../../shared/services/LessonStatusStorageService.js';
 import { uiManagerService } from './UIManagerService.js';
 import { newsFormManager } from '../components/NewsFormManager.js';
 import { authService } from '../../auth/services/AuthService.js';
@@ -113,6 +113,9 @@ export class AdminSystemService {
    */
   async initializeServices() {
     console.log('🔧 管理サービス群を初期化中...');
+    
+    // LessonStatusStorageServiceのインスタンスを取得
+    const lessonStatusService = getLessonStatusStorageService();
     
     const services = [
       { name: 'articleService', service: articleDataService },
@@ -249,7 +252,7 @@ export class AdminSystemService {
       const stats = {
         articles: articleDataService.getStats(),
         instagram: instagramDataService.getStats(),
-        lessons: lessonStatusService.getStats()
+        lessons: getLessonStatusStorageService().getStatus()
       };
       
       uiManagerService.updateStats(stats);
@@ -265,7 +268,7 @@ export class AdminSystemService {
   async loadLessonStatusToForm() {
     try {
       const today = new Date().toISOString().slice(0, 10);
-      const status = lessonStatusService.getStatusByDate(today);
+      const status = getLessonStatusStorageService().getStatusByDate(today);
       
       if (status) {
         console.log('📅 本日のレッスン状況を読み込み:', status);
@@ -284,7 +287,7 @@ export class AdminSystemService {
    */
   async previewLessonStatus() {
     try {
-      const upcomingStatus = lessonStatusService.getUpcomingStatus(7);
+      const upcomingStatus = getLessonStatusStorageService().getRecentStatuses(7);
       console.log('👀 今後のレッスン状況プレビュー:', upcomingStatus);
       EventBus.emit('lessonStatus:preview', upcomingStatus);
     } catch (error) {
@@ -477,6 +480,9 @@ export class AdminSystemService {
   destroy() {
     try {
       console.log('🗑️ 管理システム破棄中...');
+      
+      // LessonStatusStorageServiceのインスタンスを取得
+      const lessonStatusService = getLessonStatusStorageService();
       
       // 各サービスの破棄
       const services = [

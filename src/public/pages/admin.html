@@ -20,9 +20,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="page-admin">
-  <!-- ヘッダーコンテナ（新アーキテクチャ対応） -->
-  <div id="header-container"></div>
-
   <!-- ヘッダー -->
   <header class="admin-header">
     <div class="header-left">
@@ -491,10 +488,16 @@
     <!-- 通知がここに表示される -->
   </div>
 
-  <!-- フッターコンテナ（新アーキテクチャ対応） -->
-  <div id="footer-container"></div>
-
   <!-- メインアプリケーション（ES6モジュール） -->
   <script type="module" src="../js/main.js"></script>
+  
+  <!-- 開発環境でのデバッグ用 -->
+  <script>
+    // デバッグ環境の設定
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      window.DEBUG = true;
+      console.log('🔧 管理画面デバッグモード有効');
+    }
+  </script>
 </body>
 </html> 
