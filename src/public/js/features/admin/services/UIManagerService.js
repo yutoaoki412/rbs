@@ -77,19 +77,57 @@ export class UIManagerService {
   setupEventListeners() {
     // 管理機能のイベントを監視
     EventBus.on('article:saved', (data) => {
-      this.showNotification('success', '記事を保存しました');
+      this.showSuccessNotification('article-save', { title: data?.title });
     });
     
     EventBus.on('article:published', (data) => {
-      this.showNotification('success', '記事を公開しました');
+      this.showSuccessNotification('article-publish', { title: data?.title });
     });
     
     EventBus.on('instagram:saved', (data) => {
-      this.showNotification('success', 'Instagram投稿を保存しました');
+      this.showSuccessNotification('instagram-save');
     });
     
     EventBus.on('lessonStatus:updated', (data) => {
-      this.showNotification('success', 'レッスン状況を更新しました');
+      this.showSuccessNotification('lesson-status-update', { date: data?.date });
+    });
+    
+    EventBus.on('lessonStatus:saved', (data) => {
+      this.showSuccessNotification('lesson-status-save', { date: data?.date });
+    });
+    
+    EventBus.on('lessonStatus:preview', (data) => {
+      this.showSuccessNotification('lesson-status-preview');
+    });
+    
+    EventBus.on('lessonStatus:published', (data) => {
+      this.showSuccessNotification('lesson-status-publish');
+    });
+    
+    // エラーイベント
+    EventBus.on('error:lessonStatus:save', (data) => {
+      this.showErrorNotification('lesson-status-save', data);
+    });
+    
+    EventBus.on('error:lessonStatus:load', (data) => {
+      this.showErrorNotification('lesson-status-load', data);
+    });
+    
+    EventBus.on('error:article:save', (data) => {
+      this.showErrorNotification('article-save', data);
+    });
+    
+    EventBus.on('error:network', (data) => {
+      this.showErrorNotification('network-error', data);
+    });
+    
+    // 情報イベント
+    EventBus.on('info:autoSave', (data) => {
+      this.showInfoNotification('auto-save', data);
+    });
+    
+    EventBus.on('info:dataSync', (data) => {
+      this.showInfoNotification('data-sync', data);
     });
     
     console.log('🖥️ UIイベントリスナーを設定');
@@ -115,73 +153,79 @@ export class UIManagerService {
    * @param {string} type - 通知タイプ ('success', 'error', 'warning', 'info')
    * @param {string} message - メッセージ
    * @param {number} duration - 表示時間（ミリ秒、0で手動消去）
+   * @param {Object} options - 追加オプション
    * @returns {string} 通知ID
    */
-  showNotification(type, message, duration = this.defaultNotificationDuration) {
+  showNotification(type, message, duration = this.defaultNotificationDuration, options = {}) {
     const notificationId = `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    let notificationHtml = '';
-    switch (type) {
-      case 'success':
-        notificationHtml = createSuccessMessage(message);
-        break;
-      case 'error':
-        notificationHtml = createErrorMessage({ 
-          title: 'エラー', 
-          message: message 
-        });
-        break;
-      case 'warning':
-        notificationHtml = `
-          <div class="notification notification-warning" id="${notificationId}">
-            <div class="notification-content">
-              <strong>⚠️ 警告</strong>
-              <p>${message}</p>
-            </div>
-            <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+    // デフォルトタイトルとアイコンの設定
+    const defaults = {
+      success: { title: '成功', icon: '✅' },
+      error: { title: 'エラー', icon: '❌' },
+      warning: { title: '警告', icon: '⚠️' },
+      info: { title: '情報', icon: 'ℹ️' }
+    };
+    
+    const config = defaults[type] || defaults.info;
+    const title = options.title || config.title;
+    const icon = options.icon || config.icon;
+    
+    // プログレスバーの幅を計算
+    const progressDuration = duration > 0 ? duration : 0;
+    
+    const notificationHtml = `
+      <div class="admin-notification ${type}" id="${notificationId}">
+        <div class="notification-content">
+          <div class="notification-icon">${icon}</div>
+          <div class="notification-message-wrapper">
+            <div class="notification-title">${title}</div>
+            <div class="notification-message">${message}</div>
           </div>
-        `;
-        break;
-      case 'info':
-        notificationHtml = `
-          <div class="notification notification-info" id="${notificationId}">
-            <div class="notification-content">
-              <strong>ℹ️ 情報</strong>
-              <p>${message}</p>
-            </div>
-            <button class="notification-close" onclick="this.parentElement.remove()">×</button>
-          </div>
-        `;
-        break;
-      default:
-        notificationHtml = `
-          <div class="notification" id="${notificationId}">
-            <div class="notification-content">
-              <p>${message}</p>
-            </div>
-            <button class="notification-close" onclick="this.parentElement.remove()">×</button>
-          </div>
-        `;
-    }
+          <button class="notification-close" onclick="uiManagerService.removeNotification('${notificationId}')">×</button>
+        </div>
+        ${progressDuration > 0 ? `<div class="notification-progress" style="width: 100%; transition-duration: ${progressDuration}ms;"></div>` : ''}
+      </div>
+    `;
     
     // 通知を表示
     this.notificationContainer.insertAdjacentHTML('beforeend', notificationHtml);
     
-    // 自動消去のタイマーを設定
-    if (duration > 0) {
+    // アニメーション効果を適用
+    const notificationElement = querySelector(`#${notificationId}`);
+    if (notificationElement) {
+      // 即座にshow効果を適用
       setTimeout(() => {
-        this.removeNotification(notificationId);
-      }, duration);
+        notificationElement.classList.add('show', 'animating-in');
+      }, 10);
+      
+      // プログレスバーのアニメーション開始
+      if (progressDuration > 0) {
+        const progressBar = notificationElement.querySelector('.notification-progress');
+        if (progressBar) {
+          setTimeout(() => {
+            progressBar.style.width = '0%';
+          }, 100);
+        }
+      }
+      
+      // 自動消去のタイマーを設定
+      if (duration > 0) {
+        setTimeout(() => {
+          this.removeNotification(notificationId);
+        }, duration);
+      }
     }
     
     this.notifications.set(notificationId, {
       type,
       message,
+      title,
       timestamp: new Date(),
       duration
     });
     
-    EventBus.emit('ui:notificationShown', { id: notificationId, type, message });
+    EventBus.emit('ui:notificationShown', { id: notificationId, type, message, title });
     
     return notificationId;
   }
@@ -193,9 +237,18 @@ export class UIManagerService {
   removeNotification(notificationId) {
     const notification = querySelector(`#${notificationId}`);
     if (notification) {
-      notification.remove();
-      this.notifications.delete(notificationId);
-      EventBus.emit('ui:notificationRemoved', { id: notificationId });
+      // 削除アニメーションを適用
+      notification.classList.add('animating-out');
+      notification.classList.remove('show', 'animating-in');
+      
+      // アニメーション完了後に要素を削除
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.remove();
+        }
+        this.notifications.delete(notificationId);
+        EventBus.emit('ui:notificationRemoved', { id: notificationId });
+      }, 300);
     }
   }
 
@@ -509,6 +562,139 @@ export class UIManagerService {
    */
   error(...args) {
     console.error('❌ UIManagerService:', ...args);
+  }
+
+  /**
+   * 成功通知のヘルパーメソッド
+   * @param {string} action - 実行されたアクション
+   * @param {Object} details - 詳細情報
+   */
+  showSuccessNotification(action, details = {}) {
+    let title = '成功';
+    let message = '';
+    let icon = '✅';
+    
+    switch (action) {
+      case 'lesson-status-save':
+        title = 'レッスン状況を保存';
+        message = `${details.date}のレッスン状況を保存しました`;
+        icon = '📅';
+        break;
+      case 'lesson-status-update':
+        title = 'レッスン状況を更新';
+        message = `${details.date}のレッスン状況を更新しました`;
+        icon = '🔄';
+        break;
+      case 'lesson-status-preview':
+        title = 'プレビューを表示';
+        message = 'レッスン状況のプレビューを生成しました';
+        icon = '👀';
+        break;
+      case 'lesson-status-publish':
+        title = 'レッスン状況を公開';
+        message = 'レッスン状況を公開しました';
+        icon = '🚀';
+        break;
+      case 'article-save':
+        title = '記事を保存';
+        message = details.title ? `「${details.title}」を保存しました` : '記事を保存しました';
+        icon = '📝';
+        break;
+      case 'article-publish':
+        title = '記事を公開';
+        message = details.title ? `「${details.title}」を公開しました` : '記事を公開しました';
+        icon = '📢';
+        break;
+      case 'instagram-save':
+        title = 'Instagram投稿を保存';
+        message = 'Instagram投稿情報を保存しました';
+        icon = '📸';
+        break;
+      case 'data-export':
+        title = 'データエクスポート完了';
+        if (details.filename && details.recordCount) {
+          message = `${details.recordCount}件のデータを ${details.filename} としてエクスポートしました`;
+        } else {
+          message = details.filename ? `データを ${details.filename} としてエクスポートしました` : 'データをエクスポートしました';
+        }
+        icon = '📥';
+        break;
+      default:
+        message = details.message || '操作が完了しました';
+    }
+    
+    return this.showNotification('success', message, 4000, { title, icon });
+  }
+
+  /**
+   * エラー通知のヘルパーメソッド
+   * @param {string} action - 失敗したアクション
+   * @param {Object} details - 詳細情報
+   */
+  showErrorNotification(action, details = {}) {
+    let title = 'エラー';
+    let message = '';
+    let icon = '❌';
+    
+    switch (action) {
+      case 'lesson-status-save':
+        title = '保存に失敗';
+        message = 'レッスン状況の保存に失敗しました';
+        icon = '💾';
+        break;
+      case 'lesson-status-load':
+        title = '読み込みに失敗';
+        message = 'レッスン状況の読み込みに失敗しました';
+        icon = '📂';
+        break;
+      case 'article-save':
+        title = '記事保存に失敗';
+        message = '記事の保存に失敗しました';
+        icon = '📝';
+        break;
+      case 'network-error':
+        title = 'ネットワークエラー';
+        message = 'ネットワーク接続を確認してください';
+        icon = '🌐';
+        break;
+      case 'data-export':
+        title = 'エクスポートエラー';
+        message = details.message || 'データのエクスポートに失敗しました';
+        icon = '📥';
+        break;
+      default:
+        message = details.message || '操作に失敗しました';
+    }
+    
+    return this.showNotification('error', message, 6000, { title, icon });
+  }
+
+  /**
+   * 情報通知のヘルパーメソッド
+   * @param {string} action - アクション
+   * @param {Object} details - 詳細情報
+   */
+  showInfoNotification(action, details = {}) {
+    let title = '情報';
+    let message = '';
+    let icon = 'ℹ️';
+    
+    switch (action) {
+      case 'auto-save':
+        title = '自動保存';
+        message = 'データを自動保存しました';
+        icon = '💾';
+        break;
+      case 'data-sync':
+        title = 'データ同期';
+        message = 'データの同期が完了しました';
+        icon = '🔄';
+        break;
+      default:
+        message = details.message || '情報';
+    }
+    
+    return this.showNotification('info', message, 3000, { title, icon });
   }
 }
 

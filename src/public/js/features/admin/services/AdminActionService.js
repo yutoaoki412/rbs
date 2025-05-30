@@ -9,6 +9,8 @@ import { EventBus } from '../../../shared/services/EventBus.js';
 import { getArticleDataService } from './ArticleDataService.js';
 import { getLessonStatusStorageService } from '../../../shared/services/LessonStatusStorageService.js';
 import { CONFIG } from '../../../shared/constants/config.js';
+import { dataExportService } from '../../../shared/services/DataExportService.js';
+import { uiManagerService } from './UIManagerService.js';
 
 export class AdminActionService {
   constructor() {
@@ -33,10 +35,40 @@ export class AdminActionService {
 
     console.log('🔧 AdminActionService: 初期化開始');
     
+    try {
+      // サービス初期化
+      await this.initializeServices();
+      
+      // データエクスポートサービスの設定
+      await this.setupDataExportService();
+      
+      // アクション登録
+      this.#registerAdminActions();
+      
+      // UIイベントの設定
+      this.setupUIEvents();
+      
+      // 管理画面固有の初期化
+      this.setupAdminUI();
+      
+      this.initialized = true;
+      console.log('✅ AdminActionService: 初期化完了');
+      
+    } catch (error) {
+      console.error('❌ AdminActionService初期化エラー:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * サービス初期化
+   * @private
+   */
+  async initializeServices() {
     // サービス依存関係の取得
     this.articleDataService = getArticleDataService();
     this.lessonStatusService = getLessonStatusStorageService();
-    
+     
     // InstagramDataServiceのインポートと初期化
     const { instagramDataService } = await import('./InstagramDataService.js');
     this.instagramDataService = instagramDataService;
@@ -57,7 +89,7 @@ export class AdminActionService {
     if (!this.articleDataService.initialized) {
       await this.articleDataService.init();
     }
-    
+     
     if (!this.lessonStatusService.initialized) {
       await this.lessonStatusService.init();
     }
@@ -78,10 +110,45 @@ export class AdminActionService {
       await this.authService.init();
     }
     
-    this.#registerAdminActions();
-    this.#setupEventListeners();
-    this.initialized = true;
-    console.log('✅ AdminActionService: 初期化完了');
+    this.log('全サービス初期化完了');
+  }
+
+  /**
+   * データエクスポートサービスの設定
+   * @private
+   */
+  async setupDataExportService() {
+    try {
+      // DataExportServiceの初期化
+      if (!dataExportService.initialized) {
+        await dataExportService.init();
+      }
+      
+      // データサービスの登録
+      dataExportService.registerDataService('articles', this.articleDataService);
+      dataExportService.registerDataService('instagram', this.instagramDataService);
+      dataExportService.registerDataService('lessonStatus', this.lessonStatusService);
+      
+      // エクスポートイベントのリスナー設定
+      EventBus.on('dataExport:completed', (data) => {
+        uiManagerService.showSuccessNotification('data-export', {
+          filename: data.filename,
+          recordCount: data.recordCount
+        });
+      });
+      
+      EventBus.on('dataExport:failed', (data) => {
+        uiManagerService.showErrorNotification('data-export', {
+          message: data.error
+        });
+      });
+      
+      this.log('DataExportService設定完了');
+      
+    } catch (error) {
+      this.error('DataExportService設定エラー:', error);
+      throw error;
+    }
   }
 
   /**
@@ -154,28 +221,33 @@ export class AdminActionService {
   }
 
   /**
-   * イベントリスナーの設定
+   * UIイベントの設定
    * @private
    */
-  #setupEventListeners() {
-    // 記事関連イベント
-    EventBus.on('article:saved', (data) => {
-      this.#showFeedback('記事を保存しました');
+  setupUIEvents() {
+    // レガシーEventBusイベントのマッピング（必要に応じて）
+    EventBus.on('admin:needsRefresh', () => {
       this.refreshNewsList();
       this.refreshRecentArticles();
     });
+    
+    EventBus.on('admin:dataChanged', () => {
+      this.refreshNewsList();
+    });
+    
+    this.log('UIイベント設定完了');
+  }
 
-    EventBus.on('article:published', (data) => {
-      this.#showFeedback('記事を公開しました');
-      this.refreshNewsList();
-      this.refreshRecentArticles();
-    });
-
-    EventBus.on('article:deleted', (data) => {
-      this.#showFeedback('記事を削除しました');
-      this.refreshNewsList();
-      this.refreshRecentArticles();
-    });
+  /**
+   * 管理画面固有の初期化
+   * @private
+   */
+  setupAdminUI() {
+    // 管理画面特有の初期化処理
+    this.updateAdminStats();
+    this.setupTabNavigation();
+    
+    this.log('管理画面UI初期化完了');
   }
 
   /**
@@ -616,27 +688,30 @@ export class AdminActionService {
     try {
       console.log('📥 データエクスポート開始');
       
-      const exportData = {
-        articles: this.articleDataService.getExportData(),
-        instagram: this.instagramDataService.getExportData(),
-        lessons: this.lessonStatusService.getExportData(),
-        exportedAt: new Date().toISOString(),
-        version: '3.0.0'
-      };
+      const result = await dataExportService.exportAllData();
       
-      const dataStr = JSON.stringify(exportData, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      if (result.success) {
+        this.log(`データエクスポート成功: ${result.filename}`);
+      } else {
+        this.error('データエクスポート失敗:', result.message);
+      }
       
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(dataBlob);
-      link.download = `rbs-admin-data-${new Date().toISOString().split('T')[0]}.json`;
-      link.click();
-      
-      this.#showFeedback('データをエクスポートしました');
+      return result;
       
     } catch (error) {
       console.error('❌ データエクスポートエラー:', error);
-      this.#showFeedback('データのエクスポートに失敗しました', 'error');
+      
+      const errorResult = {
+        success: false,
+        message: `データのエクスポートに失敗しました: ${error.message}`
+      };
+      
+      // UIManagerServiceを使って通知
+      uiManagerService.showErrorNotification('data-export', {
+        message: error.message
+      });
+      
+      return errorResult;
     }
   }
 
@@ -905,6 +980,38 @@ export class AdminActionService {
   }
 
   // === プライベートヘルパーメソッド ===
+
+  /**
+   * 日本語のステータス値を英語キーにマッピング
+   * @private
+   * @param {string} japaneseStatus - 日本語のステータス値
+   * @returns {string} 英語のステータスキー
+   */
+  #mapJapaneseStatusToKey(japaneseStatus) {
+    const statusMapping = {
+      '通常開催': 'scheduled',
+      '中止': 'cancelled',
+      '室内開催': 'indoor',
+      '延期': 'postponed'
+    };
+    return statusMapping[japaneseStatus] || 'scheduled';
+  }
+
+  /**
+   * 英語のステータスキーを日本語の値にマッピング
+   * @private
+   * @param {string} statusKey - 英語のステータスキー
+   * @returns {string} 日本語のステータス値
+   */
+  #mapStatusKeyToJapanese(statusKey) {
+    const statusMapping = {
+      'scheduled': '通常開催',
+      'cancelled': '中止',
+      'indoor': '室内開催',
+      'postponed': '延期'
+    };
+    return statusMapping[statusKey] || '通常開催';
+  }
 
   /**
    * フォームから記事データを取得
@@ -1202,7 +1309,6 @@ export class AdminActionService {
    * @param {Object} statusData - レッスン状況データ
    */
   #showLessonStatusPreview(statusData) {
-    // 実装は簡略化版
     console.log('👁️ レッスン状況プレビュー:', statusData);
     this.#showFeedback('レッスン状況プレビューを表示');
   }
@@ -1227,12 +1333,37 @@ export class AdminActionService {
    * @returns {Object}
    */
   #getLessonStatusFromForm() {
+    // 今日の日付をデフォルトとして取得
+    const today = new Date().toISOString().slice(0, 10);
+    
+    // フォームからの生の値を取得
+    const globalStatusRaw = document.querySelector('input[name="global-status"]:checked')?.value || 'scheduled';
+    const basicLessonRaw = document.querySelector('input[name="basic-lesson"]:checked')?.value || '通常開催';
+    const advanceLessonRaw = document.querySelector('input[name="advance-lesson"]:checked')?.value || '通常開催';
+    
+    // 日本語の値を英語キーにマッピング
+    const globalStatus = this.#mapJapaneseStatusToKey(globalStatusRaw);
+    const basicLessonStatus = this.#mapJapaneseStatusToKey(basicLessonRaw);
+    const advanceLessonStatus = this.#mapJapaneseStatusToKey(advanceLessonRaw);
+    
     return {
-      date: document.getElementById('lesson-date')?.value || '',
-      globalStatus: document.querySelector('input[name="global-status"]:checked')?.value || 'scheduled',
+      date: document.getElementById('lesson-date')?.value || today,
+      globalStatus: globalStatus,
       globalMessage: document.getElementById('global-message')?.value || '',
-      basicLesson: document.querySelector('input[name="basic-lesson"]:checked')?.value || '通常開催',
-      advanceLesson: document.querySelector('input[name="advance-lesson"]:checked')?.value || '通常開催'
+      courses: {
+        basic: {
+          name: 'ベーシックコース（年長〜小3）',
+          time: '17:00-17:50',
+          status: basicLessonStatus,
+          message: ''
+        },
+        advance: {
+          name: 'アドバンスコース（小4〜小6）',
+          time: '18:00-18:50',
+          status: advanceLessonStatus,
+          message: ''
+        }
+      }
     };
   }
 
@@ -1252,19 +1383,23 @@ export class AdminActionService {
       if (messageField) messageField.value = status.globalMessage;
     }
     
-    // ラジオボタンの設定
+    // ラジオボタンの設定（英語キーから日本語値にマッピング）
     if (status.globalStatus) {
-      const globalRadio = document.querySelector(`input[name="global-status"][value="${status.globalStatus}"]`);
+      const globalJapanese = this.#mapStatusKeyToJapanese(status.globalStatus);
+      const globalRadio = document.querySelector(`input[name="global-status"][value="${globalJapanese}"]`);
       if (globalRadio) globalRadio.checked = true;
     }
     
-    if (status.basicLesson) {
-      const basicRadio = document.querySelector(`input[name="basic-lesson"][value="${status.basicLesson}"]`);
+    // コースデータの処理
+    if (status.courses?.basic?.status) {
+      const basicJapanese = this.#mapStatusKeyToJapanese(status.courses.basic.status);
+      const basicRadio = document.querySelector(`input[name="basic-lesson"][value="${basicJapanese}"]`);
       if (basicRadio) basicRadio.checked = true;
     }
     
-    if (status.advanceLesson) {
-      const advanceRadio = document.querySelector(`input[name="advance-lesson"][value="${status.advanceLesson}"]`);
+    if (status.courses?.advance?.status) {
+      const advanceJapanese = this.#mapStatusKeyToJapanese(status.courses.advance.status);
+      const advanceRadio = document.querySelector(`input[name="advance-lesson"][value="${advanceJapanese}"]`);
       if (advanceRadio) advanceRadio.checked = true;
     }
   }
@@ -1361,6 +1496,64 @@ export class AdminActionService {
     }
   }
 
+  /**
+   * 管理画面統計情報の更新
+   * @private
+   */
+  updateAdminStats() {
+    try {
+      const articleStats = this.articleDataService.getStats();
+      
+      // レッスンステータスの取得 - 適切なメソッドを使用
+      let lessonCount = 0;
+      try {
+        if (this.lessonStatusService && typeof this.lessonStatusService.getStatus === 'function') {
+          const lessonStatus = this.lessonStatusService.getStatus();
+          lessonCount = lessonStatus.statusCount || 0; // statusData.sizeの値を使用
+        } else if (this.lessonStatusService && typeof this.lessonStatusService.getCurrentStatus === 'function') {
+          const lessonStatus = this.lessonStatusService.getCurrentStatus();
+          lessonCount = lessonStatus ? 1 : 0;
+        }
+      } catch (lessonError) {
+        this.warn('レッスン統計取得エラー:', lessonError);
+        lessonCount = 0;
+      }
+      
+      // Instagram統計の取得
+      let instagramCount = 0;
+      try {
+        if (this.instagramDataService && Array.isArray(this.instagramDataService.posts)) {
+          instagramCount = this.instagramDataService.posts.length;
+        }
+      } catch (instagramError) {
+        this.warn('Instagram統計取得エラー:', instagramError);
+        instagramCount = 0;
+      }
+      
+      // UIManagerServiceを使って統計を更新
+      if (this.uiManagerService && typeof this.uiManagerService.updateStats === 'function') {
+        this.uiManagerService.updateStats({
+          articles: articleStats,
+          lessons: { total: lessonCount },
+          instagram: { total: instagramCount }
+        });
+      }
+      
+    } catch (error) {
+      this.warn('統計情報更新エラー:', error);
+    }
+  }
+
+  /**
+   * タブナビゲーションの設定
+   * @private
+   */
+  setupTabNavigation() {
+    // 現在のタブ状態を保存・復元
+    const activeTab = localStorage.getItem('admin-active-tab') || 'dashboard';
+    this.switchAdminTab(activeTab);
+  }
+
   // === ログメソッド ===
 
   /**
@@ -1399,4 +1592,4 @@ export class AdminActionService {
 }
 
 // シングルトンインスタンス
-export const adminActionService = new AdminActionService(); 
+export const adminActionService = new AdminActionService();

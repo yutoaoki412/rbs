@@ -423,15 +423,19 @@
         <div class="settings-panel">
           <div class="setting-group">
             <h3><i class="fas fa-database"></i> データ管理</h3>
-            <p>記事データの管理とバックアップ</p>
+            <p>記事、Instagram投稿、レッスン状況データの統合管理とバックアップ</p>
             <div class="setting-actions">
               <button class="btn btn-outline" data-action="export-data">
-                <i class="fas fa-download"></i> データをエクスポート
+                <i class="fas fa-download"></i> 全データをエクスポート
               </button>
               <button class="btn btn-outline" data-action="clear-all-data">
                 <i class="fas fa-trash"></i> 全データクリア
               </button>
             </div>
+            <small class="setting-note">
+              <i class="fas fa-info-circle"></i>
+              エクスポート機能が改善されました。ファイル名、メタデータ、エラーハンドリングが強化されています。
+            </small>
           </div>
           
           <div class="setting-group">
@@ -498,6 +502,16 @@
       window.DEBUG = true;
       console.log('🔧 管理画面デバッグモード有効');
     }
+  </script>
+
+  <script>
+    // 今日の日付をデフォルトで設定
+    document.addEventListener('DOMContentLoaded', function() {
+      const lessonDateField = document.getElementById('lesson-date');
+      if (lessonDateField && !lessonDateField.value) {
+        lessonDateField.value = new Date().toISOString().slice(0, 10);
+      }
+    });
   </script>
 </body>
 </html> 

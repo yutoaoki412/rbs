@@ -34,7 +34,8 @@ export async function initializeAdminFeatures() {
     // HTMLのdata-actionイベントからアクセスするため
     if (typeof window !== 'undefined') {
       window.adminActionService = adminActionService;
-      console.log('🌐 adminActionServiceをグローバルに公開');
+      window.uiManagerService = adminActionService.uiManagerService;
+      console.log('🌐 adminActionServiceとuiManagerServiceをグローバルに公開');
     }
     
     console.log('✅ 管理機能初期化完了');

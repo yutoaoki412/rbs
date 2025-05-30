@@ -664,8 +664,8 @@ export class LessonStatusStorageService {
       // 正規化されたデータを作成
       const normalizedData = this.normalizeStatusData(statusData, dateKey);
       
-      // 保存
-      const result = await this.saveStatus(dateKey, normalizedData);
+      // 保存（引数順序を修正）
+      const result = await this.saveStatus(normalizedData, dateKey);
       
       if (result.success) {
         EventBus.emit('lessonStatus:updated', {

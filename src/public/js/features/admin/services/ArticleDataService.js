@@ -398,15 +398,35 @@ export class ArticleDataService {
   }
 
   /**
-   * データエクスポート
+   * エクスポート用データ取得
    * @returns {Object} エクスポートデータ
    */
-  exportData() {
-    return {
-      articles: this.articles,
-      exportedAt: new Date().toISOString(),
-      version: '3.0.0'
-    };
+  getExportData() {
+    try {
+      return {
+        articles: this.articles.map(article => ({
+          ...article,
+          content: this.getArticleContent(article.id)
+        })),
+        metadata: {
+          exportedAt: new Date().toISOString(),
+          count: this.articles.length,
+          version: '3.0.0'
+        }
+      };
+      
+    } catch (error) {
+      this.error('エクスポートデータ取得エラー:', error);
+      return {
+        articles: [],
+        metadata: {
+          exportedAt: new Date().toISOString(),
+          count: 0,
+          version: '3.0.0',
+          error: error.message
+        }
+      };
+    }
   }
 
   /**
@@ -624,38 +644,6 @@ export class ArticleDataService {
       return {
         success: false,
         error: error.message
-      };
-    }
-  }
-
-  /**
-   * エクスポート用データ取得
-   * @returns {Object} エクスポートデータ
-   */
-  getExportData() {
-    try {
-      return {
-        articles: this.articles.map(article => ({
-          ...article,
-          content: this.getArticleContent(article.id)
-        })),
-        metadata: {
-          exportedAt: new Date().toISOString(),
-          count: this.articles.length,
-          version: '2.0.0'
-        }
-      };
-      
-    } catch (error) {
-      this.error('エクスポートデータ取得エラー:', error);
-      return {
-        articles: [],
-        metadata: {
-          exportedAt: new Date().toISOString(),
-          count: 0,
-          version: '2.0.0',
-          error: error.message
-        }
       };
     }
   }

@@ -820,88 +820,208 @@ input[type="checkbox"] {
   transform: translateY(-1px);
 }
 
-/* 通知システム */
-.admin-notification {
+/* 通知システム - リッチなトーストUI */
+.notification-container {
   position: fixed;
   top: 80px;
   right: 20px;
-  z-index: 9999;
-  max-width: 400px;
-  border-radius: var(--admin-border-radius);
-  box-shadow: var(--admin-shadow-lg);
+  z-index: 10000;
+  max-width: 420px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.admin-notification {
+  position: relative;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  animation: slideIn 0.3s ease-out;
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-notification.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.admin-notification.hide {
+  transform: translateX(100%);
+  opacity: 0;
+  margin-bottom: 0;
+  max-height: 0;
 }
 
 .admin-notification.success {
-  background: var(--admin-success);
-  color: var(--admin-white);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-left: 4px solid #34d399;
 }
 
 .admin-notification.error {
-  background: var(--admin-error);
-  color: var(--admin-white);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-left: 4px solid #f87171;
 }
 
 .admin-notification.warning {
-  background: var(--admin-warning);
-  color: var(--admin-white);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-left: 4px solid #fbbf24;
 }
 
 .admin-notification.info {
-  background: var(--admin-primary);
-  color: var(--admin-white);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-left: 4px solid #60a5fa;
 }
 
 .notification-content {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  color: white;
+  position: relative;
 }
 
-.notification-content i:first-child {
-  font-size: 1.25rem;
+.notification-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
-.notification-content span {
+.notification-message-wrapper {
   flex: 1;
-  font-weight: 500;
+  min-width: 0;
+}
+
+.notification-title {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 2px;
+  letter-spacing: -0.01em;
+}
+
+.notification-message {
+  font-size: 14px;
+  opacity: 0.95;
+  line-height: 1.4;
+  word-wrap: break-word;
 }
 
 .notification-close {
-  background: none;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
-  color: inherit;
+  color: white;
   cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  transition: var(--admin-transition);
-  opacity: 0.8;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .notification-close:hover {
-  opacity: 1;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
 }
 
-@keyframes slideIn {
+.notification-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.7);
+  transition: width linear;
+  border-radius: 0 0 12px 12px;
+}
+
+/* アニメーション効果 */
+@keyframes toastSlideIn {
   from {
+    transform: translateX(100%) scale(0.8);
     opacity: 0;
-    transform: translateY(-20px);
   }
   to {
+    transform: translateX(0) scale(1);
     opacity: 1;
-    transform: translateY(0);
+  }
+}
+
+@keyframes toastSlideOut {
+  from {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%) scale(0.8);
+    opacity: 0;
+  }
+}
+
+.admin-notification.animating-in {
+  animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-notification.animating-out {
+  animation: toastSlideOut 0.3s cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 480px) {
+  .notification-container {
+    left: 16px;
+    right: 16px;
+    max-width: none;
+  }
+  
+  .admin-notification {
+    margin-bottom: 8px;
+  }
+  
+  .notification-content {
+    padding: 14px 16px;
+  }
+  
+  .notification-icon {
+    font-size: 20px;
+  }
+  
+  .notification-title {
+    font-size: 14px;
+  }
+  
+  .notification-message {
+    font-size: 13px;
+  }
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+  .admin-notification {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 }
 
 /* アクセシビリティ向上 */
 @media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  .admin-notification {
+    transition: opacity 0.2s ease;
+    transform: none !important;
+  }
+  
+  .admin-notification.animating-in,
+  .admin-notification.animating-out {
+    animation: none;
   }
 }
 

@@ -391,14 +391,17 @@ export class InstagramDataService {
   }
 
   /**
-   * データをエクスポート
+   * エクスポート用データ取得
    * @returns {Object}
    */
-  exportData() {
+  getExportData() {
     return {
       posts: this.posts,
-      exportedAt: new Date().toISOString(),
-      version: '2.0'
+      metadata: {
+        exportedAt: new Date().toISOString(),
+        count: this.posts.length,
+        version: '2.0.0'
+      }
     };
   }
 
