@@ -75,6 +75,9 @@ export class NewsDisplayComponent extends Component {
       // イベントリスナーの設定
       this.setupEventListeners();
       
+      // 開発環境での管理画面リンク表示
+      this.setupAdminLinks();
+      
       // 初期記事の表示
       await this.displayArticles();
       
@@ -256,32 +259,26 @@ export class NewsDisplayComponent extends Component {
    */
   createArticleCard(article) {
     const card = document.createElement('article');
-    card.className = 'news-card';
+    card.className = 'news-item';
     card.setAttribute('data-category', article.category);
     card.setAttribute('data-article-id', article.id);
     
     card.innerHTML = `
-      <div class="news-card-header">
-        <div class="news-meta">
-          <div class="news-date">${escapeHtml(article.formattedDate)}</div>
-          <div class="news-category ${article.category}" style="background-color: ${article.categoryColor};">
-            ${escapeHtml(article.categoryName)}
-          </div>
-        </div>
-        <h2 class="news-title">${escapeHtml(article.title)}</h2>
-      </div>
-      <div class="news-card-body">
-        <p class="news-excerpt">${escapeHtml(article.excerpt)}</p>
-        <a href="news-detail.html?id=${article.id}" class="news-read-more">続きを読む</a>
-      </div>
+      <div class="news-date">${escapeHtml(article.formattedDate)}</div>
+      <div class="news-category ${article.category}">${escapeHtml(article.categoryName)}</div>
+      <h3 class="news-title">
+        <a href="news-detail.html?id=${article.id}">${escapeHtml(article.title)}</a>
+      </h3>
+      ${article.excerpt ? `<p class="news-excerpt">${escapeHtml(article.excerpt)}</p>` : ''}
     `;
     
-    // クリックイベント
-    this.addEventListenerToChild(card, 'click', (event) => {
-      // リンク以外をクリックした場合は詳細ページに遷移
-      if (!event.target.closest('a')) {
-        window.location.href = `news-detail.html?id=${article.id}`;
-      }
+    // ホバー効果のためのCSSクラス追加
+    card.addEventListener('mouseenter', () => {
+      card.classList.add('hover');
+    });
+    
+    card.addEventListener('mouseleave', () => {
+      card.classList.remove('hover');
     });
     
     return card;
@@ -330,7 +327,7 @@ export class NewsDisplayComponent extends Component {
     if (!this.newsListContainer) return;
     
     const message = this.currentCategory === 'all' 
-      ? '公開済みの記事がまだありません。'
+      ? '記事がまだありません。管理画面で記事を作成してください。'
       : '該当するカテゴリーの記事が見つかりませんでした。';
     
     this.newsListContainer.innerHTML = `
@@ -338,7 +335,7 @@ export class NewsDisplayComponent extends Component {
         <div style="font-size: 48px; margin-bottom: 20px;">📝</div>
         <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 15px; color: #333;">記事がありません</h3>
         <p style="font-size: 16px; margin-bottom: 25px; line-height: 1.6;">${message}</p>
-        ${this.debugMode ? '<a href="admin.html" class="btn btn-secondary" style="display: inline-block; padding: 12px 24px; background: #4299e1; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">管理画面で記事を作成</a>' : ''}
+        <a href="admin.html" class="btn btn-primary" style="display: inline-block; padding: 12px 24px; background: var(--primary-blue); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;">管理画面で記事を作成</a>
       </div>
     `;
   }
@@ -560,6 +557,32 @@ export class NewsDisplayComponent extends Component {
           <button onclick="location.reload()">再読み込み</button>
         </div>
       `;
+    }
+  }
+
+  /**
+   * 開発環境での管理画面リンク表示
+   * @private
+   */
+  setupAdminLinks() {
+    if (!this.debugMode) return;
+    
+    try {
+      // 管理画面リンクの表示
+      const adminLink = this.safeQuerySelector('#news-admin-link', this.container);
+      if (adminLink) {
+        adminLink.style.display = 'block';
+        this.debug('管理画面リンクを表示しました');
+      }
+      
+      // デバッグボタンがある場合は表示
+      const debugButton = this.safeQuerySelector('[data-action="show-news-debug"]', this.container);
+      if (debugButton) {
+        debugButton.style.display = 'inline-block';
+      }
+      
+    } catch (error) {
+      this.error('管理画面リンク設定エラー:', error);
     }
   }
 }

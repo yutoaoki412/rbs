@@ -333,26 +333,36 @@ export class Application {
     try {
       const { default: NewsDisplayComponent } = await import('./shared/components/news/NewsDisplayComponent.js');
       
-      // ニュース表示用のコンテナを探すか、作成
-      let newsContainer = document.querySelector('#news-section, .news-section, .news-container');
+      // 動的ニュース表示用のコンテナを検索
+      let newsContainer = document.querySelector('[data-news-dynamic="true"]') ||
+                         document.querySelector('#news') ||
+                         document.querySelector('#news-section, .news-section, .news-container');
+      
       if (!newsContainer) {
         // コンテナが見つからない場合は、main要素内に作成
         const mainElement = document.querySelector('main, #main-content, body');
         if (mainElement) {
-          newsContainer = document.createElement('div');
+          newsContainer = document.createElement('section');
           newsContainer.id = 'news-section';
           newsContainer.className = 'news-section';
+          newsContainer.setAttribute('data-news-dynamic', 'true');
           newsContainer.style.display = 'none'; // 必要時に表示
           mainElement.appendChild(newsContainer);
+          this.debug('動的ニュースコンテナを新規作成しました');
         } else {
           // 最終フォールバック: body要素を使用
           newsContainer = document.body;
         }
+      } else {
+        this.debug('既存の動的ニュースコンテナを使用:', newsContainer.id || newsContainer.className);
       }
       
       const newsDisplay = new NewsDisplayComponent(newsContainer);
       await newsDisplay.init();
       this.newsDisplayComponent = newsDisplay;
+      
+      // グローバルアクセス用
+      window.newsDisplayComponent = newsDisplay;
       
       this.debug('NewsDisplayComponent初期化完了');
       
@@ -363,16 +373,32 @@ export class Application {
 
   /**
    * ニュースセクションの存在確認
+   * 動的ニュースセクション（data-news-dynamic="true"）を検出して統合記事システムを有効化
    * @returns {boolean}
    */
   hasNewsSection() {
+    // 動的ニュースセクションを優先的に検出
+    const dynamicNewsSection = document.querySelector('[data-news-dynamic="true"]');
+    if (dynamicNewsSection) {
+      this.debug('動的ニュースセクションが検出されました。統合記事システムを初期化します。');
+      return true;
+    }
+    
+    // 静的ニュースセクションは除外
+    const staticNewsSection = document.querySelector('.news-section-static');
+    if (staticNewsSection) {
+      this.debug('静的ニュースセクションが検出されました。動的処理をスキップします。');
+      return false;
+    }
+    
+    // 他の動的ニュースセクションパターンも検出
     const hasNewsElements = !!(
-      document.querySelector('#news-section, .news-section, .news-container, #news, .news') ||
+      document.querySelector('#news-section, .news-section, .news-container') ||
       document.querySelector('[data-component="news"], [data-role="news"]') ||
-      document.querySelector('a[href*="news"], button[data-action*="news"]')
+      document.querySelector('#news.news-dynamic, .news-dynamic')
     );
     
-    this.debug(`ニュースセクション存在確認: ${hasNewsElements}`);
+    this.debug(`動的ニュースセクション存在確認: ${hasNewsElements}`);
     return hasNewsElements;
   }
 
