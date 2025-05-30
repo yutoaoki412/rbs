@@ -398,9 +398,16 @@ main {
 
 /* ステータスバナー連動効果 */
 .status-banner {
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  display: block; /* 常に表示準備 */
+  opacity: 1; /* デフォルトで表示 */
+  transform: translateY(0); /* デフォルト位置 */
 }
 
+/* 非表示状態の統一 */
 .status-banner-hidden {
   transform: translateY(-100%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 } 

@@ -476,12 +476,18 @@ export class Application {
    */
   async initializeLPLessonStatus() {
     try {
-      // レッスン状況セクションの存在確認
+      // ホームページまたはレッスン状況セクションがある場合は初期化を実行
       if (this.pageType === 'home' || this.hasLessonStatusSection()) {
         this.debug('レッスン状況セクションを検出、初期化を実行します');
         await this.initializeLessonStatusDisplayComponent();
       } else {
-        this.debug('レッスン状況セクションが見つかりません、初期化をスキップします');
+        // セクションが見つからない場合でも、ホームページなら強制的に初期化
+        if (this.pageType === 'home') {
+          this.debug('ホームページのため、レッスン状況セクションを作成して初期化します');
+          await this.initializeLessonStatusDisplayComponent();
+        } else {
+          this.debug('レッスン状況セクションが見つかりません、初期化をスキップします');
+        }
       }
       
     } catch (error) {
@@ -508,6 +514,10 @@ export class Application {
       }
       
       if (statusContainer) {
+        // 非表示クラスがあれば除去
+        statusContainer.classList.remove('status-banner-hidden');
+        statusContainer.classList.add('status-banner-visible');
+        
         const lessonStatusDisplay = new LessonStatusDisplayComponent(statusContainer);
         await lessonStatusDisplay.init();
         
@@ -778,18 +788,23 @@ export class Application {
       statusContent.style.overflow = 'hidden';
       statusContent.style.transition = 'max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
       statusHeader.setAttribute('aria-expanded', 'false');
+      statusBanner.classList.remove('expanded');
       
       // ActionManagerにtoggle-statusアクションを強化登録
       if (this.actionManager) {
         this.actionManager.registerAction('toggle-status', (element, params) => {
           const isExpanded = element.getAttribute('aria-expanded') === 'true';
           const statusContent = document.querySelector('#today-status .status-content');
+          const statusBanner = document.querySelector('#today-status');
           const toggleIcon = element.querySelector('.toggle-icon');
           
           this.debug(`ステータスバナートグル: ${isExpanded ? '折りたたみ' : '展開'}`);
           
-          if (statusContent) {
+          if (statusContent && statusBanner) {
             element.setAttribute('aria-expanded', (!isExpanded).toString());
+            
+            // expandedクラスを切り替え
+            statusBanner.classList.toggle('expanded', !isExpanded);
             
             if (isExpanded) {
               // 折りたたむ
@@ -797,8 +812,14 @@ export class Application {
               if (toggleIcon) toggleIcon.textContent = '▼';
             } else {
               // 展開
-              const scrollHeight = statusContent.scrollHeight;
-              statusContent.style.maxHeight = `${scrollHeight + 20}px`;
+              statusContent.style.maxHeight = 'none';
+              const fullHeight = statusContent.scrollHeight;
+              statusContent.style.maxHeight = '0';
+              
+              requestAnimationFrame(() => {
+                statusContent.style.maxHeight = `${fullHeight + 20}px`;
+              });
+              
               if (toggleIcon) toggleIcon.textContent = '▲';
             }
           }

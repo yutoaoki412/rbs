@@ -1,7 +1,7 @@
 /**
- * レッスン状況表示コンポーネント
+ * レッスン状況表示コンポーネント - レイアウト・アニメーション修正版
  * LP側でレッスン開催状況を表示
- * @version 1.1.0 - 新アーキテクチャ対応
+ * @version 2.1.0 - アニメーション・レイアウト修正
  */
 
 import { Component } from '../../../shared/base/Component.js';
@@ -9,34 +9,50 @@ import { getLessonStatusStorageService } from '../../../shared/services/LessonSt
 import { EventBus } from '../../../shared/services/EventBus.js';
 
 export class LessonStatusDisplayComponent extends Component {
-  constructor(element = '#today-status, .status-banner, .lesson-status, [data-action="toggle-status"]') {
+  constructor(element = '#today-status') {
     super({ autoInit: false });
     
     this.componentName = 'LessonStatusDisplayComponent';
     
     // DOM要素の設定
-    if (typeof element === 'string') {
-      this.element = document.querySelector(element);
-    } else {
-      this.element = element;
-    }
+    this.element = this.resolveElement(element);
     
     // サービス参照
     this.lessonStatusService = null;
     
     // DOM要素
     this.statusContainer = null;
+    this.statusHeader = null;
     this.statusContent = null;
-    this.refreshBtn = null;
+    this.statusDetails = null;
+    this.globalStatusIndicator = null;
+    this.toggleIcon = null;
     
     // 状態管理
     this.currentStatus = null;
     this.isVisible = false;
+    this.isExpanded = false;
     this.autoRefreshInterval = null;
     
     // 設定
-    this.autoRefreshIntervalTime = 60 * 1000; // 1分間隔で自動更新
-    this.showEmptyStatus = true; // デフォルトで表示するように変更
+    this.config = {
+      autoRefreshInterval: 60 * 1000, // 1分間隔
+      maxRetries: 3,
+      retryDelay: 2000,
+      animationDuration: 400
+    };
+  }
+
+  /**
+   * 要素を解決
+   * @param {string|Element} element - 要素またはセレクタ
+   * @returns {Element|null}
+   */
+  resolveElement(element) {
+    if (typeof element === 'string') {
+      return document.querySelector(element);
+    }
+    return element;
   }
 
   /**
@@ -52,184 +68,401 @@ export class LessonStatusDisplayComponent extends Component {
     try {
       this.log('レッスン状況表示コンポーネント初期化開始');
       
-      // サービス取得
-      this.lessonStatusService = getLessonStatusStorageService();
+      // 要素の確認と準備
+      await this.prepareElement();
       
-      // サービスが初期化されていない場合は初期化
-      if (!this.lessonStatusService.initialized) {
-        await this.lessonStatusService.init();
-      }
-      
-      // DOM要素の設定
+      // DOM要素の取得
       this.findDOMElements();
+      
+      // 基本表示の確保
+      this.ensureVisibility();
+      
+      // サービス初期化
+      await this.initializeService();
+      
+      // イベントリスナーの設定
+      this.setupEventListeners();
+      
+      // 初期データ読み込み
+      await this.loadAndDisplayStatus();
       
       this.isInitialized = true;
       this.log('レッスン状況表示コンポーネント初期化完了');
       
     } catch (error) {
       this.error('レッスン状況表示コンポーネント初期化エラー:', error);
-      throw error;
+      this.showFallbackStatus();
     }
   }
-  
+
+  /**
+   * 要素の準備
+   * @private
+   */
+  async prepareElement() {
+    if (!this.element) {
+      this.warn('ステータスバナー要素が見つかりません');
+      this.element = this.createDefaultElement();
+    }
+    
+    // 必要なクラスを追加
+    this.element.classList.add('status-banner');
+    this.element.classList.remove('status-banner-hidden');
+    this.element.classList.add('status-banner-visible');
+    
+    // 基本構造の確保
+    this.ensureBasicStructure();
+  }
+
+  /**
+   * デフォルト要素の作成
+   * @private
+   * @returns {Element}
+   */
+  createDefaultElement() {
+    const section = document.createElement('section');
+    section.id = 'today-status';
+    section.className = 'status-banner';
+    
+    // ヒーローセクションの後に挿入
+    const heroSection = document.querySelector('#hero');
+    if (heroSection && heroSection.parentNode) {
+      heroSection.parentNode.insertBefore(section, heroSection.nextSibling);
+    } else {
+      document.body.appendChild(section);
+    }
+    
+    this.log('デフォルトステータスバナー要素を作成しました');
+    return section;
+  }
+
+  /**
+   * 基本構造の確保
+   * @private
+   */
+  ensureBasicStructure() {
+    if (!this.element.querySelector('.container')) {
+      this.element.innerHTML = this.getDefaultHTML();
+    }
+  }
+
+  /**
+   * デフォルトHTMLの取得
+   * @private
+   * @returns {string}
+   */
+  getDefaultHTML() {
+    return `
+      <div class="container">
+        <div class="status-header" data-action="toggle-status" style="cursor: pointer;" aria-expanded="false">
+          <div class="status-info">
+            <span class="status-dot"></span>
+            <span class="status-text">本日のレッスン開催状況</span>
+            <span class="status-indicator" id="global-status-indicator">準備中...</span>
+          </div>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="status-content">
+          <div class="status-details" id="status-details">
+            <div class="loading-status">
+              <i class="fas fa-spinner fa-spin"></i>
+              <p>レッスン状況を読み込み中...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   /**
    * DOM要素を検索
+   * @private
    */
   findDOMElements() {
-    if (!this.element) {
-      this.warn('要素が見つかりません');
-      return;
-    }
+    this.statusContainer = this.element;
+    this.statusHeader = this.element.querySelector('.status-header');
+    this.statusContent = this.element.querySelector('.status-content');
+    this.statusDetails = this.element.querySelector('.status-details');
+    this.globalStatusIndicator = this.element.querySelector('#global-status-indicator');
+    this.toggleIcon = this.element.querySelector('.toggle-icon');
     
-    this.statusContainer = this.element.closest('.status-banner') || this.element;
-    this.statusContent = this.element.querySelector('.status-content') || this.element;
-    this.refreshBtn = this.element.querySelector('.refresh-btn');
+    this.debug('DOM要素検索完了:', {
+      container: !!this.statusContainer,
+      header: !!this.statusHeader,
+      content: !!this.statusContent,
+      details: !!this.statusDetails,
+      indicator: !!this.globalStatusIndicator,
+      toggle: !!this.toggleIcon
+    });
   }
-  
+
   /**
-   * エラーメッセージ表示
-   * @param {string} message - エラーメッセージ
+   * 表示を確保
+   * @private
    */
-  showErrorMessage(message) {
-    this.error(message);
-    
+  ensureVisibility() {
+    if (this.statusContainer) {
+      this.statusContainer.style.display = 'block';
+      this.statusContainer.style.visibility = 'visible';
+      this.statusContainer.style.opacity = '1';
+      this.statusContainer.style.transform = 'translateY(0)';
+      this.isVisible = true;
+      this.log('ステータスバナーの表示を確保しました');
+      
+      // 初期状態設定（折りたたみ状態）
+      this.resetToCollapsedState();
+    }
+  }
+
+  /**
+   * 折りたたみ状態にリセット
+   * @private
+   */
+  resetToCollapsedState() {
     if (this.statusContent) {
-      this.statusContent.innerHTML = `
-        <div class="error-message">
-          <i class="fas fa-exclamation-triangle"></i>
-          <span>${message}</span>
-        </div>
-      `;
+      this.statusContent.style.maxHeight = '0';
+      this.statusContent.style.overflow = 'hidden';
+    }
+    
+    if (this.statusHeader) {
+      this.statusHeader.setAttribute('aria-expanded', 'false');
+    }
+    
+    if (this.toggleIcon) {
+      this.toggleIcon.textContent = '▼';
+    }
+    
+    this.statusContainer.classList.remove('expanded');
+    this.isExpanded = false;
+  }
+
+  /**
+   * サービス初期化
+   * @private
+   */
+  async initializeService() {
+    try {
+      this.lessonStatusService = getLessonStatusStorageService();
+      if (!this.lessonStatusService.initialized) {
+        await this.lessonStatusService.init();
+      }
+      this.debug('レッスン状況サービス初期化完了');
+    } catch (error) {
+      this.warn('レッスン状況サービス初期化失敗:', error);
+      this.lessonStatusService = null;
     }
   }
-  
+
   /**
-   * ログ出力
-   * @param {...any} args - ログ引数
+   * イベントリスナーの設定
+   * @private
    */
-  log(...args) {
-    console.log(`[${this.componentName}]`, ...args);
-  }
-  
-  /**
-   * エラーログ出力
-   * @param {...any} args - エラーログ引数
-   */
-  error(...args) {
-    console.error(`[${this.componentName}]`, ...args);
-  }
-  
-  /**
-   * デバッグログ出力
-   * @param {...any} args - デバッグログ引数
-   */
-  debug(...args) {
-    console.log(`[${this.componentName}:DEBUG]`, ...args);
-  }
-  
-  /**
-   * 警告ログ出力
-   * @param {...any} args - 警告ログ引数
-   */
-  warn(...args) {
-    console.warn(`[${this.componentName}]`, ...args);
+  setupEventListeners() {
+    if (this.statusHeader) {
+      this.statusHeader.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.toggleContent();
+      });
+      
+      this.statusHeader.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.toggleContent();
+        }
+      });
+    }
+    
+    // リサイズイベント
+    window.addEventListener('resize', this.debounce(() => {
+      this.adjustLayout();
+    }, 250));
   }
 
   /**
    * レッスン状況を読み込んで表示
-   * @param {string} [date] - 表示する日付（省略時は今日）
+   * @param {string} [date] - 表示する日付
    * @returns {Promise<void>}
    */
   async loadAndDisplayStatus(date = null) {
-    try {
-      if (!this.lessonStatusService) {
-        throw new Error('レッスン状況サービスが初期化されていません');
+    let retries = 0;
+    
+    while (retries < this.config.maxRetries) {
+      try {
+        this.showLoadingState();
+        
+        const status = await this.fetchStatus(date);
+        this.currentStatus = status;
+        
+        this.updateDisplay(status);
+        this.log('レッスン状況表示更新完了');
+        return;
+        
+      } catch (error) {
+        retries++;
+        this.warn(`レッスン状況取得失敗 (試行 ${retries}/${this.config.maxRetries}):`, error);
+        
+        if (retries < this.config.maxRetries) {
+          await this.sleep(this.config.retryDelay);
+        } else {
+          this.showFallbackStatus();
+        }
       }
+    }
+  }
 
-      // ローディング表示
-      this.showLoadingState();
-
-      // レッスン状況を取得
-      const status = date ? 
+  /**
+   * ステータスデータの取得
+   * @private
+   * @param {string} [date] - 日付
+   * @returns {Promise<Object>}
+   */
+  async fetchStatus(date) {
+    if (this.lessonStatusService) {
+      return date ? 
         this.lessonStatusService.getStatusByDate(date) : 
         this.lessonStatusService.getTodayStatus();
-
-      this.currentStatus = status;
-      
-      // 表示を更新
-      this.updateDisplay(status);
-      
-      this.log('レッスン状況表示更新完了:', status);
-      
-    } catch (error) {
-      this.error('レッスン状況表示エラー:', error);
-      this.showErrorMessage('レッスン状況を読み込めませんでした');
+    } else {
+      return this.createFallbackStatus();
     }
   }
 
   /**
-   * レッスン状況表示を更新
-   * @param {Object} status - レッスン状況データ
+   * フォールバック用のデフォルトステータス
+   * @private
+   * @returns {Object}
+   */
+  createFallbackStatus() {
+    const today = new Date().toISOString().split('T')[0];
+    
+    return {
+      date: today,
+      globalStatus: 'scheduled',
+      globalMessage: '本日のレッスンは通常通り開催予定です。',
+      courses: {
+        basic: {
+          name: 'ベーシックコース（年長〜小3）',
+          time: '17:00-17:50',
+          status: 'scheduled',
+          message: ''
+        },
+        advance: {
+          name: 'アドバンスコース（小4〜小6）',
+          time: '18:00-18:50',
+          status: 'scheduled',
+          message: ''
+        }
+      },
+      lastUpdated: new Date().toISOString(),
+      version: '1.0.0'
+    };
+  }
+
+  /**
+   * フォールバック状態の表示
+   * @private
+   */
+  showFallbackStatus() {
+    this.error('フォールバック状態を表示します');
+    const fallbackStatus = this.createFallbackStatus();
+    this.updateDisplay(fallbackStatus);
+  }
+
+  /**
+   * 表示の更新
+   * @private
+   * @param {Object} status - ステータスデータ
    */
   updateDisplay(status) {
-    if (!this.statusContent || !status) {
-      return;
-    }
-
-    const html = this.generateStatusHTML(status);
-    this.statusContent.innerHTML = html;
-    
-    // 表示状態を更新
-    this.isVisible = true;
-    if (this.statusContainer) {
-      this.statusContainer.classList.add('status-visible');
-      this.statusContainer.classList.remove('status-hidden');
+    try {
+      // グローバルステータス更新
+      this.updateGlobalStatus(status.globalStatus);
+      
+      // 詳細内容更新
+      this.updateStatusDetails(status);
+      
+      this.isVisible = true;
+      this.debug('表示更新完了');
+      
+    } catch (error) {
+      this.error('表示更新エラー:', error);
     }
   }
 
   /**
-   * レッスン状況HTMLを生成
-   * @param {Object} status - レッスン状況データ
+   * グローバルステータスの更新
+   * @private
+   * @param {string} status - ステータス
+   */
+  updateGlobalStatus(status) {
+    if (this.globalStatusIndicator) {
+      const statusDef = this.getStatusDefinition(status);
+      this.globalStatusIndicator.textContent = statusDef.displayText;
+      this.globalStatusIndicator.className = `status-indicator ${statusDef.cssClass}`;
+    }
+  }
+
+  /**
+   * ステータス詳細の更新
+   * @private
+   * @param {Object} status - ステータスデータ
+   */
+  updateStatusDetails(status) {
+    if (!this.statusDetails) return;
+    
+    const html = this.generateStatusHTML(status);
+    this.statusDetails.innerHTML = html;
+  }
+
+  /**
+   * ステータスHTMLの生成
+   * @private
+   * @param {Object} status - ステータスデータ
    * @returns {string}
    */
   generateStatusHTML(status) {
     const { globalStatus, globalMessage, courses } = status;
-    
-    // グローバルステータスの定義を取得
-    const statusDef = this.lessonStatusService.getStatusDefinition(globalStatus);
+    const statusDef = this.getStatusDefinition(globalStatus);
     
     let html = `
-      <div class="status-display">
-        <div class="global-status ${statusDef?.cssClass || globalStatus}">
-          <span class="status-icon">${statusDef?.icon || '📅'}</span>
-          <span class="status-text">${statusDef?.displayText || globalStatus}</span>
+      <div class="global-status">
+        <div class="status-icon">${statusDef.icon}</div>
+        <div class="status-text">
+          <h3>${statusDef.displayText}</h3>
         </div>
+      </div>
     `;
 
-    // グローバルメッセージがある場合
-    if (globalMessage && globalMessage.trim()) {
+    // グローバルメッセージ
+    if (globalMessage) {
       html += `
         <div class="global-message">
-          <i class="fas fa-info-circle"></i>
-          <span>${this.escapeHtml(globalMessage)}</span>
+          <p>${this.escapeHtml(globalMessage)}</p>
         </div>
       `;
     }
 
-    // 各コースの状況
+    // コース状況
     if (courses && Object.keys(courses).length > 0) {
       html += '<div class="courses-status">';
       
       Object.entries(courses).forEach(([courseKey, courseData]) => {
-        const courseDef = this.lessonStatusService.getStatusDefinition(courseData.status);
+        const courseDef = this.getStatusDefinition(courseData.status);
         html += `
-          <div class="course-item ${courseDef?.cssClass || courseData.status}">
-            <div class="course-name">${courseData.name}</div>
-            <div class="course-time">${courseData.time}</div>
-            <div class="course-status">
-              <span class="status-icon">${courseDef?.icon || '📅'}</span>
-              <span class="status-text">${courseDef?.displayText || courseData.status}</span>
+          <div class="course-item">
+            <div class="course-header">
+              <div class="course-info">
+                <h5>${this.escapeHtml(courseData.name)}</h5>
+                <div class="course-time">${this.escapeHtml(courseData.time)}</div>
+              </div>
+              <div class="status-badge ${courseDef.cssClass}">
+                ${courseDef.displayText}
+              </div>
             </div>
+            ${courseData.message ? `
+              <div class="course-message">
+                <p>${this.escapeHtml(courseData.message)}</p>
+              </div>
+            ` : ''}
           </div>
         `;
       });
@@ -237,26 +470,125 @@ export class LessonStatusDisplayComponent extends Component {
       html += '</div>';
     }
 
-    html += '</div>';
     return html;
   }
 
   /**
-   * ローディング状態表示
+   * ステータス定義の取得
+   * @private
+   * @param {string} status - ステータス
+   * @returns {Object}
+   */
+  getStatusDefinition(status) {
+    const definitions = {
+      'scheduled': {
+        key: 'scheduled',
+        displayText: '通常開催',
+        icon: '✅',
+        cssClass: 'scheduled'
+      },
+      'cancelled': {
+        key: 'cancelled',
+        displayText: '中止',
+        icon: '❌',
+        cssClass: 'cancelled'
+      },
+      'indoor': {
+        key: 'indoor',
+        displayText: '室内開催',
+        icon: '🏠',
+        cssClass: 'indoor'
+      },
+      'postponed': {
+        key: 'postponed',
+        displayText: '延期',
+        icon: '⏰',
+        cssClass: 'postponed'
+      }
+    };
+    
+    return definitions[status] || {
+      key: status,
+      displayText: status,
+      icon: '📅',
+      cssClass: status
+    };
+  }
+
+  /**
+   * ローディング状態の表示
+   * @private
    */
   showLoadingState() {
-    if (this.statusContent) {
-      this.statusContent.innerHTML = `
-        <div class="loading-state">
+    if (this.statusDetails) {
+      this.statusDetails.innerHTML = `
+        <div class="loading-status">
           <i class="fas fa-spinner fa-spin"></i>
-          <span>レッスン状況を読み込み中...</span>
+          <p>レッスン状況を読み込み中...</p>
         </div>
       `;
+    }
+    
+    if (this.globalStatusIndicator) {
+      this.globalStatusIndicator.textContent = '読み込み中...';
+      this.globalStatusIndicator.className = 'status-indicator';
+    }
+  }
+
+  /**
+   * コンテンツの表示・非表示切り替え - 修正版
+   * @private
+   */
+  toggleContent() {
+    if (!this.statusContent || !this.statusHeader) return;
+    
+    this.isExpanded = !this.isExpanded;
+    
+    // アリア属性更新
+    this.statusHeader.setAttribute('aria-expanded', this.isExpanded.toString());
+    
+    // コンテナにexpandedクラス切り替え
+    this.statusContainer.classList.toggle('expanded', this.isExpanded);
+    
+    // アイコン更新
+    if (this.toggleIcon) {
+      this.toggleIcon.textContent = this.isExpanded ? '▲' : '▼';
+    }
+    
+    // 高さアニメーション - 修正版
+    if (this.isExpanded) {
+      // まず auto で実際の高さを測定
+      this.statusContent.style.maxHeight = 'none';
+      const fullHeight = this.statusContent.scrollHeight;
+      this.statusContent.style.maxHeight = '0';
+      
+      // 少し遅延を入れてから実際の高さを設定
+      requestAnimationFrame(() => {
+        this.statusContent.style.maxHeight = `${fullHeight + 20}px`;
+      });
+    } else {
+      this.statusContent.style.maxHeight = '0';
+    }
+    
+    this.debug(`コンテンツ ${this.isExpanded ? '展開' : '折りたたみ'}`);
+  }
+
+  /**
+   * レイアウト調整
+   * @private
+   */
+  adjustLayout() {
+    if (this.isExpanded && this.statusContent) {
+      // 現在の高さを再計算
+      this.statusContent.style.maxHeight = 'none';
+      const fullHeight = this.statusContent.scrollHeight;
+      this.statusContent.style.maxHeight = `${fullHeight + 20}px`;
     }
   }
 
   /**
    * HTMLエスケープ
+   * @private
    * @param {string} text - エスケープするテキスト
    * @returns {string}
    */
@@ -267,59 +599,93 @@ export class LessonStatusDisplayComponent extends Component {
   }
 
   /**
-   * 自動更新を開始
+   * デバウンス
+   * @private
+   * @param {Function} func - 関数
+   * @param {number} delay - 遅延
+   * @returns {Function}
    */
-  startAutoRefresh() {
-    if (this.autoRefreshInterval) {
-      clearInterval(this.autoRefreshInterval);
-    }
-
-    this.autoRefreshInterval = setInterval(() => {
-      this.loadAndDisplayStatus();
-    }, this.autoRefreshIntervalTime);
-
-    this.log('自動更新を開始しました');
+  debounce(func, delay) {
+    let timeoutId;
+    return (...args) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func.apply(this, args), delay);
+    };
   }
 
   /**
-   * 自動更新を停止
+   * スリープ
+   * @private
+   * @param {number} ms - ミリ秒
+   * @returns {Promise<void>}
    */
-  stopAutoRefresh() {
-    if (this.autoRefreshInterval) {
-      clearInterval(this.autoRefreshInterval);
-      this.autoRefreshInterval = null;
-      this.log('自動更新を停止しました');
-    }
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
-   * コンポーネントを表示
+   * コンポーネント表示
    */
   show() {
+    this.ensureVisibility();
     this.loadAndDisplayStatus();
-    this.startAutoRefresh();
   }
 
   /**
-   * コンポーネントを非表示
+   * コンポーネント非表示
    */
   hide() {
-    this.stopAutoRefresh();
-    this.isVisible = false;
-    
     if (this.statusContainer) {
-      this.statusContainer.classList.remove('status-visible');
-      this.statusContainer.classList.add('status-hidden');
+      this.statusContainer.classList.add('status-banner-hidden');
+      this.statusContainer.classList.remove('status-banner-visible');
+      this.isVisible = false;
     }
+  }
+
+  /**
+   * ログ出力
+   * @private
+   */
+  log(...args) {
+    console.log(`[${this.componentName}]`, ...args);
+  }
+
+  /**
+   * デバッグログ出力
+   * @private
+   */
+  debug(...args) {
+    console.debug(`[${this.componentName}:DEBUG]`, ...args);
+  }
+
+  /**
+   * 警告ログ出力
+   * @private
+   */
+  warn(...args) {
+    console.warn(`[${this.componentName}]`, ...args);
+  }
+
+  /**
+   * エラーログ出力
+   * @private
+   */
+  error(...args) {
+    console.error(`[${this.componentName}]`, ...args);
   }
 
   /**
    * 破棄処理
    */
   destroy() {
-    this.stopAutoRefresh();
+    if (this.autoRefreshInterval) {
+      clearInterval(this.autoRefreshInterval);
+    }
+    
     this.currentStatus = null;
     this.isVisible = false;
+    this.isExpanded = false;
+    
     super.destroy();
   }
 }

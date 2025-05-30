@@ -14,6 +14,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     console.log('🚀 アプリケーション起動開始');
     
+    // ステータスバナーの事前初期化（CSSクラス調整）
+    preInitializeStatusBanner();
+    
     // グローバルエラーハンドラーの設定
     setupGlobalErrorHandlers();
     
@@ -38,6 +41,122 @@ document.addEventListener('DOMContentLoaded', async () => {
     showInitializationError(error);
   }
 });
+
+/**
+ * ステータスバナーの事前初期化
+ * DOM読み込み直後にステータスバナーの基本的な表示を確保
+ */
+function preInitializeStatusBanner() {
+  try {
+    console.log('🎯 ステータスバナー事前初期化開始');
+    
+    // ステータスバナー要素を検索
+    const statusBanners = document.querySelectorAll('.status-banner, #today-status');
+    
+    if (statusBanners.length > 0) {
+      statusBanners.forEach(banner => {
+        // 必要なクラスを追加
+        banner.classList.add('status-banner');
+        banner.classList.remove('status-banner-hidden');
+        banner.classList.add('status-banner-visible');
+        
+        // 基本的なスタイルを確保（フォールバック）
+        banner.style.display = 'block';
+        banner.style.visibility = 'visible';
+        banner.style.opacity = '1';
+        banner.style.transform = 'translateY(0)';
+        
+        console.log('✅ ステータスバナー表示確保:', banner.id || banner.className);
+      });
+      
+      // 基本構造の確保
+      ensureStatusBannerStructure();
+      
+      // デバッグ用：ステータスバナーの現在の状態をチェック
+      if (CONFIG.debug.enabled) {
+        setTimeout(() => {
+          checkStatusBannerVisibility();
+        }, 1000);
+      }
+    } else {
+      console.log('⚠️ ステータスバナー要素が見つかりません。動的作成を準備します。');
+    }
+    
+  } catch (error) {
+    console.warn('⚠️ ステータスバナー事前初期化エラー:', error);
+  }
+}
+
+/**
+ * ステータスバナーの基本構造を確保
+ */
+function ensureStatusBannerStructure() {
+  const statusBanner = document.querySelector('#today-status');
+  if (statusBanner && !statusBanner.querySelector('.container')) {
+    statusBanner.innerHTML = `
+      <div class="container">
+        <div class="status-header" data-action="toggle-status" style="cursor: pointer;" aria-expanded="false">
+          <div class="status-info">
+            <span class="status-dot"></span>
+            <span class="status-text">本日のレッスン開催状況</span>
+            <span class="status-indicator" id="global-status-indicator">準備中...</span>
+          </div>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="status-content">
+          <div class="status-details" id="status-details">
+            <div class="loading-status">
+              <i class="fas fa-spinner fa-spin"></i>
+              <p>レッスン状況を読み込み中...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    console.log('✅ ステータスバナー基本構造を設定しました');
+  }
+}
+
+/**
+ * ステータスバナーの表示状態をデバッグ確認
+ */
+function checkStatusBannerVisibility() {
+  try {
+    console.group('🔍 ステータスバナー表示状態チェック');
+    
+    const statusBanner = document.querySelector('#today-status');
+    if (statusBanner) {
+      const computedStyle = window.getComputedStyle(statusBanner);
+      const rect = statusBanner.getBoundingClientRect();
+      
+      console.log('要素情報:', {
+        id: statusBanner.id,
+        classes: Array.from(statusBanner.classList),
+        display: computedStyle.display,
+        visibility: computedStyle.visibility,
+        opacity: computedStyle.opacity,
+        transform: computedStyle.transform,
+        height: rect.height,
+        width: rect.width,
+        top: rect.top,
+        visible: rect.height > 0 && rect.width > 0 && computedStyle.visibility === 'visible'
+      });
+      
+      // 表示されていない場合は警告
+      if (rect.height === 0 || computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
+        console.warn('⚠️ ステータスバナーが非表示になっています');
+      } else {
+        console.log('✅ ステータスバナーは正常に表示されています');
+      }
+    } else {
+      console.warn('⚠️ ステータスバナー要素が見つかりません');
+    }
+    
+    console.groupEnd();
+  } catch (error) {
+    console.error('デバッグチェックエラー:', error);
+  }
+}
 
 /**
  * リトライ機能付きアプリケーション初期化
