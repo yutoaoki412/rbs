@@ -1,86 +1,96 @@
 /**
  * RBS陸上教室 基底コンポーネントクラス
  * すべてのUIコンポーネントの共通機能を提供
+ * @version 3.0.0 - リファクタリング対応版
  */
 
-import eventBus from '../services/EventBus.js';
-import helpers from '../utils/helpers.js';
-
-const { DOM, Utils } = helpers;
+import { EventBus } from '../services/EventBus.js';
+import { querySelector, querySelectorAll, createElement, addClass, removeClass, toggleClass } from '../utils/domUtils.js';
+import { escapeHtml, randomString } from '../utils/stringUtils.js';
 
 /**
  * 基底コンポーネントクラス
  */
-class BaseComponent {
+export class BaseComponent {
   /**
    * コンストラクタ
    * @param {HTMLElement|string} element - 対象要素またはセレクタ
-   * @param {Object} options - オプション
+   * @param {string} componentName - コンポーネント名
    */
-  constructor(element, options = {}) {
-    this.element = typeof element === 'string' ? DOM.$(element) : element;
-    this.options = { ...this.defaultOptions, ...options };
+  constructor(element, componentName = 'BaseComponent') {
+    this.componentName = componentName;
+    this.element = typeof element === 'string' ? querySelector(element) : element;
     this.initialized = false;
     this.destroyed = false;
     this.eventListeners = [];
     this.childComponents = new Map();
-    this.id = Utils.generateId();
+    this.id = this.generateId();
     
-    // 初期化
-    if (this.element) {
-      this.init();
-    } else {
-      console.warn(`コンポーネント要素が見つかりません: ${element}`);
-    }
-  }
-
-  /**
-   * デフォルトオプション
-   */
-  get defaultOptions() {
-    return {
-      autoInit: true,
-      debug: false
+    // パフォーマンス監視
+    this.performanceMetrics = {
+      initStartTime: null,
+      initEndTime: null,
+      eventCount: 0
     };
+    
+    // デバッグモード（オーバーライド可能）
+    this.debugMode = false;
   }
 
   /**
    * 初期化
+   * @returns {Promise<void>}
    */
-  init() {
+  async init() {
     if (this.initialized || this.destroyed) {
       return;
     }
 
+    if (!this.element) {
+      this.warn(`コンポーネント要素が見つかりません`);
+      return;
+    }
+
     try {
+      this.performanceMetrics.initStartTime = performance.now();
+      
       // 要素にコンポーネントIDを設定
       this.element.dataset.componentId = this.id;
+      this.element.dataset.componentName = this.componentName;
       
-      // 初期化処理
-      this.doInit();
-      
-      // イベントリスナーを設定
-      this.setupEventListeners();
-      
-      this.initialized = true;
-      
-      if (this.options.debug) {
-        console.log(`✅ コンポーネント初期化完了: ${this.constructor.name}`, this.id);
+      // 子クラスの初期化処理
+      if (this.doInit) {
+        await this.doInit();
       }
       
-      // 初期化完了イベントを発火
-      this.emit('component:init', { component: this });
+      // イベントリスナーを設定
+      if (this.setupEventListeners) {
+        this.setupEventListeners();
+      }
+      
+      this.initialized = true;
+      this.performanceMetrics.initEndTime = performance.now();
+      
+      this.debug(`コンポーネント初期化完了 (${this.getInitTime()}ms)`);
+      
+      // 初期化完了イベント
+      EventBus.emit('component:initialized', { 
+        component: this.componentName,
+        id: this.id,
+        initTime: this.getInitTime()
+      });
       
     } catch (error) {
-      console.error(`コンポーネント初期化エラー: ${this.constructor.name}`, error);
+      this.error(`コンポーネント初期化エラー:`, error);
       throw error;
     }
   }
 
   /**
    * 実際の初期化処理（サブクラスでオーバーライド）
+   * @returns {Promise<void>}
    */
-  doInit() {
+  async doInit() {
     // サブクラスで実装
   }
 
@@ -93,217 +103,173 @@ class BaseComponent {
 
   /**
    * イベントリスナーを追加
+   * @param {EventTarget} target - イベントターゲット
+   * @param {string} event - イベント名
+   * @param {Function} handler - ハンドラー関数
+   * @param {Object} options - オプション
    */
   addEventListener(target, event, handler, options = {}) {
     if (!target || !event || !handler) {
-      console.warn('addEventListener: 必要なパラメータが不足しています');
+      this.warn('addEventListener: 必要なパラメータが不足しています');
       return;
     }
 
-    const wrappedHandler = (e) => {
-      try {
-        return handler.call(this, e);
-      } catch (error) {
-        console.error(`イベントハンドラーエラー [${event}]:`, error);
-      }
-    };
-
-    target.addEventListener(event, wrappedHandler, options);
-    
-    // 後でクリーンアップするために記録
-    this.eventListeners.push({
-      target,
-      event,
-      handler: wrappedHandler,
-      options
-    });
-
-    if (this.options.debug) {
-      console.log(`📋 イベントリスナー追加: ${event}`, target);
+    try {
+      target.addEventListener(event, handler, options);
+      
+      // リスナーを記録（自動削除用）
+      this.eventListeners.push({
+        target,
+        event,
+        handler,
+        options
+      });
+      
+      this.performanceMetrics.eventCount++;
+      this.debug(`イベントリスナー追加: ${event}`);
+      
+    } catch (error) {
+      this.error('イベントリスナー追加エラー:', error);
     }
   }
 
   /**
-   * カスタムイベントを発火
+   * 子要素にイベントリスナーを追加
+   * @param {HTMLElement} element - 要素
+   * @param {string} event - イベント名
+   * @param {Function} handler - ハンドラー関数
+   * @param {Object} options - オプション
    */
-  emit(eventName, detail = null) {
-    const event = new CustomEvent(eventName, { 
-      detail: { ...detail, component: this },
-      bubbles: true
-    });
+  addEventListenerToChild(element, event, handler, options = {}) {
+    if (!element) {
+      this.warn('addEventListenerToChild: 要素が存在しません');
+      return;
+    }
     
-    this.element.dispatchEvent(event);
-    
-    // EventBusにも送信
-    eventBus.emit(`component:${eventName}`, {
-      componentId: this.id,
-      componentName: this.constructor.name,
-      ...detail
-    });
+    this.addEventListener(element, event, handler, options);
+  }
 
-    if (this.options.debug) {
-      console.log(`🔥 カスタムイベント発火: ${eventName}`, detail);
+  /**
+   * 安全な要素検索
+   * @param {string} selector - セレクター
+   * @param {HTMLElement} context - 検索コンテキスト
+   * @returns {HTMLElement|null}
+   */
+  safeQuerySelector(selector, context = this.element) {
+    try {
+      return querySelector(selector, context);
+    } catch (error) {
+      this.debug(`要素検索エラー: ${selector}`, error);
+      return null;
     }
   }
 
   /**
-   * 要素を検索
+   * 安全な複数要素検索
+   * @param {string} selector - セレクター
+   * @param {HTMLElement} context - 検索コンテキスト
+   * @returns {NodeList}
    */
-  $(selector) {
-    return this.element.querySelector(selector);
+  safeQuerySelectorAll(selector, context = this.element) {
+    try {
+      return querySelectorAll(selector, context);
+    } catch (error) {
+      this.debug(`複数要素検索エラー: ${selector}`, error);
+      return [];
+    }
   }
 
   /**
-   * 複数要素を検索
+   * 安全なforEach（NodeListに対する）
+   * @param {NodeList|Array} list - リスト
+   * @param {Function} callback - コールバック関数
+   * @param {string} context - エラーログ用コンテキスト
    */
-  $$(selector) {
-    return this.element.querySelectorAll(selector);
-  }
-
-  /**
-   * クラスを切り替え
-   */
-  toggleClass(className, force = null) {
-    DOM.toggleClass(this.element, className, force);
-  }
-
-  /**
-   * 表示/非表示を切り替え
-   */
-  toggle(force = null) {
-    DOM.toggle(this.element, force);
-  }
-
-  /**
-   * 表示
-   */
-  show() {
-    this.toggle(true);
-    this.emit('component:show');
-  }
-
-  /**
-   * 非表示
-   */
-  hide() {
-    this.toggle(false);
-    this.emit('component:hide');
-  }
-
-  /**
-   * 子コンポーネントを追加
-   */
-  addChildComponent(name, component) {
-    this.childComponents.set(name, component);
+  safeForEach(list, callback, context = '') {
+    if (!list || !list.length) {
+      this.debug(`safeForEach: リストが存在しないかemptyです ${context}`);
+      return;
+    }
     
-    if (this.options.debug) {
-      console.log(`👶 子コンポーネント追加: ${name}`, component);
+    try {
+      Array.from(list).forEach(callback);
+    } catch (error) {
+      this.error(`safeForEach エラー ${context}:`, error);
     }
   }
 
   /**
-   * 子コンポーネントを取得
+   * クラス操作メソッド
    */
-  getChildComponent(name) {
-    return this.childComponents.get(name);
-  }
-
-  /**
-   * 子コンポーネントを削除
-   */
-  removeChildComponent(name) {
-    const component = this.childComponents.get(name);
-    if (component && typeof component.destroy === 'function') {
-      component.destroy();
+  addClass(element, className) {
+    if (element && className) {
+      addClass(element, className);
     }
-    this.childComponents.delete(name);
+  }
+
+  removeClass(element, className) {
+    if (element && className) {
+      removeClass(element, className);
+    }
+  }
+
+  toggleClass(element, className) {
+    if (element && className) {
+      toggleClass(element, className);
+    }
   }
 
   /**
-   * データ属性を取得
+   * ID生成
+   * @returns {string}
    */
-  getData(key) {
-    return this.element.dataset[key];
+  generateId() {
+    return `component_${Date.now()}_${randomString(8)}`;
   }
 
   /**
-   * データ属性を設定
+   * 初期化時間の取得
+   * @returns {number}
    */
-  setData(key, value) {
-    this.element.dataset[key] = value;
+  getInitTime() {
+    if (this.performanceMetrics.initStartTime && this.performanceMetrics.initEndTime) {
+      return Math.round(this.performanceMetrics.initEndTime - this.performanceMetrics.initStartTime);
+    }
+    return 0;
   }
 
   /**
-   * 要素が表示されているかチェック
+   * パフォーマンス情報の取得
+   * @returns {Object}
    */
-  isVisible() {
-    return DOM.isVisible(this.element);
-  }
-
-  /**
-   * 要素が初期化されているかチェック
-   */
-  isInitialized() {
-    return this.initialized && !this.destroyed;
-  }
-
-  /**
-   * アニメーション付きでクラスを追加
-   */
-  animateClass(className, duration = 300) {
-    return new Promise((resolve) => {
-      this.element.classList.add(className);
-      setTimeout(() => {
-        resolve();
-      }, duration);
-    });
-  }
-
-  /**
-   * 要素の寸法を取得
-   */
-  getDimensions() {
-    const rect = this.element.getBoundingClientRect();
+  getPerformanceInfo() {
     return {
-      width: rect.width,
-      height: rect.height,
-      top: rect.top,
-      left: rect.left,
-      bottom: rect.bottom,
-      right: rect.right
-    };
-  }
-
-  /**
-   * コンポーネント情報を取得
-   */
-  getInfo() {
-    return {
+      componentName: this.componentName,
       id: this.id,
-      name: this.constructor.name,
+      initialized: this.initialized,
+      initTime: this.getInitTime(),
+      eventListeners: this.eventListeners.length,
+      childComponents: this.childComponents.size
+    };
+  }
+
+  /**
+   * ステータス情報の取得
+   * @returns {Object}
+   */
+  getStatus() {
+    return {
+      componentName: this.componentName,
+      id: this.id,
       initialized: this.initialized,
       destroyed: this.destroyed,
-      element: this.element?.tagName?.toLowerCase(),
-      childComponents: Array.from(this.childComponents.keys()),
-      eventListeners: this.eventListeners.length
+      hasElement: !!this.element,
+      performance: this.getPerformanceInfo()
     };
   }
 
   /**
-   * デバッグ情報を出力
-   */
-  debug() {
-    console.group(`🔧 ${this.constructor.name} デバッグ情報`);
-    console.log('基本情報:', this.getInfo());
-    console.log('オプション:', this.options);
-    console.log('要素:', this.element);
-    console.log('イベントリスナー:', this.eventListeners);
-    console.log('子コンポーネント:', this.childComponents);
-    console.groupEnd();
-  }
-
-  /**
-   * コンポーネントを破棄
+   * コンポーネント破棄
    */
   destroy() {
     if (this.destroyed) {
@@ -311,45 +277,80 @@ class BaseComponent {
     }
 
     try {
-      // 破棄前イベントを発火
-      this.emit('component:beforeDestroy');
-      
-      // 子コンポーネントを破棄
-      this.childComponents.forEach((component, name) => {
-        this.removeChildComponent(name);
-      });
-      
       // イベントリスナーを削除
       this.eventListeners.forEach(({ target, event, handler, options }) => {
         try {
           target.removeEventListener(event, handler, options);
         } catch (error) {
-          console.warn('イベントリスナー削除エラー:', error);
+          this.debug('イベントリスナー削除エラー:', error);
         }
       });
-      
-      // データ属性を削除
-      if (this.element && this.element.dataset) {
-        delete this.element.dataset.componentId;
-      }
-      
-      // プロパティをクリア
       this.eventListeners = [];
-      this.childComponents.clear();
-      this.initialized = false;
-      this.destroyed = true;
       
-      if (this.options.debug) {
-        console.log(`🗑️ コンポーネント破棄完了: ${this.constructor.name}`, this.id);
+      // 子コンポーネントを破棄
+      this.childComponents.forEach(component => {
+        if (component.destroy) {
+          component.destroy();
+        }
+      });
+      this.childComponents.clear();
+      
+      // 要素からデータ属性を削除
+      if (this.element) {
+        delete this.element.dataset.componentId;
+        delete this.element.dataset.componentName;
       }
       
-      // 破棄完了イベントを発火
-      this.emit('component:destroy');
+      this.destroyed = true;
+      this.initialized = false;
+      
+      this.debug('コンポーネント破棄完了');
+      
+      // 破棄完了イベント
+      EventBus.emit('component:destroyed', { 
+        component: this.componentName,
+        id: this.id
+      });
       
     } catch (error) {
-      console.error(`コンポーネント破棄エラー: ${this.constructor.name}`, error);
+      this.error('コンポーネント破棄エラー:', error);
     }
+  }
+
+  /**
+   * ログ出力
+   * @private
+   */
+  log(...args) {
+    console.log(`📦 ${this.componentName}:`, ...args);
+  }
+
+  /**
+   * デバッグログ出力
+   * @private
+   */
+  debug(...args) {
+    if (this.debugMode) {
+      console.debug(`🔍 ${this.componentName}:`, ...args);
+    }
+  }
+
+  /**
+   * 警告ログ出力
+   * @private
+   */
+  warn(...args) {
+    console.warn(`⚠️ ${this.componentName}:`, ...args);
+  }
+
+  /**
+   * エラーログ出力
+   * @private
+   */
+  error(...args) {
+    console.error(`❌ ${this.componentName}:`, ...args);
   }
 }
 
+// デフォルトエクスポート（後方互換性）
 export default BaseComponent;
