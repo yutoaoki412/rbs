@@ -611,6 +611,160 @@ export class LessonStatusStorageService {
   }
 
   /**
+   * 現在のレッスン状況を取得
+   * @param {string} [date] - 日付 (省略時は今日)
+   * @returns {Promise<Object>} レッスン状況データ
+   */
+  async getCurrentStatus(date = null) {
+    try {
+      const targetDate = date || this.getTodayDate();
+      const dateKey = this.formatDateKey(targetDate);
+      
+      const status = this.getStatusByDate(dateKey);
+      
+      this.debug(`現在のレッスン状況取得: ${dateKey}`, status);
+      
+      return {
+        success: true,
+        date: dateKey,
+        ...status
+      };
+      
+    } catch (error) {
+      this.error('現在のレッスン状況取得エラー:', error);
+      return {
+        success: false,
+        error: error.message,
+        date: date || this.getTodayDate(),
+        // デフォルト値
+        globalStatus: 'scheduled',
+        globalMessage: '',
+        basicLesson: '通常開催',
+        advanceLesson: '通常開催'
+      };
+    }
+  }
+
+  /**
+   * レッスン状況を更新
+   * @param {Object} statusData - 更新するレッスン状況データ
+   * @returns {Promise<{success: boolean, message?: string, error?: string}>}
+   */
+  async updateStatus(statusData) {
+    try {
+      this.log('レッスン状況更新開始:', statusData);
+      
+      // バリデーション
+      if (!statusData.date) {
+        statusData.date = this.getTodayDate();
+      }
+      
+      const dateKey = this.formatDateKey(statusData.date);
+      
+      // 正規化されたデータを作成
+      const normalizedData = this.normalizeStatusData(statusData, dateKey);
+      
+      // 保存
+      const result = await this.saveStatus(dateKey, normalizedData);
+      
+      if (result.success) {
+        EventBus.emit('lessonStatus:updated', {
+          date: dateKey,
+          status: normalizedData
+        });
+        
+        return {
+          success: true,
+          message: 'レッスン状況を更新しました'
+        };
+      } else {
+        return {
+          success: false,
+          error: result.error || '更新に失敗しました'
+        };
+      }
+      
+    } catch (error) {
+      this.error('レッスン状況更新エラー:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * 全データクリア
+   * @returns {Promise<{success: boolean, message?: string}>}
+   */
+  async clearAllData() {
+    try {
+      this.log('全レッスン状況データクリア開始');
+      
+      // メモリからデータクリア
+      this.statusData.clear();
+      
+      // ストレージからデータクリア
+      localStorage.removeItem(this.storageKey);
+      if (this.storageKey !== this.fallbackStorageKey) {
+        localStorage.removeItem(this.fallbackStorageKey);
+      }
+      
+      this.lastModified = new Date().toISOString();
+      
+      EventBus.emit('lessonStatus:allCleared');
+      
+      this.log('全レッスン状況データクリア完了');
+      
+      return {
+        success: true,
+        message: '全てのレッスン状況データを削除しました'
+      };
+      
+    } catch (error) {
+      this.error('全データクリアエラー:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * エクスポート用データ取得
+   * @returns {Object} エクスポートデータ
+   */
+  getExportData() {
+    try {
+      const exportData = {};
+      this.statusData.forEach((status, date) => {
+        exportData[date] = status;
+      });
+      
+      return {
+        lessonStatuses: exportData,
+        metadata: {
+          exportedAt: new Date().toISOString(),
+          count: this.statusData.size,
+          version: '1.0.0'
+        }
+      };
+      
+    } catch (error) {
+      this.error('エクスポートデータ取得エラー:', error);
+      return {
+        lessonStatuses: {},
+        metadata: {
+          exportedAt: new Date().toISOString(),
+          count: 0,
+          version: '1.0.0',
+          error: error.message
+        }
+      };
+    }
+  }
+
+  /**
    * サービス状態の取得
    * @returns {Object} 状態情報
    */

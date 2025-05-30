@@ -403,6 +403,41 @@ export class InstagramDataService {
   }
 
   /**
+   * 全Instagramデータクリア
+   * @returns {Promise<{success: boolean, message?: string}>}
+   */
+  async clearAllData() {
+    try {
+      this.log('全Instagramデータクリア開始');
+      
+      // メモリからデータクリア
+      this.posts = [];
+      
+      // ストレージからデータクリア
+      localStorage.removeItem(this.storageKeys.instagram);
+      
+      this.lastSaved = null;
+      this.unsavedChanges.clear();
+      
+      EventBus.emit('instagram:allCleared');
+      
+      this.log('全Instagramデータクリア完了');
+      
+      return {
+        success: true,
+        message: '全てのInstagramデータを削除しました'
+      };
+      
+    } catch (error) {
+      this.error('全データクリアエラー:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
    * ID生成
    * @private
    * @returns {string}

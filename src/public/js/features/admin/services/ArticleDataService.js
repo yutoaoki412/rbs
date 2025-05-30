@@ -595,6 +595,70 @@ export class ArticleDataService {
       };
     }
   }
+
+  /**
+   * 全記事データクリア
+   * @returns {Promise<{success: boolean, message?: string}>}
+   */
+  async clearAllData() {
+    try {
+      this.log('全記事データクリア開始');
+      
+      // メモリからデータクリア
+      this.articles = [];
+      
+      // ストレージからデータクリア
+      await this.storageService.clearAll();
+      
+      EventBus.emit('articles:allCleared');
+      
+      this.log('全記事データクリア完了');
+      
+      return {
+        success: true,
+        message: '全ての記事データを削除しました'
+      };
+      
+    } catch (error) {
+      this.error('全データクリアエラー:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * エクスポート用データ取得
+   * @returns {Object} エクスポートデータ
+   */
+  getExportData() {
+    try {
+      return {
+        articles: this.articles.map(article => ({
+          ...article,
+          content: this.getArticleContent(article.id)
+        })),
+        metadata: {
+          exportedAt: new Date().toISOString(),
+          count: this.articles.length,
+          version: '2.0.0'
+        }
+      };
+      
+    } catch (error) {
+      this.error('エクスポートデータ取得エラー:', error);
+      return {
+        articles: [],
+        metadata: {
+          exportedAt: new Date().toISOString(),
+          count: 0,
+          version: '2.0.0',
+          error: error.message
+        }
+      };
+    }
+  }
 }
 
 // シングルトンインスタンス
