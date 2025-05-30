@@ -174,6 +174,7 @@ export class AdminActionService {
           this.clearNewsEditor();
         }
       },
+      'new-news-article': () => this.startNewArticle(),
       'preview-news': () => this.previewNews(),
       'save-news': () => this.saveNews(),
       'publish-news': () => this.publishNews(),
@@ -349,6 +350,8 @@ export class AdminActionService {
    * @private
    */
   #initializeNewsManagement() {
+    // フォームをクリアして新規記事作成状態にする
+    this.clearNewsEditor();
     this.refreshNewsList();
   }
 
@@ -1588,6 +1591,32 @@ export class AdminActionService {
    */
   error(...args) {
     console.error('❌ AdminActionService:', ...args);
+  }
+
+  /**
+   * 新規記事作成を開始
+   */
+  startNewArticle() {
+    try {
+      // フォームをクリア
+      this.clearNewsEditor();
+      
+      // 記事管理タブに切り替え
+      this.switchAdminTab('news-management');
+      
+      // タイトルフィールドにフォーカス
+      const titleField = document.getElementById('news-title');
+      if (titleField) {
+        titleField.focus();
+      }
+      
+      this.#showFeedback('新規記事作成を開始しました');
+      console.log('📝 新規記事作成開始');
+      
+    } catch (error) {
+      console.error('❌ 新規記事作成開始エラー:', error);
+      this.#showFeedback('新規記事作成の開始に失敗しました', 'error');
+    }
   }
 }
 
