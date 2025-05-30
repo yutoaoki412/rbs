@@ -565,6 +565,13 @@ input[type="checkbox"] {
   .management-layout {
     grid-template-columns: 1fr;
     gap: 1.5rem;
+    height: auto;
+  }
+  
+  .editor-panel,
+  .list-panel {
+    height: auto;
+    max-height: 70vh;
   }
   
   .form-grid {
@@ -573,18 +580,32 @@ input[type="checkbox"] {
   }
 }
 
-@media (max-width: 900px) {
-  .form-grid {
-    grid-template-columns: 1fr;
+@media (max-width: 1024px) {
+  .management-layout {
     gap: 1rem;
+  }
+  
+  .panel-header {
+    padding: 0.875rem 1rem;
+  }
+  
+  .editor-form {
+    padding: 1rem;
+    max-height: 60vh;
   }
 }
 
 @media (max-width: 768px) {
+  .management-layout {
+    gap: 1rem;
+    margin-top: 0.5rem;
+  }
+  
   .panel-header {
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.75rem;
     align-items: stretch;
+    padding: 1rem;
   }
   
   .panel-actions,
@@ -595,6 +616,7 @@ input[type="checkbox"] {
   
   .editor-form {
     padding: 1rem;
+    max-height: 50vh;
   }
   
   .form-grid {
@@ -613,19 +635,35 @@ input[type="checkbox"] {
     gap: 0.75rem;
   }
   
-  .news-item-meta {
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
-  
   .news-item-actions {
-    justify-content: stretch;
-    flex-wrap: wrap;
+    align-self: flex-start;
   }
   
-  .news-item-actions .btn {
-    flex: 1;
-    justify-content: center;
+  .news-item-meta {
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .panel-header h2 {
+    font-size: 1rem;
+  }
+  
+  .panel-actions .btn {
+    font-size: 0.8125rem;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .editor-form {
+    padding: 0.75rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .list-content {
+    padding: 0.75rem;
   }
 }
 
@@ -1389,9 +1427,11 @@ input[id*="postponed"]:checked + .status-btn {
 /* 管理レイアウト */
 .management-layout {
   display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 1.5rem;
-  margin-top: 0;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  margin-top: 1rem;
+  height: calc(100vh - 160px);
+  overflow: hidden;
 }
 
 /* パネル共通スタイル */
@@ -1399,25 +1439,29 @@ input[id*="postponed"]:checked + .status-btn {
 .list-panel {
   background: var(--admin-white);
   border-radius: var(--admin-border-radius);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid var(--admin-gray-200);
   overflow: hidden;
   transition: var(--admin-transition);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .editor-panel:hover,
 .list-panel:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 /* パネルヘッダー */
 .panel-header {
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--admin-gray-200);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--admin-gray-50);
+  background: linear-gradient(135deg, var(--admin-gray-50) 0%, #fafafa 100%);
+  flex-shrink: 0;
 }
 
 .panel-header h2 {
@@ -1426,34 +1470,63 @@ input[id*="postponed"]:checked + .status-btn {
   color: var(--admin-gray-900);
   margin: 0;
   letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
+.panel-header h2 i {
+  color: var(--admin-primary);
+}
+
+/* パネルアクション */
 .panel-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .panel-filters {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
   align-items: center;
 }
 
 /* フォームスタイル */
 .editor-form {
   padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  max-height: calc(100vh - 260px);
+}
+
+.editor-form::-webkit-scrollbar {
+  width: 6px;
+}
+
+.editor-form::-webkit-scrollbar-track {
+  background: var(--admin-gray-50);
+}
+
+.editor-form::-webkit-scrollbar-thumb {
+  background: var(--admin-gray-300);
+  border-radius: 3px;
+}
+
+.editor-form::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-gray-400);
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
+  gap: 1rem;
   margin-bottom: 1.25rem;
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .form-group label {
@@ -1477,49 +1550,6 @@ input[id*="postponed"]:checked + .status-btn {
 .required {
   color: var(--admin-error);
   font-weight: 700;
-}
-
-/* 入力要素 */
-.form-input,
-.form-select,
-.form-textarea {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 2px solid var(--admin-gray-200);
-  border-radius: var(--admin-border-radius-sm);
-  font-size: 0.875rem;
-  line-height: 1.5;
-  transition: all 0.15s ease;
-  background: var(--admin-white);
-  font-family: inherit;
-}
-
-.form-input:focus,
-.form-select:focus,
-.form-textarea:focus {
-  outline: none;
-  border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.08);
-}
-
-.form-input:hover,
-.form-select:hover,
-.form-textarea:hover {
-  border-color: var(--admin-gray-300);
-}
-
-.form-textarea {
-  min-height: 100px;
-  resize: vertical;
-  line-height: 1.6;
-}
-
-.form-textarea.editor-content {
-  min-height: 280px;
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  background: #fafbfc;
 }
 
 /* エディターツールバー */
@@ -1695,13 +1725,14 @@ input[id*="postponed"]:checked + .status-btn {
 
 /* リストコンテンツ */
 .list-content {
-  max-height: 650px;
+  flex: 1;
   overflow-y: auto;
   padding: 1rem;
+  background: #fbfcfd;
 }
 
 .list-content::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
 
 .list-content::-webkit-scrollbar-track {
@@ -1710,84 +1741,77 @@ input[id*="postponed"]:checked + .status-btn {
 
 .list-content::-webkit-scrollbar-thumb {
   background: var(--admin-gray-300);
-  border-radius: 2px;
+  border-radius: 3px;
+}
+
+.list-content::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-gray-400);
 }
 
 /* 記事アイテム */
 .news-items {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .news-item {
   background: var(--admin-white);
   border: 1px solid var(--admin-gray-200);
   border-radius: var(--admin-border-radius-sm);
-  padding: 1rem;
-  transition: all 0.15s ease;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
   cursor: pointer;
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  grid-template-rows: auto auto;
-  gap: 0.75rem 1rem;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .news-item:hover {
   border-color: var(--admin-primary);
-  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.1);
-  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.12);
+  transform: translateY(-2px);
 }
 
-/* グリッドレイアウト */
-.news-item-main {
-  grid-column: 1;
-  grid-row: 1 / 3;
-  min-width: 0; /* テキストの省略を可能にする */
-}
-
-.news-item-status-area {
-  grid-column: 2;
-  grid-row: 1;
+.news-item-header {
   display: flex;
+  justify-content: space-between;
   align-items: flex-start;
+  gap: 1rem;
+}
+
+.news-item-main {
+  flex: 1;
+  min-width: 0;
 }
 
 .news-item-actions {
-  grid-column: 3;
-  grid-row: 1 / 3;
   display: flex;
-  flex-direction: column;
   gap: 0.5rem;
-  min-width: 120px;
-}
-
-/* メインコンテンツエリア */
-.news-item-header {
-  margin-bottom: 0.5rem;
+  flex-shrink: 0;
 }
 
 .news-item-title {
   font-size: 1rem;
   font-weight: 600;
   color: var(--admin-gray-900);
-  margin: 0 0 0.375rem 0;
+  margin: 0 0 0.5rem 0;
   line-height: 1.4;
-  
-  /* テキストの省略 */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-height: 2.8em;
 }
 
 .news-item-meta {
   display: flex;
   gap: 1rem;
+  align-items: center;
   margin-bottom: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--admin-gray-600);
   flex-wrap: wrap;
 }
 
@@ -1800,19 +1824,21 @@ input[id*="postponed"]:checked + .status-btn {
   gap: 0.25rem;
 }
 
+.news-item-date i,
+.news-item-category i {
+  font-size: 0.75rem;
+}
+
 .news-item-summary {
   color: var(--admin-gray-600);
   font-size: 0.8125rem;
   line-height: 1.5;
-  margin-bottom: 0.25rem;
-  
-  /* テキストの省略 */
+  margin-bottom: 0.5rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-height: 3em; /* line-height 1.5 × 2行 = 3em */
 }
 
 /* ステータス表示 */
@@ -1910,4 +1936,53 @@ input[id*="postponed"]:checked + .status-btn {
     flex: 1;
     min-width: 80px;
   }
+}
+
+/* 入力要素 */
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--admin-gray-300);
+  border-radius: var(--admin-border-radius-sm);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  transition: all 0.2s ease;
+  background: var(--admin-white);
+  font-family: inherit;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+  border-color: var(--admin-gray-400);
+}
+
+.form-textarea {
+  min-height: 100px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.form-textarea.editor-content {
+  min-height: 240px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  background: #fafbfc;
+  border: 1px solid var(--admin-gray-300);
+}
+
+.form-textarea.editor-content:focus {
+  background: var(--admin-white);
 } 

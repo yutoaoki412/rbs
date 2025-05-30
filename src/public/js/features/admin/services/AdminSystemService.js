@@ -149,7 +149,7 @@ export class AdminSystemService {
 
     // 認証状態変更の監視
     EventBus.on('auth:stateChanged', (data) => {
-      this.isAuthenticated = data.detail.authenticated;
+      this.isAuthenticated = data.authenticated;
       if (!this.isAuthenticated) {
         this.handleLogout();
       }
@@ -157,20 +157,20 @@ export class AdminSystemService {
 
     // データ保存成功時のUI更新
     EventBus.on('article:saved', (data) => {
-      this.handleDataChange('article', data.detail);
+      this.handleDataChange('article', data);
     });
     
     EventBus.on('instagram:saved', (data) => {
-      this.handleDataChange('instagram', data.detail);
+      this.handleDataChange('instagram', data);
     });
     
     EventBus.on('lessonStatus:updated', (data) => {
-      this.handleDataChange('lessonStatus', data.detail);
+      this.handleDataChange('lessonStatus', data);
     });
 
     // エラーハンドリング
     EventBus.on('error:critical', (data) => {
-      this.handleCriticalError(data.detail.error);
+      this.handleCriticalError(data.error);
     });
 
     // システム活動追跡
@@ -213,7 +213,7 @@ export class AdminSystemService {
   setupFormIntegration() {
     // フォーム変更の監視
     EventBus.on('newsForm:changed', (data) => {
-      uiManagerService.handleFormChange('news-form', data.detail);
+      uiManagerService.handleFormChange('news-form', data);
     });
 
     // 自動保存の通知

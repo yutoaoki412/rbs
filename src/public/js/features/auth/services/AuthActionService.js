@@ -101,23 +101,23 @@ export class AuthActionService {
   #setupEventListeners() {
     // 認証状態変更のリスナー
     EventBus.on('auth:changed', (data) => {
-      console.log('🔐 認証状態変更:', data.detail);
+      console.log('🔐 認証状態変更:', data);
       this.#updateAuthUI();
     });
 
     EventBus.on('auth:login', (data) => {
-      console.log('✅ ログイン成功:', data.detail);
+      console.log('✅ ログイン成功:', data);
       this.#handleLoginSuccess();
     });
 
     EventBus.on('auth:logout', (data) => {
-      console.log('🚪 ログアウト:', data.detail);
+      console.log('🚪 ログアウト:', data);
       this.#handleLogoutSuccess();
     });
 
     EventBus.on('auth:failedAttempt', (data) => {
-      console.log('❌ ログイン失敗:', data.detail);
-      this.#handleLoginFailure(data.detail);
+      console.log('❌ ログイン失敗:', data);
+      this.#handleLoginFailure(data);
     });
 
     // フォーム送信のリスナー

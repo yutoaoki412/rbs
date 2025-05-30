@@ -106,7 +106,7 @@ export class NewsFormManager {
 
     // 外部イベントの監視
     EventBus.on('article:saved', (data) => {
-      this.handleArticleSaved(data.detail);
+      this.handleArticleSaved(data);
     });
 
     console.log('📝 イベントリスナーを設定');
@@ -396,7 +396,19 @@ export class NewsFormManager {
    * @param {Object} data - 保存されたデータ
    */
   handleArticleSaved(data) {
+    // データの検証
+    if (!data || typeof data !== 'object') {
+      console.warn('📝 NewsFormManager: 無効なデータが渡されました', data);
+      return;
+    }
+
     const { article, isNew, published } = data;
+    
+    // articleオブジェクトの検証
+    if (!article || !article.id) {
+      console.warn('📝 NewsFormManager: 記事データが不正です', data);
+      return;
+    }
     
     if (article.id === this.currentArticle?.id) {
       this.currentArticle = article;
