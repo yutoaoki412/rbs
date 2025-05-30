@@ -1,164 +1,343 @@
 /**
- * RBS陸上教室 メインエントリーポイント v3.0
+ * RBS陸上教室 メインエントリーポイント
  * 新しいアーキテクチャでのアプリケーション起動
- * TypeScript移行対応版
- * 
- * @typedef {Object} ErrorInfo
- * @property {string} message - エラーメッセージ
- * @property {string} stack - スタックトレース
- * @property {string} timestamp - タイムスタンプ
- * @property {string} userAgent - ユーザーエージェント
- * @property {string} url - エラー発生URL
- * 
- * @typedef {Object} DashboardStats
- * @property {number} total - 総記事数
- * @property {number} published - 公開済み記事数
- * @property {number} draft - 下書き記事数
- * @property {number} currentMonth - 今月の記事数
+ * @version 2.0.0
  */
 
-import Application from './app/Application.js';
+import { app } from './core/Application.js';
 
 /**
- * アプリケーションインスタンス
- * @type {Application|null}
+ * アプリケーションの初期化と起動
  */
-let app = null;
-
-/**
- * アプリケーションを初期化
- * @returns {Promise<void>}
- */
-async function initializeApp() {
+async function initializeApplication() {
   try {
-    console.log('🚀 RBS陸上教室システム v3.0 起動中...');
+    console.log('🚀 RBS陸上教室 v2.0 起動中...');
     
-    // 既存のインスタンスがある場合は破棄
-    if (app) {
-      app.destroy();
-    }
+    // テンプレート読み込み完了イベントのリスナー設定
+    setupTemplateEventListeners();
     
-    // 新しいアプリケーションインスタンスを作成
-    app = new Application();
-    
-    // アプリケーションを初期化
+    // アプリケーションの初期化
     await app.init();
     
-    // グローバルに公開（開発用）
-    if (app.config?.debug?.enabled) {
-      /** @type {any} */
-      const globalScope = window;
-      globalScope.RBS = {
-        app,
-        version: '3.0',
-        debug: () => app?.getInfo(),
-        modules: () => Array.from(app?.modules.keys() ?? [])
-      };
+    console.log('✅ アプリケーション起動完了');
+    
+    // グローバルアクセス用（デバッグ・開発支援）
+    if (typeof window !== 'undefined') {
+      window.RBSApp = app;
+      
+      // デバッグ情報の表示（開発環境のみ）
+      if (isDevMode()) {
+        displayDevModeInfo();
+      }
     }
     
-    console.log('✅ RBS陸上教室システム v3.0 起動完了');
-    
   } catch (error) {
-    console.error('❌ アプリケーション起動失敗:', error);
+    console.error('❌ アプリケーション初期化エラー:', error);
     
     // フォールバック処理
-    handleInitializationError(error);
+    await initializeFallbackMode();
   }
 }
 
 /**
- * 初期化エラーを処理
- * @param {Error} error - エラーオブジェクト
- * @returns {void}
+ * テンプレート関連イベントリスナーの設定
  */
-function handleInitializationError(error) {
-  // エラー情報をローカルストレージに保存
-  try {
-    /** @type {ErrorInfo} */
-    const errorInfo = {
-      message: error.message,
-      stack: error.stack || '',
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href
-    };
+function setupTemplateEventListeners() {
+  // テンプレート読み込み完了イベント
+  window.addEventListener('app:templates:loaded', (event) => {
+    const { page, templateManager, headerComponent, footerComponent } = event.detail;
+    console.log(`🎨 ページテンプレート読み込み完了: ${page}`);
     
-    localStorage.setItem('rbs_init_error', JSON.stringify(errorInfo));
-  } catch (e) {
-    console.warn('エラー情報の保存に失敗:', e);
-  }
-
-  // 最小限のフォールバック処理のみ実行
-  initMinimalFallbacks();
+    // 開発モードでの詳細情報表示
+    if (isDevMode()) {
+      console.log('📋 テンプレート詳細情報:', {
+        page: page,
+        templateManager: !!templateManager,
+        headerComponent: !!headerComponent,
+        footerComponent: !!footerComponent
+      });
+    }
+    
+    // テンプレート読み込み完了の視覚的フィードバック
+    showTemplateLoadedFeedback(page);
+  });
+  
+  // フォールバック初期化完了イベント
+  window.addEventListener('app:fallback:initialized', (event) => {
+    const { error, page } = event.detail;
+    console.warn(`⚠️ フォールバック初期化完了: ${page} (原因: ${error})`);
+    
+    showFallbackNotification(error);
+  });
+  
+  // アプリケーション初期化完了イベント
+  window.addEventListener('app:initialized', (event) => {
+    const { page, templatesLoaded } = event.detail;
+    console.log(`✅ アプリケーション初期化完了: ${page} (テンプレート: ${templatesLoaded ? '正常' : 'フォールバック'})`);
+    
+    // ページ固有の初期化後処理
+    handlePageSpecificInitialization(page, templatesLoaded);
+  });
 }
 
 /**
- * 最小限のフォールバック処理
- * @returns {void}
+ * 開発モードかどうかの判定
+ * @returns {boolean}
  */
-function initMinimalFallbacks() {
-  console.log('🔄 最小限のフォールバック処理を実行中...');
+function isDevMode() {
+  return window.location.hostname === 'localhost' || 
+         window.location.hostname === '127.0.0.1' ||
+         window.location.search.includes('debug=true');
+}
+
+/**
+ * 開発モード情報の表示
+ */
+function displayDevModeInfo() {
+  console.log('🐛 開発モード - デバッグ情報:');
+  console.log('   - アプリケーション状態:', app.getStatus());
+  console.log('   - Layout機能:', app.hasLayoutFeature());
+  console.log('   - 利用可能な機能:', app.hasFeature.bind(app));
+  console.log('   - サービスアクセス:', app.getService.bind(app));
   
-  // エラーメッセージを表示
-  const errorDialog = document.createElement('div');
-  errorDialog.innerHTML = `
-    <div style="
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.7); z-index: 10000;
-      display: flex; align-items: center; justify-content: center;
-    ">
-      <div style="
-        background: white; padding: 2rem; border-radius: 8px;
-        max-width: 500px; margin: 1rem; text-align: center;
-      ">
-        <h2 style="color: #e53e3e; margin-bottom: 1rem;">
-          システムエラー
-        </h2>
-        <p style="margin-bottom: 1rem;">
-          アプリケーションの初期化に失敗しました。<br>
-          ページを再読み込みしてください。
-        </p>
-        <div style="display: flex; gap: 0.5rem; justify-content: center;">
-          <button onclick="window.location.reload()" style="
-            background: #4299e1; color: white; border: none;
-            padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;
-          ">
-            再読み込み
-          </button>
-          <button onclick="this.parentElement.parentElement.parentElement.remove()" style="
-            background: #718096; color: white; border: none;
-            padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;
-          ">
-            閉じる
-          </button>
-        </div>
-      </div>
-    </div>
+  // Layout パフォーマンス情報
+  const layoutPerf = app.getLayoutPerformanceInfo();
+  if (layoutPerf) {
+    console.log('   - Layout パフォーマンス:', layoutPerf);
+  }
+  
+  // 開発者用グローバル関数の追加
+  window.RBSDebug = {
+    app: app,
+    status: () => app.getStatus(),
+    debug: () => app.debug(),
+    reloadTemplates: (pageType) => app.reloadTemplates(pageType),
+    layoutPerf: () => app.getLayoutPerformanceInfo()
+  };
+  
+  console.log('🔧 デバッグ用ツール: window.RBSDebug で利用可能');
+}
+
+/**
+ * テンプレート読み込み完了の視覚的フィードバック
+ * @param {string} page - ページタイプ
+ */
+function showTemplateLoadedFeedback(page) {
+  if (!isDevMode()) return;
+  
+  // 開発モードでのみ表示
+  const feedback = document.createElement('div');
+  feedback.style.cssText = `
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.8em;
+    z-index: 9998;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  `;
+  feedback.textContent = `✅ ${page} テンプレート読み込み完了`;
+  
+  document.body.appendChild(feedback);
+  
+  // フェードイン → フェードアウト
+  setTimeout(() => feedback.style.opacity = '1', 100);
+  setTimeout(() => {
+    feedback.style.opacity = '0';
+    setTimeout(() => feedback.remove(), 300);
+  }, 2000);
+}
+
+/**
+ * フォールバック通知の表示
+ * @param {string} error - エラーメッセージ
+ */
+function showFallbackNotification(error) {
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+    padding: 1rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 9999;
+    max-width: 300px;
+    font-size: 0.9em;
+  `;
+  notification.innerHTML = `
+    <strong>⚠️ フォールバックモード</strong><br>
+    ${error}<br>
+    一部機能が制限されています。
+    <button onclick="this.parentElement.remove()" style="float: right; background: none; border: none; font-size: 1.2em; cursor: pointer;">×</button>
   `;
   
-  document.body.appendChild(errorDialog);
+  document.body.appendChild(notification);
   
-  console.log('✅ 最小限のフォールバック処理完了');
+  // 8秒後に自動削除
+  setTimeout(() => {
+    if (notification.parentElement) {
+      notification.remove();
+    }
+  }, 8000);
 }
 
 /**
- * ページ離脱時の処理
+ * ページ固有の初期化後処理
+ * @param {string} page - ページタイプ
+ * @param {boolean} templatesLoaded - テンプレート読み込み成功フラグ
  */
-window.addEventListener('beforeunload', () => {
-  if (app) {
-    app.destroy();
+function handlePageSpecificInitialization(page, templatesLoaded) {
+  // ページ固有の追加処理
+  switch (page) {
+    case 'home':
+      if (templatesLoaded) {
+        // ホームページ固有の追加初期化
+        initializeHomePageFeatures();
+      }
+      break;
+      
+    case 'news-detail':
+    case 'news-list':
+      if (templatesLoaded) {
+        // ニュースページ固有の追加初期化
+        initializeNewsPageFeatures();
+      }
+      break;
+      
+    case 'admin':
+      if (templatesLoaded) {
+        // 管理ページ固有の追加初期化
+        initializeAdminPageFeatures();
+      }
+      break;
   }
-});
-
-/**
- * DOMContentLoaded イベントで初期化
- */
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeApp);
-} else {
-  // DOMが既に読み込まれている場合
-  setTimeout(initializeApp, 0);
 }
 
-// エクスポート
-export { app, initializeApp }; 
+/**
+ * ホームページ固有機能の初期化
+ */
+function initializeHomePageFeatures() {
+  console.log('🏠 ホームページ固有機能を初期化中...');
+  
+  // スムーススクロールの確認
+  const headerComponent = app.getService('layout')?.headerComponent;
+  if (headerComponent) {
+    console.log('✅ ヘッダーナビゲーション機能有効');
+  }
+}
+
+/**
+ * ニュースページ固有機能の初期化
+ */
+function initializeNewsPageFeatures() {
+  console.log('📰 ニュースページ固有機能を初期化中...');
+  
+  // ソーシャルシェア機能などの確認
+  const templateManager = app.getService('layout')?.templateManager;
+  if (templateManager) {
+    console.log('✅ ニュース表示機能有効');
+  }
+}
+
+/**
+ * 管理ページ固有機能の初期化
+ */
+function initializeAdminPageFeatures() {
+  console.log('👨‍💼 管理ページ固有機能を初期化中...');
+  
+  // 管理者認証確認などの処理
+  if (app.hasFeature('admin')) {
+    console.log('✅ 管理者機能有効');
+  }
+}
+
+/**
+ * フォールバック初期化（エラー時）
+ */
+async function initializeFallbackMode() {
+  console.warn('🔄 フォールバックモードで起動中...');
+  
+  try {
+    // 最低限の機能のみ初期化
+    const { actionManager } = await import('./core/ActionManager.js');
+    await actionManager.init();
+    
+    console.log('✅ フォールバックモード起動完了');
+    
+    // エラー通知の表示
+    showFallbackNotification('アプリケーション初期化に失敗しました');
+    
+  } catch (fallbackError) {
+    console.error('❌ フォールバック初期化も失敗:', fallbackError);
+    
+    // 最終的なエラー表示
+    if (typeof window !== 'undefined') {
+      const criticalErrorDiv = document.createElement('div');
+      criticalErrorDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        z-index: 10000;
+        text-align: center;
+        max-width: 400px;
+      `;
+      criticalErrorDiv.innerHTML = `
+        <h3>🚨 重大なエラー</h3>
+        <p>アプリケーションを起動できませんでした。</p>
+        <button onclick="window.location.reload()" style="
+          background: #dc3545;
+          color: white;
+          border: none;
+          padding: 0.75rem 1.5rem;
+          border-radius: 4px;
+          cursor: pointer;
+          margin-top: 1rem;
+        ">ページを再読み込み</button>
+      `;
+      document.body.appendChild(criticalErrorDiv);
+    }
+  }
+}
+
+/**
+ * レガシーサポート関数
+ * 既存のHTMLページからの呼び出しに対応
+ */
+window.initializeRBSApp = initializeApplication;
+
+// モジュールロード時の自動初期化（DOMContentLoaded時）
+if (typeof window !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApplication);
+  } else {
+    // 既にDOMが読み込まれている場合は即座に実行
+    initializeApplication();
+  }
+}
+
+// ES Module環境での直接実行サポート
+export { initializeApplication, app };
+
+// CommonJS環境での互換性（Node.js環境等）
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    initializeApplication,
+    app
+  };
+} 
