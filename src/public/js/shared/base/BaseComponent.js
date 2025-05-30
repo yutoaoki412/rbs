@@ -18,8 +18,12 @@ export class BaseComponent {
       ? querySelector(elementOrSelector) 
       : elementOrSelector;
     
-    if (!this.element) {
-      throw new Error(`${componentName}: 要素が見つかりません: ${elementOrSelector}`);
+    // HTMLElementの検証
+    if (!this.element || !(this.element instanceof Node)) {
+      const errorMsg = typeof elementOrSelector === 'string' 
+        ? `${componentName}: 要素が見つかりません: ${elementOrSelector}`
+        : `${componentName}: 不正な要素が渡されました`;
+      throw new Error(errorMsg);
     }
     
     // イベント管理
@@ -244,27 +248,122 @@ export class BaseComponent {
   }
 
   /**
-   * DOMイベントリスナーの追加
+   * 子要素にイベントリスナーを追加
    * @protected
+   * @param {Element} element - 対象要素
    * @param {string} event - イベント名
-   * @param {string} selector - セレクター
    * @param {Function} handler - ハンドラー
+   * @param {Object} options - イベントオプション
    */
-  addEventListener(event, selector, handler) {
-    const wrappedHandler = (e) => {
-      if (e.target.matches(selector)) {
-        handler.call(this, e);
-      }
-    };
-    
-    this.element.addEventListener(event, wrappedHandler);
-    
-    // クリーンアップ用に記録
-    const key = `${event}:${selector}`;
-    if (!this.domEventListeners.has(key)) {
-      this.domEventListeners.set(key, []);
+  addEventListenerToChild(element, event, handler, options = {}) {
+    if (!element) {
+      this.warn(`addEventListenerToChild: 要素が存在しません (event: ${event})`);
+      return;
     }
-    this.domEventListeners.get(key).push(wrappedHandler);
+    
+    if (typeof handler !== 'function') {
+      this.warn(`addEventListenerToChild: ハンドラーが関数ではありません (event: ${event})`);
+      return;
+    }
+
+    try {
+      const wrappedHandler = (e) => {
+        try {
+          return handler.call(this, e);
+        } catch (error) {
+          this.error(`イベントハンドラーエラー [${event}]:`, error);
+        }
+      };
+
+      element.addEventListener(event, wrappedHandler, options);
+      
+      // クリーンアップ用に記録
+      if (!this.domEventListeners.has(element)) {
+        this.domEventListeners.set(element, []);
+      }
+      this.domEventListeners.get(element).push({ event, handler: wrappedHandler, options });
+      
+      this.debug(`子要素イベントリスナー追加: ${event}`, element);
+    } catch (error) {
+      this.error(`addEventListenerToChild エラー [${event}]:`, error);
+    }
+  }
+
+  /**
+   * NodeListに対してforEachを安全に実行
+   * @protected
+   * @param {NodeList|Array|null|undefined} nodeList - ノードリスト
+   * @param {Function} callback - コールバック関数
+   * @param {string} context - エラー時のコンテキスト
+   */
+  safeForEach(nodeList, callback, context = '') {
+    if (!nodeList) {
+      this.warn(`safeForEach: NodeListが存在しません ${context}`);
+      return;
+    }
+    
+    if (nodeList.length === 0) {
+      this.debug(`safeForEach: NodeListが空です ${context}`);
+      return;
+    }
+    
+    try {
+      Array.from(nodeList).forEach((item, index) => {
+        try {
+          callback.call(this, item, index);
+        } catch (error) {
+          this.error(`safeForEach コールバックエラー [${index}] ${context}:`, error);
+        }
+      });
+    } catch (error) {
+      this.error(`safeForEach エラー ${context}:`, error);
+    }
+  }
+
+  /**
+   * 要素の存在を安全にチェック
+   * @protected
+   * @param {string} selector - セレクター
+   * @param {Element} container - コンテナ要素（デフォルト: this.element または this.container）
+   * @returns {Element|null} 見つかった要素またはnull
+   */
+  safeQuerySelector(selector, container = null) {
+    const searchContainer = container || this.container || this.element;
+    
+    if (!searchContainer) {
+      this.warn(`safeQuerySelector: コンテナが存在しません (selector: ${selector})`);
+      return null;
+    }
+    
+    try {
+      return searchContainer.querySelector(selector);
+    } catch (error) {
+      this.error(`safeQuerySelector エラー (selector: ${selector}):`, error);
+      return null;
+    }
+  }
+
+  /**
+   * 複数要素の存在を安全にチェック
+   * @protected
+   * @param {string} selector - セレクター
+   * @param {Element} container - コンテナ要素（デフォルト: this.element または this.container）
+   * @returns {NodeList|Array} 見つかった要素のリスト
+   */
+  safeQuerySelectorAll(selector, container = null) {
+    const searchContainer = container || this.container || this.element;
+    
+    if (!searchContainer) {
+      this.warn(`safeQuerySelectorAll: コンテナが存在しません (selector: ${selector})`);
+      return [];
+    }
+    
+    try {
+      return searchContainer.querySelectorAll(selector);
+    } catch (error) {
+      this.error(`safeQuerySelectorAll エラー (selector: ${selector}):`, error);
+      return [];
+    }
   }
 
   /**
@@ -369,9 +468,13 @@ export class BaseComponent {
    * @private
    */
   clearDOMEventListeners() {
-    for (const [key, handlers] of this.domEventListeners) {
-      handlers.forEach(handler => {
-        this.element.removeEventListener(key.split(':')[0], handler);
+    for (const [element, listeners] of this.domEventListeners) {
+      listeners.forEach(({ event, handler, options }) => {
+        try {
+          element.removeEventListener(event, handler, options);
+        } catch (error) {
+          this.warn(`イベントリスナー削除エラー [${event}]:`, error);
+        }
       });
     }
     this.domEventListeners.clear();
@@ -405,6 +508,34 @@ export class BaseComponent {
   }
 
   /**
+   * デバッグログ出力
+   * @protected
+   * @param {...*} args - ログ引数
+   */
+  debug(...args) {
+    if (window.DEBUG || this.debugMode) {
+      console.debug(`🔍 ${this.componentName}:`, ...args);
+    }
+  }
+
+  /**
+   * パフォーマンス情報の取得
+   * @returns {Object} パフォーマンス情報
+   */
+  getPerformanceInfo() {
+    return {
+      componentName: this.componentName,
+      initialized: this.initialized,
+      destroyed: this.destroyed,
+      createdAt: this.createdAt,
+      mountedAt: this.mountedAt,
+      childCount: this.childComponents.size,
+      eventListenerCount: this.eventListeners.size,
+      domEventListenerCount: this.domEventListeners.size
+    };
+  }
+
+  /**
    * コンポーネント状態の取得
    * @returns {Object}
    */
@@ -421,4 +552,49 @@ export class BaseComponent {
       childCount: this.childComponents.size
     };
   }
-} 
+
+  /**
+   * 汎用イベントリスナーの追加（window、documentなど）
+   * @protected
+   * @param {EventTarget} target - イベント対象
+   * @param {string} event - イベント名
+   * @param {Function} handler - ハンドラー
+   * @param {Object} options - イベントオプション
+   */
+  addEventListener(target, event, handler, options = {}) {
+    if (!target) {
+      this.warn(`addEventListener: 対象が存在しません (event: ${event})`);
+      return;
+    }
+    
+    if (typeof handler !== 'function') {
+      this.warn(`addEventListener: ハンドラーが関数ではありません (event: ${event})`);
+      return;
+    }
+
+    try {
+      const wrappedHandler = (e) => {
+        try {
+          return handler.call(this, e);
+        } catch (error) {
+          this.error(`イベントハンドラーエラー [${event}]:`, error);
+        }
+      };
+
+      target.addEventListener(event, wrappedHandler, options);
+      
+      // クリーンアップ用に記録
+      if (!this.domEventListeners.has(target)) {
+        this.domEventListeners.set(target, []);
+      }
+      this.domEventListeners.get(target).push({ event, handler: wrappedHandler, options });
+      
+      this.debug(`イベントリスナー追加: ${event}`, target);
+    } catch (error) {
+      this.error(`addEventListener エラー [${event}]:`, error);
+    }
+  }
+}
+
+// defaultエクスポートを追加してdefaultインポートをサポート
+export default BaseComponent; 

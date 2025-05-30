@@ -8,9 +8,12 @@ import { EventBus } from '../../services/EventBus.js';
  * - リンク動的調整
  * - フッター固有機能
  */
-export class FooterComponent extends BaseComponent {
+class FooterComponent extends BaseComponent {
     constructor(container) {
-        super('FooterComponent', container);
+        super(container, 'FooterComponent');
+        
+        // BaseComponentのelementをcontainerとしても参照できるよう設定
+        this.container = this.element;
         
         /** @type {HTMLElement} ページトップボタン */
         this.pageTopBtn = null;
@@ -68,14 +71,19 @@ export class FooterComponent extends BaseComponent {
      * DOM要素の検索
      */
     findElements() {
-        if (!this.container) return;
+        if (!this.container) {
+            this.warn('コンテナが存在しません');
+            return;
+        }
         
-        this.pageTopBtn = this.container.querySelector('.page-top-btn');
-        this.copyrightElement = this.container.querySelector('.copyright');
-        this.footerLinks = this.container.querySelectorAll('.footer-link');
-        this.snsContainer = this.container.querySelector('.sns-links');
+        // 安全な要素検索
+        this.pageTopBtn = this.safeQuerySelector('.page-top-btn, .back-to-top');
+        this.copyrightElement = this.safeQuerySelector('.copyright, .copyright-text');
+        this.footerLinks = this.safeQuerySelectorAll('.footer-nav a, .footer-link');
+        this.snsContainer = this.safeQuerySelector('.sns-links, .social-links');
         
-        this.debug(`DOM要素検索完了 - pageTop: ${!!this.pageTopBtn}, copyright: ${!!this.copyrightElement}, links: ${this.footerLinks.length}`);
+        // 要素存在の確認ログ
+        this.debug(`DOM要素検索完了 - pageTop: ${!!this.pageTopBtn}, copyright: ${!!this.copyrightElement}, links: ${this.footerLinks ? this.footerLinks.length : 0}, sns: ${!!this.snsContainer}`);
     }
 
     /**
@@ -102,28 +110,33 @@ export class FooterComponent extends BaseComponent {
      * イベントリスナーの設定
      */
     setupEventListeners() {
-        // ページトップボタン
-        if (this.pageTopBtn) {
-            this.addEventListenerToChild(this.pageTopBtn, 'click', this.handlePageTopClick.bind(this));
+        try {
+            // ページトップボタン
+            if (this.pageTopBtn) {
+                this.addEventListenerToChild(this.pageTopBtn, 'click', this.handlePageTopClick.bind(this));
+            }
+            
+            // フッターリンク（安全なforEach使用）
+            this.safeForEach(this.footerLinks, (link) => {
+                this.addEventListenerToChild(link, 'click', this.handleFooterLinkClick.bind(this));
+            }, '(フッターリンク)');
+            
+            // SNSリンク
+            if (this.snsContainer) {
+                const snsLinks = this.safeQuerySelectorAll('a', this.snsContainer);
+                this.safeForEach(snsLinks, (link) => {
+                    this.addEventListenerToChild(link, 'click', this.handleSnsLinkClick.bind(this));
+                }, '(SNSリンク)');
+            }
+            
+            // ウィンドウリサイズ
+            this.addEventListener(window, 'resize', this.handleWindowResize.bind(this));
+            
+            this.log('イベントリスナー設定完了');
+            
+        } catch (error) {
+            this.error('イベントリスナー設定エラー:', error);
         }
-        
-        // フッターリンク
-        this.footerLinks.forEach(link => {
-            this.addEventListenerToChild(link, 'click', this.handleFooterLinkClick.bind(this));
-        });
-        
-        // SNSリンク
-        if (this.snsContainer) {
-            const snsLinks = this.snsContainer.querySelectorAll('a');
-            snsLinks.forEach(link => {
-                this.addEventListenerToChild(link, 'click', this.handleSnsLinkClick.bind(this));
-            });
-        }
-        
-        // ウィンドウリサイズ
-        this.addEventListener(window, 'resize', this.handleWindowResize.bind(this));
-        
-        this.log('イベントリスナー設定完了');
     }
 
     /**
@@ -465,4 +478,7 @@ export class FooterComponent extends BaseComponent {
         
         super.destroy();
     }
-} 
+}
+
+// デフォルトエクスポートのみ追加（export classは既に存在するため）
+export default FooterComponent; 

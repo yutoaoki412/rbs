@@ -9,12 +9,17 @@
  * @module LayoutComponents
  */
 
-// コアサービス
-export { TemplateManager } from './TemplateManager.js';
+// コアサービスのインポート
+import { default as TemplateManager } from './TemplateManager.js';
 
-// 専用コンポーネント
-export { HeaderComponent } from './HeaderComponent.js';
-export { FooterComponent } from './FooterComponent.js';
+// 専用コンポーネントのインポート
+import { default as HeaderComponent } from './HeaderComponent.js';
+import { default as FooterComponent } from './FooterComponent.js';
+
+// 名前付きエクスポート（後方互換性）
+export { TemplateManager };
+export { HeaderComponent };
+export { FooterComponent };
 
 /**
  * Layout機能の統合初期化ヘルパー
@@ -36,56 +41,98 @@ export class LayoutInitializer {
     }
 
     /**
-     * Layout機能の一括初期化
+     * オプションの検証
      * @param {Object} options - 初期化オプション
-     * @param {string} options.pageType - ページタイプ ('home', 'news', 'news-detail', 'admin')
-     * @param {string} options.headerContainerId - ヘッダーコンテナID
-     * @param {string} options.footerContainerId - フッターコンテナID
-     * @param {Object} options.templateOptions - テンプレート固有オプション
+     * @returns {Object} 検証済みオプション
+     */
+    validateOptions(options = {}) {
+        const defaultOptions = {
+            pageType: 'default',
+            headerContainerId: 'header-container',
+            footerContainerId: 'footer-container',
+            templateOptions: {}
+        };
+
+        const validatedOptions = { ...defaultOptions, ...options };
+
+        // 型チェック
+        if (typeof validatedOptions.pageType !== 'string') {
+            console.warn('[LayoutInitializer] pageTypeは文字列である必要があります。デフォルト値を使用します。');
+            validatedOptions.pageType = defaultOptions.pageType;
+        }
+
+        if (typeof validatedOptions.headerContainerId !== 'string') {
+            console.warn('[LayoutInitializer] headerContainerIdは文字列である必要があります。デフォルト値を使用します。');
+            validatedOptions.headerContainerId = defaultOptions.headerContainerId;
+        }
+
+        if (typeof validatedOptions.footerContainerId !== 'string') {
+            console.warn('[LayoutInitializer] footerContainerIdは文字列である必要があります。デフォルト値を使用します。');
+            validatedOptions.footerContainerId = defaultOptions.footerContainerId;
+        }
+
+        if (typeof validatedOptions.templateOptions !== 'object' || validatedOptions.templateOptions === null) {
+            console.warn('[LayoutInitializer] templateOptionsはオブジェクトである必要があります。デフォルト値を使用します。');
+            validatedOptions.templateOptions = defaultOptions.templateOptions;
+        }
+
+        return validatedOptions;
+    }
+
+    /**
+     * Layout機能の初期化
+     * @param {Object} options - 初期化オプション
      * @returns {Promise<Object>} 初期化結果
      */
     async initializeLayout(options = {}) {
         try {
-            const {
-                pageType = 'default',
-                headerContainerId = 'header-container',
-                footerContainerId = 'footer-container',
-                templateOptions = {}
-            } = options;
+            const validatedOptions = this.validateOptions(options);
 
-            console.log(`[LayoutInitializer] Layout初期化開始: ${pageType}`);
+            console.log(`[LayoutInitializer] Layout初期化開始: ${validatedOptions.pageType}`);
 
             // 1. TemplateManagerの初期化
             this.templateManager = new TemplateManager();
             await this.templateManager.init();
 
             // 2. テンプレートの一括挿入
-            await this.templateManager.insertAllTemplates(pageType, templateOptions);
+            await this.templateManager.insertAllTemplates(validatedOptions.pageType, validatedOptions.templateOptions);
 
             // 3. ヘッダーコンポーネントの初期化
-            const headerContainer = document.getElementById(headerContainerId);
-            if (headerContainer) {
-                this.headerComponent = new HeaderComponent(headerContainer);
-                await this.headerComponent.init();
-            } else {
-                console.warn(`[LayoutInitializer] ヘッダーコンテナが見つかりません: ${headerContainerId}`);
+            try {
+                const headerContainer = document.getElementById(validatedOptions.headerContainerId);
+                if (headerContainer) {
+                    this.headerComponent = new HeaderComponent(headerContainer);
+                    await this.headerComponent.init();
+                    console.log('[LayoutInitializer] ヘッダーコンポーネント初期化完了');
+                } else {
+                    console.warn(`[LayoutInitializer] ヘッダーコンテナが見つかりません: ${validatedOptions.headerContainerId}`);
+                }
+            } catch (headerError) {
+                console.error('[LayoutInitializer] ヘッダーコンポーネント初期化エラー:', headerError);
+                this.headerComponent = null;
             }
 
             // 4. フッターコンポーネントの初期化
-            const footerContainer = document.getElementById(footerContainerId);
-            if (footerContainer) {
-                this.footerComponent = new FooterComponent(footerContainer);
-                await this.footerComponent.init();
-            } else {
-                console.warn(`[LayoutInitializer] フッターコンテナが見つかりません: ${footerContainerId}`);
+            try {
+                const footerContainer = document.getElementById(validatedOptions.footerContainerId);
+                if (footerContainer) {
+                    this.footerComponent = new FooterComponent(footerContainer);
+                    await this.footerComponent.init();
+                    console.log('[LayoutInitializer] フッターコンポーネント初期化完了');
+                } else {
+                    console.warn(`[LayoutInitializer] フッターコンテナが見つかりません: ${validatedOptions.footerContainerId}`);
+                }
+            } catch (footerError) {
+                console.error('[LayoutInitializer] フッターコンポーネント初期化エラー:', footerError);
+                this.footerComponent = null;
             }
 
             this.isInitialized = true;
-            console.log(`[LayoutInitializer] Layout初期化完了: ${pageType}`);
+            console.log(`[LayoutInitializer] Layout初期化完了: ${validatedOptions.pageType}`);
 
             return {
                 success: true,
-                pageType: pageType,
+                pageType: validatedOptions.pageType,
                 templateManager: this.templateManager,
                 headerComponent: this.headerComponent,
                 footerComponent: this.footerComponent
@@ -293,6 +340,15 @@ export class LayoutInitializer {
         this.isInitialized = false;
         
         console.log('[LayoutInitializer] Layout機能破棄完了');
+    }
+
+    /**
+     * Layout機能の一括初期化（メインメソッド）
+     * @param {Object} options - 初期化オプション
+     * @returns {Promise<Object>} 初期化結果
+     */
+    async initialize(options = {}) {
+        return await this.initializeLayout(options);
     }
 }
 

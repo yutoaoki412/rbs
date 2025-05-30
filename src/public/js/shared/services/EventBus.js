@@ -270,5 +270,11 @@ if (location.hostname === 'localhost' ||
   eventBus.setDebugMode(true);
 }
 
+// デフォルトエクスポート（シングルトンインスタンス）
 export default eventBus;
-export { EventBus }; 
+
+// 名前付きエクスポート（後方互換性）
+export { EventBus as EventBusClass };
+
+// シングルトンインスタンスを名前付きでもエクスポート
+export { eventBus as EventBus }; 

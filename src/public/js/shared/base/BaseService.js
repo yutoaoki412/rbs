@@ -205,7 +205,12 @@ export class BaseService {
    * @param {...*} args - ログ引数
    */
   debug(...args) {
-    if (process?.env?.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
+    // ブラウザ環境での開発環境判定
+    const isDevelopment = window.location.hostname === 'localhost' || 
+                         window.location.hostname === '127.0.0.1' ||
+                         window.location.search.includes('debug=true');
+    
+    if (isDevelopment) {
       console.debug(`🐛 ${this.serviceName}:`, ...args);
     }
   }
@@ -270,4 +275,7 @@ export class BaseService {
   async doHealthCheck() {
     return true; // デフォルトでは常に健全
   }
-} 
+}
+
+// デフォルトエクスポートのみ追加（export classは既に存在するため）
+export default BaseService; 

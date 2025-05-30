@@ -14,7 +14,8 @@ export default class RelatedArticles extends BaseComponent {
    * @param {Object} options - オプション
    */
   constructor(element, options = {}) {
-    super(element, options);
+    super(element, 'RelatedArticles');
+    this.options = options;
   }
 
   /**

@@ -121,6 +121,22 @@ export function hide(element) {
 }
 
 /**
+ * 要素の表示/非表示を設定
+ * @param {Element} element - 要素
+ * @param {boolean} visible - 表示するか
+ * @param {string} displayType - display タイプ
+ */
+export function setVisible(element, visible, displayType = '') {
+  if (!element) return;
+  
+  if (visible) {
+    element.style.display = displayType;
+  } else {
+    element.style.display = 'none';
+  }
+}
+
+/**
  * クラスの追加/削除を切り替え
  * @param {Element} element - 要素
  * @param {string} className - クラス名

@@ -25,7 +25,7 @@ export class TemplateManager extends BaseService {
         this.currentPageConfig = null;
         
         /** @type {string} テンプレートベースパス */
-        this.templateBasePath = '/js/shared/templates/';
+        this.templateBasePath = '../js/shared/templates/';
         
         /** @type {boolean} 初期化フラグ */
         this.isInitialized = false;
@@ -212,18 +212,140 @@ export class TemplateManager extends BaseService {
         let processedTemplate = template;
         
         // 現在のページ設定とマージ
-        const finalConfig = { ...this.currentPageConfig, ...config };
+        const finalConfig = { 
+            ...this.getDefaultTemplateVariables(),
+            ...this.currentPageConfig, 
+            ...config 
+        };
         
-        // テンプレート変数の置換
-        Object.entries(finalConfig).forEach(([key, value]) => {
-            const regex = new RegExp(`{{${key}}}`, 'g');
-            processedTemplate = processedTemplate.replace(regex, value || '');
-        });
+        // ページタイプ別の動的変数を追加
+        const pageType = finalConfig.pageType || this.getPageTypeFromUrl();
+        const dynamicVars = this.getDynamicVariables(pageType);
+        Object.assign(finalConfig, dynamicVars);
         
-        // 動的な年の設定
-        processedTemplate = processedTemplate.replace(/{{current_year}}/g, new Date().getFullYear());
+        // 条件分岐の処理（Handlebars風）
+        processedTemplate = this.processConditionals(processedTemplate, finalConfig);
+        
+        // 通常の変数置換
+        processedTemplate = this.replaceVariables(processedTemplate, finalConfig);
+        
+        // 動的な年や日付の設定
+        processedTemplate = this.replaceDateVariables(processedTemplate);
+        
+        this.debug('テンプレート変数適用完了', { pageType, variableCount: Object.keys(finalConfig).length });
         
         return processedTemplate;
+    }
+
+    /**
+     * デフォルトテンプレート変数の取得
+     * @returns {Object} デフォルト変数
+     */
+    getDefaultTemplateVariables() {
+        return {
+            logoLink: '../pages/index.html',
+            newsLink: 'news.html',
+            currentYear: new Date().getFullYear(),
+            siteName: 'RBS陸上教室',
+            companyName: '合同会社VITA'
+        };
+    }
+
+    /**
+     * ページタイプ別の動的変数を取得
+     * @param {string} pageType - ページタイプ
+     * @returns {Object} 動的変数
+     */
+    getDynamicVariables(pageType) {
+        const isHomePage = pageType === 'home' || pageType === 'index';
+        const currentPath = window.location.pathname;
+        
+        return {
+            pageType: pageType,
+            isHomePage: isHomePage,
+            isNotHomePage: !isHomePage,
+            isNewsPage: pageType.includes('news'),
+            isAdminPage: pageType === 'admin',
+            currentPath: currentPath,
+            logoLink: isHomePage ? '#hero' : '../pages/index.html',
+            newsLink: isHomePage ? 'news.html' : 'news.html'
+        };
+    }
+
+    /**
+     * 条件分岐の処理
+     * @param {string} template - テンプレート
+     * @param {Object} variables - 変数
+     * @returns {string} 処理済みテンプレート
+     */
+    processConditionals(template, variables) {
+        let processed = template;
+        
+        // {{#condition}} ... {{/condition}} の処理
+        const conditionalRegex = /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g;
+        
+        processed = processed.replace(conditionalRegex, (match, condition, content) => {
+            const conditionValue = variables[condition];
+            
+            // 条件が真の場合のみ内容を表示
+            if (conditionValue) {
+                return content;
+            }
+            return '';
+        });
+        
+        return processed;
+    }
+
+    /**
+     * 変数の置換
+     * @param {string} template - テンプレート
+     * @param {Object} variables - 変数
+     * @returns {string} 処理済みテンプレート
+     */
+    replaceVariables(template, variables) {
+        let processed = template;
+        
+        // {{variable}} の形式で変数を置換
+        Object.entries(variables).forEach(([key, value]) => {
+            const regex = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+            processed = processed.replace(regex, String(value || ''));
+        });
+        
+        return processed;
+    }
+
+    /**
+     * 日付変数の置換
+     * @param {string} template - テンプレート
+     * @returns {string} 処理済みテンプレート
+     */
+    replaceDateVariables(template) {
+        const now = new Date();
+        const dateVariables = {
+            currentYear: now.getFullYear(),
+            currentMonth: now.getMonth() + 1,
+            currentDate: now.getDate(),
+            currentDateTime: now.toISOString()
+        };
+        
+        return this.replaceVariables(template, dateVariables);
+    }
+
+    /**
+     * URLからページタイプを取得
+     * @returns {string} ページタイプ
+     */
+    getPageTypeFromUrl() {
+        const path = window.location.pathname;
+        
+        if (path.includes('test-layout')) return 'test';
+        if (path.includes('news-detail')) return 'news-detail';
+        if (path.includes('news')) return 'news';
+        if (path.includes('admin')) return 'admin';
+        if (path.includes('index') || path === '/') return 'home';
+        
+        return 'default';
     }
 
     /**
@@ -471,4 +593,7 @@ export class TemplateManager extends BaseService {
         
         super.destroy();
     }
-} 
+}
+
+// デフォルトエクスポートのみ追加（export classは既に存在するため）
+export default TemplateManager; 

@@ -32,30 +32,31 @@ export class AuthService {
   }
 
   /**
-   * 認証システムの初期化
+   * サービス初期化
+   * @returns {Promise<void>}
    */
-  init() {
+  async init() {
     if (this.initialized) {
-      console.log('⚠️ AuthService: 既に初期化済み');
+      this.log('既に初期化済み');
       return;
     }
 
-    console.log('🔐 AuthService: 初期化開始');
+    this.log('認証サービス初期化開始');
     
-    // 定期的なセッションチェック（5分毎）
-    this.sessionCheckInterval = setInterval(() => {
-      this.checkSessionValidity();
-    }, 5 * 60 * 1000);
-    
-    // ページ可視性の変更時にセッションをチェック
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        this.checkSessionValidity();
-      }
-    });
-    
-    this.initialized = true;
-    console.log('✅ AuthService: 初期化完了');
+    try {
+      // 設定の読み込み
+      this.config = await this.loadConfig();
+      
+      // 現在の認証状態をチェック
+      this.isAuthenticatedCache = this.isAuthenticated();
+      
+      this.initialized = true;
+      this.log('認証サービス初期化完了');
+      
+    } catch (error) {
+      this.error('認証サービス初期化エラー:', error);
+      throw error;
+    }
   }
 
   /**
@@ -466,6 +467,81 @@ export class AuthService {
     
     this.initialized = false;
     console.log('🗑️ AuthService: 破棄完了');
+  }
+
+  /**
+   * 設定読み込み
+   * @private
+   * @returns {Promise<Object>}
+   */
+  async loadConfig() {
+    try {
+      // 設定ファイルから読み込み（将来的に外部設定対応）
+      const { CONFIG } = await import('../../../shared/constants/config.js');
+      return {
+        adminPassword: CONFIG.ADMIN_PASSWORD || 'rbs2024admin',
+        sessionDuration: CONFIG.SESSION_DURATION || 24 * 60 * 60 * 1000, // 24時間
+        maxLoginAttempts: CONFIG.MAX_LOGIN_ATTEMPTS || 5,
+        lockoutDuration: CONFIG.LOCKOUT_DURATION || 15 * 60 * 1000 // 15分
+      };
+    } catch (error) {
+      this.warn('設定ファイル読み込み失敗、デフォルト設定を使用:', error);
+      return {
+        adminPassword: 'rbs2024admin',
+        sessionDuration: 24 * 60 * 60 * 1000,
+        maxLoginAttempts: 5,
+        lockoutDuration: 15 * 60 * 1000
+      };
+    }
+  }
+
+  /**
+   * 開発環境かどうかの判定
+   * @private
+   * @returns {boolean}
+   */
+  isDevelopment() {
+    return window.location.hostname === 'localhost' || 
+           window.location.hostname === '127.0.0.1' ||
+           window.location.search.includes('debug=true');
+  }
+
+  /**
+   * 開発用トークンの生成
+   * @private
+   * @returns {string}
+   */
+  generateDevToken() {
+    return 'dev_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  }
+
+  /**
+   * 通常トークンの生成
+   * @private
+   * @returns {string}
+   */
+  generateToken() {
+    return Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  }
+
+  /**
+   * 認証セッションの保存
+   * @private
+   * @param {string} token - トークン
+   * @param {boolean} isDev - 開発モードフラグ
+   */
+  saveAuthSession(token, isDev = false) {
+    const sessionData = {
+      token: token,
+      expires: Date.now() + this.config.sessionDuration,
+      isDev: isDev,
+      created: Date.now()
+    };
+    
+    localStorage.setItem(this.storageKeys.auth, JSON.stringify(sessionData));
+    this.isAuthenticatedCache = true;
+    
+    this.log(`認証セッションを保存: ${isDev ? '開発モード' : '通常モード'}`);
   }
 }
 

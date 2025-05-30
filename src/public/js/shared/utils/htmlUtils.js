@@ -6,18 +6,8 @@
 
 import { escapeHtml } from './stringUtils.js';
 
-/**
- * HTMLタグをエスケープ
- * @param {string} text - エスケープするテキスト
- * @returns {string}
- */
-export function escapeHtml(text) {
-  if (!text) return '';
-  
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
+// stringUtilsからのescapeHtmlを再エクスポート
+export { escapeHtml };
 
 /**
  * HTMLタグをアンエスケープ

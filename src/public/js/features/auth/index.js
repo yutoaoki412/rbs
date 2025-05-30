@@ -10,7 +10,7 @@ import { getCurrentPageType } from '../../shared/utils/urlUtils.js';
 
 /**
  * 認証機能を初期化
- * @returns {Promise<void>}
+ * @returns {Promise<AuthService>}
  */
 export async function initAuthFeature() {
   console.log('🔐 認証機能初期化開始');
@@ -19,7 +19,7 @@ export async function initAuthFeature() {
     const pageType = getCurrentPageType();
     
     // 認証サービスを初期化（全ページ共通）
-    authService.init();
+    await authService.init();
     
     // ページ固有の初期化
     switch (pageType) {
@@ -42,6 +42,9 @@ export async function initAuthFeature() {
     }
     
     console.log('✅ 認証機能初期化完了');
+    
+    // AuthServiceインスタンスを返す
+    return authService;
     
   } catch (error) {
     console.error('❌ 認証機能初期化エラー:', error);

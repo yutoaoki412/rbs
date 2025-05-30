@@ -21,6 +21,9 @@ export { default as ShareButtons } from './components/ShareButtons.js';
  */
 export async function initNewsFeature() {
   try {
+    // dynamic importを使用して循環インポートを回避
+    const { initNewsDetailPage } = await import('./controllers/NewsDetailController.js');
+    
     // ページタイプを判定
     const currentPage = getCurrentPageType();
     
@@ -64,6 +67,10 @@ function getCurrentPageType() {
 if (typeof window !== 'undefined') {
   window.NewsFeature = {
     initNewsFeature,
-    initNewsDetailPage
+    // initNewsDetailPageは動的にロードするため、async関数として公開
+    async initNewsDetailPage() {
+      const { initNewsDetailPage } = await import('./controllers/NewsDetailController.js');
+      return await initNewsDetailPage();
+    }
   };
 } 

@@ -13,7 +13,8 @@ export default class ShareButtons extends BaseComponent {
    * @param {Object} options - オプション
    */
   constructor(element, options = {}) {
-    super(element, options);
+    super(element, 'ShareButtons');
+    this.options = options;
     this.shareService = new ShareService();
   }
 

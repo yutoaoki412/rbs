@@ -1,11 +1,31 @@
 <!-- index.htmlと完全に同じフッター -->
-<footer>
-  <div class="footer-links">
-    <a href="#about">RBSとは</a>
-    <a href="#program">プログラム</a>
-    <a href="#location">教室情報</a>
-    <a href="#price">料金</a>
-    <a href="news.html">ニュース</a>
+<footer class="footer" data-template="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-links">
+        {{#isHomePage}}
+        <a href="#about" data-section="about">RBSとは</a>
+        <a href="#program" data-section="program">プログラム</a>
+        <a href="#location" data-section="location">教室情報</a>
+        <a href="#price" data-section="price">料金</a>
+        {{/isHomePage}}
+        {{#isNotHomePage}}
+        <a href="../pages/index.html" data-navigate="home">ホーム</a>
+        <a href="../pages/index.html#about" data-navigate="home" data-section="about">RBSとは</a>
+        <a href="../pages/index.html#program" data-navigate="home" data-section="program">プログラム</a>
+        <a href="../pages/index.html#location" data-navigate="home" data-section="location">教室情報</a>
+        {{/isNotHomePage}}
+        <a href="{{newsLink}}" data-page="news">ニュース</a>
+      </div>
+      <div class="footer-info">
+        <p class="company-info">
+          <strong>合同会社VITA</strong><br>
+          〒356-0051 埼玉県ふじみ野市駒西1-9-18
+        </p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="copyright">&copy; <span class="copyright-year">{{currentYear}}</span> RBS陸上教室. All rights reserved.</p>
+    </div>
   </div>
-  <p>&copy; <span class="copyright-year">2025</span> RBS陸上教室. All rights reserved.</p>
 </footer> 

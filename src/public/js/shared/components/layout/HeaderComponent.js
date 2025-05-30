@@ -8,9 +8,12 @@ import { EventBus } from '../../services/EventBus.js';
  * - モバイルメニュー制御
  * - アクティブセクション管理
  */
-export class HeaderComponent extends BaseComponent {
+class HeaderComponent extends BaseComponent {
     constructor(container) {
-        super('HeaderComponent', container);
+        super(container, 'HeaderComponent');
+        
+        // BaseComponentのelementをcontainerとしても参照できるよう設定
+        this.container = this.element;
         
         /** @type {HTMLElement} ナビゲーション要素 */
         this.nav = null;
@@ -47,8 +50,8 @@ export class HeaderComponent extends BaseComponent {
             
             this.log('HeaderComponent初期化開始');
             
-            // DOM要素の取得
-            this.findElements();
+            // DOM要素の取得（リトライ機能付き）
+            await this.findElementsWithRetry();
             
             // イベントリスナーの設定
             this.setupEventListeners();
@@ -63,47 +66,148 @@ export class HeaderComponent extends BaseComponent {
             
         } catch (error) {
             this.error('HeaderComponent初期化エラー:', error);
+            
+            // フォールバック処理
+            this.setupFallbackMode();
             throw error;
         }
+    }
+
+    /**
+     * リトライ機能付きDOM要素検索
+     * @returns {Promise<void>}
+     */
+    async findElementsWithRetry() {
+        const maxRetries = 5;
+        const retryDelay = 100; // 100ms
+        
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            this.findElements();
+            
+            // 最低限必要な要素があるかチェック
+            if (this.hasMinimalElements()) {
+                this.log(`DOM要素検索成功 (試行: ${attempt}/${maxRetries})`);
+                return;
+            }
+            
+            if (attempt < maxRetries) {
+                this.debug(`DOM要素が見つかりません。${retryDelay}ms後に再試行... (${attempt}/${maxRetries})`);
+                await this.sleep(retryDelay);
+            }
+        }
+        
+        this.warn(`最大試行回数(${maxRetries})を超えました。フォールバックモードで動作します。`);
+    }
+
+    /**
+     * 最低限必要な要素があるかチェック
+     * @returns {boolean}
+     */
+    hasMinimalElements() {
+        // ナビゲーションリンクが最低1つあれば動作可能とする
+        return this.navLinks && this.navLinks.length > 0;
+    }
+
+    /**
+     * フォールバックモード設定
+     */
+    setupFallbackMode() {
+        this.log('フォールバックモードを設定');
+        
+        // 基本的なイベントリスナーのみ設定
+        try {
+            // ウィンドウリサイズ
+            this.addEventListener(window, 'resize', this.handleWindowResize.bind(this));
+            
+            // キーボードイベント
+            this.addEventListener(document, 'keydown', this.handleKeyDown.bind(this));
+            
+            this.log('フォールバックモード設定完了');
+        } catch (error) {
+            this.error('フォールバックモード設定エラー:', error);
+        }
+    }
+
+    /**
+     * 指定時間待機
+     * @param {number} ms - 待機時間（ミリ秒）
+     * @returns {Promise<void>}
+     */
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     /**
      * DOM要素の検索
      */
     findElements() {
-        if (!this.container) return;
+        if (!this.container) {
+            this.warn('コンテナが存在しません');
+            return;
+        }
         
-        this.nav = this.container.querySelector('.header-nav');
-        this.mobileToggle = this.container.querySelector('.mobile-menu-toggle');
-        this.navLinks = this.container.querySelectorAll('.nav-link');
+        // 安全な要素検索
+        this.nav = this.safeQuerySelector('.nav, .header-nav');
+        this.mobileToggle = this.safeQuerySelector('.mobile-menu-btn, .mobile-menu-toggle');
+        this.navLinks = this.safeQuerySelectorAll('.nav-links a, .nav-link');
         
-        this.debug(`DOM要素検索完了 - nav: ${!!this.nav}, toggle: ${!!this.mobileToggle}, links: ${this.navLinks.length}`);
+        // 必須要素の確認
+        if (!this.nav) {
+            this.warn('ナビゲーション要素が見つかりません');
+        }
+        
+        if (!this.mobileToggle) {
+            this.warn('モバイルメニューボタンが見つかりません');
+        }
+        
+        if (!this.navLinks || this.navLinks.length === 0) {
+            this.warn('ナビゲーションリンクが見つかりません');
+        }
+        
+        this.debug(`DOM要素検索完了 - nav: ${!!this.nav}, toggle: ${!!this.mobileToggle}, links: ${this.navLinks ? this.navLinks.length : 0}`);
     }
 
     /**
      * イベントリスナーの設定
      */
     setupEventListeners() {
-        // モバイルメニュートグル
-        if (this.mobileToggle) {
-            this.addEventListenerToChild(this.mobileToggle, 'click', this.handleMobileToggle.bind(this));
+        try {
+            // モバイルメニュートグル
+            if (this.mobileToggle) {
+                this.addEventListenerToChild(this.mobileToggle, 'click', this.handleMobileToggle.bind(this));
+            }
+            
+            // ナビゲーションリンク（安全なforEach使用）
+            this.safeForEach(this.navLinks, (link) => {
+                this.addEventListenerToChild(link, 'click', this.handleNavLinkClick.bind(this));
+            }, '(ナビゲーションリンク)');
+            
+            // ページナビゲーションリンク
+            const pageNavLinks = this.safeQuerySelectorAll('[data-navigate]');
+            this.safeForEach(pageNavLinks, (link) => {
+                this.addEventListenerToChild(link, 'click', this.handlePageNavigation.bind(this));
+            }, '(ページナビゲーションリンク)');
+            
+            // ホームページナビゲーション
+            const homeNavLinks = this.safeQuerySelectorAll('[data-action="navigate-home"]');
+            this.safeForEach(homeNavLinks, (link) => {
+                this.addEventListenerToChild(link, 'click', this.handleHomeNavigation.bind(this));
+            }, '(ホームナビゲーションリンク)');
+            
+            // ウィンドウリサイズ
+            this.addEventListener(window, 'resize', this.handleWindowResize.bind(this));
+            
+            // キーボードイベント（ESCでモバイルメニュー閉じる）
+            this.addEventListener(document, 'keydown', this.handleKeyDown.bind(this));
+            
+            // EventBusイベント
+            EventBus.on('navigation:section-change', this.handleSectionChange.bind(this));
+            
+            this.debug('イベントリスナー設定完了');
+            
+        } catch (error) {
+            this.error('イベントリスナー設定エラー:', error);
         }
-        
-        // ナビゲーションリンク
-        this.navLinks.forEach(link => {
-            this.addEventListenerToChild(link, 'click', this.handleNavLinkClick.bind(this));
-        });
-        
-        // ウィンドウリサイズ
-        this.addEventListener(window, 'resize', this.handleWindowResize.bind(this));
-        
-        // キーボードイベント（ESCでモバイルメニュー閉じる）
-        this.addEventListener(document, 'keydown', this.handleKeydown.bind(this));
-        
-        // 外部クリックでモバイルメニュー閉じる
-        this.addEventListener(document, 'click', this.handleDocumentClick.bind(this));
-        
-        this.log('イベントリスナー設定完了');
     }
 
     /**
@@ -194,6 +298,71 @@ export class HeaderComponent extends BaseComponent {
     }
 
     /**
+     * ページナビゲーション処理
+     * @param {Event} event - クリックイベント
+     */
+    handlePageNavigation(event) {
+        const navigateType = event.currentTarget.dataset.navigate;
+        const section = event.currentTarget.dataset.section;
+        
+        this.debug(`ページナビゲーション: ${navigateType}, セクション: ${section}`);
+        
+        if (navigateType === 'home') {
+            event.preventDefault();
+            this.navigateToHome(section);
+        }
+    }
+
+    /**
+     * ホームページナビゲーション処理
+     * @param {Event} event - クリックイベント
+     */
+    handleHomeNavigation(event) {
+        const currentPath = window.location.pathname;
+        
+        // 既にホームページにいる場合は通常のアンカー動作
+        if (currentPath.includes('index.html') || currentPath === '/') {
+            return; // デフォルトの動作を続行
+        }
+        
+        // 他のページからホームページへの遷移
+        event.preventDefault();
+        this.navigateToHome();
+    }
+
+    /**
+     * ホームページへの遷移
+     * @param {string} section - 遷移先セクション
+     */
+    navigateToHome(section = null) {
+        const homeUrl = this.getHomeUrl();
+        const fullUrl = section ? `${homeUrl}#${section}` : homeUrl;
+        
+        this.log(`ホームページに遷移: ${fullUrl}`);
+        
+        // セッションストレージに遷移先セクションを保存
+        if (section) {
+            sessionStorage.setItem('rbs_target_section', section);
+        }
+        
+        window.location.href = fullUrl;
+    }
+
+    /**
+     * ホームページのURLを取得
+     * @returns {string} ホームページURL
+     */
+    getHomeUrl() {
+        const currentPath = window.location.pathname;
+        
+        if (currentPath.includes('/pages/')) {
+            return '../pages/index.html';
+        }
+        
+        return 'index.html';
+    }
+
+    /**
      * ウィンドウリサイズ処理
      */
     handleWindowResize() {
@@ -204,25 +373,12 @@ export class HeaderComponent extends BaseComponent {
     }
 
     /**
-     * キーダウン処理
+     * キーボードイベント処理
      * @param {KeyboardEvent} event - キーボードイベント
      */
-    handleKeydown(event) {
+    handleKeyDown(event) {
         if (event.key === 'Escape' && this.isMobileMenuOpen) {
-            this.toggleMobileMenu();
-        }
-    }
-
-    /**
-     * ドキュメントクリック処理（外部クリック）
-     * @param {Event} event - クリックイベント
-     */
-    handleDocumentClick(event) {
-        if (!this.isMobileMenuOpen) return;
-        
-        // ヘッダー内部のクリックでない場合はメニューを閉じる
-        if (!this.container.contains(event.target)) {
-            this.toggleMobileMenu();
+            this.closeMobileMenu();
         }
     }
 
@@ -275,20 +431,55 @@ export class HeaderComponent extends BaseComponent {
      */
     toggleMobileMenu() {
         this.isMobileMenuOpen = !this.isMobileMenuOpen;
-        
+        this.updateMobileMenuState();
+    }
+
+    /**
+     * モバイルメニューを閉じる
+     */
+    closeMobileMenu() {
+        if (this.isMobileMenuOpen) {
+            this.isMobileMenuOpen = false;
+            this.updateMobileMenuState();
+        }
+    }
+
+    /**
+     * モバイルメニューを開く
+     */
+    openMobileMenu() {
+        if (!this.isMobileMenuOpen) {
+            this.isMobileMenuOpen = true;
+            this.updateMobileMenuState();
+        }
+    }
+
+    /**
+     * モバイルメニューの状態を更新
+     * @private
+     */
+    updateMobileMenuState() {
+        // ナビゲーションの表示/非表示
         if (this.nav) {
             this.nav.classList.toggle('mobile-open', this.isMobileMenuOpen);
         }
         
+        // トグルボタンの状態更新
         if (this.mobileToggle) {
             this.mobileToggle.classList.toggle('active', this.isMobileMenuOpen);
-            
-            // アクセシビリティ属性の更新
             this.mobileToggle.setAttribute('aria-expanded', this.isMobileMenuOpen.toString());
+            this.mobileToggle.setAttribute('aria-label', this.isMobileMenuOpen ? 'メニューを閉じる' : 'メニューを開く');
         }
         
         // body のスクロール制御（メニューオープン時は無効化）
         document.body.classList.toggle('mobile-menu-open', this.isMobileMenuOpen);
+        
+        // ドキュメントクリックイベントの管理
+        if (this.isMobileMenuOpen) {
+            this.setupDocumentClickHandler();
+        } else {
+            this.removeDocumentClickHandler();
+        }
         
         this.log(`モバイルメニュー${this.isMobileMenuOpen ? '開く' : '閉じる'}`);
         
@@ -296,6 +487,39 @@ export class HeaderComponent extends BaseComponent {
         EventBus.emit('header:mobile:toggle', {
             isOpen: this.isMobileMenuOpen
         });
+    }
+
+    /**
+     * ドキュメントクリックハンドラーの設定
+     * @private
+     */
+    setupDocumentClickHandler() {
+        if (!this.documentClickHandler) {
+            this.documentClickHandler = this.handleDocumentClick.bind(this);
+        }
+        document.addEventListener('click', this.documentClickHandler);
+    }
+
+    /**
+     * ドキュメントクリックハンドラーの削除
+     * @private
+     */
+    removeDocumentClickHandler() {
+        if (this.documentClickHandler) {
+            document.removeEventListener('click', this.documentClickHandler);
+        }
+    }
+
+    /**
+     * ドキュメントクリック処理（外部クリック）
+     * @param {Event} event - クリックイベント
+     * @private
+     */
+    handleDocumentClick(event) {
+        // ヘッダー内部のクリックでない場合はメニューを閉じる
+        if (!this.container.contains(event.target)) {
+            this.closeMobileMenu();
+        }
     }
 
     /**
@@ -333,10 +557,10 @@ export class HeaderComponent extends BaseComponent {
      * @param {HTMLElement} activeLink - アクティブにするリンク
      */
     updateActiveLink(activeLink) {
-        // 全てのナビリンクからactiveクラスを除去
-        this.navLinks.forEach(link => {
+        // 全てのナビリンクからactiveクラスを除去（安全なforEach使用）
+        this.safeForEach(this.navLinks, (link) => {
             link.classList.remove('active');
-        });
+        }, '(アクティブリンク除去)');
         
         // アクティブリンクにクラス追加
         if (activeLink) {
@@ -384,10 +608,10 @@ export class HeaderComponent extends BaseComponent {
             this.toggleMobileMenu();
         }
         
-        // アクティブリンクをクリア
-        this.navLinks.forEach(link => {
+        // アクティブリンクをクリア（安全なforEach使用）
+        this.safeForEach(this.navLinks, (link) => {
             link.classList.remove('active');
-        });
+        }, '(リセット時アクティブリンククリア)');
         
         // スクロール状態をクリア
         this.container.classList.remove('header-fixed', 'header-scrolled');
@@ -439,4 +663,7 @@ export class HeaderComponent extends BaseComponent {
         
         super.destroy();
     }
-} 
+}
+
+// デフォルトエクスポートのみ追加（export classは既に存在するため）
+export default HeaderComponent; 

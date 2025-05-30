@@ -14,7 +14,8 @@ export default class ArticleDisplay extends BaseComponent {
    * @param {Object} options - オプション
    */
   constructor(element, options = {}) {
-    super(element, options);
+    super(element, 'ArticleDisplay');
+    this.options = options;
     this.metadataService = new MetadataService();
   }
 
