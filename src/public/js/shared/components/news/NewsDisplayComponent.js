@@ -116,9 +116,26 @@ export class NewsDisplayComponent extends Component {
    * DOM要素の検索
    */
   findElements() {
-    this.newsListContainer = this.container.querySelector('.news-list') || this.container;
-    this.loadingElement = this.container.querySelector('.loading');
-    this.statusElement = this.container.querySelector('.status');
+    // 記事リストコンテナ
+    this.newsListContainer = this.container.querySelector('.news-list') || 
+                            this.container.querySelector('#news-list') || 
+                            this.container;
+    
+    // ローディング要素（正しいセレクターを使用）
+    this.loadingElement = this.container.querySelector('.news-loading-status') ||
+                         this.container.querySelector('#news-loading-status') ||
+                         this.container.querySelector('.loading');
+    
+    // ステータステキスト要素
+    this.statusElement = this.container.querySelector('#news-status-text') ||
+                        this.container.querySelector('.status-text') ||
+                        this.container.querySelector('.status');
+    
+    this.debug('DOM要素検索結果:', {
+      newsListContainer: !!this.newsListContainer,
+      loadingElement: !!this.loadingElement,
+      statusElement: !!this.statusElement
+    });
   }
 
   /**
@@ -185,7 +202,15 @@ export class NewsDisplayComponent extends Component {
     
     try {
       this.isLoading = true;
+      this.debug('記事表示処理開始', options);
       this.showLoadingMessage('記事を読み込み中...');
+      
+      // ArticleStorageServiceの初期化確認
+      if (!this.articleStorage || !this.articleStorage.initialized) {
+        this.debug('ArticleStorageServiceが初期化されていません');
+        this.showErrorMessage('記事データサービスが初期化されていません');
+        return;
+      }
       
       // ArticleStorageServiceから公開記事を取得
       const articles = this.articleStorage.getPublishedArticles({
@@ -194,15 +219,17 @@ export class NewsDisplayComponent extends Component {
         ...options
       });
       
-      this.debug(`記事取得完了: ${articles.length}件`);
+      this.debug(`記事取得完了: ${articles.length}件`, articles);
       
       // 記事が存在しない場合
       if (articles.length === 0) {
+        this.debug('表示する記事がありません');
         this.showEmptyMessage();
         return;
       }
       
       // 記事リストの生成と表示
+      this.debug('記事リストのレンダリング開始');
       await this.renderArticleList(articles);
       
       this.displayedArticles = articles;
@@ -221,6 +248,7 @@ export class NewsDisplayComponent extends Component {
       this.showErrorMessage('記事の表示に失敗しました');
     } finally {
       this.isLoading = false;
+      this.debug('記事表示処理終了');
     }
   }
 
@@ -236,6 +264,8 @@ export class NewsDisplayComponent extends Component {
       return;
     }
     
+    this.debug(`記事リストをレンダリング: ${articles.length}件`);
+    
     // 既存の記事をクリア
     this.newsListContainer.innerHTML = '';
     
@@ -249,6 +279,13 @@ export class NewsDisplayComponent extends Component {
         articleCard.classList.add('fade-in');
       }, index * this.config.animationDelay);
     });
+    
+    this.debug('記事リストのレンダリング完了');
+    
+    // 記事リストが確実に表示されるようにする
+    if (this.newsListContainer.style.display === 'none') {
+      this.newsListContainer.style.display = '';
+    }
   }
 
   /**
@@ -290,16 +327,24 @@ export class NewsDisplayComponent extends Component {
    * @param {string} message - メッセージ
    */
   showLoadingMessage(message = '読み込み中...') {
+    this.debug('ローディングメッセージ表示:', message);
+    
+    // ローディング要素の表示
     if (this.loadingElement) {
       this.loadingElement.style.display = 'block';
+      this.debug('ローディング要素を表示');
     }
     
+    // ステータステキストの更新
     if (this.statusElement) {
       this.statusElement.textContent = message;
+      this.debug('ステータステキストを更新:', message);
     }
     
-    if (this.newsListContainer) {
+    // 記事リストの非表示
+    if (this.newsListContainer && this.newsListContainer !== this.container) {
       this.newsListContainer.style.display = 'none';
+      this.debug('記事リストを非表示');
     }
   }
 
@@ -308,12 +353,18 @@ export class NewsDisplayComponent extends Component {
    * @private
    */
   hideLoadingMessage() {
+    this.debug('ローディングメッセージ非表示');
+    
+    // ローディング要素の非表示
     if (this.loadingElement) {
       this.loadingElement.style.display = 'none';
+      this.debug('ローディング要素を非表示');
     }
     
-    if (this.newsListContainer) {
+    // 記事リストの表示
+    if (this.newsListContainer && this.newsListContainer !== this.container) {
       this.newsListContainer.style.display = '';
+      this.debug('記事リストを表示');
     }
   }
 
@@ -322,9 +373,13 @@ export class NewsDisplayComponent extends Component {
    * @private
    */
   showEmptyMessage() {
+    this.debug('空メッセージを表示');
     this.hideLoadingMessage();
     
-    if (!this.newsListContainer) return;
+    if (!this.newsListContainer) {
+      this.warn('記事リストコンテナが見つかりません');
+      return;
+    }
     
     const message = this.currentCategory === 'all' 
       ? '記事がまだありません。管理画面で記事を作成してください。'
@@ -338,6 +393,9 @@ export class NewsDisplayComponent extends Component {
         <a href="admin.html" class="btn btn-primary" style="display: inline-block; padding: 12px 24px; background: var(--primary-blue); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;">管理画面で記事を作成</a>
       </div>
     `;
+    
+    // 記事リストコンテナを確実に表示状態にする
+    this.newsListContainer.style.display = '';
   }
 
   /**
@@ -346,9 +404,13 @@ export class NewsDisplayComponent extends Component {
    * @param {string} message - エラーメッセージ
    */
   showErrorMessage(message = 'エラーが発生しました') {
+    this.debug('エラーメッセージを表示:', message);
     this.hideLoadingMessage();
     
-    if (!this.newsListContainer) return;
+    if (!this.newsListContainer) {
+      this.warn('記事リストコンテナが見つかりません');
+      return;
+    }
     
     this.newsListContainer.innerHTML = `
       <div class="error-message" style="text-align: center; padding: 60px 20px; color: #e53e3e;">
@@ -358,6 +420,9 @@ export class NewsDisplayComponent extends Component {
         <button class="btn btn-primary" onclick="location.reload()" style="display: inline-block; padding: 12px 24px; background: #4299e1; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">ページを再読み込み</button>
       </div>
     `;
+    
+    // 記事リストコンテナを確実に表示状態にする
+    this.newsListContainer.style.display = '';
   }
 
   /**
@@ -545,21 +610,6 @@ export class NewsDisplayComponent extends Component {
     }
   }
   
-  /**
-   * エラーメッセージを表示
-   * @param {string} message - エラーメッセージ
-   */
-  showErrorMessage(message) {
-    if (this.container) {
-      this.container.innerHTML = `
-        <div class="news-error">
-          <p>${message}</p>
-          <button onclick="location.reload()">再読み込み</button>
-        </div>
-      `;
-    }
-  }
-
   /**
    * 開発環境での管理画面リンク表示
    * @private

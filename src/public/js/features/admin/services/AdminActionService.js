@@ -88,11 +88,6 @@ export class AdminActionService {
       },
 
       // デバッグ
-      'create-test-data': () => {
-        if (confirm('テストデータを作成しますか？既存のデータは保持されます。')) {
-          this.createTestData();
-        }
-      },
       'show-news-debug': () => {
         this.showLPNewsDebug();
       }
@@ -286,10 +281,6 @@ export class AdminActionService {
 
   logout() {
     console.log('🚪 ログアウト（実装予定）');
-  }
-
-  createTestData() {
-    console.log('🧪 テストデータ作成（実装予定）');
   }
 
   showLPNewsDebug() {
