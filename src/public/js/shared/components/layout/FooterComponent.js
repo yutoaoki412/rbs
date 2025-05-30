@@ -119,17 +119,23 @@ class FooterComponent extends BaseComponent {
                 this.addEventListenerToChild(this.pageTopBtn, 'click', this.handlePageTopClick.bind(this));
             }
             
-            // フッターリンク（安全なforEach使用）
-            this.safeForEach(this.footerLinks, (link) => {
-                this.addEventListenerToChild(link, 'click', this.handleFooterLinkClick.bind(this));
-            }, '(フッターリンク)');
+            // フッターリンク（存在チェック付き安全なforEach使用）
+            if (this.footerLinks && this.footerLinks.length > 0) {
+                this.safeForEach(this.footerLinks, (link) => {
+                    this.addEventListenerToChild(link, 'click', this.handleFooterLinkClick.bind(this));
+                }, '(フッターリンク)');
+            } else {
+                this.debug('フッターリンクが見つからないため、イベントリスナーをスキップします');
+            }
             
             // SNSリンク
             if (this.snsContainer) {
                 const snsLinks = this.safeQuerySelectorAll('a', this.snsContainer);
-                this.safeForEach(snsLinks, (link) => {
-                    this.addEventListenerToChild(link, 'click', this.handleSnsLinkClick.bind(this));
-                }, '(SNSリンク)');
+                if (snsLinks && snsLinks.length > 0) {
+                    this.safeForEach(snsLinks, (link) => {
+                        this.addEventListenerToChild(link, 'click', this.handleSnsLinkClick.bind(this));
+                    }, '(SNSリンク)');
+                }
             }
             
             // ウィンドウリサイズ

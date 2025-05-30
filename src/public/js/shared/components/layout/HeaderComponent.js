@@ -180,22 +180,30 @@ class HeaderComponent extends BaseComponent {
                 this.addEventListenerToChild(this.mobileToggle, 'click', this.handleMobileToggle.bind(this));
             }
             
-            // ナビゲーションリンク（安全なforEach使用）
-            this.safeForEach(this.navLinks, (link) => {
-                this.addEventListenerToChild(link, 'click', this.handleNavLinkClick.bind(this));
-            }, '(ナビゲーションリンク)');
+            // ナビゲーションリンク（存在チェック付き安全なforEach使用）
+            if (this.navLinks && this.navLinks.length > 0) {
+                this.safeForEach(this.navLinks, (link) => {
+                    this.addEventListenerToChild(link, 'click', this.handleNavLinkClick.bind(this));
+                }, '(ナビゲーションリンク)');
+            } else {
+                this.debug('ナビゲーションリンクが見つからないため、イベントリスナーをスキップします');
+            }
             
             // ページナビゲーションリンク
             const pageNavLinks = this.safeQuerySelectorAll('[data-navigate]');
-            this.safeForEach(pageNavLinks, (link) => {
-                this.addEventListenerToChild(link, 'click', this.handlePageNavigation.bind(this));
-            }, '(ページナビゲーションリンク)');
+            if (pageNavLinks && pageNavLinks.length > 0) {
+                this.safeForEach(pageNavLinks, (link) => {
+                    this.addEventListenerToChild(link, 'click', this.handlePageNavigation.bind(this));
+                }, '(ページナビゲーションリンク)');
+            }
             
             // ホームページナビゲーション
             const homeNavLinks = this.safeQuerySelectorAll('[data-action="navigate-home"]');
-            this.safeForEach(homeNavLinks, (link) => {
-                this.addEventListenerToChild(link, 'click', this.handleHomeNavigation.bind(this));
-            }, '(ホームナビゲーションリンク)');
+            if (homeNavLinks && homeNavLinks.length > 0) {
+                this.safeForEach(homeNavLinks, (link) => {
+                    this.addEventListenerToChild(link, 'click', this.handleHomeNavigation.bind(this));
+                }, '(ホームナビゲーションリンク)');
+            }
             
             // ウィンドウリサイズ
             this.addEventListener(window, 'resize', this.handleWindowResize.bind(this));
@@ -649,10 +657,12 @@ class HeaderComponent extends BaseComponent {
      * @param {HTMLElement} activeLink - アクティブにするリンク
      */
     updateActiveLink(activeLink) {
-        // 全てのナビリンクからactiveクラスを除去（安全なforEach使用）
-        this.safeForEach(this.navLinks, (link) => {
-            link.classList.remove('active');
-        }, '(アクティブリンク除去)');
+        // 全てのナビリンクからactiveクラスを除去（存在チェック付き安全なforEach使用）
+        if (this.navLinks && this.navLinks.length > 0) {
+            this.safeForEach(this.navLinks, (link) => {
+                link.classList.remove('active');
+            }, '(アクティブリンク除去)');
+        }
         
         // アクティブリンクにクラス追加
         if (activeLink) {
@@ -701,13 +711,15 @@ class HeaderComponent extends BaseComponent {
     reset() {
         // モバイルメニューを閉じる
         if (this.isMobileMenuOpen) {
-            this.toggleMobileMenu();
+            this.closeMobileMenu();
         }
         
-        // アクティブリンクをクリア（安全なforEach使用）
-        this.safeForEach(this.navLinks, (link) => {
-            link.classList.remove('active');
-        }, '(リセット時アクティブリンククリア)');
+        // アクティブリンクをクリア（存在チェック付き安全なforEach使用）
+        if (this.navLinks && this.navLinks.length > 0) {
+            this.safeForEach(this.navLinks, (link) => {
+                link.classList.remove('active');
+            }, '(リセット時アクティブリンククリア)');
+        }
         
         // スクロール状態をクリア
         this.container.classList.remove('header-fixed', 'header-scrolled');
