@@ -224,4 +224,7 @@ export class NewsActionService {
 }
 
 // シングルトンインスタンス
-export const newsActionService = new NewsActionService(); 
+export const newsActionService = new NewsActionService();
+
+// デフォルトエクスポート（他のサービスとの一貫性のため）
+export default NewsActionService; 

@@ -14,6 +14,38 @@ export default class ShareService {
   }
 
   /**
+   * 統一されたシェアメソッド（NewsActionServiceから呼び出し用）
+   * @param {string} platform - プラットフォーム名
+   * @param {Object} options - シェアオプション
+   * @param {string} options.url - シェアするURL
+   * @param {string} options.text - シェアテキスト
+   */
+  async share(platform, options) {
+    const { url, text } = options;
+    
+    // 記事風のオブジェクトを作成
+    const articleLike = {
+      title: text || document.title,
+      url: url || window.location.href
+    };
+    
+    switch (platform) {
+      case 'twitter':
+        await this.shareTwitter(articleLike);
+        break;
+      case 'facebook':
+        await this.shareFacebook(articleLike);
+        break;
+      case 'line':
+        await this.shareLine(articleLike);
+        break;
+      default:
+        console.warn(`未対応のプラットフォーム: ${platform}`);
+        this.notificationService.showError(`${platform}でのシェアには対応していません`);
+    }
+  }
+
+  /**
    * Twitterでシェア
    * @param {Object} article - 記事データ
    */

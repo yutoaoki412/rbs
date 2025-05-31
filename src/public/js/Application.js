@@ -296,115 +296,130 @@ export class Application {
   }
 
   /**
-   * ニュース機能の初期化
+   * ニュース機能の初期化（統合版）
    * @private
    */
   async initializeNewsFeatures() {
     try {
-      this.debug('ニュース機能初期化開始');
+      this.debug('統合ニュース機能初期化開始');
       
       // 統合記事ストレージサービス初期化
       const { getArticleStorageService } = await import('./shared/services/ArticleStorageService.js');
       const articleStorageService = getArticleStorageService();
-      await articleStorageService.init();
       
-      // ページタイプに応じた初期化
-      if (this.pageType === 'admin') {
-        // 管理画面: 記事管理コンポーネント
-        const { default: ArticleDataService } = await import('./features/admin/services/ArticleDataService.js');
-        window.articleDataService = new ArticleDataService();
-        await window.articleDataService.init();
-      } else if (this.pageType === 'home') {
-        // ホームページでニュースセクションが必要な場合のみ初期化
-        if (this.hasNewsSection()) {
-          this.debug('ニュースセクションが検出されました。NewsDisplayComponentを初期化します。');
-          await this.initializeNewsDisplayComponent();
-        } else {
-          this.debug('ニュースセクションが見つかりません。NewsDisplayComponentの初期化をスキップします。');
-        }
+      if (!articleStorageService.initialized) {
+        await articleStorageService.init();
+      }
+      this.articleStorageService = articleStorageService;
+      
+      // 統合ニュース機能の初期化
+      try {
+        const { initNewsFeature } = await import('./features/news/index.js');
+        await initNewsFeature();
+        this.debug('統合ニュース機能の初期化完了');
+      } catch (newsError) {
+        this.warn('統合ニュース機能の初期化でエラーが発生しました:', newsError);
+        // フォールバック: 基本的なニュース表示機能のみ初期化
+        await this.initializeBasicNewsFeatures();
       }
       
-      this.debug('ニュース機能初期化完了');
+      // ページタイプに応じた追加初期化
+      if (this.pageType === 'admin') {
+        // 管理画面: 記事管理コンポーネント（既に統合サービスを使用）
+        await this.initializeAdminNewsFeatures();
+      }
+      
+      this.debug('統合ニュース機能初期化完了');
       
     } catch (error) {
       this.error('ニュース機能初期化エラー:', error);
+      // エラーが発生してもアプリケーション全体の動作は継続
+      this.showInitializationWarning('ニュース機能の一部が利用できない可能性があります');
     }
   }
 
   /**
-   * NewsDisplayComponentの初期化
+   * 基本的なニュース機能の初期化（フォールバック）
+   * @private
+   */
+  async initializeBasicNewsFeatures() {
+    try {
+      this.debug('基本ニュース機能初期化開始（フォールバック）');
+      
+      // 最低限のニュース表示機能を初期化
+      const { getNewsDataService } = await import('./features/news/services/NewsDataService.js');
+      const newsDataService = getNewsDataService();
+      
+      if (!newsDataService.initialized) {
+        await newsDataService.init();
+      }
+      
+      // ニュース表示エリアが存在する場合は基本的な表示を実行
+      if (this.hasNewsSection()) {
+        const { getNewsDisplayComponent } = await import('./features/news/components/NewsDisplayComponent.js');
+        const newsDisplayComponent = getNewsDisplayComponent();
+        await newsDisplayComponent.init();
+      }
+      
+      this.debug('基本ニュース機能初期化完了');
+      
+    } catch (error) {
+      this.warn('基本ニュース機能初期化もエラー:', error);
+    }
+  }
+
+  /**
+   * 管理画面用ニュース機能の初期化
+   * @private
+   */
+  async initializeAdminNewsFeatures() {
+    try {
+      // 管理画面用記事データサービス（既に統合サービスを使用しているため、そのまま初期化）
+      const { getArticleDataService } = await import('./features/admin/services/ArticleDataService.js');
+      const articleDataService = getArticleDataService();
+      
+      if (!articleDataService.initialized) {
+        await articleDataService.init();
+      }
+      
+      window.articleDataService = articleDataService;
+      this.debug('管理画面ニュース機能初期化完了');
+      
+    } catch (error) {
+      this.error('管理画面ニュース機能初期化エラー:', error);
+    }
+  }
+
+  /**
+   * @deprecated 旧NewsDisplayComponentの初期化（統合版では不要）
    * @private
    */
   async initializeNewsDisplayComponent() {
-    try {
-      const { default: NewsDisplayComponent } = await import('./shared/components/news/NewsDisplayComponent.js');
-      
-      // 動的ニュース表示用のコンテナを検索
-      let newsContainer = document.querySelector('[data-news-dynamic="true"]') ||
-                         document.querySelector('#news') ||
-                         document.querySelector('#news-section, .news-section, .news-container');
-      
-      if (!newsContainer) {
-        // コンテナが見つからない場合は、main要素内に作成
-        const mainElement = document.querySelector('main, #main-content, body');
-        if (mainElement) {
-          newsContainer = document.createElement('section');
-          newsContainer.id = 'news-section';
-          newsContainer.className = 'news-section';
-          newsContainer.setAttribute('data-news-dynamic', 'true');
-          newsContainer.style.display = 'none'; // 必要時に表示
-          mainElement.appendChild(newsContainer);
-          this.debug('動的ニュースコンテナを新規作成しました');
-        } else {
-          // 最終フォールバック: body要素を使用
-          newsContainer = document.body;
-        }
-      } else {
-        this.debug('既存の動的ニュースコンテナを使用:', newsContainer.id || newsContainer.className);
-      }
-      
-      const newsDisplay = new NewsDisplayComponent(newsContainer);
-      await newsDisplay.init();
-      this.newsDisplayComponent = newsDisplay;
-      
-      // グローバルアクセス用
-      window.newsDisplayComponent = newsDisplay;
-      
-      this.debug('NewsDisplayComponent初期化完了');
-      
-    } catch (error) {
-      this.error('NewsDisplayComponent初期化エラー:', error);
-    }
+    this.debug('⚠️ initializeNewsDisplayComponent() は統合版では不要です。initNewsFeature()を使用してください。');
+    // 統合版では initNewsFeature() 内で自動的に初期化される
   }
 
   /**
-   * ニュースセクションの存在確認
-   * 動的ニュースセクション（data-news-dynamic="true"）を検出して統合記事システムを有効化
+   * ニュースセクションの存在確認（統合版）
+   * すべてのページタイプで統合ニュース機能を有効化
    * @returns {boolean}
    */
   hasNewsSection() {
-    // 動的ニュースセクションを優先的に検出
-    const dynamicNewsSection = document.querySelector('[data-news-dynamic="true"]');
-    if (dynamicNewsSection) {
-      this.debug('動的ニュースセクションが検出されました。統合記事システムを初期化します。');
-      return true;
-    }
-    
-    // 静的ニュースセクションは除外
-    const staticNewsSection = document.querySelector('.news-section-static');
-    if (staticNewsSection) {
-      this.debug('静的ニュースセクションが検出されました。動的処理をスキップします。');
-      return false;
-    }
-    
-    // 他の動的ニュースセクションパターンも検出
+    // 統合版では全ページで有効化
     const hasNewsElements = !!(
-      document.querySelector('#news-section, .news-section, .news-container') ||
-      document.querySelector('[data-component="news"], [data-role="news"]') ||
-      document.querySelector('#news.news-dynamic, .news-dynamic')
+      // 動的ニュースセクション
+      document.querySelector('[data-news-dynamic="true"]') ||
+      // ニュース一覧ページ
+      document.querySelector('#news-grid, .news-grid') ||
+      // ニュース詳細ページ
+      document.querySelector('#article-content, .article-content') ||
+      // ホームページのニュースセクション
+      document.querySelector('#news-list, #news') ||
+      // その他のニュース関連要素
+      document.querySelector('.news-section, .news-container, [data-component="news"]')
     );
     
-    this.debug(`動的ニュースセクション存在確認: ${hasNewsElements}`);
+    this.debug(`統合ニュースセクション存在確認: ${hasNewsElements} (ページ: ${this.pageType})`);
     return hasNewsElements;
   }
 

@@ -165,126 +165,149 @@
           <h1><i class="fas fa-newspaper"></i> 記事管理</h1>
         </div>
         
-        <div class="management-layout">
-          <!-- 記事エディター -->
-          <div class="editor-panel">
-            <div class="panel-header">
-              <h2><i class="fas fa-edit"></i> <span id="editor-title">新規記事作成</span></h2>
-              <div class="panel-actions">
-                <button class="btn btn-outline" data-action="clear-news-editor">
-                  クリア
-                </button>
-                <button class="btn btn-secondary" data-action="preview-news">
-                  プレビュー
-                </button>
-                <button class="btn btn-primary" data-action="save-news">
-                  保存
-                </button>
-                <button class="btn btn-success" data-action="publish-news">
-                  公開
-                </button>
-              </div>
-            </div>
-            
-            <form class="editor-form">
-              <input type="hidden" id="news-id">
-              
-              <div class="form-grid">
-                <div class="form-group">
-                  <label for="news-title">
-                    タイトル <span class="required">*</span>
-                  </label>
-                  <input type="text" id="news-title" class="form-input" placeholder="記事のタイトルを入力してください" required>
-                </div>
-                <div class="form-group">
-                  <label for="news-category">
-                    カテゴリー
-                  </label>
-                  <select id="news-category" class="form-select">
-                    <option value="announcement">お知らせ</option>
-                    <option value="event">体験会</option>
-                    <option value="media">メディア</option>
-                    <option value="important">重要</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div class="form-grid">
-                <div class="form-group">
-                  <label for="news-date">
-                    公開日
-                  </label>
-                  <input type="date" id="news-date" class="form-input">
-                </div>
-                <div class="form-group">
-                  <label for="news-status">
-                    ステータス
-                  </label>
-                  <select id="news-status" class="form-select">
-                    <option value="draft">下書き</option>
-                    <option value="published">公開</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div class="form-group">
-                <label for="news-summary">
-                  概要
-                </label>
-                <textarea id="news-summary" class="form-textarea" rows="3" placeholder="記事の概要を入力してください（記事一覧で表示されます）"></textarea>
-              </div>
-              
-              <div class="form-group">
-                <label for="news-content">
-                  本文 <span class="required">*</span>
-                </label>
-                <div class="editor-toolbar">
-                  <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="**" data-end="**" title="太字">
-                    <strong>B</strong>
-                  </button>
-                  <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="## " data-end="" title="見出し">
-                    H2
-                  </button>
-                  <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="- " data-end="" title="リスト">
-                    List
-                  </button>
-                  <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="[" data-end="](URL)" title="リンク">
-                    Link
-                  </button>
-                </div>
-                <textarea id="news-content" class="form-textarea editor-content" placeholder="記事の本文をMarkdown形式で入力してください" required></textarea>
-                <div class="form-help">
-                  <small>Markdown記法: **太字**、## 見出し、- リスト、[リンク](URL)</small>
-                </div>
-              </div>
-              
-              <div class="form-group">
-                <label>
-                  <input type="checkbox" id="news-featured"> 注目記事として表示する
-                </label>
-              </div>
-            </form>
+        <!-- 記事管理用のタブナビゲーション -->
+        <div class="sub-nav">
+          <div class="sub-nav-item active" data-action="switch-news-tab" data-tab="editor">
+            <i class="fas fa-edit"></i>
+            新規記事作成
           </div>
-          
-          <!-- 記事一覧 -->
-          <div class="list-panel">
-            <div class="panel-header">
-              <h2><i class="fas fa-list"></i> 記事一覧</h2>
-              <div class="panel-filters">
-                <select id="news-filter" class="form-select" data-action="filter-news-list" data-target="news-filter">
-                  <option value="all">すべて</option>
-                  <option value="published">公開中</option>
-                  <option value="draft">下書き</option>
-                </select>
-                <button class="btn btn-outline" data-action="refresh-news-list">
-                  更新
-                </button>
+          <div class="sub-nav-item" data-action="switch-news-tab" data-tab="list">
+            <i class="fas fa-list"></i>
+            記事一覧
+          </div>
+        </div>
+        
+        <!-- エディタータブ -->
+        <div id="news-editor-tab" class="news-tab-content active">
+          <div class="management-layout">
+            <!-- 記事エディター -->
+            <div class="editor-panel">
+              <div class="panel-header">
+                <h2><i class="fas fa-edit"></i> <span id="editor-title">新規記事作成</span></h2>
+                <div class="panel-actions">
+                  <button class="btn btn-outline" data-action="clear-news-editor">
+                    クリア
+                  </button>
+                  <button class="btn btn-secondary" data-action="preview-news">
+                    <i class="fas fa-eye"></i>
+                    プレビュー
+                  </button>
+                  <button class="btn btn-primary" data-action="save-news">
+                    <i class="fas fa-save"></i>
+                    保存
+                  </button>
+                  <button class="btn btn-success" data-action="publish-news">
+                    <i class="fas fa-globe"></i>
+                    公開
+                  </button>
+                </div>
               </div>
+              
+              <form class="editor-form">
+                <input type="hidden" id="news-id">
+                
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label for="news-title">
+                      タイトル <span class="required">*</span>
+                    </label>
+                    <input type="text" id="news-title" class="form-input" placeholder="記事のタイトルを入力してください" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="news-category">
+                      カテゴリー
+                    </label>
+                    <select id="news-category" class="form-select">
+                      <option value="announcement">お知らせ</option>
+                      <option value="event">体験会</option>
+                      <option value="media">メディア</option>
+                      <option value="important">重要</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label for="news-date">
+                      公開日
+                    </label>
+                    <input type="date" id="news-date" class="form-input">
+                  </div>
+                  <div class="form-group">
+                    <label for="news-status">
+                      ステータス
+                    </label>
+                    <select id="news-status" class="form-select">
+                      <option value="draft">下書き</option>
+                      <option value="published">公開</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label for="news-summary">
+                    概要
+                  </label>
+                  <textarea id="news-summary" class="form-textarea" rows="3" placeholder="記事の概要を入力してください（記事一覧で表示されます）"></textarea>
+                </div>
+                
+                <div class="form-group">
+                  <label for="news-content">
+                    本文 <span class="required">*</span>
+                  </label>
+                  <div class="editor-toolbar">
+                    <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="**" data-end="**" title="太字">
+                      <strong>B</strong>
+                    </button>
+                    <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="## " data-end="" title="見出し">
+                      H2
+                    </button>
+                    <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="- " data-end="" title="リスト">
+                      List
+                    </button>
+                    <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="[" data-end="](URL)" title="リンク">
+                      Link
+                    </button>
+                  </div>
+                  <textarea id="news-content" class="form-textarea editor-content" placeholder="記事の本文をMarkdown形式で入力してください" required></textarea>
+                  <div class="form-help">
+                    <small>Markdown記法: **太字**、## 見出し、- リスト、[リンク](URL)</small>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label>
+                    <input type="checkbox" id="news-featured"> 注目記事として表示する
+                  </label>
+                </div>
+              </form>
             </div>
-            <div id="news-list" class="list-content">
-              <!-- 記事一覧がここに表示される -->
-              <div class="loading-state">
-                記事を読み込み中...
+          </div>
+        </div>
+        
+        <!-- 記事一覧タブ -->
+        <div id="news-list-tab" class="news-tab-content">
+          <div class="management-layout">
+            <!-- 記事一覧 -->
+            <div class="list-panel full-width">
+              <div class="panel-header">
+                <h2><i class="fas fa-list"></i> 記事一覧</h2>
+                <div class="panel-filters">
+                  <select id="news-filter" class="form-select" data-action="filter-news-list" data-target="news-filter">
+                    <option value="all">すべて</option>
+                    <option value="published">公開中</option>
+                    <option value="draft">下書き</option>
+                  </select>
+                  <button class="btn btn-outline" data-action="refresh-news-list">
+                    更新
+                  </button>
+                </div>
+              </div>
+              <div id="news-list" class="list-content">
+                <!-- 記事一覧がここに表示される -->
+                <div class="loading-state">
+                  記事を読み込み中...
+                </div>
               </div>
             </div>
           </div>

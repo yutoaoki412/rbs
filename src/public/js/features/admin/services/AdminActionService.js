@@ -183,6 +183,7 @@ export class AdminActionService {
       'refresh-news-list': () => this.refreshNewsList(),
       'refresh-recent-articles': () => this.refreshRecentArticles(),
       'insert-markdown': (element, params) => this.insertMarkdown(element, params),
+      'switch-news-tab': (element, params) => this.switchNewsTab(params.tab),
 
       // レッスン状況
       'load-lesson-status': () => this.loadLessonStatus(),
@@ -437,18 +438,28 @@ export class AdminActionService {
   /**
    * 記事プレビュー
    */
-  previewNews() {
+  async previewNews() {
     try {
-      const articleData = this.#getArticleDataFromForm();
+      console.log('👁️ 記事プレビュー開始');
       
-      if (!articleData.title) {
-        this.#showFeedback('タイトルを入力してください', 'error');
+      // フォームデータを取得
+      const formData = this.#getNewsFormData();
+      
+      if (!formData.title.trim()) {
+        this.#showFeedback('タイトルが入力されていません', 'error');
         return;
       }
-
-      this.#showPreviewModal(articleData);
-      console.log('👁️ 記事プレビューを表示');
-
+      
+      if (!formData.content.trim()) {
+        this.#showFeedback('本文が入力されていません', 'error');
+        return;
+      }
+      
+      // プレビューモーダルを作成・表示
+      this.#showNewsPreviewModal(formData);
+      
+      this.#showFeedback('プレビューを表示しました');
+      
     } catch (error) {
       console.error('❌ 記事プレビューエラー:', error);
       this.#showFeedback('プレビューの表示に失敗しました', 'error');
@@ -1040,6 +1051,45 @@ export class AdminActionService {
   }
 
   /**
+   * デバッグモーダルの表示
+   * @private
+   * @param {Object} debugInfo - デバッグ情報
+   */
+  #showDebugModal(debugInfo) {
+    const debugContent = `
+      <div class="debug-info">
+        <h4>システム情報</h4>
+        <table class="debug-table">
+          <tr><td>現在のタブ</td><td>${debugInfo.currentTab}</td></tr>
+          <tr><td>初期化状態</td><td>${debugInfo.initialized ? '✅' : '❌'}</td></tr>
+        </table>
+        
+        <h4>サービス状態</h4>
+        <table class="debug-table">
+          <tr><td>記事サービス</td><td>${debugInfo.articleService?.initialized ? '✅' : '❌'}</td></tr>
+          <tr><td>レッスンサービス</td><td>${debugInfo.lessonService?.initialized ? '✅' : '❌'}</td></tr>
+          <tr><td>UIマネージャー</td><td>${debugInfo.uiManager?.initialized ? '✅' : '❌'}</td></tr>
+        </table>
+        
+        <h4>ブラウザ情報</h4>
+        <table class="debug-table">
+          <tr><td>言語</td><td>${debugInfo.browser.language}</td></tr>
+          <tr><td>Cookie有効</td><td>${debugInfo.browser.cookieEnabled ? '✅' : '❌'}</td></tr>
+          <tr><td>LocalStorage</td><td>${debugInfo.storage.localStorageAvailable ? '✅' : '❌'}</td></tr>
+        </table>
+        
+        <style>
+          .debug-table { width: 100%; margin-bottom: 1rem; border-collapse: collapse; }
+          .debug-table td { padding: 0.5rem; border: 1px solid #ddd; }
+          .debug-table td:first-child { font-weight: bold; background: #f5f5f5; }
+        </style>
+      </div>
+    `;
+    
+    this.#showModal('システムデバッグ情報', debugContent);
+  }
+
+  /**
    * LP ニュースデバッグ
    */
   showNewsDebug() {
@@ -1225,8 +1275,7 @@ export class AdminActionService {
       const filteredArticles = this.#filterArticles(articles, filter);
       
       const listContainer = document.getElementById('news-list');
-      if (listContainer) {
-        listContainer.innerHTML = this.#generateNewsListHTML(filteredArticles);
+      if (listContainer) {        listContainer.innerHTML = this.#generateNewsListHTML(filteredArticles);
       }
       
     } catch (error) {
@@ -1422,48 +1471,182 @@ export class AdminActionService {
    * @private
    * @param {Object} articleData - 記事データ
    */
-  #showPreviewModal(articleData) {
-    const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalBody = document.getElementById('modal-body');
+  #showNewsPreviewModal(articleData) {
+    // 既存のモーダルがあれば削除
+    const existingModal = document.getElementById('news-preview-modal');
+    if (existingModal) {
+      existingModal.remove();
+    }
     
-    if (modal && modalTitle && modalBody) {
-      modalTitle.textContent = '記事プレビュー';
-      modalBody.innerHTML = `
-        <div class="article-preview">
-          <h2>${articleData.title}</h2>
-          <div class="article-meta">
-            <span class="category">${this.#getCategoryName(articleData.category)}</span>
-            <span class="date">${articleData.date || '日付未設定'}</span>
-            <span class="status">${articleData.status === 'published' ? '公開' : '下書き'}</span>
+    // カテゴリー名を取得
+    const categoryNames = {
+      'announcement': 'お知らせ',
+      'event': '体験会',
+      'media': 'メディア',
+      'important': '重要'
+    };
+    
+    const categoryName = categoryNames[articleData.category] || articleData.category;
+    const formattedDate = articleData.date ? 
+      new Date(articleData.date).toLocaleDateString('ja-JP') : 
+      new Date().toLocaleDateString('ja-JP');
+    
+    // モーダルHTMLを作成
+    const modalHTML = `
+      <div id="news-preview-modal" class="modal">
+        <div class="modal-content article-preview">
+          <div class="modal-header">
+            <h2><i class="fas fa-eye"></i> 記事プレビュー</h2>
+            <button class="modal-close" onclick="this.closest('.modal').remove()">
+              <i class="fas fa-times"></i>
+            </button>
           </div>
-          ${articleData.summary ? `<div class="article-summary">${articleData.summary}</div>` : ''}
-          <div class="article-content">${this.#markdownToHtml(articleData.content)}</div>
+          <div class="modal-body">
+            <div class="preview-article">
+              <div class="article-header">
+                <div class="article-meta">
+                  <span class="article-date">${formattedDate}</span>
+                  <span class="article-category ${articleData.category}">${categoryName}</span>
+                </div>
+                <h1 class="article-title">${this.escapeHtml(articleData.title)}</h1>
+                ${articleData.summary ? `<div class="article-summary">${this.escapeHtml(articleData.summary)}</div>` : ''}
+              </div>
+              <div class="article-content">
+                ${this.#convertMarkdownToHtml(articleData.content)}
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-outline" onclick="this.closest('.modal').remove()">
+              閉じる
+            </button>
+          </div>
         </div>
-      `;
-      modal.classList.add('active');
+      </div>
+    `;
+    
+    // モーダルをDOMに追加
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // モーダルを表示
+    const modal = document.getElementById('news-preview-modal');
+    modal.style.display = 'flex';
+    
+    // ESCキーでモーダルを閉じる
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        modal.remove();
+        document.removeEventListener('keydown', handleEscape);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    
+    // モーダル背景クリックで閉じる
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+        document.removeEventListener('keydown', handleEscape);
+      }
+    });
+  }
+
+  /**
+   * 簡易Markdown→HTML変換
+   * @private
+   * @param {string} markdown - Markdownテキスト
+   * @returns {string} HTMLテキスト
+   */
+  #convertMarkdownToHtml(markdown) {
+    return markdown
+      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+      .replace(/^- (.*)$/gim, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/^(.*)$/gim, '<p>$1</p>')
+      .replace(/<p><\/p>/g, '')
+      .replace(/<p>(<h[1-6]>.*<\/h[1-6]>)<\/p>/g, '$1')
+      .replace(/<p>(<ul>.*<\/ul>)<\/p>/g, '$1');
+  }
+
+  /**
+   * HTMLエスケープ
+   * @private
+   * @param {string} text - エスケープするテキスト
+   * @returns {string}
+   */
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  /**
+   * 記事管理のサブタブを切り替え
+   * @param {string} tabName - タブ名 (editor|list)
+   */
+  switchNewsTab(tabName) {
+    try {
+      console.log(`🔄 記事管理サブタブ切り替え: ${tabName}`);
+      
+      // 現在のアクティブタブを非アクティブに
+      const currentActiveNavItem = document.querySelector('.sub-nav-item.active');
+      const currentActiveTabContent = document.querySelector('.news-tab-content.active');
+      
+      if (currentActiveNavItem) {
+        currentActiveNavItem.classList.remove('active');
+      }
+      if (currentActiveTabContent) {
+        currentActiveTabContent.classList.remove('active');
+      }
+      
+      // 新しいタブをアクティブに
+      const newActiveNavItem = document.querySelector(`[data-tab="${tabName}"]`);
+      let newActiveTabContent;
+      
+      if (tabName === 'editor') {
+        newActiveTabContent = document.getElementById('news-editor-tab');
+      } else if (tabName === 'list') {
+        newActiveTabContent = document.getElementById('news-list-tab');
+        // 記事一覧タブに切り替えたときは記事一覧を更新
+        this.refreshNewsList();
+      }
+      
+      if (newActiveNavItem) {
+        newActiveNavItem.classList.add('active');
+      }
+      if (newActiveTabContent) {
+        newActiveTabContent.classList.add('active');
+      }
+      
+      const tabDisplayName = tabName === 'editor' ? '記事作成' : '記事一覧';
+      this.#showFeedback(`${tabDisplayName}タブに切り替えました`);
+      
+    } catch (error) {
+      console.error('❌ 記事管理サブタブ切り替えエラー:', error);
+      this.#showFeedback('タブの切り替えに失敗しました', 'error');
     }
   }
 
   /**
-   * デバッグモーダルの表示
+   * フォームからニュースフォームデータを取得
    * @private
-   * @param {Object} debugInfo - デバッグ情報
+   * @returns {Object}
    */
-  #showDebugModal(debugInfo) {
-    const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalBody = document.getElementById('modal-body');
-    
-    if (modal && modalTitle && modalBody) {
-      modalTitle.textContent = 'デバッグ情報';
-      modalBody.innerHTML = `
-        <div class="debug-info">
-          <pre>${JSON.stringify(debugInfo, null, 2)}</pre>
-        </div>
-      `;
-      modal.classList.add('active');
-    }
+  #getNewsFormData() {
+    return {
+      title: document.getElementById('news-title')?.value || '',
+      category: document.getElementById('news-category')?.value || 'announcement',
+      date: document.getElementById('news-date')?.value || '',
+      status: document.getElementById('news-status')?.value || 'draft',
+      summary: document.getElementById('news-summary')?.value || '',
+      content: document.getElementById('news-content')?.value || '',
+      featured: document.getElementById('news-featured')?.checked || false
+    };
   }
 
   /**
@@ -1513,7 +1696,7 @@ export class AdminActionService {
             <div class="global-message">
               <div class="message-content">
                 <i class="fas fa-info-circle"></i>
-                <span>${this.#escapeHtml(statusData.globalMessage)}</span>
+                <span>${this.escapeHtml(statusData.globalMessage)}</span>
               </div>
             </div>
           ` : ''}
@@ -1537,7 +1720,7 @@ export class AdminActionService {
             </div>
             ${courseData.message ? `
               <div class="course-message">
-                <p>${this.#escapeHtml(courseData.message)}</p>
+                <p>${this.escapeHtml(courseData.message)}</p>
               </div>
             ` : ''}
           </div>
@@ -1608,18 +1791,6 @@ export class AdminActionService {
     
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     document.body.classList.add('modal-open');
-  }
-
-  /**
-   * HTMLエスケープ
-   * @private
-   * @param {string} text - エスケープするテキスト
-   * @returns {string} エスケープされたテキスト
-   */
-  #escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
   }
 
   /**
@@ -1711,23 +1882,6 @@ export class AdminActionService {
       const advanceRadio = document.querySelector(`input[name="advance-lesson"][value="${advanceJapanese}"]`);
       if (advanceRadio) advanceRadio.checked = true;
     }
-  }
-
-  /**
-   * 簡易Markdown to HTML変換
-   * @private
-   * @param {string} markdown - Markdownテキスト
-   * @returns {string}
-   */
-  #markdownToHtml(markdown) {
-    return markdown
-      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/^\- (.+)$/gm, '<li>$1</li>')
-      .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-      .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>')
-      .replace(/\n/g, '<br>');
   }
 
   /**
