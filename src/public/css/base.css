@@ -305,3 +305,78 @@
   .animate-bounce {
     animation: bounceIn 1s ease-out forwards;
   }
+
+/* 共通カテゴリスタイル - 全ページで使用 */
+.category-tag,
+.news-category,
+.article-category {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: white !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: fit-content;
+  border: none;
+  display: inline-block;
+}
+
+/* カテゴリ別色設定 */
+.category-tag.announcement,
+.news-category.announcement,
+.article-category.announcement {
+  background: #4a90e2 !important; /* 青 - お知らせ */
+}
+
+.category-tag.event,
+.news-category.event,
+.article-category.event {
+  background: #50c8a3 !important; /* ティール - 体験会 */
+}
+
+.category-tag.media,
+.news-category.media,
+.article-category.media {
+  background: #9b59b6 !important; /* 紫 - メディア */
+}
+
+.category-tag.important,
+.news-category.important,
+.article-category.important {
+  background: #e74c3c !important; /* 赤 - 重要 */
+}
+
+/* 小さいサイズのカテゴリタグ（関連記事用など） */
+.category-tag-small,
+.related-category {
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 10px;
+  font-weight: 700;
+  color: white !important;
+  text-transform: uppercase;
+  min-width: fit-content;
+  border: none;
+  display: inline-block;
+}
+
+.category-tag-small.announcement,
+.related-category.announcement {
+  background: #4a90e2 !important;
+}
+
+.category-tag-small.event,
+.related-category.event {
+  background: #50c8a3 !important;
+}
+
+.category-tag-small.media,
+.related-category.media {
+  background: #9b59b6 !important;
+}
+
+.category-tag-small.important,
+.related-category.important {
+  background: #e74c3c !important;
+}

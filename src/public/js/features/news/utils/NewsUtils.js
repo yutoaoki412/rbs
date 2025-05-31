@@ -20,7 +20,7 @@ export class NewsUtils {
         <div class="news-card-header">
           <div class="news-meta">
             <div class="news-date">${date}</div>
-            <div class="news-category ${article.category}" style="background-color: ${categoryInfo?.color || '#666'}">
+            <div class="news-category ${article.category}">
               ${categoryInfo?.name || article.category}
             </div>
           </div>

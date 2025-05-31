@@ -1207,26 +1207,31 @@
   border-radius: 20px;
   font-size: 12px;
   font-weight: 700;
-  color: white;
+  color: white !important;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   min-width: fit-content;
+  border: none;
 }
 
 #news .news-category.announcement {
-  background: var(--primary-blue);
+  background: #4a90e2 !important;
+  color: white !important;
 }
 
 #news .news-category.event {
-  background: var(--primary-teal);
+  background: #50c8a3 !important;
+  color: white !important;
 }
 
 #news .news-category.media {
-  background: var(--primary-purple);
+  background: #9b59b6 !important;
+  color: white !important;
 }
 
 #news .news-category.important {
-  background: var(--primary-red);
+  background: #e74c3c !important;
+  color: white !important;
 }
 
 /* ニュースタイトル */

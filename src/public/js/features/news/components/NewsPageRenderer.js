@@ -266,7 +266,16 @@ export class NewsPageRenderer {
     if (category) {
       const categoryInfo = CONFIG.articles.categories[article.category];
       category.textContent = categoryInfo?.name || article.category;
-      category.style.color = categoryInfo?.color || '#666';
+      
+      // カテゴリクラスを追加して背景色を適用
+      category.className = `article-category ${article.category}`;
+      
+      console.log('🏷️ カテゴリ設定:', {
+        category: article.category,
+        name: categoryInfo?.name,
+        className: category.className,
+        element: category
+      });
     }
     
     // 本文
