@@ -1392,18 +1392,90 @@ export class AdminActionService {
    */
   #generateRecentArticlesHTML(articles) {
     if (articles.length === 0) {
-      return '<div class="empty-state">最近の記事がありません</div>';
+      return `
+        <div class="empty-state">
+          <i class="fas fa-newspaper"></i>
+          <p>最近の記事がありません</p>
+          <button class="btn btn-sm btn-primary" data-action="new-news-article">
+            <i class="fas fa-plus"></i> 新規記事を作成
+          </button>
+        </div>
+      `;
     }
     
-    return articles.map(article => `
-      <div class="recent-article-item">
-        <div class="article-title">${article.title}</div>
-        <div class="article-meta">
-          <span class="status ${article.status}">${article.status === 'published' ? '公開' : '下書き'}</span>
-          <span class="date">${new Date(article.updatedAt || article.createdAt).toLocaleDateString('ja-JP')}</span>
+    return articles.map((article, index) => {
+      const createdDate = new Date(article.createdAt);
+      const updatedDate = new Date(article.updatedAt || article.createdAt);
+      const isRecent = (Date.now() - updatedDate.getTime()) < (24 * 60 * 60 * 1000); // 24時間以内
+      const categoryName = this.#getCategoryName(article.category);
+      const summary = article.summary ? 
+        (article.summary.length > 80 ? article.summary.substring(0, 80) + '...' : article.summary) : 
+        '概要なし';
+
+      return `
+        <div class="recent-article-item" data-id="${article.id}" style="animation-delay: ${index * 0.1}s">
+          <div class="recent-article-header">
+            <div class="recent-article-main">
+              <h3 class="recent-article-title" title="${this.escapeHtml(article.title)}">
+                ${this.escapeHtml(article.title)}
+                ${isRecent ? '<span class="new-badge">NEW</span>' : ''}
+              </h3>
+              <div class="recent-article-summary">${this.escapeHtml(summary)}</div>
+            </div>
+            <div class="recent-article-actions">
+              <button class="btn-icon" onclick="adminActionService.editArticle('${article.id}')" title="編集">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-icon" onclick="adminActionService.previewArticleById('${article.id}')" title="プレビュー">
+                <i class="fas fa-eye"></i>
+              </button>
+              <div class="dropdown">
+                <button class="btn-icon dropdown-toggle" title="その他">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="dropdown-menu">
+                  <button class="dropdown-item" onclick="adminActionService.duplicateArticle('${article.id}')">
+                    <i class="fas fa-copy"></i> 複製
+                  </button>
+                  <button class="dropdown-item danger" onclick="adminActionService.deleteArticle('${article.id}')">
+                    <i class="fas fa-trash"></i> 削除
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="recent-article-meta">
+            <div class="meta-item">
+              <i class="fas fa-tag"></i>
+              <span class="category-badge ${article.category}">${categoryName}</span>
+            </div>
+            <div class="meta-item">
+              <i class="fas fa-circle ${article.status === 'published' ? 'published' : 'draft'}"></i>
+              <span class="status-text">${article.status === 'published' ? '公開中' : '下書き'}</span>
+            </div>
+            <div class="meta-item">
+              <i class="fas fa-clock"></i>
+              <span class="date-text" title="更新: ${updatedDate.toLocaleString('ja-JP')}">
+                ${this.#formatRelativeTime(updatedDate)}
+              </span>
+            </div>
+            ${article.featured ? '<div class="meta-item"><i class="fas fa-star featured"></i><span>注目記事</span></div>' : ''}
+          </div>
+          
+          <div class="recent-article-stats">
+            <div class="stat-item">
+              <i class="fas fa-calendar-plus"></i>
+              <span>作成: ${createdDate.toLocaleDateString('ja-JP')}</span>
+            </div>
+            <div class="stat-item">
+              <i class="fas fa-align-left"></i>
+              <span>${this.#getWordCount(article)} 文字</span>
+            </div>
+          </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   /**
@@ -2109,6 +2181,138 @@ export class AdminActionService {
         document.removeEventListener('keydown', handleEscape);
       }
     });
+  }
+
+  /**
+   * 相対時間の表示
+   * @private
+   * @param {Date} date - 日付
+   * @returns {string}
+   */
+  #formatRelativeTime(date) {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMinutes < 1) return '今';
+    if (diffMinutes < 60) return `${diffMinutes}分前`;
+    if (diffHours < 24) return `${diffHours}時間前`;
+    if (diffDays < 7) return `${diffDays}日前`;
+    
+    return date.toLocaleDateString('ja-JP');
+  }
+
+  /**
+   * 記事の文字数カウント
+   * @private
+   * @param {Object} article - 記事オブジェクト
+   * @returns {number}
+   */
+  #getWordCount(article) {
+    if (!article) return 0;
+    
+    // タイトル + 概要 + 本文の合計文字数
+    let content = (article.title || '') + (article.summary || '');
+    
+    // 本文が取得できる場合は追加
+    try {
+      const articleContent = this.articleDataService.getArticleContent(article.id);
+      if (articleContent) {
+        content += articleContent;
+      }
+    } catch (error) {
+      // エラーの場合は本文なしで計算
+    }
+    
+    // Markdownマークアップを除去して文字数カウント
+    return content
+      .replace(/#{1,6}\s+/g, '') // ヘッダー
+      .replace(/\*\*(.*?)\*\*/g, '$1') // 太字
+      .replace(/\*(.*?)\*/g, '$1') // イタリック
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // リンク
+      .replace(/```[\s\S]*?```/g, '') // コードブロック
+      .replace(/`([^`]+)`/g, '$1') // インラインコード
+      .replace(/^[-*+]\s+/gm, '') // リスト
+      .replace(/^\d+\.\s+/gm, '') // 数字リスト
+      .replace(/^\s*>\s+/gm, '') // 引用
+      .replace(/\s+/g, ' ') // 空白を単一に
+      .trim()
+      .length;
+  }
+
+  /**
+   * 記事のプレビュー（ID指定）
+   * @param {string} articleId - 記事ID
+   */
+  previewArticleById(articleId) {
+    try {
+      const article = this.articleDataService.getArticleById(articleId);
+      if (!article) {
+        this.#showFeedback('記事が見つかりません', 'error');
+        return;
+      }
+
+      const articleContent = this.articleDataService.getArticleContent(articleId);
+      const articleData = {
+        title: article.title,
+        category: article.category,
+        date: article.date,
+        status: article.status,
+        summary: article.summary,
+        content: articleContent
+      };
+
+      this.#showNewsPreviewModal(articleData);
+      
+    } catch (error) {
+      console.error('❌ 記事プレビューエラー:', error);
+      this.#showFeedback('プレビューの表示に失敗しました', 'error');
+    }
+  }
+
+  /**
+   * 記事の複製
+   * @param {string} articleId - 記事ID
+   */
+  async duplicateArticle(articleId) {
+    try {
+      const originalArticle = this.articleDataService.getArticleById(articleId);
+      if (!originalArticle) {
+        this.#showFeedback('元記事が見つかりません', 'error');
+        return;
+      }
+
+      const originalContent = this.articleDataService.getArticleContent(articleId);
+      
+      // 複製記事データを作成
+      const duplicatedData = {
+        title: `${originalArticle.title} のコピー`,
+        category: originalArticle.category,
+        summary: originalArticle.summary,
+        content: originalContent,
+        status: 'draft', // 複製は必ず下書きとして作成
+        featured: false // 注目記事フラグはリセット
+      };
+
+      const result = await this.articleDataService.saveArticle(duplicatedData, false);
+      
+      if (result.success) {
+        // 記事一覧とダッシュボードを更新
+        this.refreshRecentArticles();
+        this.refreshNewsList();
+        this.updateDashboardStats();
+        
+        this.#showFeedback(`「${duplicatedData.title}」として複製しました`);
+      } else {
+        this.#showFeedback(result.message || '複製に失敗しました', 'error');
+      }
+      
+    } catch (error) {
+      console.error('❌ 記事複製エラー:', error);
+      this.#showFeedback('記事の複製中にエラーが発生しました', 'error');
+    }
   }
 }
 
