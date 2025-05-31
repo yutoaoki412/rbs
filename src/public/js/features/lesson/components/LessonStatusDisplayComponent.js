@@ -162,7 +162,12 @@ export class LessonStatusDisplayComponent extends Component {
             <span class="status-text">本日のレッスン開催状況</span>
             <span class="status-indicator" id="global-status-indicator">準備中...</span>
           </div>
-          <span class="toggle-icon">▼</span>
+          <div class="status-meta">
+            <span class="status-update-time" id="status-update-time"></span>
+            <span class="toggle-icon">
+              <i class="fas fa-chevron-down"></i>
+            </span>
+          </div>
         </div>
         <div class="status-content">
           <div class="status-details" id="status-details">
@@ -231,7 +236,10 @@ export class LessonStatusDisplayComponent extends Component {
     }
     
     if (this.toggleIcon) {
-      this.toggleIcon.textContent = '▼';
+      const iconElement = this.toggleIcon.querySelector('i');
+      if (iconElement) {
+        iconElement.className = 'fas fa-chevron-down';
+      }
     }
     
     this.statusContainer.classList.remove('expanded');
@@ -424,6 +432,18 @@ export class LessonStatusDisplayComponent extends Component {
       // 詳細内容更新
       this.updateStatusDetails(status);
       
+      // 更新日時を表示
+      if (status.lastUpdated) {
+        const updateTime = new Date(status.lastUpdated);
+        const timeString = updateTime.toLocaleTimeString('ja-JP', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        this.updateTimestamp(`更新: ${timeString}`);
+      } else {
+        this.updateTimestamp();
+      }
+      
       this.isVisible = true;
       this.debug('表示更新完了');
       
@@ -581,6 +601,8 @@ export class LessonStatusDisplayComponent extends Component {
       this.globalStatusIndicator.textContent = '読み込み中...';
       this.globalStatusIndicator.className = 'status-indicator';
     }
+    
+    this.updateTimestamp('読み込み中...');
   }
 
   /**
@@ -603,9 +625,10 @@ export class LessonStatusDisplayComponent extends Component {
     // コンテナにexpandedクラス切り替え
     this.statusContainer.classList.toggle('expanded', this.isExpanded);
     
-    // アイコン更新
-    if (this.toggleIcon) {
-      this.toggleIcon.textContent = this.isExpanded ? '▲' : '▼';
+    // アイコン更新 - Font Awesomeアイコンを使用
+    const iconElement = this.toggleIcon?.querySelector('i');
+    if (iconElement) {
+      iconElement.className = this.isExpanded ? 'fas fa-chevron-up' : 'fas fa-chevron-down';
     }
     
     // 高さアニメーション - 改善版
@@ -667,6 +690,27 @@ export class LessonStatusDisplayComponent extends Component {
       this.statusContent.style.maxHeight = `${fullHeight + 20}px`;
       
       this.debug('レイアウト調整完了:', { fullHeight });
+    }
+  }
+
+  /**
+   * 更新日時の表示を更新
+   * @private
+   * @param {string} [customText] - カスタムテキスト
+   */
+  updateTimestamp(customText = null) {
+    const timestampElement = this.element?.querySelector('#status-update-time');
+    if (timestampElement) {
+      if (customText) {
+        timestampElement.textContent = customText;
+      } else {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('ja-JP', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        timestampElement.textContent = `更新: ${timeString}`;
+      }
     }
   }
 
@@ -787,4 +831,4 @@ export class LessonStatusDisplayComponent extends Component {
 }
 
 // デフォルトエクスポート
-export default LessonStatusDisplayComponent; 
+export default LessonStatusDisplayComponent;
