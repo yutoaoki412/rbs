@@ -484,7 +484,7 @@ export class LessonStatusDisplayComponent extends Component {
    * @returns {string}
    */
   generateStatusHTML(status) {
-    const { globalMessage, courses } = status;
+    const { globalMessage, courses, lastUpdated, date } = status;
     
     let html = '';
 
@@ -524,6 +524,10 @@ export class LessonStatusDisplayComponent extends Component {
       });
       
       html += '</div>';
+      
+      // 更新日時情報を表示
+      html += this.generateUpdateInfoHTML(status);
+      
     } else {
       // コース情報がない場合のフォールバック
       html += `
@@ -534,6 +538,76 @@ export class LessonStatusDisplayComponent extends Component {
     }
 
     return html;
+  }
+
+  /**
+   * 更新情報HTMLの生成
+   * @private
+   * @param {Object} status - ステータスデータ
+   * @returns {string}
+   */
+  generateUpdateInfoHTML(status) {
+    const { lastUpdated, date } = status;
+    
+    let updateText = '';
+    let dateText = '';
+    
+    // 更新日時の処理
+    if (lastUpdated) {
+      const updateDate = new Date(lastUpdated);
+      const now = new Date();
+      const diffMinutes = Math.floor((now - updateDate) / (1000 * 60));
+      
+      if (diffMinutes < 1) {
+        updateText = 'たった今更新';
+      } else if (diffMinutes < 60) {
+        updateText = `${diffMinutes}分前に更新`;
+      } else if (diffMinutes < 1440) { // 24時間以内
+        const diffHours = Math.floor(diffMinutes / 60);
+        updateText = `${diffHours}時間前に更新`;
+      } else {
+        updateText = updateDate.toLocaleDateString('ja-JP', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }) + '更新';
+      }
+    } else {
+      updateText = '更新時刻不明';
+    }
+    
+    // 対象日付の処理
+    if (date) {
+      const statusDate = new Date(date);
+      const today = new Date();
+      
+      if (statusDate.toDateString() === today.toDateString()) {
+        dateText = '本日';
+      } else {
+        dateText = statusDate.toLocaleDateString('ja-JP', {
+          month: 'short',
+          day: 'numeric'
+        });
+      }
+    }
+    
+    return `
+      <div class="status-footer">
+        <div class="status-info-grid">
+          <div class="status-info-item">
+            <i class="fas fa-calendar-day"></i>
+            <span class="info-label">対象日</span>
+            <span class="info-value">${dateText || '本日'}</span>
+          </div>
+          <div class="status-info-item">
+            <i class="fas fa-clock"></i>
+            <span class="info-label">最終更新</span>
+            <span class="info-value">${updateText}</span>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   /**

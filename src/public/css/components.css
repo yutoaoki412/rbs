@@ -1310,6 +1310,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .status-banner .course-item {
@@ -1358,6 +1359,81 @@
   white-space: nowrap;
 }
 
+/* ステータスフッター（更新情報表示エリア） */
+.status-banner .status-footer {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.status-banner .status-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.status-banner .status-info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(74, 144, 226, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(74, 144, 226, 0.1);
+  transition: all 0.2s ease;
+}
+
+.status-banner .status-info-item:hover {
+  background: rgba(74, 144, 226, 0.08);
+  border-color: rgba(74, 144, 226, 0.2);
+}
+
+.status-banner .status-info-item i {
+  color: var(--primary-blue);
+  font-size: 0.875rem;
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.status-banner .info-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 40px;
+  flex-shrink: 0;
+}
+
+.status-banner .info-value {
+  font-size: 0.875rem;
+  color: var(--navy-dark);
+  font-weight: 600;
+  text-align: right;
+  flex: 1;
+}
+
+/* グローバルメッセージスタイル */
+.status-banner .global-message {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: rgba(74, 144, 226, 0.08);
+  border: 1px solid rgba(74, 144, 226, 0.2);
+  border-radius: 8px;
+}
+
+.status-banner .global-message p {
+  margin: 0;
+  color: var(--navy-dark);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
   .status-banner .status-header {
@@ -1397,6 +1473,21 @@
   .status-banner .course-item {
     padding: 1rem;
   }
+  
+  .status-banner .status-info-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .status-banner .status-info-item {
+    padding: 0.5rem;
+    justify-content: space-between;
+  }
+  
+  .status-banner .info-label {
+    min-width: auto;
+    flex-shrink: 1;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1414,5 +1505,21 @@
     flex-direction: column;
     gap: 0.5rem;
     align-items: flex-start;
+  }
+  
+  .status-banner .status-footer {
+    padding: 0.75rem;
+  }
+  
+  .status-banner .status-info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    text-align: left;
+  }
+  
+  .status-banner .info-value {
+    text-align: left;
+    font-size: 0.8rem;
   }
 }
