@@ -1216,26 +1216,26 @@ input[type="checkbox"] {
 
 /* 通常開催 */
 input[id*="scheduled"]:checked + .status-btn {
-  border-color: var(--admin-success);
-  background: var(--admin-success);
+  border-color: var(--status-scheduled);
+  background: var(--status-scheduled);
 }
 
 /* 中止 */
 input[id*="cancelled"]:checked + .status-btn {
-  border-color: var(--admin-error);
-  background: var(--admin-error);
+  border-color: var(--status-cancelled);
+  background: var(--status-cancelled);
 }
 
 /* 室内開催 */
 input[id*="indoor"]:checked + .status-btn {
-  border-color: var(--admin-warning);
-  background: var(--admin-warning);
+  border-color: var(--status-indoor);
+  background: var(--status-indoor);
 }
 
 /* 延期 */
 input[id*="postponed"]:checked + .status-btn {
-  border-color: var(--admin-secondary);
-  background: var(--admin-secondary);
+  border-color: var(--status-postponed);
+  background: var(--status-postponed);
 }
 
 /* フォームアクション */
@@ -1330,22 +1330,22 @@ input[id*="postponed"]:checked + .status-btn {
 }
 
 .lesson-status-preview .global-status-indicator.scheduled {
-  background: #1abc9c;
+  background: var(--status-scheduled);
   color: white;
 }
 
 .lesson-status-preview .global-status-indicator.cancelled {
-  background: #e74c3c;
+  background: var(--status-cancelled);
   color: white;
 }
 
 .lesson-status-preview .global-status-indicator.indoor {
-  background: #f39c12;
+  background: var(--status-indoor);
   color: white;
 }
 
 .lesson-status-preview .global-status-indicator.postponed {
-  background: #3498db;
+  background: var(--status-postponed);
   color: white;
 }
 
@@ -1402,22 +1402,22 @@ input[id*="postponed"]:checked + .status-btn {
 }
 
 .lesson-status-preview .course-status.scheduled {
-  background: #1abc9c;
+  background: var(--status-scheduled);
   color: white;
 }
 
 .lesson-status-preview .course-status.cancelled {
-  background: #e74c3c;
+  background: var(--status-cancelled);
   color: white;
 }
 
 .lesson-status-preview .course-status.indoor {
-  background: #f39c12;
+  background: var(--status-indoor);
   color: white;
 }
 
 .lesson-status-preview .course-status.postponed {
-  background: #3498db;
+  background: var(--status-postponed);
   color: white;
 }
 

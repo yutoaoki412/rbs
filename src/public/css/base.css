@@ -21,7 +21,7 @@
     
     /* カラーパレット - セカンダリ */
     --color-secondary-yellow: #f39c12;
-    --color-secondary-mint: #1abc9c;
+    --color-secondary-mint: #50c7a3;
     
     /* カラーパレット - ニュートラル */
     --color-navy-dark: #2c3e50;
@@ -102,6 +102,30 @@
     --z-popover: 500;
     --z-tooltip: 600;
     --z-toast: 700;
+  
+    /* 拡張カラーセット */
+    --secondary-coral: #ff7675;
+    --secondary-lavender: #a29bfe;
+    --secondary-peach: #fd79a8;
+    --secondary-sky: #74b9ff;
+    --secondary-mint-light: #81ecec;
+  
+    /* ステータス専用色（管理画面・LP統一） */
+    --status-scheduled: #27ae60;      /* 通常開催 - 緑 */
+    --status-scheduled-light: #2ecc71;
+    --status-scheduled-dark: #1e8449;
+  
+    --status-cancelled: #e74c3c;      /* 中止 - 赤 */
+    --status-cancelled-light: #ec7063;
+    --status-cancelled-dark: #c0392b;
+  
+    --status-indoor: #f39c12;         /* 室内開催 - オレンジ */
+    --status-indoor-light: #f5b041;
+    --status-indoor-dark: #d68910;
+  
+    --status-postponed: #3498db;      /* 延期 - 青 */
+    --status-postponed-light: #5dade2;
+    --status-postponed-dark: #2980b9;
   }
   
   /* ベーススタイル */

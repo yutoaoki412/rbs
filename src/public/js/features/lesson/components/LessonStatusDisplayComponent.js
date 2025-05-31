@@ -514,25 +514,29 @@ export class LessonStatusDisplayComponent extends Component {
         key: 'scheduled',
         displayText: '通常開催',
         icon: '✅',
-        cssClass: 'scheduled'
+        cssClass: 'scheduled',
+        color: '#27ae60'
       },
       'cancelled': {
         key: 'cancelled',
         displayText: '中止',
         icon: '❌',
-        cssClass: 'cancelled'
+        cssClass: 'cancelled',
+        color: '#e74c3c'
       },
       'indoor': {
         key: 'indoor',
         displayText: '室内開催',
         icon: '🏠',
-        cssClass: 'indoor'
+        cssClass: 'indoor',
+        color: '#f39c12'
       },
       'postponed': {
         key: 'postponed',
         displayText: '延期',
         icon: '⏰',
-        cssClass: 'postponed'
+        cssClass: 'postponed',
+        color: '#3498db'
       }
     };
     
@@ -540,7 +544,8 @@ export class LessonStatusDisplayComponent extends Component {
       key: status,
       displayText: status,
       icon: '📅',
-      cssClass: status
+      cssClass: status,
+      color: '#6c757d'
     };
   }
 

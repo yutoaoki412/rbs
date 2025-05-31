@@ -1727,22 +1727,22 @@ footer p {
 }
 
 .status-badge.scheduled {
-  background: var(--primary-blue);
+  background: var(--status-scheduled);
   color: white;
 }
 
 .status-badge.cancelled {
-  background: var(--primary-red);
+  background: var(--status-cancelled);
   color: white;
 }
 
 .status-badge.indoor {
-  background: var(--secondary-yellow);
+  background: var(--status-indoor);
   color: white;
 }
 
 .status-badge.postponed {
-  background: var(--primary-blue);
+  background: var(--status-postponed);
   color: white;
 }
 
@@ -1797,22 +1797,22 @@ footer p {
 }
 
 .status-indicator.scheduled {
-  background: var(--success);
+  background: var(--status-scheduled);
   color: var(--white);
 }
 
 .status-indicator.cancelled {
-  background: var(--primary-red);
+  background: var(--status-cancelled);
   color: var(--white);
 }
 
 .status-indicator.indoor {
-  background: var(--secondary-yellow);
+  background: var(--status-indoor);
   color: var(--white);
 }
 
 .status-indicator.postponed {
-  background: var(--primary-blue);
+  background: var(--status-postponed);
   color: var(--white);
 }
 

@@ -675,22 +675,22 @@
 }
 
 .lesson-status-display .main-status.scheduled {
-  background: linear-gradient(135deg, #1abc9c, #16a085);
+  background: linear-gradient(135deg, var(--status-scheduled), var(--status-scheduled-dark));
   color: white;
 }
 
 .lesson-status-display .main-status.cancelled {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  background: linear-gradient(135deg, var(--status-cancelled), var(--status-cancelled-dark));
   color: white;
 }
 
 .lesson-status-display .main-status.indoor {
-  background: linear-gradient(135deg, #f39c12, #e67e22);
+  background: linear-gradient(135deg, var(--status-indoor), var(--status-indoor-dark));
   color: white;
 }
 
 .lesson-status-display .main-status.postponed {
-  background: linear-gradient(135deg, #3498db, #2980b9);
+  background: linear-gradient(135deg, var(--status-postponed), var(--status-postponed-dark));
   color: white;
 }
 
@@ -772,22 +772,22 @@
 }
 
 .lesson-status-display .status-badge.scheduled {
-  background: #1abc9c;
+  background: var(--status-scheduled);
   color: white;
 }
 
 .lesson-status-display .status-badge.cancelled {
-  background: #e74c3c;
+  background: var(--status-cancelled);
   color: white;
 }
 
 .lesson-status-display .status-badge.indoor {
-  background: #f39c12;
+  background: var(--status-indoor);
   color: white;
 }
 
 .lesson-status-display .status-badge.postponed {
-  background: #3498db;
+  background: var(--status-postponed);
   color: white;
 }
 
