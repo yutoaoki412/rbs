@@ -43,6 +43,9 @@ export class NewsPageRenderer {
     const statusText = document.getElementById('news-status-text');
     
     try {
+      console.log('🏠 ホームページニュース初期化開始');
+      console.log('🎯 コンテナ要素:', container ? '✅ 発見' : '❌ 未発見');
+      
       // ローディング状態表示
       this.updateLoadingStatus('記事を読み込み中...', loadingStatus, statusText);
       
@@ -52,25 +55,60 @@ export class NewsPageRenderer {
         return;
       }
 
+      // サービスの状態を確認
+      console.log('📊 ニュースサービス状態:', {
+        initialized: this.newsService?.initialized,
+        totalArticles: this.newsService?.articles?.length || 0,
+        serviceType: this.newsService?.constructor?.name
+      });
+
       const articles = this.newsService.getArticles({ limit: 5 });
+      console.log('📰 取得した記事数:', articles.length);
+      
+      if (articles.length > 0) {
+        console.log('📝 記事サンプル:', articles.slice(0, 2).map(a => ({
+          id: a.id,
+          title: a.title?.substring(0, 30) + '...',
+          category: a.category,
+          status: a.status
+        })));
+      }
       
       // ローディング状態を非表示
       this.hideLoadingStatus(loadingStatus);
       
       if (articles.length === 0) {
+        console.log('⚠️ 表示可能な記事がありません');
         container.innerHTML = NewsUtils.createEmptyState();
-        console.log('🏠 ホームページ: 表示可能な記事がありません');
         return;
       }
 
-      container.innerHTML = articles.map(article => 
+      // HTMLを生成
+      const htmlContent = articles.map(article => 
         NewsUtils.createArticleCard(article, 'home')
       ).join('');
+      
+      console.log('🔧 生成されたHTML長:', htmlContent.length);
+      console.log('🎨 HTMLサンプル:', htmlContent.substring(0, 200) + '...');
+      
+      container.innerHTML = htmlContent;
+      
+      // アニメーション効果を適用
+      this.applyAnimationEffects(container);
+      
+      // 最終確認
+      const renderedCards = container.querySelectorAll('.news-card');
+      console.log('✅ レンダリング完了:', {
+        htmlLength: htmlContent.length,
+        renderedCards: renderedCards.length,
+        containerVisible: container.offsetHeight > 0
+      });
       
       console.log(`🏠 ホームページニュース表示: ${articles.length}件`);
       
     } catch (error) {
       console.error('❌ ホームページニュース初期化エラー:', error);
+      console.error('🔍 エラー詳細:', error.stack);
       this.updateLoadingStatus('記事の読み込みに失敗しました', loadingStatus, statusText, 'error');
       if (container) {
         container.innerHTML = this.createErrorMessage('記事の読み込みに失敗しました');
@@ -85,6 +123,9 @@ export class NewsPageRenderer {
     const container = document.getElementById('news-grid');
     
     try {
+      console.log('📰 ニュース一覧ページ初期化開始');
+      console.log('🎯 グリッドコンテナ:', container ? '✅ 発見' : '❌ 未発見');
+      
       if (!container) {
         console.warn('⚠️ ニュース一覧ページ: #news-grid要素が見つかりません');
         this.showError('ニュース表示エリアが見つかりません');
@@ -94,17 +135,54 @@ export class NewsPageRenderer {
       // URLパラメータからカテゴリーを取得
       const urlParams = new URLSearchParams(window.location.search);
       const category = urlParams.get('category') || 'all';
+      console.log('📂 カテゴリーフィルター:', category);
+      
+      // サービスの状態を確認
+      console.log('📊 ニュースサービス状態:', {
+        initialized: this.newsService?.initialized,
+        totalArticles: this.newsService?.articles?.length || 0,
+        serviceType: this.newsService?.constructor?.name
+      });
       
       // カテゴリーフィルター適用
       const articles = this.newsService.getArticles({ category });
+      console.log('📰 フィルター後の記事数:', articles.length);
+      
+      if (articles.length > 0) {
+        console.log('📝 記事サンプル:', articles.slice(0, 2).map(a => ({
+          id: a.id,
+          title: a.title?.substring(0, 30) + '...',
+          category: a.category,
+          status: a.status
+        })));
+      }
       
       if (articles.length === 0) {
+        console.log('⚠️ 表示可能な記事がありません');
         container.innerHTML = NewsUtils.createEmptyState();
         console.log(`📰 ニュース一覧: ${category}カテゴリーに記事がありません`);
       } else {
-        container.innerHTML = articles.map(article => 
+        // HTMLを生成
+        const htmlContent = articles.map(article => 
           NewsUtils.createArticleCard(article, 'list')
         ).join('');
+        
+        console.log('🔧 生成されたHTML長:', htmlContent.length);
+        console.log('🎨 HTMLサンプル:', htmlContent.substring(0, 200) + '...');
+        
+        container.innerHTML = htmlContent;
+        
+        // アニメーション効果を適用
+        this.applyAnimationEffects(container);
+        
+        // 最終確認
+        const renderedCards = container.querySelectorAll('.news-card');
+        console.log('✅ レンダリング完了:', {
+          htmlLength: htmlContent.length,
+          renderedCards: renderedCards.length,
+          containerVisible: container.offsetHeight > 0
+        });
+        
         console.log(`📰 ニュース一覧表示: ${articles.length}件 (${category})`);
       }
       
@@ -123,6 +201,7 @@ export class NewsPageRenderer {
       
     } catch (error) {
       console.error('❌ ニュース一覧ページ初期化エラー:', error);
+      console.error('🔍 エラー詳細:', error.stack);
       if (container) {
         container.innerHTML = this.createErrorMessage('記事の読み込みに失敗しました');
       }
@@ -385,6 +464,61 @@ export class NewsPageRenderer {
         <button class="btn btn-outline" onclick="location.reload()">再読み込み</button>
       </div>
     `;
+  }
+
+  /**
+   * アニメーション効果を適用
+   */
+  applyAnimationEffects(container) {
+    if (!container) {
+      console.warn('⚠️ アニメーション: コンテナが見つかりません');
+      return;
+    }
+    
+    console.log('🎭 アニメーション効果を適用開始');
+    
+    // news-card要素を取得
+    const newsCards = container.querySelectorAll('.news-card');
+    console.log('🎯 対象カード数:', newsCards.length);
+    
+    if (newsCards.length === 0) {
+      console.warn('⚠️ アニメーション対象のニュースカードが見つかりません');
+      return;
+    }
+    
+    // 各カードにアニメーション効果を適用
+    newsCards.forEach((card, index) => {
+      console.log(`🎨 カード${index + 1}アニメーション準備中...`);
+      
+      // 初期状態を設定（CSS初期値をオーバーライド）
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(30px)';
+      card.style.transition = '';
+      
+      // 順次アニメーション実行
+      setTimeout(() => {
+        console.log(`✨ カード${index + 1}アニメーション実行`);
+        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+        
+        // fade-inクラスも追加
+        card.classList.add('fade-in');
+        
+        // アニメーション完了をチェック
+        setTimeout(() => {
+          const computedStyle = window.getComputedStyle(card);
+          console.log(`🔍 カード${index + 1}最終状態:`, {
+            opacity: computedStyle.opacity,
+            transform: computedStyle.transform,
+            visible: card.offsetHeight > 0 && card.offsetWidth > 0
+          });
+        }, 650); // アニメーション時間 + 少し余裕
+        
+      }, index * 100); // 100msずつ遅延
+    });
+    
+    console.log('🎭 アニメーション効果適用完了');
   }
 }
 

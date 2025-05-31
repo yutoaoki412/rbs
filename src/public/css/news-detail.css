@@ -575,7 +575,7 @@ main {
 }
 
 .share-title::before {
-  content: '📤 ';
+  content: '';
 }
 
 .share-buttons {

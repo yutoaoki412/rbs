@@ -13,21 +13,29 @@ export class NewsUtils {
   static createArticleCard(article, context = 'default') {
     const categoryInfo = CONFIG.articles.categories[article.category];
     const date = NewsUtils.formatDate(article.date || article.publishedAt);
-    const cardClass = context === 'related' ? 'news-card-small' : 'news-card';
+    const excerpt = NewsUtils.generateExcerpt(article.content || article.summary || '', 120);
     
     return `
-      <article class="${cardClass}">
-        <a href="news-detail.html?id=${article.id}" class="news-link">
-          <div class="news-category" style="background-color: ${categoryInfo?.color || '#666'}">
-            ${categoryInfo?.name || article.category}
+      <article class="news-card fade-in">
+        <div class="news-card-header">
+          <div class="news-meta">
+            <div class="news-date">${date}</div>
+            <div class="news-category ${article.category}" style="background-color: ${categoryInfo?.color || '#666'}">
+              ${categoryInfo?.name || article.category}
+            </div>
           </div>
-          <div class="news-content">
-            <h3 class="news-title">${NewsUtils.escapeHtml(article.title)}</h3>
-            <time class="news-date">${date}</time>
-            ${article.summary ? `<p class="news-summary">${NewsUtils.escapeHtml(article.summary)}</p>` : ''}
-            ${article.featured ? '<span class="news-featured">注目</span>' : ''}
+          <h3 class="news-title">
+            <a href="news-detail.html?id=${article.id}">${NewsUtils.escapeHtml(article.title)}</a>
+          </h3>
+        </div>
+        <div class="news-card-body">
+          ${excerpt ? `<p class="news-excerpt">${NewsUtils.escapeHtml(excerpt)}</p>` : ''}
+          <div class="news-actions">
+            <a href="news-detail.html?id=${article.id}" class="news-read-more">
+              続きを読む
+            </a>
           </div>
-        </a>
+        </div>
       </article>
     `;
   }

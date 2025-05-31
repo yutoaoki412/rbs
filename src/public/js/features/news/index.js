@@ -17,6 +17,42 @@ export async function initUnifiedNewsSystem() {
   try {
     console.log('🚀 統合ニュースシステム初期化開始');
     
+    // デバッグ: LocalStorageの直接確認
+    console.group('🔍 LocalStorage デバッグ情報');
+    try {
+      const articlesKey = CONFIG.storage.keys.articles;
+      console.log('📝 使用中のキー:', articlesKey);
+      
+      const rawData = localStorage.getItem(articlesKey);
+      console.log('💾 Raw データ長:', rawData ? rawData.length : 0);
+      
+      if (rawData) {
+        const parsedData = JSON.parse(rawData);
+        console.log('📊 パースされたデータ:', {
+          type: Array.isArray(parsedData) ? 'Array' : typeof parsedData,
+          length: Array.isArray(parsedData) ? parsedData.length : 'N/A',
+          sample: Array.isArray(parsedData) && parsedData.length > 0 ? 
+            parsedData.slice(0, 2).map(a => ({
+              id: a?.id,
+              title: a?.title?.substring(0, 30) + '...',
+              status: a?.status,
+              category: a?.category
+            })) : 'データなし'
+        });
+      } else {
+        console.log('⚠️ LocalStorageにデータが見つかりません');
+      }
+      
+      // 全LocalStorageキーを確認
+      const allKeys = Object.keys(localStorage);
+      const rbsKeys = allKeys.filter(key => key.includes('rbs') || key.includes('article'));
+      console.log('🗂️ 関連キー一覧:', rbsKeys);
+      
+    } catch (error) {
+      console.error('❌ LocalStorage確認エラー:', error);
+    }
+    console.groupEnd();
+    
     // 1. メインサービス初期化
     const newsService = getUnifiedNewsService();
     await newsService.init();
@@ -289,3 +325,83 @@ if (CONFIG.debug.enabled && typeof window !== 'undefined') {
   console.log('   - window.debugUnifiedNews() でデバッグ情報表示');
   console.log('   - window.refreshNewsSystem() でシステムリフレッシュ');
 }
+
+/**
+ * 手動デバッグ関数 - ブラウザコンソールから実行可能
+ */
+export function manualDebugNews() {
+  console.group('🔧 手動ニュースデバッグ');
+  
+  try {
+    // 1. LocalStorage確認
+    console.log('1️⃣ LocalStorage状況:');
+    const articlesKey = CONFIG.storage.keys.articles;
+    const rawData = localStorage.getItem(articlesKey);
+    console.log('   キー:', articlesKey);
+    console.log('   データ有無:', !!rawData);
+    console.log('   データ長:', rawData ? rawData.length : 0);
+    
+    if (rawData) {
+      const parsedData = JSON.parse(rawData);
+      console.log('   記事数:', Array.isArray(parsedData) ? parsedData.length : 'N/A');
+    }
+    
+    // 2. サービス状況
+    console.log('\n2️⃣ サービス状況:');
+    const newsService = window.UnifiedNewsService;
+    console.log('   サービス有無:', !!newsService);
+    if (newsService) {
+      console.log('   初期化済み:', newsService.initialized);
+      console.log('   記事数:', newsService.articles?.length || 0);
+      console.log('   ページタイプ:', newsService.pageType);
+    }
+    
+    // 3. DOM要素確認
+    console.log('\n3️⃣ DOM要素確認:');
+    const newsElements = {
+      'news-list (ホーム)': document.getElementById('news-list'),
+      'news-grid (一覧)': document.getElementById('news-grid'),
+      'news-loading-status': document.getElementById('news-loading-status')
+    };
+    
+    Object.entries(newsElements).forEach(([name, element]) => {
+      console.log(`   ${name}:`, element ? '✅ 存在' : '❌ 未発見');
+      if (element) {
+        console.log(`     - 可視性: ${element.offsetHeight > 0 ? '可視' : '非可視'}`);
+        console.log(`     - 子要素数: ${element.children.length}`);
+      }
+    });
+    
+    // 4. 記事カード確認
+    console.log('\n4️⃣ 記事カード確認:');
+    const cards = document.querySelectorAll('.news-card');
+    console.log('   カード数:', cards.length);
+    
+    if (cards.length > 0) {
+      const firstCard = cards[0];
+      const style = window.getComputedStyle(firstCard);
+      console.log('   最初のカード状態:');
+      console.log('     - opacity:', style.opacity);
+      console.log('     - transform:', style.transform);
+      console.log('     - display:', style.display);
+      console.log('     - 可視性:', firstCard.offsetHeight > 0 && firstCard.offsetWidth > 0);
+    }
+    
+    // 5. CSS変数確認
+    console.log('\n5️⃣ CSS変数確認:');
+    const rootStyle = window.getComputedStyle(document.documentElement);
+    const cssVars = ['--primary-blue', '--white', '--gray-light'];
+    cssVars.forEach(varName => {
+      const value = rootStyle.getPropertyValue(varName).trim();
+      console.log(`   ${varName}: ${value || '未定義'}`);
+    });
+    
+  } catch (error) {
+    console.error('❌ デバッグ実行エラー:', error);
+  }
+  
+  console.groupEnd();
+}
+
+// デバッグ関数をグローバルに公開
+window.debugNews = manualDebugNews;
