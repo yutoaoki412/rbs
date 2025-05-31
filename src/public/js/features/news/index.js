@@ -134,6 +134,139 @@ export function debugNewsSystem() {
   };
 }
 
+/**
+ * 統合ニュースシステムの動作確認
+ * 各ページでlocal storageの参照状況を確認
+ */
+export function verifyNewsSystemIntegration() {
+  try {
+    console.group('🔍 統合ニュースシステム動作確認');
+    
+    // 1. CONFIG確認
+    console.log('📋 CONFIG確認:');
+    console.log('  - storage key:', CONFIG.storage.keys.articles);
+    console.log('  - debug enabled:', CONFIG.debug.enabled);
+    
+    // 2. Local Storage確認
+    console.log('💾 Local Storage確認:');
+    const articlesData = localStorage.getItem(CONFIG.storage.keys.articles);
+    const articleCount = articlesData ? JSON.parse(articlesData).length : 0;
+    console.log(`  - ${CONFIG.storage.keys.articles}:`, articleCount + '件の記事');
+    
+    // 3. サービス確認
+    console.log('🔧 サービス確認:');
+    const newsService = getUnifiedNewsService();
+    console.log('  - UnifiedNewsService初期化:', newsService?.initialized || false);
+    console.log('  - ページタイプ:', newsService?.pageType || 'unknown');
+    console.log('  - 記事数:', newsService?.articles?.length || 0);
+    
+    // 4. DOM要素確認
+    console.log('🎯 DOM要素確認:');
+    const pageType = newsService?.pageType || 'unknown';
+    const targetElements = getTargetElementsForPage(pageType);
+    Object.entries(targetElements).forEach(([key, selector]) => {
+      const element = document.querySelector(selector);
+      console.log(`  - ${key} (${selector}):`, element ? '✅ 存在' : '❌ 未発見');
+    });
+    
+    // 5. イベントバス確認
+    console.log('📡 EventBus確認:');
+    const eventBusStatus = EventBus.getStatus?.() || { listeners: 'unknown' };
+    console.log('  - イベントリスナー数:', eventBusStatus.listeners || 'unknown');
+    
+    console.groupEnd();
+    
+    return {
+      configOk: !!CONFIG.storage.keys.articles,
+      storageOk: articleCount > 0,
+      serviceOk: newsService?.initialized || false,
+      domOk: Object.values(targetElements).some(selector => document.querySelector(selector)),
+      pageType,
+      articleCount
+    };
+    
+  } catch (error) {
+    console.error('❌ 統合ニュースシステム確認エラー:', error);
+    return { error: error.message };
+  }
+}
+
+/**
+ * ページタイプ別のターゲット要素を取得
+ * @private
+ */
+function getTargetElementsForPage(pageType) {
+  const commonTargets = {
+    newsSection: '#news, [data-news-dynamic="true"]',
+    newsContainer: '.news-container, .news-section'
+  };
+  
+  switch (pageType) {
+    case 'home':
+      return {
+        ...commonTargets,
+        newsList: '#news-list',
+        newsLoadingStatus: '#news-loading-status'
+      };
+    case 'news-list':
+      return {
+        ...commonTargets,
+        newsGrid: '#news-grid',
+        filterButtons: '.filter-btn[data-category]',
+        searchResults: '#search-results'
+      };
+    case 'news-detail':
+      return {
+        ...commonTargets,
+        articleContent: '#article-content',
+        articleTitle: '#article-title',
+        relatedArticles: '#related-articles-container'
+      };
+    case 'admin':
+      return {
+        newsEditor: '#news-content',
+        newsList: '#news-list',
+        newsFilter: '#news-filter'
+      };
+    default:
+      return commonTargets;
+  }
+}
+
+/**
+ * ニュースデータの詳細表示
+ */
+export function showNewsDataDetails() {
+  if (!CONFIG.debug.enabled) {
+    console.log('デバッグモードが無効です。CONFIG.debug.enabledをtrueに設定してください。');
+    return;
+  }
+  
+  try {
+    const newsService = getUnifiedNewsService();
+    const articles = newsService?.articles || [];
+    
+    console.group('📰 ニュースデータ詳細');
+    console.log('記事一覧:', articles);
+    
+    if (articles.length > 0) {
+      console.log('最新記事:', articles[0]);
+      console.log('カテゴリー統計:', newsService.getCategoryStats());
+    }
+    
+    // Local Storageの生データも表示
+    const rawData = localStorage.getItem(CONFIG.storage.keys.articles);
+    if (rawData) {
+      console.log('Local Storage生データ:', JSON.parse(rawData));
+    }
+    
+    console.groupEnd();
+    
+  } catch (error) {
+    console.error('❌ ニュースデータ詳細表示エラー:', error);
+  }
+}
+
 // 後方互換性用のエイリアス
 export { initUnifiedNewsSystem as initNewsFeature };
 export { getUnifiedNewsService as getNewsDataService };
@@ -145,10 +278,14 @@ export { default as NewsUtils } from './utils/NewsUtils.js';
 
 // 開発環境でのグローバルヘルパー
 if (CONFIG.debug.enabled && typeof window !== 'undefined') {
+  window.verifyNewsSystem = verifyNewsSystemIntegration;
+  window.showNewsDataDetails = showNewsDataDetails;
   window.debugUnifiedNews = debugNewsSystem;
   window.refreshNewsSystem = refreshNewsSystem;
   
-  console.log('🔧 開発モード: グローバルヘルパー関数を設定しました');
+  console.log('🔧 開発モード: ニュースシステム確認ヘルパー関数を設定しました');
+  console.log('   - window.verifyNewsSystem() で統合確認');
+  console.log('   - window.showNewsDataDetails() でデータ詳細表示');
   console.log('   - window.debugUnifiedNews() でデバッグ情報表示');
   console.log('   - window.refreshNewsSystem() でシステムリフレッシュ');
-} 
+}
