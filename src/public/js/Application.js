@@ -860,13 +860,47 @@ export class Application {
     try {
       this.debug('ニュース詳細ページ機能初期化開始');
       
-      // ニュース詳細ページ用の追加機能
-      // （必要に応じて実装）
+      // NewsPageRendererの初期化
+      const { NewsPageRenderer } = await import('./features/news/components/NewsPageRenderer.js');
+      const newsService = window.unifiedNewsService || await this.ensureNewsService();
+      
+      if (!newsService) {
+        this.warn('ニュースサービスが利用できません。基本機能のみで動作します。');
+        return;
+      }
+      
+      const newsRenderer = new NewsPageRenderer(newsService);
+      await newsRenderer.initializeNewsDetailPage();
+      
+      // グローバルアクセス用
+      window.newsRenderer = newsRenderer;
       
       this.debug('ニュース詳細ページ機能初期化完了');
       
     } catch (error) {
       this.error('ニュース詳細ページ機能初期化エラー:', error);
+      // エラーが発生してもページは継続動作させる
+      this.showInitializationWarning('ニュース詳細機能の一部が利用できません');
+    }
+  }
+
+  /**
+   * ニュースサービスの確保
+   * @private
+   */
+  async ensureNewsService() {
+    try {
+      if (window.unifiedNewsService) {
+        return window.unifiedNewsService;
+      }
+      
+      // ニュースサービスを動的にインポートして初期化
+      const { getUnifiedNewsService } = await import('./features/news/index.js');
+      return getUnifiedNewsService();
+      
+    } catch (error) {
+      this.error('ニュースサービス初期化エラー:', error);
+      return null;
     }
   }
 

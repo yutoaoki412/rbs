@@ -519,6 +519,7 @@ main {
   background: var(--primary-teal);
   width: 4px;
   height: 4px;
+  top: 10px;
 }
 
 .article-content strong {
@@ -1180,4 +1181,66 @@ main {
 .related-articles .article-category.important {
   background: #e74c3c !important;
   color: white !important;
+}
+
+/* コードブロック */
+.article-content pre {
+  background: var(--gray-light);
+  border: 1px solid var(--gray-border);
+  border-radius: 8px;
+  padding: 20px;
+  margin: 25px 0;
+  overflow-x: auto;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.article-content pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  color: var(--text-dark);
+}
+
+/* インラインコード */
+.article-content code {
+  background: var(--gray-light);
+  border: 1px solid var(--gray-border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  color: var(--primary-blue);
+  word-break: break-word;
+}
+
+/* 引用 */
+.article-content blockquote {
+  border-left: 4px solid var(--primary-blue);
+  margin: 25px 0;
+  padding: 15px 20px;
+  background: rgba(66, 153, 225, 0.05);
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  color: var(--gray-dark);
+}
+
+.article-content blockquote p {
+  margin-bottom: 0;
+}
+
+/* 水平線 */
+.article-content hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gray-border), transparent);
+  margin: 40px 0;
+}
+
+/* イタリック */
+.article-content em {
+  font-style: italic;
+  color: var(--text-dark);
 } 

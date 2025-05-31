@@ -82,14 +82,159 @@ export class NewsUtils {
   static formatContent(content) {
     if (!content) return '<p>記事の内容がありません。</p>';
     
-    return content
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    // 改行を統一（\r\nや\rを\nに変換）
+    let formattedContent = content.replace(/\r\n|\r/g, '\n');
+    
+    // ヘッダーの処理（段階的に処理 - h6からh1の順で処理）
+    formattedContent = formattedContent
+      .replace(/^###### (.*$)/gm, '<h6>$1</h6>')
+      .replace(/^##### (.*$)/gm, '<h5>$1</h5>')
+      .replace(/^#### (.*$)/gm, '<h4>$1</h4>')
+      .replace(/^### (.*$)/gm, '<h3>$1</h3>')
       .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-      .replace(/^- (.*$)/gm, '<li>$1</li>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-      .split('\n')
-      .map(line => line.trim() ? `<p>${line}</p>` : '')
-      .join('');
+      .replace(/^# (.*$)/gm, '<h1>$1</h1>');
+    
+    // 太字・イタリックの処理
+    formattedContent = formattedContent
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>');
+    
+    // リンクの処理
+    formattedContent = formattedContent
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    
+    // 水平線の処理
+    formattedContent = formattedContent
+      .replace(/^---$/gm, '<hr>')
+      .replace(/^\*\*\*$/gm, '<hr>')
+      .replace(/^___$/gm, '<hr>');
+    
+    // コードブロックの処理
+    formattedContent = formattedContent
+      .replace(/```([^`]*?)```/g, '<pre><code>$1</code></pre>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    // 行ごとに処理してリストと段落を適切に生成
+    const lines = formattedContent.split('\n');
+    const processedLines = [];
+    let inList = false;
+    let listType = null; // 'ul' or 'ol'
+    let inBlockquote = false;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      // 空行の処理
+      if (!line) {
+        if (inList) {
+          processedLines.push(listType === 'ul' ? '</ul>' : '</ol>');
+          inList = false;
+          listType = null;
+        }
+        if (inBlockquote) {
+          processedLines.push('</blockquote>');
+          inBlockquote = false;
+        }
+        processedLines.push(''); // 空行を保持
+        continue;
+      }
+      
+      // 引用の処理
+      const blockquoteMatch = line.match(/^>\s+(.*)$/);
+      if (blockquoteMatch) {
+        if (inList) {
+          processedLines.push(listType === 'ul' ? '</ul>' : '</ol>');
+          inList = false;
+          listType = null;
+        }
+        if (!inBlockquote) {
+          processedLines.push('<blockquote>');
+          inBlockquote = true;
+        }
+        processedLines.push(`<p>${blockquoteMatch[1]}</p>`);
+        continue;
+      } else if (inBlockquote) {
+        processedLines.push('</blockquote>');
+        inBlockquote = false;
+      }
+      
+      // ヘッダーまたは水平線の場合はそのまま追加
+      if (line.match(/^<(h[1-6]|hr)>/)) {
+        if (inList) {
+          processedLines.push(listType === 'ul' ? '</ul>' : '</ol>');
+          inList = false;
+          listType = null;
+        }
+        processedLines.push(line);
+        continue;
+      }
+      
+      // リスト項目の処理
+      const unorderedListMatch = line.match(/^[-*+]\s+(.*)$/);
+      const orderedListMatch = line.match(/^(\d+)\.\s+(.*)$/);
+      
+      if (unorderedListMatch || orderedListMatch) {
+        const isUnordered = !!unorderedListMatch;
+        const currentListType = isUnordered ? 'ul' : 'ol';
+        const listContent = isUnordered ? unorderedListMatch[1] : orderedListMatch[2];
+        
+        // リストタイプが変わった場合、前のリストを閉じる
+        if (inList && listType !== currentListType) {
+          processedLines.push(listType === 'ul' ? '</ul>' : '</ol>');
+          inList = false;
+        }
+        
+        // 新しいリストを開始
+        if (!inList) {
+          processedLines.push(currentListType === 'ul' ? '<ul>' : '<ol>');
+          inList = true;
+          listType = currentListType;
+        }
+        
+        processedLines.push(`<li>${listContent}</li>`);
+      } else {
+        // 通常のテキスト
+        if (inList) {
+          processedLines.push(listType === 'ul' ? '</ul>' : '</ol>');
+          inList = false;
+          listType = null;
+        }
+        
+        // コードブロックやヘッダーでなければ段落で囲む
+        if (!line.match(/^<(pre|h[1-6]|ul|ol|li)/)) {
+          processedLines.push(`<p>${line}</p>`);
+        } else {
+          processedLines.push(line);
+        }
+      }
+    }
+    
+    // 最後のリストを閉じる
+    if (inList) {
+      processedLines.push(listType === 'ul' ? '</ul>' : '</ol>');
+    }
+    
+    // 最後の引用を閉じる
+    if (inBlockquote) {
+      processedLines.push('</blockquote>');
+    }
+    
+    // 連続する空の段落を削除し、結果を結合
+    return processedLines
+      .filter((line, index, array) => {
+        // 空行と空段落の連続を避ける
+        if (line === '' || line === '<p></p>') {
+          const prevLine = array[index - 1];
+          const nextLine = array[index + 1];
+          // 前後が段落タグでない場合のみ空行を保持
+          return !(prevLine && prevLine.match(/<\/(p|h[1-6]|ul|ol)>/)) && 
+                 !(nextLine && nextLine.match(/^<(p|h[1-6]|ul|ol)/));
+        }
+        return true;
+      })
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n') // 3個以上の連続改行を2個に制限
+      .trim();
   }
 
   /**
@@ -216,7 +361,7 @@ export class NewsUtils {
     // HTMLタグとマークダウン記法を除去
     let textContent = content
       .replace(/<[^>]*>/g, '') // HTMLタグを除去
-      .replace(/#{1,6}\s+/g, '') // マークダウンのヘッダーを除去
+      .replace(/#{1,6}\s+/g, '') // マークダウンのヘッダーを除去（h1からh6まで）
       .replace(/\*\*(.*?)\*\*/g, '$1') // 太字マークダウンを除去
       .replace(/\*(.*?)\*/g, '$1') // イタリックマークダウンを除去
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // リンクマークダウンを除去
@@ -224,6 +369,8 @@ export class NewsUtils {
       .replace(/`([^`]+)`/g, '$1') // インラインコードを除去
       .replace(/^\s*[-*+]\s+/gm, '') // リスト記号を除去
       .replace(/^\s*\d+\.\s+/gm, '') // 数字リスト記号を除去
+      .replace(/^\s*>\s+/gm, '') // 引用記号を除去
+      .replace(/^---$|^\*\*\*$|^___$/gm, '') // 水平線を除去
       .replace(/\n\s*\n/g, ' ') // 改行を空白に変換
       .replace(/\s+/g, ' ') // 複数の空白を1つに
       .trim();
