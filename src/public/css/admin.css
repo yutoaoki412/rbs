@@ -569,19 +569,19 @@
 }
 
 .category-badge.announcement {
-  background: var(--admin-primary);
+  background: #4a90e2; /* LP側と同じ青 - お知らせ */
 }
 
 .category-badge.event {
-  background: var(--admin-success);
+  background: #50c8a3; /* LP側と同じティール - 体験会 */
 }
 
 .category-badge.media {
-  background: #0ea5e9;
+  background: #9b59b6; /* LP側と同じ紫 - メディア */
 }
 
 .category-badge.important {
-  background: var(--admin-error);
+  background: #e74c3c; /* LP側と同じ赤 - 重要 */
 }
 
 .status-text {
@@ -1059,19 +1059,19 @@ input[type="checkbox"] {
 }
 
 .preview-article .article-category.announcement {
-  background: var(--admin-primary);
+  background: #4a90e2; /* LP側と同じ青 - お知らせ */
 }
 
 .preview-article .article-category.event {
-  background: var(--admin-success);
+  background: #50c8a3; /* LP側と同じティール - 体験会 */
 }
 
 .preview-article .article-category.media {
-  background: var(--admin-info);
+  background: #9b59b6; /* LP側と同じ紫 - メディア */
 }
 
 .preview-article .article-category.important {
-  background: var(--admin-danger);
+  background: #e74c3c; /* LP側と同じ赤 - 重要 */
 }
 
 .preview-article .article-title {
