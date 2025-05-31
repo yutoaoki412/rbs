@@ -1518,20 +1518,7 @@ footer p {
   font-weight: 600;
 }
 
-.course-message {
-  background: rgba(255, 193, 7, 0.1);
-  border-left: 3px solid var(--secondary-yellow);
-  padding: 10px 15px;
-  margin-top: 10px;
-  border-radius: 6px;
-}
 
-.course-message p {
-  margin: 0;
-  color: var(--gray-medium);
-  font-size: 14px;
-  font-style: italic;
-}
 
 .loading-status {
   text-align: center;

@@ -437,20 +437,7 @@
 }
 
 /* コースメッセージ */
-.course-message {
-  background: #f8f9fa;
-  padding: 12px 15px;
-  border-radius: 8px;
-  margin-top: 12px;
-  border-left: 3px solid #4a90e2;
-  font-size: 14px;
-  line-height: 1.4;
-  color: #2c3e50;
-}
 
-.course-message p {
-  margin: 0;
-}
 
 /* ステータスフッター */
 .status-footer {

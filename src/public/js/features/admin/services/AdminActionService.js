@@ -1679,7 +1679,8 @@ export class AdminActionService {
    * @returns {string} プレビューHTML
    */
   #generateLessonStatusPreviewHTML(statusData) {
-    const statusDef = this.lessonStatusService.getStatusDefinition(statusData.globalStatus);
+    // ステータス定義を直接定義（サービス依存を削除）
+    const statusDef = this.#getStatusDefinition(statusData.globalStatus);
     
     // メインステータス
     const mainStatusHTML = `
@@ -1705,7 +1706,7 @@ export class AdminActionService {
     
     // コース別プレビュー
     const coursesHTML = Object.entries(statusData.courses).map(([courseKey, courseData]) => {
-      const courseDef = this.lessonStatusService.getStatusDefinition(courseData.status);
+      const courseDef = this.#getStatusDefinition(courseData.status);
       
       return `
         <div class="course-preview-item">
@@ -1718,11 +1719,6 @@ export class AdminActionService {
               <span class="status-icon">${courseDef.icon}</span>
               <span class="status-text">${courseDef.displayText}</span>
             </div>
-            ${courseData.message ? `
-              <div class="course-message">
-                <p>${this.escapeHtml(courseData.message)}</p>
-              </div>
-            ` : ''}
           </div>
         </div>
       `;
@@ -1742,6 +1738,39 @@ export class AdminActionService {
     `;
     
     return mainStatusHTML + footerHTML;
+  }
+
+  /**
+   * ステータス定義を取得
+   * @private
+   * @param {string} status - ステータスキー
+   * @returns {Object} ステータス定義
+   */
+  #getStatusDefinition(status) {
+    const definitions = {
+      scheduled: {
+        icon: '✅',
+        displayText: '通常開催',
+        cssClass: 'scheduled'
+      },
+      cancelled: {
+        icon: '❌',
+        displayText: '中止',
+        cssClass: 'cancelled'
+      },
+      indoor: {
+        icon: '🏠',
+        displayText: '室内開催',
+        cssClass: 'indoor'
+      },
+      postponed: {
+        icon: '⏰',
+        displayText: '延期',
+        cssClass: 'postponed'
+      }
+    };
+    
+    return definitions[status] || definitions.scheduled;
   }
 
   /**
@@ -1817,7 +1846,7 @@ export class AdminActionService {
     const today = new Date().toISOString().slice(0, 10);
     
     // フォームからの生の値を取得
-    const globalStatusRaw = document.querySelector('input[name="global-status"]:checked')?.value || 'scheduled';
+    const globalStatusRaw = document.querySelector('input[name="global-status"]:checked')?.value || '通常開催';
     const basicLessonRaw = document.querySelector('input[name="basic-lesson"]:checked')?.value || '通常開催';
     const advanceLessonRaw = document.querySelector('input[name="advance-lesson"]:checked')?.value || '通常開催';
     
@@ -1834,14 +1863,12 @@ export class AdminActionService {
         basic: {
           name: 'ベーシックコース（年長〜小3）',
           time: '17:00-17:50',
-          status: basicLessonStatus,
-          message: ''
+          status: basicLessonStatus
         },
         advance: {
           name: 'アドバンスコース（小4〜小6）',
           time: '18:00-18:50',
-          status: advanceLessonStatus,
-          message: ''
+          status: advanceLessonStatus
         }
       }
     };
