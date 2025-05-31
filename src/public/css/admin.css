@@ -1353,12 +1353,15 @@ input[id*="postponed"]:checked + .status-btn {
 }
 
 .action-btn.secondary {
-  background: var(--admin-gray-200);
-  color: var(--admin-gray-700);
+  background: #3b82f6;
+  color: var(--admin-white);
+  border-color: #3b82f6;
 }
 
-.action-btn.secondary:hover {
-  background: var(--admin-gray-300);
+.action-btn.secondary:hover:not(:disabled) {
+  background: #2563eb;
+  border-color: #2563eb;
+  transform: translateY(-1px);
 }
 
 .action-btn.info {
@@ -1586,14 +1589,14 @@ input[id*="postponed"]:checked + .status-btn {
 }
 
 .btn-secondary {
-  background: var(--admin-gray-600);
+  background: #3b82f6;
   color: var(--admin-white);
-  border-color: var(--admin-gray-600);
+  border-color: #3b82f6;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--admin-gray-700);
-  border-color: var(--admin-gray-700);
+  background: #2563eb;
+  border-color: #2563eb;
   transform: translateY(-1px);
 }
 

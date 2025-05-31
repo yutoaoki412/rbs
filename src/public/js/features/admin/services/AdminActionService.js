@@ -725,11 +725,6 @@ export class AdminActionService {
   }
 
   /**
-   * レッスン状況プレビュー
-   */
-  }
-
-  /**
    * レッスン状況更新
    */
   async updateLessonStatus() {
@@ -1031,7 +1026,39 @@ export class AdminActionService {
       };
       
       console.table(debugInfo);
-      this.#showDebugModal(debugInfo);
+      
+      // デバッグコンテンツHTML生成
+      const debugContent = `
+        <div class="debug-info">
+          <h4>システム情報</h4>
+          <table class="debug-table">
+            <tr><td>現在のタブ</td><td>${debugInfo.currentTab}</td></tr>
+            <tr><td>初期化状態</td><td>${debugInfo.initialized ? '✅' : '❌'}</td></tr>
+          </table>
+          
+          <h4>サービス状態</h4>
+          <table class="debug-table">
+            <tr><td>記事サービス</td><td>${debugInfo.articleService?.initialized ? '✅' : '❌'}</td></tr>
+            <tr><td>レッスンサービス</td><td>${debugInfo.lessonService?.initialized ? '✅' : '❌'}</td></tr>
+            <tr><td>UIマネージャー</td><td>${debugInfo.uiManager?.initialized ? '✅' : '❌'}</td></tr>
+          </table>
+          
+          <h4>ブラウザ情報</h4>
+          <table class="debug-table">
+            <tr><td>言語</td><td>${debugInfo.browser.language}</td></tr>
+            <tr><td>Cookie有効</td><td>${debugInfo.browser.cookieEnabled ? '✅' : '❌'}</td></tr>
+            <tr><td>LocalStorage</td><td>${debugInfo.storage.localStorageAvailable ? '✅' : '❌'}</td></tr>
+          </table>
+          
+          <style>
+            .debug-table { width: 100%; margin-bottom: 1rem; border-collapse: collapse; }
+            .debug-table td { padding: 0.5rem; border: 1px solid #ddd; }
+            .debug-table td:first-child { font-weight: bold; background: #f5f5f5; }
+          </style>
+        </div>
+      `;
+      
+      this.#createDebugModal('システムデバッグ情報', debugContent);
       
     } catch (error) {
       console.error('❌ デバッグ情報表示エラー:', error);
@@ -1040,42 +1067,44 @@ export class AdminActionService {
   }
 
   /**
-   * デバッグモーダルの表示
+   * デバッグモーダルを作成
    * @private
-   * @param {Object} debugInfo - デバッグ情報
+   * @param {string} title - モーダルのタイトル
+   * @param {string} content - モーダルの内容
    */
-  #showDebugModal(debugInfo) {
-    const debugContent = `
-      <div class="debug-info">
-        <h4>システム情報</h4>
-        <table class="debug-table">
-          <tr><td>現在のタブ</td><td>${debugInfo.currentTab}</td></tr>
-          <tr><td>初期化状態</td><td>${debugInfo.initialized ? '✅' : '❌'}</td></tr>
-        </table>
-        
-        <h4>サービス状態</h4>
-        <table class="debug-table">
-          <tr><td>記事サービス</td><td>${debugInfo.articleService?.initialized ? '✅' : '❌'}</td></tr>
-          <tr><td>レッスンサービス</td><td>${debugInfo.lessonService?.initialized ? '✅' : '❌'}</td></tr>
-          <tr><td>UIマネージャー</td><td>${debugInfo.uiManager?.initialized ? '✅' : '❌'}</td></tr>
-        </table>
-        
-        <h4>ブラウザ情報</h4>
-        <table class="debug-table">
-          <tr><td>言語</td><td>${debugInfo.browser.language}</td></tr>
-          <tr><td>Cookie有効</td><td>${debugInfo.browser.cookieEnabled ? '✅' : '❌'}</td></tr>
-          <tr><td>LocalStorage</td><td>${debugInfo.storage.localStorageAvailable ? '✅' : '❌'}</td></tr>
-        </table>
-        
-        <style>
-          .debug-table { width: 100%; margin-bottom: 1rem; border-collapse: collapse; }
-          .debug-table td { padding: 0.5rem; border: 1px solid #ddd; }
-          .debug-table td:first-child { font-weight: bold; background: #f5f5f5; }
-        </style>
+  #createDebugModal(title, content) {
+    const modalHTML = `
+      <div id="debug-modal" class="modal" style="display: flex;">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>${title}</h3>
+            <button class="modal-close" onclick="this.closest('.modal').remove(); document.body.classList.remove('modal-open');">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="modal-body">
+            ${content}
+          </div>
+        </div>
       </div>
     `;
     
-    this.#showModal('システムデバッグ情報', debugContent);
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.body.classList.add('modal-open');
+  }
+
+  /**
+   * 接続テスト結果の生成
+   * @private
+   * @param {Object} testResults - テスト結果
+   * @returns {string}
+   */
+  #generateConnectionTestResults(testResults) {
+    return Object.entries(testResults).map(([page, result]) => 
+      `<div class="test-result ${result ? 'success' : 'error'}">
+        ${page}: ${result ? '✅ 正常' : '❌ エラー'}
+      </div>`
+    ).join('');
   }
 
   /**
@@ -1645,46 +1674,6 @@ export class AdminActionService {
    */
 
   /**
-   * レッスン状況プレビューHTMLを生成
-   * @private
-   * @param {Object} statusData - レッスン状況データ
-   * @returns {string} プレビューHTML
-   */
-
-  /**
-   * ステータス定義を取得
-   * @private
-   * @param {string} status - ステータスキー
-   * @returns {Object} ステータス定義
-   */
-
-  /**
-   * モーダルを表示
-   * @private
-   * @param {string} title - モーダルのタイトル
-   * @param {string} content - モーダルの内容
-   */
-
-  /**
-   * 新しいモーダルを作成して表示
-   * @private
-   * @param {string} title - モーダルのタイトル
-   * @param {string} content - モーダルの内容
-   */
-
-  /**
-   * 接続テスト結果の生成
-   * @private
-   * @param {Object} testResults - テスト結果
-   * @returns {string}
-   */
-  #generateConnectionTestResults(testResults) {
-    return Object.entries(testResults).map(([page, result]) => 
-      `<div class="test-result ${result ? 'success' : 'error'}">
-        ${page}: ${result ? '✅ 正常' : '❌ エラー'}
-      </div>`
-    ).join('');
-  }
 
   /**
    * フォームからレッスン状況データを取得

@@ -197,10 +197,6 @@ export class AdminSystemService {
       this.loadLessonStatusToForm();
     });
 
-    EventBus.on('admin:preview-lesson-status', () => {
-      this.previewLessonStatus();
-    });
-
     EventBus.on('admin:update-lesson-status', () => {
       this.updateLessonStatus();
     });
@@ -280,11 +276,6 @@ export class AdminSystemService {
       console.error('❌ レッスン状況読み込みエラー:', error);
       uiManagerService.showNotification('error', 'レッスン状況の読み込みに失敗しました');
     }
-  }
-
-  /**
-   * レッスン状況のプレビュー
-   */
   }
 
   /**
