@@ -184,6 +184,7 @@ export class AdminActionService {
       'refresh-recent-articles': () => this.refreshRecentArticles(),
       'insert-markdown': (element, params) => this.insertMarkdown(element, params),
       'switch-news-tab': (element, params) => this.switchNewsTab(params.tab),
+      'show-writing-guide': () => this.#showWritingGuide(),
 
       // レッスン状況
       'load-lesson-status': () => this.loadLessonStatus(),
@@ -1943,6 +1944,176 @@ export class AdminActionService {
       console.error('❌ 新規記事作成開始エラー:', error);
       this.#showFeedback('新規記事作成の開始に失敗しました', 'error');
     }
+  }
+
+  /**
+   * 記事作成ガイドを表示
+   * @private
+   */
+  #showWritingGuide() {
+    // 既存のモーダルがあれば削除
+    const existingModal = document.getElementById('writing-guide-modal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+    
+    // ガイド内容を作成
+    const guideContent = `
+      <div class="guide-section">
+        <h3><i class="fas fa-heading"></i> 見出しの使い方</h3>
+        <div class="guide-example">
+          <div class="code-block">
+# 大見出し（H1） - 記事のメインテーマ
+## 中見出し（H2） - セクションの区切り
+### 小見出し（H3） - サブセクション
+#### 詳細見出し（H4） - 詳細項目
+##### サブ見出し（H5） - 補足項目
+###### 最小見出し（H6） - 最小項目
+          </div>
+        </div>
+      </div>
+      
+      <div class="guide-section">
+        <h3><i class="fas fa-bold"></i> テキスト装飾</h3>
+        <div class="guide-example">
+          <div class="code-block">
+**太字テキスト**
+*イタリック（斜体）テキスト*
+          </div>
+          <div class="preview-result">
+            <strong>太字テキスト</strong><br>
+            <em>イタリック（斜体）テキスト</em>
+          </div>
+        </div>
+      </div>
+      
+      <div class="guide-section">
+        <h3><i class="fas fa-list"></i> リスト</h3>
+        <div class="guide-example">
+          <div class="code-block">
+- 箇条書き項目1
+- 箇条書き項目2
+  - サブ項目1
+  - サブ項目2
+
+1. 番号付き項目1
+2. 番号付き項目2
+3. 番号付き項目3
+          </div>
+        </div>
+      </div>
+      
+      <div class="guide-section">
+        <h3><i class="fas fa-link"></i> リンク</h3>
+        <div class="guide-example">
+          <div class="code-block">
+[リンクテキスト](https://example.com)
+          </div>
+          <div class="preview-result">
+            <a href="https://example.com" target="_blank">リンクテキスト</a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="guide-section">
+        <h3><i class="fas fa-code"></i> コード</h3>
+        <div class="guide-example">
+          <div class="code-block">
+\`インラインコード\`
+
+\`\`\`
+複数行のコードブロック
+コマンド例など
+\`\`\`
+          </div>
+        </div>
+      </div>
+      
+      <div class="guide-section">
+        <h3><i class="fas fa-quote-right"></i> 引用</h3>
+        <div class="guide-example">
+          <div class="code-block">
+> 重要な引用文や
+> 誰かの発言を記載する際に使用
+          </div>
+        </div>
+      </div>
+      
+      <div class="guide-section">
+        <h3><i class="fas fa-minus"></i> 水平線</h3>
+        <div class="guide-example">
+          <div class="code-block">
+---
+          </div>
+          <div class="preview-result">
+            <hr style="border: none; height: 2px; background: #ccc; margin: 10px 0;">
+          </div>
+        </div>
+      </div>
+      
+      <div class="guide-section tips">
+        <h3><i class="fas fa-lightbulb"></i> 記事作成のコツ</h3>
+        <ul>
+          <li><strong>見出しを活用</strong>: H2 → H3 → H4の順で構造化</li>
+          <li><strong>箇条書きで整理</strong>: 複数の項目は箇条書きで読みやすく</li>
+          <li><strong>重要な情報を強調</strong>: **太字**で重要な部分をハイライト</li>
+          <li><strong>適度な改行</strong>: 長い文章は適度に改行して読みやすく</li>
+        </ul>
+      </div>
+    `;
+    
+    // モーダルHTMLを作成
+    const modalHTML = `
+      <div id="writing-guide-modal" class="modal" style="display: flex; background: rgba(0, 0, 0, 0.6);">
+      <div id="writing-guide-modal" class="modal">
+        <div class="modal-content writing-guide">
+          <div class="modal-header">
+            <h2><i class="fas fa-book-open"></i> 記事作成ガイド</h2>
+            <button class="modal-close" onclick="this.closest('.modal').remove()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="guide-intro">
+              <p>記事を美しく、読みやすく作成するためのMarkdown記法ガイドです。</p>
+            </div>
+            ${guideContent}
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">
+              閉じる
+            </button>
+            <a href="../docs/article-writing-guide.md" target="_blank" class="btn btn-outline">
+              <i class="fas fa-external-link-alt"></i> 詳細ガイドを開く
+            </a>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // モーダルを追加
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // モーダルを表示
+    const modal = document.getElementById('writing-guide-modal');
+    setTimeout(() => modal.classList.add('show'), 10);
+    
+    // ESCキーで閉じる
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        modal.remove();
+        document.removeEventListener('keydown', handleEscape);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    
+    // 背景クリックで閉じる
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+        document.removeEventListener('keydown', handleEscape);
+      }
+    });
   }
 }
 

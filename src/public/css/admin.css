@@ -1525,9 +1525,38 @@ input[id*="postponed"]:checked + .status-btn {
 }
 
 .toolbar-btn:hover {
-  background: var(--admin-primary);
-  color: var(--admin-white);
-  border-color: var(--admin-primary);
+  background: var(--admin-gray-200);
+  color: var(--admin-gray-800);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 20px;
+  background: var(--admin-gray-300);
+  margin: 0 0.5rem;
+}
+
+.help-btn {
+  color: var(--admin-info) !important;
+  border-color: var(--admin-info) !important;
+}
+
+.help-btn:hover {
+  background: var(--admin-info) !important;
+  color: white !important;
+}
+
+.help-link {
+  color: var(--admin-info);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.help-link:hover {
+  color: var(--admin-info-dark, #0066cc);
+  text-decoration: underline;
 }
 
 .form-help {
@@ -1991,4 +2020,108 @@ input[id*="postponed"]:checked + .status-btn {
 .list-panel.full-width {
   width: 100%;
   max-width: none;
+}
+
+/* 記事作成ガイドモーダル */
+.modal-content.writing-guide {
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.guide-intro {
+  background: var(--admin-info-light, #e3f2fd);
+  border: 1px solid var(--admin-info);
+  border-radius: var(--admin-border-radius);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.guide-intro p {
+  margin: 0;
+  color: var(--admin-info-dark, #0066cc);
+  font-weight: 500;
+}
+
+.guide-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--admin-white);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius);
+}
+
+.guide-section h3 {
+  margin: 0 0 1rem 0;
+  color: var(--admin-gray-900);
+  font-size: 1.125rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.guide-section h3 i {
+  color: var(--admin-primary);
+  font-size: 1rem;
+}
+
+.guide-example {
+  display: grid;
+  gap: 1rem;
+}
+
+.code-block {
+  background: var(--admin-gray-100);
+  border: 1px solid var(--admin-gray-300);
+  border-radius: 4px;
+  padding: 1rem;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.preview-result {
+  background: var(--admin-white);
+  border: 1px solid var(--admin-gray-300);
+  border-radius: 4px;
+  padding: 1rem;
+  border-left: 4px solid var(--admin-success);
+}
+
+.guide-section.tips {
+  background: var(--admin-warning-light, #fff8e1);
+  border-color: var(--admin-warning);
+}
+
+.guide-section.tips h3 {
+  color: var(--admin-warning-dark, #e65100);
+}
+
+.guide-section.tips ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.guide-section.tips li {
+  margin-bottom: 0.5rem;
+  color: var(--admin-gray-800);
+}
+
+@media (max-width: 768px) {
+  .modal-content.writing-guide {
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
+  }
+  
+  .guide-section {
+    padding: 1rem;
+  }
+  
+  .code-block {
+    font-size: 0.8125rem;
+    padding: 0.75rem;
+  }
 } 

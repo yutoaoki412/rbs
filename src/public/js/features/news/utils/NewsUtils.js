@@ -201,7 +201,7 @@ export class NewsUtils {
         }
         
         // コードブロックやヘッダーでなければ段落で囲む
-        if (!line.match(/^<(pre|h[1-6]|ul|ol|li)/)) {
+        if (!line.match(/^<(pre|h[1-6]|ul|ol|li|blockquote|hr)/)) {
           processedLines.push(`<p>${line}</p>`);
         } else {
           processedLines.push(line);

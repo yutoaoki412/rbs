@@ -268,10 +268,15 @@
                     <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="[" data-end="](URL)" title="リンク">
                       Link
                     </button>
+                    <div class="toolbar-separator"></div>
+                    <button type="button" class="toolbar-btn help-btn" data-action="show-writing-guide" title="記事作成ガイド">
+                      <i class="fas fa-question-circle"></i>
+                      ガイド
+                    </button>
                   </div>
                   <textarea id="news-content" class="form-textarea editor-content" placeholder="記事の本文をMarkdown形式で入力してください" required></textarea>
                   <div class="form-help">
-                    <small>Markdown記法: **太字**、## 見出し、- リスト、[リンク](URL)</small>
+                    <small>Markdown記法: **太字**、## 見出し、- リスト、[リンク](URL) | <a href="#" data-action="show-writing-guide" class="help-link">📖 詳細な記事作成ガイドを見る</a></small>
                   </div>
                 </div>
                 
