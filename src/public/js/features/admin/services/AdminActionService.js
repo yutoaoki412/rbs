@@ -360,6 +360,14 @@ export class AdminActionService {
    * @private
    */
   #initializeLessonStatus() {
+    // 今日の日付を自動設定
+    const today = new Date().toISOString().slice(0, 10);
+    const dateField = document.getElementById('lesson-date');
+    if (dateField && !dateField.value) {
+      dateField.value = today;
+    }
+    
+    // 自動的に今日のレッスン状況を読み込み
     this.loadLessonStatus();
   }
 
@@ -634,15 +642,62 @@ export class AdminActionService {
     try {
       console.log('📚 レッスン状況読み込み');
       
-      const status = await this.lessonStatusService.getCurrentStatus();
-      this.#loadLessonStatusToForm(status);
+      // 今日の日付を取得
+      const today = new Date().toISOString().slice(0, 10);
+      const dateField = document.getElementById('lesson-date');
       
-      this.#showFeedback('レッスン状況を読み込みました');
+      // 日付フィールドが空の場合は今日の日付を設定
+      if (dateField && !dateField.value) {
+        dateField.value = today;
+      }
+      
+      const targetDate = dateField?.value || today;
+      const status = await this.lessonStatusService.getCurrentStatus(targetDate);
+      
+      if (status.success) {
+        this.#loadLessonStatusToForm(status);
+        this.#showFeedback(`${targetDate} のレッスン状況を読み込みました`);
+      } else {
+        // データが存在しない場合はデフォルト状態にリセット
+        this.#setDefaultLessonStatusForm(targetDate);
+        this.#showFeedback(`${targetDate} の新しいレッスン状況を作成中です`, 'info');
+      }
       
     } catch (error) {
       console.error('❌ レッスン状況読み込みエラー:', error);
       this.#showFeedback('レッスン状況の読み込みに失敗しました', 'error');
+      
+      // エラー時もデフォルト状態にリセット
+      const today = new Date().toISOString().slice(0, 10);
+      this.#setDefaultLessonStatusForm(today);
     }
+  }
+
+  /**
+   * デフォルトのレッスン状況フォーム設定
+   * @private
+   * @param {string} date - 対象日付
+   */
+  #setDefaultLessonStatusForm(date) {
+    // 日付設定
+    const dateField = document.getElementById('lesson-date');
+    if (dateField) dateField.value = date;
+    
+    // グローバルメッセージクリア
+    const messageField = document.getElementById('global-message');
+    if (messageField) messageField.value = '';
+    
+    // 全ステータスを「通常開催」にリセット
+    const scheduledRadios = [
+      'input[name="global-status"][value="scheduled"]',
+      'input[name="basic-lesson"][value="通常開催"]',
+      'input[name="advance-lesson"][value="通常開催"]'
+    ];
+    
+    scheduledRadios.forEach(selector => {
+      const radio = document.querySelector(selector);
+      if (radio) radio.checked = true;
+    });
   }
 
   /**
@@ -665,21 +720,89 @@ export class AdminActionService {
    */
   async updateLessonStatus() {
     try {
+      // フォームデータの取得とバリデーション
       const statusData = this.#getLessonStatusFromForm();
+      
+      if (!this.#validateLessonStatusData(statusData)) {
+        return; // バリデーションエラーのメッセージは#validateLessonStatusData内で表示
+      }
+      
       console.log('📝 レッスン状況更新:', statusData);
       
+      // 保存前の確認
+      const confirmMessage = `${statusData.date} のレッスン状況を更新しますか？\n\n` +
+        `全体ステータス: ${this.#mapStatusKeyToJapanese(statusData.globalStatus)}\n` +
+        `ベーシックコース: ${this.#mapStatusKeyToJapanese(statusData.courses.basic.status)}\n` +
+        `アドバンスコース: ${this.#mapStatusKeyToJapanese(statusData.courses.advance.status)}`;
+      
+      if (!confirm(confirmMessage)) {
+        this.#showFeedback('更新をキャンセルしました', 'info');
+        return;
+      }
+      
+      // 保存処理実行
       const result = await this.lessonStatusService.updateStatus(statusData);
       
       if (result.success) {
-        this.#showFeedback('レッスン状況を更新しました');
+        this.#showFeedback(`${statusData.date} のレッスン状況を更新しました`);
+        
+        // LP側のレッスン状況表示も更新
+        if (window.lessonStatusDisplay && typeof window.lessonStatusDisplay.refresh === 'function') {
+          window.lessonStatusDisplay.refresh();
+        }
+        
       } else {
-        this.#showFeedback(result.message || '更新に失敗しました', 'error');
+        this.#showFeedback(result.error || '更新に失敗しました', 'error');
       }
       
     } catch (error) {
       console.error('❌ レッスン状況更新エラー:', error);
       this.#showFeedback('レッスン状況の更新中にエラーが発生しました', 'error');
     }
+  }
+
+  /**
+   * レッスン状況データのバリデーション
+   * @private
+   * @param {Object} statusData - レッスン状況データ
+   * @returns {boolean} バリデーション成功時true
+   */
+  #validateLessonStatusData(statusData) {
+    // 日付チェック
+    if (!statusData.date) {
+      this.#showFeedback('対象日を選択してください', 'error');
+      return false;
+    }
+    
+    // 日付形式チェック
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(statusData.date)) {
+      this.#showFeedback('正しい日付形式で入力してください (YYYY-MM-DD)', 'error');
+      return false;
+    }
+    
+    // グローバルメッセージ長チェック
+    if (statusData.globalMessage && statusData.globalMessage.length > 500) {
+      this.#showFeedback('全体メッセージは500文字以内で入力してください', 'error');
+      return false;
+    }
+    
+    // ステータス値チェック
+    const validStatuses = ['scheduled', 'cancelled', 'indoor', 'postponed'];
+    if (!validStatuses.includes(statusData.globalStatus)) {
+      this.#showFeedback('無効な全体ステータスが選択されています', 'error');
+      return false;
+    }
+    
+    // コースステータスチェック
+    for (const [courseKey, courseData] of Object.entries(statusData.courses)) {
+      if (!validStatuses.includes(courseData.status)) {
+        this.#showFeedback(`無効な${courseKey}コースステータスが選択されています`, 'error');
+        return false;
+      }
+    }
+    
+    return true;
   }
 
   // === データ管理メソッド ===
@@ -1313,7 +1436,153 @@ export class AdminActionService {
    */
   #showLessonStatusPreview(statusData) {
     console.log('👁️ レッスン状況プレビュー:', statusData);
-    this.#showFeedback('レッスン状況プレビューを表示');
+    
+    try {
+      // プレビューHTMLの生成
+      const previewHTML = this.#generateLessonStatusPreviewHTML(statusData);
+      
+      // モーダルで表示
+      this.#showModal('レッスン状況プレビュー', previewHTML);
+      
+      this.#showFeedback('レッスン状況プレビューを表示');
+      
+    } catch (error) {
+      console.error('❌ プレビュー表示エラー:', error);
+      this.#showFeedback('プレビューの表示に失敗しました', 'error');
+    }
+  }
+
+  /**
+   * レッスン状況プレビューHTMLを生成
+   * @private
+   * @param {Object} statusData - レッスン状況データ
+   * @returns {string} プレビューHTML
+   */
+  #generateLessonStatusPreviewHTML(statusData) {
+    const statusDef = this.lessonStatusService.getStatusDefinition(statusData.globalStatus);
+    
+    // メインステータス
+    const mainStatusHTML = `
+      <div class="lesson-status-preview">
+        <div class="preview-header">
+          <h3>${statusData.date} のレッスン開催状況</h3>
+        </div>
+        <div class="global-status-display">
+          <div class="status-indicator ${statusDef.cssClass}">
+            <span class="status-icon">${statusDef.icon}</span>
+            <span class="status-text">${statusDef.displayText}</span>
+          </div>
+          ${statusData.globalMessage ? `
+            <div class="global-message">
+              <div class="message-content">
+                <i class="fas fa-info-circle"></i>
+                <span>${this.#escapeHtml(statusData.globalMessage)}</span>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+    `;
+    
+    // コース別プレビュー
+    const coursesHTML = Object.entries(statusData.courses).map(([courseKey, courseData]) => {
+      const courseDef = this.lessonStatusService.getStatusDefinition(courseData.status);
+      
+      return `
+        <div class="course-preview-item">
+          <div class="course-header">
+            <h4>${courseData.name}</h4>
+            <div class="course-time">${courseData.time}</div>
+          </div>
+          <div class="course-status">
+            <div class="status-badge ${courseDef.cssClass}">
+              <span class="status-icon">${courseDef.icon}</span>
+              <span class="status-text">${courseDef.displayText}</span>
+            </div>
+            ${courseData.message ? `
+              <div class="course-message">
+                <p>${this.#escapeHtml(courseData.message)}</p>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+    const footerHTML = `
+        <div class="courses-grid">
+          ${coursesHTML}
+        </div>
+        <div class="preview-footer">
+          <p class="preview-note">
+            <i class="fas fa-info-circle"></i>
+            このプレビューは保存後にトップページで表示される内容です
+          </p>
+        </div>
+      </div>
+    `;
+    
+    return mainStatusHTML + footerHTML;
+  }
+
+  /**
+   * モーダルを表示
+   * @private
+   * @param {string} title - モーダルのタイトル
+   * @param {string} content - モーダルの内容
+   */
+  #showModal(title, content) {
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    
+    if (modal && modalTitle && modalBody) {
+      modalTitle.textContent = title;
+      modalBody.innerHTML = content;
+      modal.classList.add('show');
+      document.body.classList.add('modal-open');
+    } else {
+      // フォールバック: 新しいモーダルを作成
+      this.#createAndShowModal(title, content);
+    }
+  }
+
+  /**
+   * 新しいモーダルを作成して表示
+   * @private
+   * @param {string} title - モーダルのタイトル
+   * @param {string} content - モーダルの内容
+   */
+  #createAndShowModal(title, content) {
+    const modalHTML = `
+      <div id="lesson-preview-modal" class="modal show">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>${title}</h3>
+            <button class="modal-close" onclick="this.closest('.modal').remove(); document.body.classList.remove('modal-open');">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="modal-body">
+            ${content}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.body.classList.add('modal-open');
+  }
+
+  /**
+   * HTMLエスケープ
+   * @private
+   * @param {string} text - エスケープするテキスト
+   * @returns {string} エスケープされたテキスト
+   */
+  #escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   /**

@@ -711,297 +711,110 @@ input[type="checkbox"] {
 .modal {
   display: none;
   position: fixed;
-  top: 0;
+  z-index: 1000;
   left: 0;
+  top: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 2000;
-  align-items: center;
-  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
+.modal.show,
 .modal.active {
   display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
 }
 
 .modal-content {
-  background: var(--admin-white);
-  border-radius: var(--admin-border-radius);
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   max-width: 90vw;
   max-height: 90vh;
+  width: auto;
+  min-width: 400px;
   overflow: hidden;
-  box-shadow: var(--admin-shadow-lg);
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.modal.show .modal-content,
+.modal.active .modal-content {
+  transform: scale(1);
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--admin-gray-200);
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8f9fa;
 }
 
 .modal-header h3 {
   margin: 0;
-  color: var(--admin-gray-900);
   font-size: 1.25rem;
   font-weight: 600;
+  color: var(--navy-dark);
 }
 
 .modal-close {
   background: none;
   border: none;
   font-size: 1.5rem;
+  color: #6c757d;
   cursor: pointer;
-  color: var(--admin-gray-500);
   padding: 0.5rem;
-  border-radius: 4px;
-  transition: var(--admin-transition);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
 
 .modal-close:hover {
-  background: var(--admin-gray-100);
-  color: var(--admin-gray-700);
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--navy-dark);
 }
 
 .modal-body {
-  padding: 1.5rem;
+  padding: 2rem;
   overflow-y: auto;
   max-height: calc(90vh - 120px);
 }
 
-/* 設定パネル追加スタイル */
-.setting-actions {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 1rem;
-  flex-wrap: wrap;
+/* レッスン状況プレビュー用モーダル調整 */
+.modal .lesson-status-preview {
+  max-width: none;
+  margin: 0;
 }
 
-.setting-note {
-  display: block;
-  margin-top: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  background: var(--admin-gray-50);
-  border: 1px solid var(--admin-gray-200);
-  border-radius: var(--admin-border-radius-sm);
-  color: var(--admin-gray-600);
-  font-size: 0.8125rem;
-  line-height: 1.4;
-}
-
-.setting-note i {
-  color: var(--admin-primary);
-  margin-right: 0.25rem;
-}
-
-.btn.btn-warning {
-  background: var(--admin-warning);
-  color: var(--admin-white);
-  border: 1px solid var(--admin-warning);
-}
-
-.btn.btn-warning:hover {
-  background: #f59e0b;
-  border-color: #f59e0b;
-  transform: translateY(-1px);
-}
-
-.btn.btn-secondary {
-  background: var(--admin-gray-500);
-  color: var(--admin-white);
-  border: 1px solid var(--admin-gray-500);
-}
-
-.btn.btn-secondary:hover {
-  background: var(--admin-gray-700);
-  border-color: var(--admin-gray-700);
-  transform: translateY(-1px);
-}
-
-/* 通知システム - リッチなトーストUI */
-.notification-container {
-  position: fixed;
-  top: 80px;
-  right: 20px;
-  z-index: 10000;
-  max-width: 420px;
-  width: 100%;
-  pointer-events: none;
-}
-
-.admin-notification {
-  position: relative;
-  margin-bottom: 12px;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+/* モーダルが開いている時のbody */
+body.modal-open {
   overflow: hidden;
-  backdrop-filter: blur(10px);
-  pointer-events: auto;
-  transform: translateX(100%);
-  opacity: 0;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.admin-notification.show {
-  transform: translateX(0);
-  opacity: 1;
-}
-
-.admin-notification.hide {
-  transform: translateX(100%);
-  opacity: 0;
-  margin-bottom: 0;
-  max-height: 0;
-}
-
-.admin-notification.success {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  border-left: 4px solid #34d399;
-}
-
-.admin-notification.error {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  border-left: 4px solid #f87171;
-}
-
-.admin-notification.warning {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  border-left: 4px solid #fbbf24;
-}
-
-.admin-notification.info {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  border-left: 4px solid #60a5fa;
-}
-
-.notification-content {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 16px 20px;
-  color: white;
-  position: relative;
-}
-
-.notification-icon {
-  font-size: 24px;
-  flex-shrink: 0;
-  margin-top: 2px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-}
-
-.notification-message-wrapper {
-  flex: 1;
-  min-width: 0;
-}
-
-.notification-title {
-  font-weight: 600;
-  font-size: 15px;
-  margin-bottom: 2px;
-  letter-spacing: -0.01em;
-}
-
-.notification-message {
-  font-size: 14px;
-  opacity: 0.95;
-  line-height: 1.4;
-  word-wrap: break-word;
-}
-
-.notification-close {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  font-size: 14px;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.notification-close:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
-}
-
-.notification-progress {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.7);
-  transition: width linear;
-  border-radius: 0 0 12px 12px;
-}
-
-/* アニメーション効果 */
-@keyframes toastSlideIn {
-  from {
-    transform: translateX(100%) scale(0.8);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0) scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes toastSlideOut {
-  from {
-    transform: translateX(0) scale(1);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(100%) scale(0.8);
-    opacity: 0;
-  }
-}
-
-.admin-notification.animating-in {
-  animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.admin-notification.animating-out {
-  animation: toastSlideOut 0.3s cubic-bezier(0.4, 0, 1, 1);
-}
-
-/* レスポンシブ対応 */
-@media (max-width: 480px) {
-  .notification-container {
-    left: 16px;
-    right: 16px;
-    max-width: none;
+@media (max-width: 768px) {
+  .modal-content {
+    min-width: 320px;
+    max-width: 95vw;
+    margin: 1rem;
   }
   
-  .admin-notification {
-    margin-bottom: 8px;
+  .modal-header {
+    padding: 1rem 1.5rem;
   }
   
-  .notification-content {
-    padding: 14px 16px;
-  }
-  
-  .notification-icon {
-    font-size: 20px;
-  }
-  
-  .notification-title {
-    font-size: 14px;
-  }
-  
-  .notification-message {
-    font-size: 13px;
+  .modal-body {
+    padding: 1.5rem;
   }
 }
 
@@ -1197,45 +1010,71 @@ input[type="checkbox"] {
 }
 
 .status-btn:hover {
-  border-color: var(--admin-primary);
-  background: rgba(74, 144, 226, 0.05);
-  color: var(--admin-primary);
+  border-color: var(--admin-gray-400);
+  background: var(--admin-gray-50);
+  color: var(--admin-gray-800);
 }
 
 .status-btn i {
   font-size: 1rem;
 }
 
-/* ステータス別スタイル */
-.status-buttons input[type="radio"]:checked + .status-btn {
-  border-color: var(--admin-primary);
-  background: var(--admin-primary);
-  color: var(--admin-white);
-  box-shadow: 0 2px 4px rgba(74, 144, 226, 0.3);
-}
+/* ステータス別スタイル - 統一された色体系 */
 
-/* 通常開催 */
+/* 通常開催 - 緑 */
 input[id*="scheduled"]:checked + .status-btn {
   border-color: var(--status-scheduled);
   background: var(--status-scheduled);
+  color: white;
+  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
 }
 
-/* 中止 */
+.status-btn[for*="scheduled"]:hover {
+  border-color: var(--status-scheduled-light);
+  background: rgba(39, 174, 96, 0.1);
+  color: var(--status-scheduled-dark);
+}
+
+/* 中止 - 赤 */
 input[id*="cancelled"]:checked + .status-btn {
   border-color: var(--status-cancelled);
   background: var(--status-cancelled);
+  color: white;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
 }
 
-/* 室内開催 */
+.status-btn[for*="cancelled"]:hover {
+  border-color: var(--status-cancelled-light);
+  background: rgba(231, 76, 60, 0.1);
+  color: var(--status-cancelled-dark);
+}
+
+/* 室内開催 - オレンジ */
 input[id*="indoor"]:checked + .status-btn {
   border-color: var(--status-indoor);
   background: var(--status-indoor);
+  color: white;
+  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
 }
 
-/* 延期 */
+.status-btn[for*="indoor"]:hover {
+  border-color: var(--status-indoor-light);
+  background: rgba(243, 156, 18, 0.1);
+  color: var(--status-indoor-dark);
+}
+
+/* 延期 - 青 */
 input[id*="postponed"]:checked + .status-btn {
   border-color: var(--status-postponed);
   background: var(--status-postponed);
+  color: white;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.status-btn[for*="postponed"]:hover {
+  border-color: var(--status-postponed-light);
+  background: rgba(52, 152, 219, 0.1);
+  color: var(--status-postponed-dark);
 }
 
 /* フォームアクション */

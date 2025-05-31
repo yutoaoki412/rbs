@@ -799,7 +799,7 @@
   padding: 0.5rem;
   background: #f1f3f4;
   border-radius: 4px;
-  border-left: 3px solid #3498db;
+  border-left: 3px solid var(--status-postponed);
 }
 
 .lesson-status-display .status-footer {
@@ -828,8 +828,8 @@
 }
 
 .lesson-status-display .refresh-btn:hover {
-  background: #3498db;
-  border-color: #3498db;
+  background: var(--status-postponed);
+  border-color: var(--status-postponed);
   color: white;
   transform: scale(1.05);
 }
@@ -863,7 +863,7 @@
 }
 
 .lesson-status-display .retry {
-  background: #e74c3c;
+  background: var(--status-cancelled);
   color: white;
   border: none;
   padding: 0.6rem 1rem;
@@ -874,7 +874,7 @@
 }
 
 .lesson-status-display .retry:hover {
-  background: #c0392b;
+  background: var(--status-cancelled-dark);
 }
 
 /* アニメーション */
@@ -990,5 +990,212 @@
   
   .lesson-status-display .courses-detail h4 {
     text-align: center;
+  }
+}
+
+/* レッスン状況プレビュー */
+.lesson-status-preview {
+  max-width: 600px;
+  margin: 0 auto;
+  font-family: inherit;
+}
+
+.lesson-status-preview .preview-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.lesson-status-preview .preview-header h3 {
+  margin: 0;
+  color: var(--navy-dark);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.lesson-status-preview .global-status-display {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.lesson-status-preview .status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.lesson-status-preview .status-indicator.scheduled {
+  background: var(--status-scheduled);
+  color: white;
+}
+
+.lesson-status-preview .status-indicator.cancelled {
+  background: var(--status-cancelled);
+  color: white;
+}
+
+.lesson-status-preview .status-indicator.indoor {
+  background: var(--status-indoor);
+  color: white;
+}
+
+.lesson-status-preview .status-indicator.postponed {
+  background: var(--status-postponed);
+  color: white;
+}
+
+.lesson-status-preview .status-icon {
+  font-size: 1.2rem;
+}
+
+.lesson-status-preview .global-message {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(74, 144, 226, 0.08);
+  border: 1px solid rgba(74, 144, 226, 0.2);
+  border-radius: 8px;
+  text-align: left;
+}
+
+.lesson-status-preview .global-message .message-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  color: var(--navy-dark);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.lesson-status-preview .global-message .message-content i {
+  color: var(--primary-blue);
+  font-size: 1rem;
+  margin-top: 0.1rem;
+  flex-shrink: 0;
+}
+
+.lesson-status-preview .courses-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.lesson-status-preview .course-preview-item {
+  background: #f8f9fa;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.lesson-status-preview .course-preview-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.lesson-status-preview .course-header {
+  margin-bottom: 1rem;
+}
+
+.lesson-status-preview .course-header h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--navy-dark);
+}
+
+.lesson-status-preview .course-time {
+  font-size: 0.875rem;
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.lesson-status-preview .course-status {
+  margin-bottom: 0.75rem;
+}
+
+.lesson-status-preview .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.lesson-status-preview .status-badge.scheduled {
+  background: var(--status-scheduled);
+  color: white;
+}
+
+.lesson-status-preview .status-badge.cancelled {
+  background: var(--status-cancelled);
+  color: white;
+}
+
+.lesson-status-preview .status-badge.indoor {
+  background: var(--status-indoor);
+  color: white;
+}
+
+.lesson-status-preview .status-badge.postponed {
+  background: var(--status-postponed);
+  color: white;
+}
+
+.lesson-status-preview .course-message {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #5a6c7d;
+  line-height: 1.5;
+}
+
+.lesson-status-preview .preview-footer {
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.lesson-status-preview .preview-note {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #7f8c8d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.lesson-status-preview .preview-note i {
+  color: var(--primary-blue);
+}
+
+/* モーダル内でのプレビュー調整 */
+.modal .lesson-status-preview {
+  max-width: none;
+}
+
+@media (max-width: 768px) {
+  .lesson-status-preview .status-indicator {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .lesson-status-preview .course-preview-item {
+    padding: 1rem;
+  }
+  
+  .lesson-status-preview .courses-grid {
+    gap: 1rem;
   }
 }

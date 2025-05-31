@@ -341,6 +341,20 @@ export class LessonStatusDisplayComponent extends Component {
   }
 
   /**
+   * レッスン状況を強制的に再読み込み
+   * 管理画面からの更新時に使用
+   * @returns {Promise<void>}
+   */
+  async refresh() {
+    try {
+      this.debug('レッスン状況を強制再読み込み');
+      await this.loadAndDisplayStatus();
+    } catch (error) {
+      this.error('レッスン状況再読み込みエラー:', error);
+    }
+  }
+
+  /**
    * ステータスデータの取得
    * @private
    * @param {string} [date] - 日付

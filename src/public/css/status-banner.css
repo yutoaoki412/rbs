@@ -208,25 +208,25 @@
 .status-indicator.scheduled {
   background: var(--status-scheduled);
   border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 2px 10px rgba(39, 174, 96, 0.4);
+  box-shadow: 0 2px 10px var(--status-scheduled-light);
 }
 
 .status-indicator.cancelled {
   background: var(--status-cancelled);
   border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 2px 10px rgba(231, 76, 60, 0.4);
+  box-shadow: 0 2px 10px var(--status-cancelled-light);
 }
 
 .status-indicator.indoor {
   background: var(--status-indoor);
   border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 2px 10px rgba(243, 156, 18, 0.4);
+  box-shadow: 0 2px 10px var(--status-indoor-light);
 }
 
 .status-indicator.postponed {
   background: var(--status-postponed);
   border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 2px 10px rgba(52, 152, 219, 0.4);
+  box-shadow: 0 2px 10px var(--status-postponed-light);
 }
 
 /* トグルアイコン */
@@ -415,25 +415,25 @@
 .status-badge.scheduled {
   background: var(--status-scheduled);
   color: white;
-  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+  box-shadow: 0 2px 8px var(--status-scheduled-light);
 }
 
 .status-badge.cancelled {
   background: var(--status-cancelled);
   color: white;
-  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+  box-shadow: 0 2px 8px var(--status-cancelled-light);
 }
 
 .status-badge.indoor {
   background: var(--status-indoor);
   color: white;
-  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
+  box-shadow: 0 2px 8px var(--status-indoor-light);
 }
 
 .status-badge.postponed {
   background: var(--status-postponed);
   color: white;
-  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 2px 8px var(--status-postponed-light);
 }
 
 /* コースメッセージ */
@@ -474,16 +474,16 @@
 /* エラー状態 */
 .error-status {
   background: #ffeaea;
-  border: 2px solid #e74c3c;
+  border: 2px solid var(--status-cancelled);
   border-radius: 12px;
   padding: 25px;
   text-align: center;
-  color: #c0392b;
+  color: var(--status-cancelled-dark);
   margin: 20px 0;
 }
 
 .error-status h4 {
-  color: #e74c3c;
+  color: var(--status-cancelled);
   margin-bottom: 10px;
   font-size: 18px;
   font-weight: 700;
