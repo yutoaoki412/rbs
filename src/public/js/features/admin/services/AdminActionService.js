@@ -187,7 +187,6 @@ export class AdminActionService {
 
       // レッスン状況
       'load-lesson-status': () => this.loadLessonStatus(),
-      'preview-lesson-status': () => this.previewLessonStatus(),
       'update-lesson-status': () => this.updateLessonStatus(),
 
       // データ管理
@@ -728,16 +727,6 @@ export class AdminActionService {
   /**
    * レッスン状況プレビュー
    */
-  previewLessonStatus() {
-    try {
-      const statusData = this.#getLessonStatusFromForm();
-      this.#showLessonStatusPreview(statusData);
-      console.log('👁️ レッスン状況プレビューを表示');
-      
-    } catch (error) {
-      console.error('❌ レッスン状況プレビューエラー:', error);
-      this.#showFeedback('プレビューの表示に失敗しました', 'error');
-    }
   }
 
   /**
@@ -1654,23 +1643,6 @@ export class AdminActionService {
    * @private
    * @param {Object} statusData - レッスン状況データ
    */
-  #showLessonStatusPreview(statusData) {
-    console.log('👁️ レッスン状況プレビュー:', statusData);
-    
-    try {
-      // プレビューHTMLの生成
-      const previewHTML = this.#generateLessonStatusPreviewHTML(statusData);
-      
-      // モーダルで表示
-      this.#showModal('レッスン状況プレビュー', previewHTML);
-      
-      this.#showFeedback('レッスン状況プレビューを表示');
-      
-    } catch (error) {
-      console.error('❌ プレビュー表示エラー:', error);
-      this.#showFeedback('プレビューの表示に失敗しました', 'error');
-    }
-  }
 
   /**
    * レッスン状況プレビューHTMLを生成
@@ -1678,67 +1650,6 @@ export class AdminActionService {
    * @param {Object} statusData - レッスン状況データ
    * @returns {string} プレビューHTML
    */
-  #generateLessonStatusPreviewHTML(statusData) {
-    // ステータス定義を直接定義（サービス依存を削除）
-    const statusDef = this.#getStatusDefinition(statusData.globalStatus);
-    
-    // メインステータス
-    const mainStatusHTML = `
-      <div class="lesson-status-preview">
-        <div class="preview-header">
-          <h3>${statusData.date} のレッスン開催状況</h3>
-        </div>
-        <div class="global-status-display">
-          <div class="status-indicator ${statusDef.cssClass}">
-            <span class="status-icon">${statusDef.icon}</span>
-            <span class="status-text">${statusDef.displayText}</span>
-          </div>
-          ${statusData.globalMessage ? `
-            <div class="global-message">
-              <div class="message-content">
-                <i class="fas fa-info-circle"></i>
-                <span>${this.escapeHtml(statusData.globalMessage)}</span>
-              </div>
-            </div>
-          ` : ''}
-        </div>
-    `;
-    
-    // コース別プレビュー
-    const coursesHTML = Object.entries(statusData.courses).map(([courseKey, courseData]) => {
-      const courseDef = this.#getStatusDefinition(courseData.status);
-      
-      return `
-        <div class="course-preview-item">
-          <div class="course-header">
-            <h4>${courseData.name}</h4>
-            <div class="course-time">${courseData.time}</div>
-          </div>
-          <div class="course-status">
-            <div class="status-badge ${courseDef.cssClass}">
-              <span class="status-icon">${courseDef.icon}</span>
-              <span class="status-text">${courseDef.displayText}</span>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-    
-    const footerHTML = `
-        <div class="courses-grid">
-          ${coursesHTML}
-        </div>
-        <div class="preview-footer">
-          <p class="preview-note">
-            <i class="fas fa-info-circle"></i>
-            このプレビューは保存後にトップページで表示される内容です
-          </p>
-        </div>
-      </div>
-    `;
-    
-    return mainStatusHTML + footerHTML;
-  }
 
   /**
    * ステータス定義を取得
@@ -1746,32 +1657,6 @@ export class AdminActionService {
    * @param {string} status - ステータスキー
    * @returns {Object} ステータス定義
    */
-  #getStatusDefinition(status) {
-    const definitions = {
-      scheduled: {
-        icon: '✅',
-        displayText: '通常開催',
-        cssClass: 'scheduled'
-      },
-      cancelled: {
-        icon: '❌',
-        displayText: '中止',
-        cssClass: 'cancelled'
-      },
-      indoor: {
-        icon: '🏠',
-        displayText: '室内開催',
-        cssClass: 'indoor'
-      },
-      postponed: {
-        icon: '⏰',
-        displayText: '延期',
-        cssClass: 'postponed'
-      }
-    };
-    
-    return definitions[status] || definitions.scheduled;
-  }
 
   /**
    * モーダルを表示
@@ -1779,21 +1664,6 @@ export class AdminActionService {
    * @param {string} title - モーダルのタイトル
    * @param {string} content - モーダルの内容
    */
-  #showModal(title, content) {
-    const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalBody = document.getElementById('modal-body');
-    
-    if (modal && modalTitle && modalBody) {
-      modalTitle.textContent = title;
-      modalBody.innerHTML = content;
-      modal.classList.add('show');
-      document.body.classList.add('modal-open');
-    } else {
-      // フォールバック: 新しいモーダルを作成
-      this.#createAndShowModal(title, content);
-    }
-  }
 
   /**
    * 新しいモーダルを作成して表示
@@ -1801,26 +1671,6 @@ export class AdminActionService {
    * @param {string} title - モーダルのタイトル
    * @param {string} content - モーダルの内容
    */
-  #createAndShowModal(title, content) {
-    const modalHTML = `
-      <div id="lesson-preview-modal" class="modal show">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3>${title}</h3>
-            <button class="modal-close" onclick="this.closest('.modal').remove(); document.body.classList.remove('modal-open');">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-          <div class="modal-body">
-            ${content}
-          </div>
-        </div>
-      </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    document.body.classList.add('modal-open');
-  }
 
   /**
    * 接続テスト結果の生成

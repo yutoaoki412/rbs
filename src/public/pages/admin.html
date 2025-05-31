@@ -426,9 +426,6 @@
               <button class="btn btn-secondary" data-action="load-lesson-status">
                 <i class="fas fa-download"></i> 現在の状況を読み込み
               </button>
-              <button class="btn btn-outline" data-action="preview-lesson-status">
-                <i class="fas fa-eye"></i> プレビュー
-              </button>
               <button class="btn btn-success" data-action="update-lesson-status">
                 <i class="fas fa-save"></i> 保存して公開
               </button>
@@ -496,10 +493,10 @@
   </div>
 
   <!-- モーダル -->
-  <div id="modal" class="modal">
+  <div id="modal" class="modal" style="display: none;">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 id="modal-title">プレビュー</h3>
+        <h3 id="modal-title"></h3>
         <button class="modal-close" data-action="close-modal">
           <i class="fas fa-times"></i>
         </button>

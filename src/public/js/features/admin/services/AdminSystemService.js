@@ -285,15 +285,6 @@ export class AdminSystemService {
   /**
    * レッスン状況のプレビュー
    */
-  async previewLessonStatus() {
-    try {
-      const upcomingStatus = getLessonStatusStorageService().getRecentStatuses(7);
-      console.log('👀 今後のレッスン状況プレビュー:', upcomingStatus);
-      EventBus.emit('lessonStatus:preview', upcomingStatus);
-    } catch (error) {
-      console.error('❌ レッスン状況プレビューエラー:', error);
-      uiManagerService.showNotification('error', 'プレビューの表示に失敗しました');
-    }
   }
 
   /**
