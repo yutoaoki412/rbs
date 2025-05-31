@@ -7,7 +7,7 @@
   background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
   color: white;
   margin: 0;
-  margin-top: -2px; /* ヘッダーとの隙間を完全に除去 */
+  margin-top: -2px; /* ヒーローセクションとの隙間を完全に除去 */
   padding: 0;
   border-radius: 0;
   box-shadow: 0 4px 20px rgba(74, 144, 226, 0.25);
@@ -18,12 +18,12 @@
   visibility: visible;
   opacity: 1;
   transform: translateY(0);
-  z-index: 50; /* ヘッダー・フッター（1000）より下の階層に配置 */
+  z-index: 50; /* ヒーローセクションより上、ヘッダーより下の階層に配置 */
   width: 100%;
-  /* ヘッダーとの統合を強化 */
-  border-top: none; /* ヘッダーとの境界線を削除 */
+  /* ヒーローセクションとの統合を強化 */
+  border-top: 2px solid rgba(255, 255, 255, 0.3); /* ヒーローセクションとの境界線 */
   border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-  scroll-margin-top: 78px; /* ヘッダー統合に合わせて調整 */
+  scroll-margin-top: 78px; /* ヘッダー高さ考慮 */
   
   /* ページ読み込み時のアニメーション */
   animation: slideInFromTop 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
@@ -54,16 +54,7 @@
   transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ヘッダーが固定されている場合の対応 */
-body.header-fixed .status-banner {
-  margin-top: -2px; /* ヘッダーとの隙間を除去 */
-  position: relative;
-  top: 0;
-  /* ヘッダーとの統合境界線を削除 */
-  border-top: none;
-}
-
-/* ヘッダーとの統合効果 */
+/* ヒーローセクションとの統合効果 */
 .status-banner::before {
   content: '';
   position: absolute;
@@ -116,25 +107,25 @@ body.header-fixed .status-banner {
 
 /* ステータスヘッダー */
 .status-header {
-  padding: 18px 0; /* ヘッダーとの一体感のため少し調整 */
+  padding: 18px 0; /* ヒーローとの一体感のため調整 */
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
-  background: rgba(255, 255, 255, 0.08); /* より透明度を上げて統合感をアップ */
-  backdrop-filter: blur(15px); /* ブラー効果を強化 */
-  min-height: 68px; /* ヘッダーとの高さバランス調整 */
+  background: rgba(255, 255, 255, 0.08); /* ヒーローとの自然な継続感 */
+  backdrop-filter: blur(15px);
+  min-height: 68px; /* 適切な高さでバランス調整 */
   border-radius: 0;
   z-index: 48; /* ステータスバナー内で適切な階層 */
-  /* ヘッダーからの自然な継続感 */
+  /* ヒーローからの自然な継続感 */
   border-top: 1px solid rgba(255, 255, 255, 0.15);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .status-header:hover {
-  background: rgba(255, 255, 255, 0.12); /* ホバー時もヘッダーとの調和を保つ */
+  background: rgba(255, 255, 255, 0.12); /* ホバー時の視覚的フィードバック */
 }
 
 /* ステータス情報エリア */
@@ -501,7 +492,7 @@ body.header-fixed .status-banner {
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
   .status-banner {
-    margin-top: -1px; /* モバイルでのヘッダー統合 */
+    margin-top: -1px; /* モバイルでのヒーロー統合 */
   }
   
   .status-banner .container {
@@ -510,7 +501,7 @@ body.header-fixed .status-banner {
   
   .status-header {
     padding: 14px 0; /* モバイルでの適切なパディング */
-    min-height: 58px; /* モバイルヘッダーとのバランス */
+    min-height: 58px; /* モバイルでのバランス */
     background: rgba(255, 255, 255, 0.1); /* モバイルでの視認性向上 */
   }
   
@@ -562,7 +553,7 @@ body.header-fixed .status-banner {
   .status-banner {
     /* モバイルでの追加最適化 */
     box-shadow: 0 2px 12px rgba(74, 144, 226, 0.2);
-    margin-top: -1px; /* 小画面でも統合感を維持 */
+    margin-top: -1px; /* 小画面でもヒーローとの統合感を維持 */
   }
   
   .status-header {

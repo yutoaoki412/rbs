@@ -80,6 +80,8 @@
 
   #hero {
     padding: 120px 0 80px;
+    margin-bottom: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   }
 
   .hero-content {
@@ -348,6 +350,8 @@
   #hero {
     min-height: 85vh !important;
     padding: 100px 0 80px !important;
+    margin-bottom: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   }
 
   /* 天候情報 */

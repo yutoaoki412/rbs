@@ -124,15 +124,17 @@ export class LessonStatusDisplayComponent extends Component {
     section.id = 'today-status';
     section.className = 'status-banner';
     
-    // ヒーローセクションの後に挿入
+    // ヒーローセクションの直後に挿入
     const heroSection = document.querySelector('#hero');
     if (heroSection && heroSection.parentNode) {
       heroSection.parentNode.insertBefore(section, heroSection.nextSibling);
+      this.log('デフォルトステータスバナー要素をヒーローセクション直後に作成しました');
     } else {
+      // フォールバック: bodyに追加
       document.body.appendChild(section);
+      this.log('デフォルトステータスバナー要素をbodyに作成しました（フォールバック）');
     }
     
-    this.log('デフォルトステータスバナー要素を作成しました');
     return section;
   }
 
