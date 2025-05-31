@@ -36,8 +36,11 @@ export class NewsUtils {
       finalExcerpt: excerptText
     });
     
+    // コンテキストに応じてクラスを設定
+    const cardClasses = context === 'homepage' ? 'news-card loading' : 'news-card fade-in';
+    
     return `
-      <article class="news-card fade-in">
+      <article class="${cardClasses}">
         <div class="news-card-header">
           <div class="news-meta">
             <div class="news-date">${date}</div>
@@ -315,6 +318,22 @@ export class NewsUtils {
     console.log('サマリー:', article.summary || 'なし');
     console.log('新着:', NewsUtils.isNewArticle(article.date || article.publishedAt) ? 'はい' : 'いいえ');
     console.groupEnd();
+  }
+
+  /**
+   * カードにアニメーションを適用
+   */
+  static applyCardAnimation(cards, delay = 100) {
+    if (!cards || !cards.length) return;
+    
+    cards.forEach((card, index) => {
+      setTimeout(() => {
+        if (card.classList.contains('loading')) {
+          card.classList.remove('loading');
+          card.classList.add('fade-in');
+        }
+      }, index * delay);
+    });
   }
 }
 

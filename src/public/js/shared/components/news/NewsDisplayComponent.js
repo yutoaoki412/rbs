@@ -10,6 +10,7 @@ import { EventBus } from '../../services/EventBus.js';
 import { getArticleStorageService } from '../../services/ArticleStorageService.js';
 import { escapeHtml } from '../../utils/stringUtils.js';
 import { CONFIG } from '../../constants/config.js';
+import { NewsUtils } from '../../../features/news/utils/NewsUtils.js';
 
 export class NewsDisplayComponent extends Component {
   constructor(container) {
@@ -270,15 +271,15 @@ export class NewsDisplayComponent extends Component {
     this.newsListContainer.innerHTML = '';
     
     // 記事カードを生成
+    const cards = [];
     articles.forEach((article, index) => {
       const articleCard = this.createArticleCard(article);
       this.newsListContainer.appendChild(articleCard);
-      
-      // アニメーション効果
-      setTimeout(() => {
-        articleCard.classList.add('fade-in');
-      }, index * this.config.animationDelay);
+      cards.push(articleCard);
     });
+    
+    // NewsUtilsのアニメーションを適用
+    NewsUtils.applyCardAnimation(cards, this.config.animationDelay);
     
     this.debug('記事リストのレンダリング完了');
     
@@ -290,33 +291,17 @@ export class NewsDisplayComponent extends Component {
 
   /**
    * 記事カードの作成
-   * @private
    * @param {Object} article - 記事データ
    * @returns {HTMLElement} 記事カード要素
    */
   createArticleCard(article) {
-    const card = document.createElement('article');
-    card.className = 'news-item';
-    card.setAttribute('data-category', article.category);
-    card.setAttribute('data-article-id', article.id);
+    // NewsUtilsを使用してHTMLを生成（トップページ用コンテキスト）
+    const cardHtml = NewsUtils.createArticleCard(article, 'homepage');
     
-    card.innerHTML = `
-      <div class="news-date">${escapeHtml(article.formattedDate)}</div>
-      <div class="news-category ${article.category}">${escapeHtml(article.categoryName)}</div>
-      <h3 class="news-title">
-        <a href="news-detail.html?id=${article.id}">${escapeHtml(article.title)}</a>
-      </h3>
-      ${article.excerpt ? `<p class="news-excerpt">${escapeHtml(article.excerpt)}</p>` : ''}
-    `;
-    
-    // ホバー効果のためのCSSクラス追加
-    card.addEventListener('mouseenter', () => {
-      card.classList.add('hover');
-    });
-    
-    card.addEventListener('mouseleave', () => {
-      card.classList.remove('hover');
-    });
+    // HTML文字列をDOM要素に変換
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = cardHtml;
+    const card = tempDiv.firstElementChild;
     
     return card;
   }
