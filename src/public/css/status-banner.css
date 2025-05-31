@@ -4,7 +4,7 @@
 
 /* ステータスバナー基本スタイル */
 .status-banner {
-  background: linear-gradient(90deg, #4A7BC8 100%);
+  background: var(--primary-blue);
   color: white;
   margin: 0;
   margin-top: -2px; /* ヒーローセクションとの隙間を完全に除去 */
