@@ -342,6 +342,7 @@ main {
   transform: translateY(0);
   display: flex;
   flex-direction: column;
+  height: 220px;
 }
 
 .news-card.fade-in {
@@ -367,8 +368,9 @@ main {
 
 /* ニュースカードヘッダー */
 .news-card-header {
-  padding: 25px 30px 20px;
+  padding: 15px 20px 10px;
   border-bottom: 2px solid var(--gray-light);
+  flex-shrink: 0;
 }
 
 /* ニュースメタ情報 */
@@ -376,33 +378,33 @@ main {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 8px;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .news-date {
-  font-size: 16px;
+  font-size: 12px;
   color: white;
   font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   background: var(--primary-blue);
-  padding: 8px 16px;
-  border-radius: 15px;
+  padding: 4px 8px;
+  border-radius: 8px;
   min-width: fit-content;
 }
 
 .news-date::before {
   content: '📅';
-  font-size: 14px;
+  font-size: 10px;
 }
 
 .news-category {
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 10px;
   font-weight: 700;
   color: white !important;
   text-transform: uppercase;
@@ -437,11 +439,16 @@ main {
 
 /* ニュースタイトル */
 .news-title {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--navy-dark);
-  line-height: 1.4;
+  line-height: 1.2;
   margin-bottom: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 38px;
 }
 
 .news-title a {
@@ -456,7 +463,7 @@ main {
 
 /* ニュースカードボディ */
 .news-card-body {
-  padding: 20px 30px 30px;
+  padding: 8px 20px 15px;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
@@ -466,28 +473,35 @@ main {
 /* ニュース抜粋 */
 .news-excerpt {
   color: var(--gray-medium);
-  font-size: 15px;
-  line-height: 1.6;
-  margin-bottom: 20px;
+  font-size: 12px;
+  line-height: 1.4;
+  margin-bottom: 10px;
   flex-grow: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 34px;
 }
 
 /* ニュースアクション */
 .news-actions {
   margin-top: auto;
+  flex-shrink: 0;
 }
 
 .news-read-more {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   color: var(--primary-blue);
   text-decoration: none;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 11px;
   transition: all 0.3s ease;
-  padding: 8px 16px;
-  border-radius: 8px;
+  padding: 4px 10px;
+  border-radius: 4px;
   border: 2px solid var(--primary-blue);
   background: transparent;
 }
@@ -815,19 +829,52 @@ main {
     gap: 20px;
   }
 
+  .news-card {
+    height: 200px;
+  }
+
   .news-card-header,
   .news-card-body {
-    padding: 20px;
+    padding: 12px 15px 8px;
+  }
+
+  .news-card-body {
+    padding: 8px 15px 12px;
   }
 
   .news-meta {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: 6px;
+    margin-bottom: 6px;
   }
 
   .news-title {
-    font-size: 18px;
+    font-size: 14px;
+    line-height: 1.3;
+    height: 34px;
+  }
+
+  .news-excerpt {
+    font-size: 11px;
+    line-height: 1.4;
+    height: 30px;
+    margin-bottom: 8px;
+  }
+
+  .news-date {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+
+  .news-category {
+    font-size: 9px;
+    padding: 3px 8px;
+  }
+
+  .news-read-more {
+    font-size: 10px;
+    padding: 3px 8px;
   }
 
   .loading-message,
@@ -867,17 +914,30 @@ main {
     font-size: 14px;
   }
 
+  .news-card {
+    height: 180px;
+  }
+
   .news-card-header,
   .news-card-body {
-    padding: 15px;
+    padding: 10px 12px 6px;
+  }
+
+  .news-card-body {
+    padding: 6px 12px 10px;
   }
 
   .news-title {
-    font-size: 16px;
+    font-size: 13px;
+    line-height: 1.3;
+    height: 30px;
   }
 
   .news-excerpt {
-    font-size: 14px;
+    font-size: 10px;
+    line-height: 1.4;
+    height: 28px;
+    margin-bottom: 6px;
   }
 
   .filter-btn {
@@ -886,13 +946,18 @@ main {
   }
 
   .news-date {
-    font-size: 14px;
-    padding: 6px 12px;
+    font-size: 10px;
+    padding: 2px 5px;
   }
 
   .news-category {
-    font-size: 11px;
-    padding: 6px 12px;
+    font-size: 8px;
+    padding: 2px 6px;
+  }
+
+  .news-read-more {
+    font-size: 9px;
+    padding: 2px 6px;
   }
 
   .btn {

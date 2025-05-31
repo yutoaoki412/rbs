@@ -13,7 +13,28 @@ export class NewsUtils {
   static createArticleCard(article, context = 'default') {
     const categoryInfo = CONFIG.articles.categories[article.category];
     const date = NewsUtils.formatDate(article.date || article.publishedAt);
-    const excerpt = NewsUtils.generateExcerpt(article.content || article.summary || '', 120);
+    
+    // 概要文を生成（複数のフィールドから取得を試行）
+    let excerptText = '';
+    if (article.summary) {
+      excerptText = article.summary;
+    } else if (article.excerpt) {
+      excerptText = article.excerpt;
+    } else if (article.content) {
+      excerptText = NewsUtils.generateExcerpt(article.content, 80);
+    } else if (article.description) {
+      excerptText = article.description;
+    } else {
+      excerptText = '記事の概要が設定されていません。';
+    }
+    
+    console.log('🔍 概要文生成:', {
+      articleId: article.id,
+      summary: article.summary,
+      excerpt: article.excerpt,
+      contentLength: article.content ? article.content.length : 0,
+      finalExcerpt: excerptText
+    });
     
     return `
       <article class="news-card fade-in">
@@ -29,7 +50,7 @@ export class NewsUtils {
           </h3>
         </div>
         <div class="news-card-body">
-          ${excerpt ? `<p class="news-excerpt">${NewsUtils.escapeHtml(excerpt)}</p>` : ''}
+          <p class="news-excerpt">${NewsUtils.escapeHtml(excerptText)}</p>
           <div class="news-actions">
             <a href="news-detail.html?id=${article.id}" class="news-read-more">
               続きを読む
@@ -186,19 +207,43 @@ export class NewsUtils {
   /**
    * 記事の抜粋を生成
    */
-  static generateExcerpt(content, maxLength = 150) {
+  static generateExcerpt(content, maxLength = 100) {
     if (!content) return '';
     
-    // HTMLタグを除去
-    const textContent = content.replace(/<[^>]*>/g, '');
+    // HTMLタグとマークダウン記法を除去
+    let textContent = content
+      .replace(/<[^>]*>/g, '') // HTMLタグを除去
+      .replace(/#{1,6}\s+/g, '') // マークダウンのヘッダーを除去
+      .replace(/\*\*(.*?)\*\*/g, '$1') // 太字マークダウンを除去
+      .replace(/\*(.*?)\*/g, '$1') // イタリックマークダウンを除去
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // リンクマークダウンを除去
+      .replace(/```[\s\S]*?```/g, '') // コードブロックを除去
+      .replace(/`([^`]+)`/g, '$1') // インラインコードを除去
+      .replace(/^\s*[-*+]\s+/gm, '') // リスト記号を除去
+      .replace(/^\s*\d+\.\s+/gm, '') // 数字リスト記号を除去
+      .replace(/\n\s*\n/g, ' ') // 改行を空白に変換
+      .replace(/\s+/g, ' ') // 複数の空白を1つに
+      .trim();
     
     if (textContent.length <= maxLength) return textContent;
     
-    // 単語境界で切り詰め
+    // 単語境界で切り詰め（日本語対応）
     const truncated = textContent.substring(0, maxLength);
-    const lastSpace = truncated.lastIndexOf(' ');
     
-    return (lastSpace > 0 ? truncated.substring(0, lastSpace) : truncated) + '...';
+    // 最後の句読点や空白で区切る
+    const lastPunctuation = Math.max(
+      truncated.lastIndexOf('。'),
+      truncated.lastIndexOf('、'),
+      truncated.lastIndexOf('！'),
+      truncated.lastIndexOf('？'),
+      truncated.lastIndexOf(' ')
+    );
+    
+    if (lastPunctuation > maxLength * 0.7) {
+      return truncated.substring(0, lastPunctuation + 1);
+    }
+    
+    return truncated + '...';
   }
 
   /**
