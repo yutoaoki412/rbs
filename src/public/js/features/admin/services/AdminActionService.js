@@ -2065,7 +2065,6 @@ export class AdminActionService {
     // モーダルHTMLを作成
     const modalHTML = `
       <div id="writing-guide-modal" class="modal" style="display: flex; background: rgba(0, 0, 0, 0.6);">
-      <div id="writing-guide-modal" class="modal">
         <div class="modal-content writing-guide">
           <div class="modal-header">
             <h2><i class="fas fa-book-open"></i> 記事作成ガイド</h2>
@@ -2080,12 +2079,9 @@ export class AdminActionService {
             ${guideContent}
           </div>
           <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">
-              閉じる
+            <button class="btn btn-primary" onclick="this.closest('.modal').remove()">
+              <i class="fas fa-check"></i> 理解しました
             </button>
-            <a href="../docs/article-writing-guide.md" target="_blank" class="btn btn-outline">
-              <i class="fas fa-external-link-alt"></i> 詳細ガイドを開く
-            </a>
           </div>
         </div>
       </div>
@@ -2096,7 +2092,6 @@ export class AdminActionService {
     
     // モーダルを表示
     const modal = document.getElementById('writing-guide-modal');
-    setTimeout(() => modal.classList.add('show'), 10);
     
     // ESCキーで閉じる
     const handleEscape = (e) => {
