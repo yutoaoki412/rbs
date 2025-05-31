@@ -236,6 +236,20 @@ export class AdminActionService {
       this.refreshNewsList();
     });
     
+    // ESCキーでモーダルを閉じる
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        this.closeModal();
+      }
+    });
+    
+    // モーダル背景クリックで閉じる
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal') && e.target.classList.contains('show')) {
+        this.closeModal();
+      }
+    });
+    
     this.log('UIイベント設定完了');
   }
 
@@ -1062,10 +1076,11 @@ export class AdminActionService {
    */
   closeModal() {
     try {
+      // 標準のモーダルを閉じる
       const modal = document.getElementById('modal');
       if (modal) {
         modal.style.display = 'none';
-        modal.classList.remove('active');
+        modal.classList.remove('active', 'show');
         
         // モーダル内容をクリア
         const modalBody = modal.querySelector('#modal-body, .modal-body');
@@ -1073,10 +1088,32 @@ export class AdminActionService {
           modalBody.innerHTML = '';
         }
         
-        this.debug('モーダルを閉じました');
+        this.debug('標準モーダルを閉じました');
       }
+      
+      // 動的に作成されたモーダルを閉じる
+      const dynamicModals = document.querySelectorAll('.modal[id*="preview-modal"], .modal[id*="lesson-preview-modal"]');
+      dynamicModals.forEach(dynamicModal => {
+        dynamicModal.remove();
+        this.debug('動的モーダルを削除しました');
+      });
+      
+      // bodyのmodal-openクラスを削除してスクロールを復旧
+      document.body.classList.remove('modal-open');
+      
+      // bodyのスタイルを確実にリセット
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+      
+      this.debug('モーダルを閉じてスクロールを復旧しました');
+      
     } catch (error) {
       this.error('モーダル閉じる処理エラー:', error);
+      
+      // エラー時でもスクロールを復旧
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
     }
   }
 
