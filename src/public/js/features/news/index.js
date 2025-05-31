@@ -1,205 +1,154 @@
 /**
- * ニュース機能統合インデックス
- * 統合記事管理システム対応版
- * @version 3.0.0
+ * 統合ニュース管理システム エントリーポイント
+ * 洗練されたアーキテクチャで機能別に分割
+ * @version 4.0.0 - リファクタリング完了版
  */
 
-// 統合サービス
-export { default as NewsDataService, getNewsDataService } from './services/NewsDataService.js';
-
-// 統合コンポーネント
-export { default as NewsDisplayComponent, getNewsDisplayComponent } from './components/NewsDisplayComponent.js';
-
-// 既存コントローラー（後方互換性）
-export { default as NewsDetailController, initNewsDetailPage } from './controllers/NewsDetailController.js';
-
-// 既存サービス（後方互換性）
-export { default as MetadataService } from './services/MetadataService.js';
-export { default as ShareService } from './services/ShareService.js';
-export { default as NewsActionService, newsActionService } from './services/NewsActionService.js';
-
-// 既存コンポーネント（後方互換性）
-export { default as ArticleDisplay } from './components/ArticleDisplay.js';
-export { default as RelatedArticles } from './components/RelatedArticles.js';
-export { default as ShareButtons } from './components/ShareButtons.js';
+import { CONFIG } from '../../shared/constants/config.js';
+import { EventBus } from '../../shared/services/EventBus.js';
+import { getUnifiedNewsService } from './services/UnifiedNewsService.js';
+import NewsPageRenderer from './components/NewsPageRenderer.js';
 
 /**
- * ニュース機能を初期化（統合版）
- * ページタイプに応じて適切な初期化を実行
+ * 統合ニュースシステムの初期化
+ * @returns {Promise<Object>} 初期化されたサービスとコンポーネント
  */
-export async function initNewsFeature() {
+export async function initUnifiedNewsSystem() {
   try {
-    console.log('📰 統合ニュース機能初期化開始');
+    console.log('🚀 統合ニュースシステム初期化開始');
     
-    // ページタイプを判定
-    const currentPage = getCurrentPageType();
-    console.log(`🎯 検出されたページタイプ: ${currentPage}`);
+    // 1. メインサービス初期化
+    const newsService = getUnifiedNewsService();
+    await newsService.init();
     
-    // 統合ニュース表示コンポーネントの初期化
-    const { getNewsDisplayComponent } = await import('./components/NewsDisplayComponent.js');
-    const newsDisplayComponent = getNewsDisplayComponent();
+    // 2. ページレンダラー初期化
+    const pageRenderer = new NewsPageRenderer(newsService);
+    await pageRenderer.initializePage();
     
-    // ページタイプに関係なく統合コンポーネントを初期化
-    if (currentPage !== 'unknown') {
-      await newsDisplayComponent.init();
-      
-      // グローバルアクセス用に登録
-      window.newsDisplayComponent = newsDisplayComponent;
+    // 3. グローバルアクセス設定
+    window.UnifiedNewsService = newsService;
+    window.NewsPageRenderer = pageRenderer;
+    
+    // 4. 開発環境での管理画面リンク表示
+    if (CONFIG.debug.enabled) {
+      showAdminLinksIfDev();
     }
     
-    // ページ固有の追加初期化
-    switch (currentPage) {
-      case 'news-detail':
-        await initializeNewsDetailSpecific();
-        break;
-      
-      case 'news-list':
-        await initializeNewsListSpecific();
-        break;
-      
-      case 'home':
-        await initializeHomeNewsSpecific();
-        break;
-      
-      default:
-        console.log('📰 追加の初期化は不要なページです');
-        break;
-    }
+    console.log('✅ 統合ニュースシステム初期化完了');
     
-    console.log('✅ 統合ニュース機能初期化完了');
+    // 初期化完了イベント
+    EventBus.emit('unifiedNews:initialized', {
+      service: newsService,
+      renderer: pageRenderer,
+      pageType: newsService.pageType
+    });
+    
+    return {
+      service: newsService,
+      renderer: pageRenderer
+    };
     
   } catch (error) {
-    console.error('❌ ニュース機能の初期化に失敗:', error);
-    // エラーが発生してもページ全体の動作は継続
-  }
-}
-
-/**
- * ニュース詳細ページ固有の初期化
- * @private
- */
-async function initializeNewsDetailSpecific() {
-  try {
-    // ニュースアクションサービスの初期化（シェアボタンなど）
-    const { newsActionService } = await import('./services/NewsActionService.js');
-    
-    // アクションサービスが初期化されていない場合のみ初期化
-    if (!newsActionService.initialized) {
-      newsActionService.init();
-    }
-    
-    console.log('✅ ニュース詳細ページ固有の初期化完了');
-    
-  } catch (error) {
-    console.warn('⚠️ ニュース詳細ページ初期化エラー:', error);
-  }
-}
-
-/**
- * ニュース一覧ページ固有の初期化
- * @private
- */
-async function initializeNewsListSpecific() {
-  try {
-    // 必要に応じて一覧ページ固有の機能を初期化
-    console.log('✅ ニュース一覧ページ固有の初期化完了');
-    
-  } catch (error) {
-    console.warn('⚠️ ニュース一覧ページ初期化エラー:', error);
-  }
-}
-
-/**
- * ホームページニュース固有の初期化
- * @private
- */
-async function initializeHomeNewsSpecific() {
-  try {
-    // 必要に応じてホームページ固有の機能を初期化
-    console.log('✅ ホームページニュース固有の初期化完了');
-    
-  } catch (error) {
-    console.warn('⚠️ ホームページニュース初期化エラー:', error);
-  }
-}
-
-/**
- * 現在のページタイプを取得
- * @returns {string}
- */
-function getCurrentPageType() {
-  const pathname = window.location.pathname.toLowerCase();
-  
-  // より正確な判定ロジック
-  if (pathname.includes('news-detail') || pathname.includes('news_detail')) {
-    return 'news-detail';
-  } else if (pathname.includes('news.html') || pathname.endsWith('/news')) {
-    return 'news-list';
-  } else if (pathname.includes('index.html') || pathname === '/' || pathname.endsWith('/') || pathname === '') {
-    return 'home';
-  } else if (pathname.includes('admin.html') || pathname.includes('admin')) {
-    return 'admin';
-  }
-  
-  return 'unknown';
-}
-
-/**
- * レガシー初期化関数（後方互換性）
- * @deprecated 新しいinitNewsFeature()を使用してください
- */
-export async function initLegacyNewsDetailPage() {
-  console.warn('⚠️ initLegacyNewsDetailPage() は非推奨です。initNewsFeature() を使用してください。');
-  
-  try {
-    const { initNewsDetailPage } = await import('./controllers/NewsDetailController.js');
-    return await initNewsDetailPage();
-  } catch (error) {
-    console.error('❌ レガシーニュース詳細ページ初期化エラー:', error);
+    console.error('❌ 統合ニュースシステム初期化エラー:', error);
     throw error;
   }
 }
 
-// グローバルに公開（後方互換性のため）
-if (typeof window !== 'undefined') {
-  window.NewsFeature = {
-    // 新しい統合API
-    initNewsFeature,
-    getNewsDataService: async () => {
-      const { getNewsDataService } = await import('./services/NewsDataService.js');
-      return getNewsDataService();
-    },
-    getNewsDisplayComponent: async () => {
-      const { getNewsDisplayComponent } = await import('./components/NewsDisplayComponent.js');
-      return getNewsDisplayComponent();
-    },
+/**
+ * 開発環境での管理画面リンク表示
+ * @private
+ */
+function showAdminLinksIfDev() {
+  try {
+    const adminLinks = document.querySelectorAll(
+      '#news-admin-link, #admin-link, #admin-controls, [data-dev="admin-link"]'
+    );
     
-    // レガシーAPI（後方互換性）
-    async initNewsDetailPage() {
-      return await initLegacyNewsDetailPage();
-    }
-  };
-  
-  // デバッグ用ヘルパー
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    window.debugNewsFeature = async () => {
-      try {
-        const newsDataService = await window.NewsFeature.getNewsDataService();
-        const newsDisplayComponent = await window.NewsFeature.getNewsDisplayComponent();
+    adminLinks.forEach(link => {
+      if (link) {
+        link.style.display = 'block';
+        link.style.opacity = '0.8';
         
-        console.group('📰 ニュース機能デバッグ情報');
-        console.log('データサービス:', newsDataService);
-        console.log('表示コンポーネント:', newsDisplayComponent);
-        console.log('統計情報:', newsDataService.getStats());
-        console.log('初期化状態:', {
-          dataService: newsDataService.initialized,
-          displayComponent: newsDisplayComponent.initialized
-        });
-        console.groupEnd();
-        
-      } catch (error) {
-        console.error('❌ デバッグ情報取得エラー:', error);
+        // 開発環境表示の明示
+        if (!link.hasAttribute('data-dev-marked')) {
+          link.title = '開発環境でのみ表示';
+          link.setAttribute('data-dev-marked', 'true');
+        }
       }
-    };
+    });
+    
+    if (adminLinks.length > 0) {
+      console.log('🔧 開発環境: 管理画面リンクを表示しました');
+    }
+    
+  } catch (error) {
+    console.warn('⚠️ 管理画面リンク表示エラー:', error);
   }
+}
+
+/**
+ * ニュースシステムのリフレッシュ
+ */
+export async function refreshNewsSystem() {
+  try {
+    const newsService = getUnifiedNewsService();
+    const pageRenderer = window.NewsPageRenderer;
+    
+    if (newsService && pageRenderer) {
+      await newsService.refresh();
+      await pageRenderer.refreshPage();
+      console.log('🔄 ニュースシステムリフレッシュ完了');
+    } else {
+      console.warn('⚠️ ニュースシステムが初期化されていません');
+    }
+    
+  } catch (error) {
+    console.error('❌ ニュースシステムリフレッシュエラー:', error);
+  }
+}
+
+/**
+ * デバッグ情報を表示
+ */
+export function debugNewsSystem() {
+  if (!CONFIG.debug.enabled) {
+    console.log('デバッグモードが無効です');
+    return;
+  }
+  
+  const newsService = getUnifiedNewsService();
+  const pageRenderer = window.NewsPageRenderer;
+  
+  console.group('🔍 統合ニュースシステム デバッグ情報');
+  console.log('サービス初期化状態:', newsService?.initialized || false);
+  console.log('ページタイプ:', newsService?.pageType || 'unknown');
+  console.log('記事数:', newsService?.articles?.length || 0);
+  console.log('レンダラー状態:', !!pageRenderer);
+  console.log('カテゴリー統計:', newsService?.getCategoryStats() || {});
+  console.groupEnd();
+  
+  return {
+    service: newsService,
+    renderer: pageRenderer,
+    stats: newsService?.getCategoryStats()
+  };
+}
+
+// 後方互換性用のエイリアス
+export { initUnifiedNewsSystem as initNewsFeature };
+export { getUnifiedNewsService as getNewsDataService };
+
+// 主要なエクスポート
+export { getUnifiedNewsService } from './services/UnifiedNewsService.js';
+export { default as NewsPageRenderer } from './components/NewsPageRenderer.js';
+export { default as NewsUtils } from './utils/NewsUtils.js';
+
+// 開発環境でのグローバルヘルパー
+if (CONFIG.debug.enabled && typeof window !== 'undefined') {
+  window.debugUnifiedNews = debugNewsSystem;
+  window.refreshNewsSystem = refreshNewsSystem;
+  
+  console.log('🔧 開発モード: グローバルヘルパー関数を設定しました');
+  console.log('   - window.debugUnifiedNews() でデバッグ情報表示');
+  console.log('   - window.refreshNewsSystem() でシステムリフレッシュ');
 } 

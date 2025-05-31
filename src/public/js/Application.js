@@ -296,12 +296,12 @@ export class Application {
   }
 
   /**
-   * ニュース機能の初期化（統合版）
+   * ニュース機能の初期化（新アーキテクチャ版）
    * @private
    */
   async initializeNewsFeatures() {
     try {
-      this.debug('統合ニュース機能初期化開始');
+      this.debug('🚀 統合ニュースシステム初期化開始');
       
       // 統合記事ストレージサービス初期化
       const { getArticleStorageService } = await import('./shared/services/ArticleStorageService.js');
@@ -312,59 +312,25 @@ export class Application {
       }
       this.articleStorageService = articleStorageService;
       
-      // 統合ニュース機能の初期化
-      try {
-        const { initNewsFeature } = await import('./features/news/index.js');
-        await initNewsFeature();
-        this.debug('統合ニュース機能の初期化完了');
-      } catch (newsError) {
-        this.warn('統合ニュース機能の初期化でエラーが発生しました:', newsError);
-        // フォールバック: 基本的なニュース表示機能のみ初期化
-        await this.initializeBasicNewsFeatures();
-      }
+      // 新しい分割された統合ニュースシステム初期化
+      const { initUnifiedNewsSystem } = await import('./features/news/index.js');
+      const newsSystemResult = await initUnifiedNewsSystem();
       
-      // ページタイプに応じた追加初期化
+      // サービスとレンダラーをアプリケーションに保存
+      this.unifiedNewsService = newsSystemResult.service;
+      this.newsPageRenderer = newsSystemResult.renderer;
+      
+      // 管理画面の場合は追加の管理機能を初期化
       if (this.pageType === 'admin') {
-        // 管理画面: 記事管理コンポーネント（既に統合サービスを使用）
         await this.initializeAdminNewsFeatures();
       }
       
-      this.debug('統合ニュース機能初期化完了');
+      this.debug('✅ 統合ニュースシステム初期化完了（新アーキテクチャ）');
       
     } catch (error) {
-      this.error('ニュース機能初期化エラー:', error);
+      this.error('❌ ニュースシステム初期化エラー:', error);
       // エラーが発生してもアプリケーション全体の動作は継続
-      this.showInitializationWarning('ニュース機能の一部が利用できない可能性があります');
-    }
-  }
-
-  /**
-   * 基本的なニュース機能の初期化（フォールバック）
-   * @private
-   */
-  async initializeBasicNewsFeatures() {
-    try {
-      this.debug('基本ニュース機能初期化開始（フォールバック）');
-      
-      // 最低限のニュース表示機能を初期化
-      const { getNewsDataService } = await import('./features/news/services/NewsDataService.js');
-      const newsDataService = getNewsDataService();
-      
-      if (!newsDataService.initialized) {
-        await newsDataService.init();
-      }
-      
-      // ニュース表示エリアが存在する場合は基本的な表示を実行
-      if (this.hasNewsSection()) {
-        const { getNewsDisplayComponent } = await import('./features/news/components/NewsDisplayComponent.js');
-        const newsDisplayComponent = getNewsDisplayComponent();
-        await newsDisplayComponent.init();
-      }
-      
-      this.debug('基本ニュース機能初期化完了');
-      
-    } catch (error) {
-      this.warn('基本ニュース機能初期化もエラー:', error);
+      this.showInitializationWarning('ニュース機能の初期化に失敗しました');
     }
   }
 
