@@ -120,8 +120,7 @@
   }
 
   /* 料金・教室内容 */
-  .price-tables,
-  .program-grid {
+  .price-tables {
     flex-direction: column;
     gap: 25px;
   }
@@ -332,20 +331,6 @@
     margin-top: 6px;
   }
 
-  /* About セクションの4列グリッド */
-  #about [style*="grid-template-columns: repeat(4, 1fr)"] {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 20px !important;
-  }
-
-  #about [style*="height: 160px"] {
-    height: 120px !important;
-  }
-
-  #about [style*="padding: 20px"] {
-    padding: 15px !important;
-  }
-
   /* body調整 - モバイル時のヘッダー高さ対応 */
   body.header-loaded {
     padding-top: var(--header-height-mobile);
@@ -366,7 +351,7 @@
   .map-wrapper {
     min-height: 250px;
     border-radius: 10px;
-    margin: 20px 0;
+    margin: 15px 0;
   }
 
   .map-wrapper iframe {
@@ -422,6 +407,10 @@
     padding: 15px;
     margin-top: 15px;
     font-size: 14px;
+  }
+
+  .faq-item {
+    margin-bottom: 15px;
   }
 }
 
@@ -630,8 +619,7 @@
     padding: 30px 20px;
   }
 
-  .feature-card,
-  .program-card {
+  .feature-card {
     padding: 25px 20px;
   }
 
@@ -661,24 +649,12 @@
     padding: 12px !important;
   }
 
-  #program, #coach {
+  #coach {
     padding: 50px 0;
-  }
-
-  .program-body {
-    padding: 20px 15px;
   }
 
   .coach-grid > div:last-child {
     padding: 20px 15px;
-  }
-
-  .program-grid {
-    gap: 20px;
-  }
-
-  .common-programs {
-    gap: 20px;
   }
 
   .coach-grid {
@@ -754,4 +730,40 @@
     padding-top: 35px !important;
     min-height: calc(100vh - var(--header-height-medium)) !important;
   }
+}
+
+/* About セクションの4列グリッド */
+#about [style*="grid-template-columns: repeat(4, 1fr)"] {
+  grid-template-columns: 1fr 1fr !important;
+  gap: 20px !important;
+}
+
+#about [style*="height: 160px"] {
+  height: 120px !important;
+}
+
+#about [style*="padding: 20px"] {
+  padding: 15px !important;
+}
+
+/* body調整 - モバイル時のヘッダー高さ対応 */
+body.header-loaded {
+  padding-top: var(--header-height-mobile);
+}
+
+#about [style*="grid-template-columns: repeat(4, 1fr)"] {
+  grid-template-columns: 1fr !important;
+  gap: 15px !important;
+}
+
+#about [style*="height: 160px"] {
+  height: 100px !important;
+}
+
+#about [style*="padding: 15px"] {
+  padding: 12px !important;
+}
+
+footer {
+  padding: 40px 0 20px;
 }

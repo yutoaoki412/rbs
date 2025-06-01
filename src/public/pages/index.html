@@ -14,6 +14,9 @@
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/status-banner.css">
   <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/features.css">
+  <link rel="stylesheet" href="../css/why-junior.css">
+  <link rel="stylesheet" href="../css/program.css">
   <link rel="stylesheet" href="../css/news.css">
   <link rel="stylesheet" href="../css/responsive.css">
 </head>
@@ -218,7 +221,7 @@
   </section>
 
   <!-- プログラム内容・1日の流れ -->
-  <section id="program" style="background: var(--white); padding: 100px 0;">
+  <section id="program">
     <div class="container-wide">
       <h2>プログラム内容・1日の流れ</h2>
       
@@ -228,49 +231,37 @@
         <!-- ベーシックコース -->
         <div class="program-card">
           <div class="program-header">
-            <h3 style="font-size: 28px; margin-bottom: 10px; font-weight: 800;">ベーシックコース</h3>
-            <p style="font-size: 18px; font-weight: 600; opacity: 0.9;">年長〜小学3年生対象</p>
-            <p style="font-size: 16px; margin-top: 10px; opacity: 0.8;">月曜日 17:00〜17:50 (50分)</p>
+            <h3>ベーシックコース</h3>
+            <p>年長〜小学3年生対象</p>
+            <p>月曜日 17:00〜17:50 (50分)</p>
           </div>
           
           <div class="program-body">
-            <h4 style="color: var(--navy-dark); font-size: 22px; margin-bottom: 20px; font-weight: 700;">🎯 コースの特徴</h4>
-            <ul style="list-style: none; margin-bottom: 30px;">
-              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
-                <span style="position: absolute; left: 0; color: var(--primary-teal); font-weight: 700;">✓</span>
-                楽しく走る基本を身につける
-              </li>
-              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
-                <span style="position: absolute; left: 0; color: var(--primary-teal); font-weight: 700;">✓</span>
-                遊び感覚で運動能力を向上
-              </li>
-              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
-                <span style="position: absolute; left: 0; color: var(--primary-teal); font-weight: 700;">✓</span>
-                集中力・協調性を育成
-              </li>
-              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
-                <span style="position: absolute; left: 0; color: var(--primary-teal); font-weight: 700;">✓</span>
-                成功体験を積み重ねる
-              </li>
+            <h4>🎯 コースの特徴</h4>
+            <ul>
+              <li>楽しく走る基本を身につける</li>
+              <li>遊び感覚で運動能力を向上</li>
+              <li>集中力・協調性を育成</li>
+              <li>成功体験を積み重ねる</li>
             </ul>
             
-            <h4 style="color: var(--navy-dark); font-size: 22px; margin-bottom: 20px; font-weight: 700;">⏱️ 1日の流れ</h4>
-            <div style="background: var(--gray-light); padding: 25px; border-radius: 15px;">
-              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
-                <strong style="color: var(--primary-teal); display: block; margin-bottom: 5px;">17:00-17:10 (10分)</strong>
-                <span style="color: var(--gray-medium); font-size: 15px;">ウォーミングアップ・あいさつ</span>
+            <h4>⏱️ 1日の流れ</h4>
+            <div class="daily-schedule">
+              <div class="schedule-item">
+                <div class="schedule-time">17:00-17:10 (10分)</div>
+                <div class="schedule-content">ウォーミングアップ・あいさつ</div>
               </div>
-              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
-                <strong style="color: var(--primary-teal); display: block; margin-bottom: 5px;">17:10-17:25 (15分)</strong>
-                <span style="color: var(--gray-medium); font-size: 15px;">基本動作・フォーム練習</span>
+              <div class="schedule-item">
+                <div class="schedule-time">17:10-17:25 (15分)</div>
+                <div class="schedule-content">基本動作・フォーム練習</div>
               </div>
-              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
-                <strong style="color: var(--primary-teal); display: block; margin-bottom: 5px;">17:25-17:40 (15分)</strong>
-                <span style="color: var(--gray-medium); font-size: 15px;">脳トレ&走力向上トレーニング</span>
+              <div class="schedule-item">
+                <div class="schedule-time">17:25-17:40 (15分)</div>
+                <div class="schedule-content">脳トレ&走力向上トレーニング</div>
               </div>
-              <div style="margin-bottom: 0;">
-                <strong style="color: var(--primary-teal); display: block; margin-bottom: 5px;">17:40-17:50 (10分)</strong>
-                <span style="color: var(--gray-medium); font-size: 15px;">ゲーム・クールダウン・振り返り</span>
+              <div class="schedule-item">
+                <div class="schedule-time">17:40-17:50 (10分)</div>
+                <div class="schedule-content">ゲーム・クールダウン・振り返り</div>
               </div>
             </div>
           </div>
@@ -279,49 +270,37 @@
         <!-- アドバンスコース -->
         <div class="program-card advanced">
           <div class="program-header">
-            <h3 style="font-size: 28px; margin-bottom: 10px; font-weight: 800;">アドバンスコース</h3>
-            <p style="font-size: 18px; font-weight: 600; opacity: 0.9;">小学4年生〜6年生対象</p>
-            <p style="font-size: 16px; margin-top: 10px; opacity: 0.8;">月曜日 18:00〜18:50 (50分)</p>
+            <h3>アドバンスコース</h3>
+            <p>小学4年生〜6年生対象</p>
+            <p>月曜日 18:00〜18:50 (50分)</p>
           </div>
           
           <div class="program-body">
-            <h4 style="color: var(--navy-dark); font-size: 22px; margin-bottom: 20px; font-weight: 700;">🎯 コースの特徴</h4>
-            <ul style="list-style: none; margin-bottom: 30px;">
-              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
-                <span style="position: absolute; left: 0; color: var(--primary-orange); font-weight: 700;">✓</span>
-                より専門的な走り方をマスター
-              </li>
-              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
-                <span style="position: absolute; left: 0; color: var(--primary-orange); font-weight: 700;">✓</span>
-                競技力向上と記録への挑戦
-              </li>
-              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
-                <span style="position: absolute; left: 0; color: var(--primary-orange); font-weight: 700;">✓</span>
-                リーダーシップ・判断力強化
-              </li>
-              <li style="padding: 8px 0; color: var(--gray-medium); font-size: 16px; position: relative; padding-left: 30px;">
-                <span style="position: absolute; left: 0; color: var(--primary-orange); font-weight: 700;">✓</span>
-                目標設定と達成の習慣化
-              </li>
+            <h4>🎯 コースの特徴</h4>
+            <ul>
+              <li>より専門的な走り方をマスター</li>
+              <li>競技力向上と記録への挑戦</li>
+              <li>リーダーシップ・判断力強化</li>
+              <li>目標設定と達成の習慣化</li>
             </ul>
             
-            <h4 style="color: var(--navy-dark); font-size: 22px; margin-bottom: 20px; font-weight: 700;">⏱️ 1日の流れ</h4>
-            <div style="background: var(--gray-light); padding: 25px; border-radius: 15px;">
-              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
-                <strong style="color: var(--primary-orange); display: block; margin-bottom: 5px;">18:00-18:10 (10分)</strong>
-                <span style="color: var(--gray-medium); font-size: 15px;">ウォーミングアップ・目標確認</span>
+            <h4>⏱️ 1日の流れ</h4>
+            <div class="daily-schedule">
+              <div class="schedule-item">
+                <div class="schedule-time">18:00-18:10 (10分)</div>
+                <div class="schedule-content">ウォーミングアップ・目標確認</div>
               </div>
-              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
-                <strong style="color: var(--primary-orange); display: block; margin-bottom: 5px;">18:10-18:30 (20分)</strong>
-                <span style="color: var(--gray-medium); font-size: 15px;">専門技術・スピード強化</span>
+              <div class="schedule-item">
+                <div class="schedule-time">18:10-18:30 (20分)</div>
+                <div class="schedule-content">専門技術・スピード強化</div>
               </div>
-              <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid var(--gray-border);">
-                <strong style="color: var(--primary-orange); display: block; margin-bottom: 5px;">18:30-18:45 (15分)</strong>
-                <span style="color: var(--gray-medium); font-size: 15px;">脳トレ&実戦練習</span>
+              <div class="schedule-item">
+                <div class="schedule-time">18:30-18:45 (15分)</div>
+                <div class="schedule-content">脳トレ&実戦練習</div>
               </div>
-              <div style="margin-bottom: 0;">
-                <strong style="color: var(--primary-orange); display: block; margin-bottom: 5px;">18:45-18:50 (5分)</strong>
-                <span style="color: var(--gray-medium); font-size: 15px;">クールダウン・目標振り返り</span>
+              <div class="schedule-item">
+                <div class="schedule-time">18:45-18:50 (5分)</div>
+                <div class="schedule-content">クールダウン・目標振り返り</div>
               </div>
             </div>
           </div>
@@ -329,46 +308,46 @@
       </div>
 
       <!-- 共通プログラム要素 -->
-      <div style="background: var(--gray-light); padding: 50px; border-radius: 30px; margin-bottom: 60px;">
-        <h3 style="text-align: center; color: var(--navy-dark); font-size: 30px; margin-bottom: 40px; font-weight: 800;">両コース共通の特別プログラム</h3>
+      <div class="common-programs-section">
+        <h3>両コース共通の特別プログラム</h3>
         
         <div class="common-programs">
-          <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); border: 4px solid var(--primary-teal); transition: all 0.3s ease;">
-            <div style="height: 160px; position: relative; overflow: hidden;">
-              <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
+          <div class="common-program-card">
+            <div class="common-program-media">
+              <video autoplay muted loop playsinline>
                 <source src="../assets/videos/brain-training.mp4" type="video/mp4">
               </video>
-              <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
+              <div class="common-program-overlay"></div>
             </div>
-            <div style="padding: 20px; text-align: center;">
-              <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700;">脳トレメニュー</h4>
-              <p style="color: var(--gray-medium); font-size: 15px; line-height: 1.6;">判断力・集中力を向上させる認知トレーニング</p>
+            <div class="common-program-content">
+              <h4>脳トレメニュー</h4>
+              <p>判断力・集中力を向上させる認知トレーニング</p>
             </div>
           </div>
           
-          <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); border: 4px solid var(--primary-blue); transition: all 0.3s ease;">
-            <div style="height: 160px; position: relative; overflow: hidden;">
-              <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
+          <div class="common-program-card">
+            <div class="common-program-media">
+              <video autoplay muted loop playsinline>
                 <source src="../assets/videos/record-measurement.mp4" type="video/mp4">
               </video>
-              <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
+              <div class="common-program-overlay"></div>
             </div>
-            <div style="padding: 20px; text-align: center;">
-              <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700;">記録測定</h4>
-              <p style="color: var(--gray-medium); font-size: 15px; line-height: 1.6;">定期的な記録測定で成長を実感</p>
+            <div class="common-program-content">
+              <h4>記録測定</h4>
+              <p>定期的な記録測定で成長を実感</p>
             </div>
           </div>
           
-          <div style="background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); border: 4px solid var(--primary-orange); transition: all 0.3s ease;">
-            <div style="height: 160px; position: relative; overflow: hidden;">
-              <video style="width: 100%; height: 100%; object-fit: cover;" autoplay muted loop playsinline>
+          <div class="common-program-card">
+            <div class="common-program-media">
+              <video autoplay muted loop playsinline>
                 <source src="../assets/videos/goal-achievement.mp4" type="video/mp4">
               </video>
-              <div style="position: absolute; inset: 0; background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));"></div>
+              <div class="common-program-overlay"></div>
             </div>
-            <div style="padding: 20px; text-align: center;">
-              <h4 style="color: var(--navy-dark); font-size: 20px; margin-bottom: 15px; font-weight: 700;">目標達成システム</h4>
-              <p style="color: var(--gray-medium); font-size: 15px; line-height: 1.6;">個人目標を設定し、達成を祝う仕組み</p>
+            <div class="common-program-content">
+              <h4>目標達成システム</h4>
+              <p>個人目標を設定し、達成を祝う仕組み</p>
             </div>
           </div>
         </div>
