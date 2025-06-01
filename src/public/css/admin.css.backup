@@ -3187,6 +3187,180 @@ input[id*="postponed"]:checked + .status-btn {
 }
 
 /* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .log-viewer {
+    width: calc(100vw - 32px);
+    right: 16px;
+    bottom: 16px;
+  }
+  
+  .notification-manager {
+    right: 16px;
+    left: 16px;
+    max-width: none;
+  }
+  
+  .modal-manager {
+    padding: 16px;
+  }
+  
+  .modal-container {
+    border-radius: 16px;
+  }
+  
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  
+  .debug-panel {
+    width: calc(100vw - 32px);
+    right: -100vw;
+    top: auto;
+    bottom: 16px;
+    transform: none;
+    height: 50vh;
+    border-radius: 16px;
+  }
+  
+  .debug-panel.active {
+    right: 16px;
+  }
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+  .log-viewer {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.98) 100%);
+    border-color: rgba(148, 163, 184, 0.3);
+  }
+  
+  .notification-item {
+    background: rgba(30, 41, 59, 0.95);
+  }
+  
+  .modal-container {
+    background: #1e293b;
+  }
+  
+  .modal-header,
+  .modal-footer {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  }
+  
+  .modal-title {
+    color: white;
+  }
+}
+
+/* アクセシビリティ */
+@media (prefers-reduced-motion: reduce) {
+  .log-viewer,
+  .notification-item,
+  .modal-container {
+    transition: opacity 0.2s ease;
+  }
+  
+  .log-entry {
+    animation: none;
+  }
+}
+
+/* =============================================================================
+ * デバッグパネル
+ * ============================================================================= */
+
+.debug-panel {
+  position: fixed;
+  top: 50%;
+  right: -400px;
+  transform: translateY(-50%);
+  width: 380px;
+  height: 70vh;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px 0 0 16px;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
+  z-index: 9997;
+  transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+}
+
+.debug-panel.active {
+  right: 0;
+}
+
+.debug-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.debug-title {
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.debug-tabs {
+  display: flex;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.debug-tab {
+  flex: 1;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.debug-tab.active {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+
+.debug-content {
+  flex: 1;
+  overflow-y: auto;
+  color: white;
+}
+
+/* アニメーション */
+@keyframes logEntryFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =============================================================================
+ * レスポンシブ対応
+ * ============================================================================= */
 
 @media (max-width: 768px) {
   .log-viewer {
@@ -3271,4 +3445,4 @@ input[id*="postponed"]:checked + .status-btn {
   .log-entry {
     animation: none;
   }
-}
+} 

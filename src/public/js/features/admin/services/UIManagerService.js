@@ -1,7 +1,7 @@
 /**
  * UI管理サービス
- * 管理画面のUI操作、通知、フォーム状態管理を担当
- * @version 2.0.0
+ * 管理画面のUI操作、フォーム状態管理を担当
+ * @version 3.0.0 - 新通知システム統合版
  */
 
 import { EventBus } from '../../../shared/services/EventBus.js';
@@ -15,58 +15,45 @@ export class UIManagerService {
     
     // UI状態管理
     this.formStates = new Map();
-    this.notifications = new Map();
     this.activeModals = new Set();
-    
-    // 通知設定
-    this.notificationContainer = null;
-    this.defaultNotificationDuration = 5000;
     
     // フォーム変更追跡
     this.unsavedChanges = new Set();
     this.formChangeTimers = new Map();
+    
+    // 通知制御フラグ - ユーザーアクション時のみ通知を表示
+    this.enableAutoNotifications = false; // 自動通知を無効化
+    this.allowedNotificationActions = new Set([
+      'article-save',
+      'article-publish', 
+      'lesson-status-save',
+      'lesson-status-update',
+      'lesson-status-publish',
+      'instagram-save'
+    ]); // 許可されるアクション
+    
+    // 新通知システムの参照
+    this.notificationService = null;
   }
 
   /**
    * 初期化
    */
   init() {
-    if (this.initialized) {
-      console.log('⚠️ UIManagerService: 既に初期化済み');
-      return;
-    }
-
-    console.log('🖥️ UIManagerService: 初期化開始');
+    if (this.initialized) return;
     
-    this.setupNotificationContainer();
-    this.setupEventListeners();
-    this.setupFormChangeTracking();
-    
-    this.initialized = true;
-    console.log('✅ UIManagerService: 初期化完了');
-  }
-
-  /**
-   * 通知コンテナの設定
-   * @private
-   */
-  setupNotificationContainer() {
-    // 既存の通知コンテナを検索
-    this.notificationContainer = querySelector('#notification-container, .notification-container');
-    
-    // 見つからない場合は作成
-    if (!this.notificationContainer) {
-      this.notificationContainer = document.createElement('div');
-      this.notificationContainer.id = 'notification-container';
-      this.notificationContainer.className = 'notification-container';
-      this.notificationContainer.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 10000;
-        max-width: 400px;
-      `;
-      document.body.appendChild(this.notificationContainer);
+    try {
+      // 新通知システムの参照を取得
+      this.notificationService = window.adminNotificationService || null;
+      
+      this.setupEventListeners();
+      this.setupFormChangeTracking();
+      
+      this.initialized = true;
+      console.log('🖥️ UIManagerService初期化完了');
+      
+    } catch (error) {
+      console.error('❌ UIManagerService初期化エラー:', error);
     }
   }
 
@@ -75,62 +62,64 @@ export class UIManagerService {
    * @private
    */
   setupEventListeners() {
-    // 管理機能のイベントを監視
-    EventBus.on('article:saved', (data) => {
+    // ボタンアクション時のみ通知を表示するイベントを監視
+    EventBus.on('button:article:saved', (data) => {
       this.showSuccessNotification('article-save', { title: data?.title });
     });
     
-    EventBus.on('article:published', (data) => {
+    EventBus.on('button:article:published', (data) => {
       this.showSuccessNotification('article-publish', { title: data?.title });
     });
     
-    EventBus.on('instagram:saved', (data) => {
+    EventBus.on('button:instagram:saved', (data) => {
       this.showSuccessNotification('instagram-save');
     });
     
-    EventBus.on('lessonStatus:updated', (data) => {
+    EventBus.on('button:lessonStatus:updated', (data) => {
       this.showSuccessNotification('lesson-status-update', { date: data?.date });
     });
     
-    EventBus.on('lessonStatus:saved', (data) => {
+    EventBus.on('button:lessonStatus:saved', (data) => {
       this.showSuccessNotification('lesson-status-save', { date: data?.date });
     });
     
-    EventBus.on('lessonStatus:preview', (data) => {
-      this.showSuccessNotification('lesson-status-preview');
-    });
-    
-    EventBus.on('lessonStatus:published', (data) => {
+    EventBus.on('button:lessonStatus:published', (data) => {
       this.showSuccessNotification('lesson-status-publish');
     });
     
-    // エラーイベント
-    EventBus.on('error:lessonStatus:save', (data) => {
-      this.showErrorNotification('lesson-status-save', data);
-    });
-    
-    EventBus.on('error:lessonStatus:load', (data) => {
-      this.showErrorNotification('lesson-status-load', data);
-    });
-    
-    EventBus.on('error:article:save', (data) => {
-      this.showErrorNotification('article-save', data);
-    });
-    
+    // 重要なエラーのみ表示（ネットワークエラーなど）
     EventBus.on('error:network', (data) => {
       this.showErrorNotification('network-error', data);
     });
     
-    // 情報イベント
+    // 自動保存や同期の通知は無効化（ログのみ）
+    EventBus.on('article:saved', (data) => {
+      if (this.enableAutoNotifications) {
+        this.showSuccessNotification('article-save', { title: data?.title });
+      } else {
+        this.log('記事が保存されました:', data?.title);
+      }
+    });
+    
+    EventBus.on('lessonStatus:updated', (data) => {
+      if (this.enableAutoNotifications) {
+        this.showSuccessNotification('lesson-status-update', { date: data?.date });
+      } else {
+        this.log('レッスン状況が更新されました:', data?.date);
+      }
+    });
+    
     EventBus.on('info:autoSave', (data) => {
-      this.showInfoNotification('auto-save', data);
+      // 自動保存の通知は無効化（ログのみ）
+      this.log('自動保存が実行されました');
     });
     
     EventBus.on('info:dataSync', (data) => {
-      this.showInfoNotification('data-sync', data);
+      // データ同期の通知は無効化（ログのみ）
+      this.log('データが同期されました');
     });
     
-    console.log('🖥️ UIイベントリスナーを設定');
+    console.log('🖥️ UIイベントリスナーを設定（通知制限モード）');
   }
 
   /**
@@ -149,186 +138,93 @@ export class UIManagerService {
   }
 
   /**
-   * 通知を表示
+   * 通知を表示（新システム統合版）
    * @param {string} type - 通知タイプ ('success', 'error', 'warning', 'info')
    * @param {string} message - メッセージ
-   * @param {number} duration - 表示時間（ミリ秒、0で手動消去）
    * @param {Object} options - 追加オプション
    * @returns {string} 通知ID
    */
-  showNotification(type, message, duration = this.defaultNotificationDuration, options = {}) {
-    const notificationId = `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    // デフォルトタイトルとアイコンの設定
-    const defaults = {
-      success: { title: '成功', icon: '✅' },
-      error: { title: 'エラー', icon: '❌' },
-      warning: { title: '警告', icon: '⚠️' },
-      info: { title: '情報', icon: 'ℹ️' }
-    };
-    
-    const config = defaults[type] || defaults.info;
-    const title = options.title || config.title;
-    const icon = options.icon || config.icon;
-    
-    // プログレスバーの幅を計算
-    const progressDuration = duration > 0 ? duration : 0;
-    
-    const notificationHtml = `
-      <div class="admin-notification ${type}" id="${notificationId}">
-        <div class="notification-content">
-          <div class="notification-icon">${icon}</div>
-          <div class="notification-message-wrapper">
-            <div class="notification-title">${title}</div>
-            <div class="notification-message">${message}</div>
-          </div>
-          <button class="notification-close" onclick="uiManagerService.removeNotification('${notificationId}')">×</button>
-        </div>
-        ${progressDuration > 0 ? `<div class="notification-progress" style="width: 100%; transition-duration: ${progressDuration}ms;"></div>` : ''}
-      </div>
-    `;
-    
-    // 通知を表示
-    this.notificationContainer.insertAdjacentHTML('beforeend', notificationHtml);
-    
-    // アニメーション効果を適用
-    const notificationElement = querySelector(`#${notificationId}`);
-    if (notificationElement) {
-      // 即座にshow効果を適用
-      setTimeout(() => {
-        notificationElement.classList.add('show', 'animating-in');
-      }, 10);
-      
-      // プログレスバーのアニメーション開始
-      if (progressDuration > 0) {
-        const progressBar = notificationElement.querySelector('.notification-progress');
-        if (progressBar) {
-          setTimeout(() => {
-            progressBar.style.width = '0%';
-          }, 100);
-        }
-      }
-      
-      // 自動消去のタイマーを設定
-      if (duration > 0) {
-        setTimeout(() => {
-          this.removeNotification(notificationId);
-        }, duration);
-      }
+  showNotification(type, message, options = {}) {
+    // 新通知システムが利用可能な場合
+    if (this.notificationService && window.adminNotify) {
+      return window.adminNotify({
+        type: type,
+        title: options.title || this.getDefaultTitle(type),
+        message: message,
+        duration: options.duration || 5000,
+        actions: options.actions || [],
+        persistent: options.persistent || false
+      });
     }
     
-    this.notifications.set(notificationId, {
-      type,
-      message,
-      title,
-      timestamp: new Date(),
-      duration
-    });
-    
-    EventBus.emit('ui:notificationShown', { id: notificationId, type, message, title });
-    
-    return notificationId;
+    // フォールバック: コンソールログ
+    console.log(`[${type.toUpperCase()}] ${message}`);
+    return null;
   }
 
   /**
-   * 通知を削除
+   * 通知の削除
    * @param {string} notificationId - 通知ID
    */
   removeNotification(notificationId) {
-    const notification = querySelector(`#${notificationId}`);
-    if (notification) {
-      // 削除アニメーションを適用
-      notification.classList.add('animating-out');
-      notification.classList.remove('show', 'animating-in');
-      
-      // アニメーション完了後に要素を削除
-      setTimeout(() => {
-        if (notification.parentNode) {
-          notification.remove();
-        }
-        this.notifications.delete(notificationId);
-        EventBus.emit('ui:notificationRemoved', { id: notificationId });
-      }, 300);
+    if (this.notificationService && notificationId) {
+      this.notificationService.removeNotification(notificationId);
     }
   }
 
   /**
-   * 全ての通知をクリア
-   */
-  clearAllNotifications() {
-    if (this.notificationContainer) {
-      this.notificationContainer.innerHTML = '';
-      this.notifications.clear();
-      EventBus.emit('ui:allNotificationsCleared');
-    }
-  }
-
-  /**
-   * フォーム変更を処理
-   * @param {string} formId - フォームID
-   * @param {Object} changeData - 変更データ
+   * フォーム変更処理
    */
   handleFormChange(formId = 'default', changeData = {}) {
-    // 未保存変更としてマーク
     this.unsavedChanges.add(formId);
     
-    // 変更状態を記録
-    this.formStates.set(formId, {
-      hasChanges: true,
-      lastChanged: new Date(),
-      data: changeData
-    });
-    
-    // 既存のタイマーをクリア
+    // 変更のタイマーをクリア
     if (this.formChangeTimers.has(formId)) {
       clearTimeout(this.formChangeTimers.get(formId));
     }
     
-    // 変更インジケーターの表示
+    // 変更インジケーターの更新
     this.updateFormChangeIndicator(formId, true);
     
-    EventBus.emit('ui:formChanged', { formId, data: changeData });
+    const timer = setTimeout(() => {
+      this.log(`フォーム変更 [${formId}]:`, changeData);
+    }, 500);
+    
+    this.formChangeTimers.set(formId, timer);
   }
 
   /**
-   * フォーム変更をクリア
-   * @param {string} formId - フォームID
+   * フォーム変更のクリア
    */
   clearFormChanges(formId) {
     this.unsavedChanges.delete(formId);
-    this.formStates.set(formId, {
-      hasChanges: false,
-      lastSaved: new Date()
-    });
     
-    // 変更インジケーターを非表示
+    if (this.formChangeTimers.has(formId)) {
+      clearTimeout(this.formChangeTimers.get(formId));
+      this.formChangeTimers.delete(formId);
+    }
+    
     this.updateFormChangeIndicator(formId, false);
-    
-    EventBus.emit('ui:formChangeCleared', { formId });
+    this.log(`フォーム変更がクリアされました [${formId}]`);
   }
 
   /**
    * フォーム変更インジケーターの更新
-   * @private
-   * @param {string} formId - フォームID
-   * @param {boolean} hasChanges - 変更があるか
    */
   updateFormChangeIndicator(formId, hasChanges) {
-    const indicator = querySelector(`#${formId}-changes-indicator, .form-changes-indicator[data-form="${formId}"]`);
+    const indicator = querySelector(`.form-change-indicator[data-form="${formId}"]`);
     if (indicator) {
       if (hasChanges) {
-        show(indicator);
-        setText(indicator, '● 未保存の変更があります');
+        indicator.style.display = 'inline';
+        indicator.textContent = '●'; // 変更あり
       } else {
-        hide(indicator);
+        indicator.style.display = 'none';
       }
     }
   }
 
   /**
    * 未保存の変更があるかチェック
-   * @param {string} formId - 特定のフォームID（省略可）
-   * @returns {boolean}
    */
   hasUnsavedChanges(formId = null) {
     if (formId) {
@@ -338,363 +234,266 @@ export class UIManagerService {
   }
 
   /**
-   * モーダルを表示
-   * @param {string} modalId - モーダルID
-   * @param {Object} options - オプション
+   * モーダル表示（新システム統合版）
    */
   showModal(modalId, options = {}) {
-    const modal = querySelector(`#${modalId}`);
-    if (modal) {
-      show(modal);
-      this.activeModals.add(modalId);
-      
-      // ESCキーでの閉鎖
-      if (options.closeOnEscape !== false) {
-        const escHandler = (event) => {
-          if (event.key === 'Escape') {
-            this.hideModal(modalId);
-            document.removeEventListener('keydown', escHandler);
-          }
-        };
-        document.addEventListener('keydown', escHandler);
-      }
-      
-      EventBus.emit('ui:modalShown', { modalId, options });
+    if (window.adminModal) {
+      return window.adminModal({
+        title: options.title || 'モーダル',
+        content: options.content || '',
+        size: options.size || 'medium',
+        actions: options.actions || [],
+        onShow: options.onShow,
+        onHide: options.onHide
+      });
     }
+    
+    // フォールバック: レガシーモーダル処理
+    this.activeModals.add(modalId);
+    show(modalId);
   }
 
   /**
-   * モーダルを非表示
-   * @param {string} modalId - モーダルID
+   * モーダル非表示
    */
   hideModal(modalId) {
-    const modal = querySelector(`#${modalId}`);
-    if (modal) {
-      hide(modal);
+    if (this.notificationService) {
+      this.notificationService.closeTopModal();
+    } else {
+      // フォールバック処理
       this.activeModals.delete(modalId);
-      EventBus.emit('ui:modalHidden', { modalId });
+      hide(modalId);
     }
   }
 
   /**
-   * 全てのモーダルを非表示
-   */
-  hideAllModals() {
-    this.activeModals.forEach(modalId => {
-      this.hideModal(modalId);
-    });
-  }
-
-  /**
-   * 確認ダイアログを表示
-   * @param {string} message - メッセージ
-   * @param {Object} options - オプション
-   * @returns {Promise<boolean>}
+   * 確認ダイアログ表示
    */
   async showConfirmDialog(message, options = {}) {
-    const title = options.title || '確認';
-    const confirmText = options.confirmText || 'OK';
-    const cancelText = options.cancelText || 'キャンセル';
+    if (window.adminModal) {
+      return new Promise((resolve) => {
+        window.adminModal({
+          title: options.title || '確認',
+          content: `<p>${message}</p>`,
+          size: 'small',
+          actions: [
+            { id: 'confirm', label: options.confirmText || 'OK', type: 'btn-primary' },
+            { id: 'cancel', label: options.cancelText || 'キャンセル', type: 'btn-outline' }
+          ]
+        });
+        
+        // モーダルアクションを監視
+        const handleAction = (event) => {
+          const { actionId } = event.detail;
+          if (actionId === 'confirm') {
+            resolve(true);
+          } else if (actionId === 'cancel') {
+            resolve(false);
+          }
+          window.removeEventListener('admin:modal:action', handleAction);
+        };
+        
+        window.addEventListener('admin:modal:action', handleAction);
+      });
+    }
     
-    return new Promise((resolve) => {
-      const dialogId = `confirm_dialog_${Date.now()}`;
-      const dialogHtml = `
-        <div class="modal-overlay" id="${dialogId}">
-          <div class="modal-dialog">
-            <div class="modal-header">
-              <h3>${title}</h3>
-            </div>
-            <div class="modal-body">
-              <p>${message}</p>
-            </div>
-            <div class="modal-footer">
-              <button class="btn btn-primary" data-action="confirm">${confirmText}</button>
-              <button class="btn btn-secondary" data-action="cancel">${cancelText}</button>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      document.body.insertAdjacentHTML('beforeend', dialogHtml);
-      
-      const dialog = querySelector(`#${dialogId}`);
-      const handleClick = (event) => {
-        const action = event.target.dataset.action;
-        if (action) {
-          dialog.remove();
-          resolve(action === 'confirm');
-        }
-      };
-      
-      dialog.addEventListener('click', handleClick);
-      
-      // ESCキーでキャンセル
-      const escHandler = (event) => {
-        if (event.key === 'Escape') {
-          dialog.remove();
-          document.removeEventListener('keydown', escHandler);
-          resolve(false);
-        }
-      };
-      document.addEventListener('keydown', escHandler);
-    });
+    // フォールバック: ブラウザのconfirm
+    return confirm(message);
   }
 
   /**
-   * 統計情報を更新
-   * @param {Object} stats - 統計データ
+   * 統計更新
    */
   updateStats(stats) {
-    // 記事統計の更新
-    if (stats.articles) {
-      this.updateStatsElement('articles-total', stats.articles.total);
-      this.updateStatsElement('articles-published', stats.articles.published);
-      this.updateStatsElement('articles-drafts', stats.articles.drafts);
-      this.updateStatsElement('articles-views', stats.articles.totalViews);
+    if (typeof stats !== 'object' || stats === null) {
+      console.warn('統計データが無効です:', stats);
+      return;
     }
-    
-    // Instagram統計の更新
-    if (stats.instagram) {
-      this.updateStatsElement('instagram-total', stats.instagram.total);
-      this.updateStatsElement('instagram-likes', stats.instagram.totalLikes);
-      this.updateStatsElement('instagram-avg-likes', stats.instagram.avgLikes);
-    }
-    
-    // レッスン統計の更新
-    if (stats.lessons) {
-      this.updateStatsElement('lessons-total', stats.lessons.total);
-    }
-    
-    EventBus.emit('ui:statsUpdated', stats);
+
+    Object.entries(stats).forEach(([key, value]) => {
+      this.updateStatsElement(key, value);
+    });
+
+    this.log('統計が更新されました:', stats);
   }
 
   /**
-   * 統計要素を更新
-   * @private
-   * @param {string} elementId - 要素ID
-   * @param {*} value - 値
+   * 統計要素の更新
    */
   updateStatsElement(elementId, value) {
-    const element = querySelector(`#stats-${elementId}, .stats-${elementId}, [data-stat="${elementId}"]`);
+    const element = querySelector(`#${elementId}, [data-stat="${elementId}"]`);
     if (element) {
-      setText(element, value?.toLocaleString() || '0');
+      setText(element, value);
     }
-  }
-
-  /**
-   * データマネージャーイベントの設定
-   * @param {Object} dataManager - データマネージャー（後方互換性）
-   */
-  setupDataManagerEvents(dataManager) {
-    console.log('🖥️ DataManagerイベント設定（後方互換性）');
-    // 新しいアーキテクチャではEventBusを使用するため、この実装は最小限
   }
 
   /**
    * UI状態の取得
-   * @returns {Object}
    */
   getUIState() {
     return {
       unsavedChanges: Array.from(this.unsavedChanges),
       activeModals: Array.from(this.activeModals),
-      notificationCount: this.notifications.size,
-      formStates: Object.fromEntries(this.formStates)
+      notificationCount: this.notificationService?.notifications.size || 0,
+      enableAutoNotifications: this.enableAutoNotifications
     };
   }
 
   /**
-   * 破棄処理
+   * リソースのクリーンアップ
    */
   destroy() {
-    // 通知をクリア
-    this.clearAllNotifications();
-    
-    // モーダルを閉じる
-    this.hideAllModals();
-    
-    // タイマーをクリア
+    // タイマーのクリア
     this.formChangeTimers.forEach(timer => clearTimeout(timer));
     this.formChangeTimers.clear();
     
-    // 状態をリセット
-    this.formStates.clear();
-    this.notifications.clear();
-    this.activeModals.clear();
+    // 状態のクリア
     this.unsavedChanges.clear();
+    this.activeModals.clear();
     
     this.initialized = false;
-    
-    console.log('🗑️ UIManagerService: 破棄完了');
+    console.log('🖥️ UIManagerService破棄完了');
   }
 
-  // === ログメソッド ===
+  // =============================================================================
+  // ログ関連メソッド（新システム統合）
+  // =============================================================================
 
   /**
-   * ログ出力
-   * @private
+   * ログ出力（新システム統合版）
    */
   log(...args) {
-    console.log('🎨 UIManagerService:', ...args);
+    if (window.adminLog) {
+      window.adminLog(args.join(' '), 'info', 'ui');
+    } else {
+      console.log('🖥️ [UI]', ...args);
+    }
   }
 
   /**
-   * デバッグログ出力
-   * @private
+   * デバッグログ
    */
   debug(...args) {
-    if (CONFIG.debug?.enabled) {
-      console.debug('🔍 UIManagerService:', ...args);
+    if (window.adminLog) {
+      window.adminLog(args.join(' '), 'debug', 'ui');
+    } else {
+      console.debug('🖥️ [UI Debug]', ...args);
     }
   }
 
   /**
-   * 警告ログ出力
-   * @private
+   * 警告ログ
    */
   warn(...args) {
-    console.warn('⚠️ UIManagerService:', ...args);
+    if (window.adminLog) {
+      window.adminLog(args.join(' '), 'warning', 'ui');
+    } else {
+      console.warn('🖥️ [UI Warning]', ...args);
+    }
   }
 
   /**
-   * エラーログ出力
-   * @private
+   * エラーログ
    */
   error(...args) {
-    console.error('❌ UIManagerService:', ...args);
+    if (window.adminLog) {
+      window.adminLog(args.join(' '), 'error', 'ui');
+    } else {
+      console.error('🖥️ [UI Error]', ...args);
+    }
   }
 
+  // =============================================================================
+  // 通知メソッド（新システム統合版）
+  // =============================================================================
+
   /**
-   * 成功通知のヘルパーメソッド
-   * @param {string} action - 実行されたアクション
-   * @param {Object} details - 詳細情報
+   * 成功通知の表示
    */
   showSuccessNotification(action, details = {}) {
-    let title = '成功';
-    let message = '';
-    let icon = '✅';
+    const messages = {
+      'article-save': `記事「${details.title || '無題'}」を保存しました`,
+      'article-publish': `記事「${details.title || '無題'}」を公開しました`,
+      'lesson-status-save': `${details.date || ''}のレッスン状況を保存しました`,
+      'lesson-status-update': `${details.date || ''}のレッスン状況を更新しました`,
+      'lesson-status-publish': 'レッスン状況を公開しました',
+      'instagram-save': 'Instagram設定を保存しました'
+    };
+
+    const message = messages[action] || '操作が完了しました';
     
-    switch (action) {
-      case 'lesson-status-save':
-        title = 'レッスン状況を保存';
-        message = `${details.date}のレッスン状況を保存しました`;
-        icon = '📅';
-        break;
-      case 'lesson-status-update':
-        title = 'レッスン状況を更新';
-        message = `${details.date}のレッスン状況を更新しました`;
-        icon = '🔄';
-        break;
-      case 'lesson-status-preview':
-        title = 'プレビューを表示';
-        message = 'レッスン状況のプレビューを生成しました';
-        icon = '👀';
-        break;
-      case 'lesson-status-publish':
-        title = 'レッスン状況を公開';
-        message = 'レッスン状況を公開しました';
-        icon = '🚀';
-        break;
-      case 'article-save':
-        title = '記事を保存';
-        message = details.title ? `「${details.title}」を保存しました` : '記事を保存しました';
-        icon = '📝';
-        break;
-      case 'article-publish':
-        title = '記事を公開';
-        message = details.title ? `「${details.title}」を公開しました` : '記事を公開しました';
-        icon = '📢';
-        break;
-      case 'instagram-save':
-        title = 'Instagram投稿を保存';
-        message = 'Instagram投稿情報を保存しました';
-        icon = '📸';
-        break;
-      case 'data-export':
-        title = 'データエクスポート完了';
-        if (details.filename && details.recordCount) {
-          message = `${details.recordCount}件のデータを ${details.filename} としてエクスポートしました`;
-        } else {
-          message = details.filename ? `データを ${details.filename} としてエクスポートしました` : 'データをエクスポートしました';
-        }
-        icon = '📥';
-        break;
-      default:
-        message = details.message || '操作が完了しました';
-    }
-    
-    return this.showNotification('success', message, 4000, { title, icon });
+    this.showNotification('success', message, {
+      title: '保存完了',
+      duration: 3000
+    });
   }
 
   /**
-   * エラー通知のヘルパーメソッド
-   * @param {string} action - 失敗したアクション
-   * @param {Object} details - 詳細情報
+   * エラー通知の表示
    */
   showErrorNotification(action, details = {}) {
-    let title = 'エラー';
-    let message = '';
-    let icon = '❌';
+    const messages = {
+      'network-error': 'ネットワークエラーが発生しました。接続を確認してください。',
+      'validation-error': '入力内容に問題があります。確認してください。',
+      'server-error': 'サーバーエラーが発生しました。しばらく後に再試行してください。',
+      'permission-error': 'この操作を実行する権限がありません。',
+      'timeout-error': 'リクエストがタイムアウトしました。再試行してください。'
+    };
+
+    const message = messages[action] || details.message || '操作中にエラーが発生しました';
     
-    switch (action) {
-      case 'lesson-status-save':
-        title = '保存に失敗';
-        message = 'レッスン状況の保存に失敗しました';
-        icon = '💾';
-        break;
-      case 'lesson-status-load':
-        title = '読み込みに失敗';
-        message = 'レッスン状況の読み込みに失敗しました';
-        icon = '📂';
-        break;
-      case 'article-save':
-        title = '記事保存に失敗';
-        message = '記事の保存に失敗しました';
-        icon = '📝';
-        break;
-      case 'network-error':
-        title = 'ネットワークエラー';
-        message = 'ネットワーク接続を確認してください';
-        icon = '🌐';
-        break;
-      case 'data-export':
-        title = 'エクスポートエラー';
-        message = details.message || 'データのエクスポートに失敗しました';
-        icon = '📥';
-        break;
-      default:
-        message = details.message || '操作に失敗しました';
-    }
-    
-    return this.showNotification('error', message, 6000, { title, icon });
+    this.showNotification('error', message, {
+      title: 'エラー',
+      duration: 8000,
+      persistent: action === 'network-error'
+    });
   }
 
   /**
-   * 情報通知のヘルパーメソッド
-   * @param {string} action - アクション
-   * @param {Object} details - 詳細情報
+   * 情報通知の表示
    */
   showInfoNotification(action, details = {}) {
-    let title = '情報';
-    let message = '';
-    let icon = 'ℹ️';
+    const messages = {
+      'auto-save': '自動保存されました',
+      'data-sync': 'データを同期しました',
+      'session-refresh': 'セッションを更新しました'
+    };
+
+    const message = messages[action] || details.message || '情報をお知らせします';
     
-    switch (action) {
-      case 'auto-save':
-        title = '自動保存';
-        message = 'データを自動保存しました';
-        icon = '💾';
-        break;
-      case 'data-sync':
-        title = 'データ同期';
-        message = 'データの同期が完了しました';
-        icon = '🔄';
-        break;
-      default:
-        message = details.message || '情報';
-    }
-    
-    return this.showNotification('info', message, 3000, { title, icon });
+    // 情報通知は控えめに表示
+    this.log(`[情報] ${message}`);
+  }
+
+  /**
+   * 通知モードの設定
+   */
+  setNotificationMode(enableAuto = false) {
+    this.enableAutoNotifications = enableAuto;
+    this.log(`通知モードを変更しました: ${enableAuto ? '自動通知有効' : '手動通知のみ'}`);
+  }
+
+  /**
+   * 通知モードの取得
+   */
+  getNotificationMode() {
+    return {
+      enableAutoNotifications: this.enableAutoNotifications,
+      allowedActions: Array.from(this.allowedNotificationActions)
+    };
+  }
+
+  /**
+   * デフォルトタイトルの取得
+   */
+  getDefaultTitle(type) {
+    const titles = {
+      success: '成功',
+      error: 'エラー',
+      warning: '警告',
+      info: '情報'
+    };
+    return titles[type] || '通知';
   }
 }
 

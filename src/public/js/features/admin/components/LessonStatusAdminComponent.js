@@ -459,7 +459,12 @@ export class LessonStatusAdminComponent extends Component {
     if (result.success) {
       this.currentFormData = result.data;
       this.hasUnsavedChanges = false;
-      this.showNotification('success', 'レッスン状況を保存しました');
+      
+      // ボタンアクション用のイベントを発行（通知表示用）
+      EventBus.emit('button:lessonStatus:saved', { 
+        date: formData.date 
+      });
+      
       this.log('レッスン状況保存完了:', formData.date);
     } else {
       throw new Error(result.error);

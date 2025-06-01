@@ -41,8 +41,8 @@ export class AdminActionService {
       // UIイベント設定
       this.setupUIEvents();
       
-      // 管理画面UI設定
-      this.setupAdminUI();
+      // 管理画面UI設定（サービス初期化後に実行）
+      await this.setupAdminUI();
       
       // UIManagerServiceをグローバルに設定
       window.uiManagerService = this.uiManagerService;
@@ -160,10 +160,10 @@ export class AdminActionService {
       'logout': () => this.logout(),
       
       // タブ切り替え
-      'switch-tab': (element, params) => {
+      'switch-tab': async (element, params) => {
         const tabName = params.tab;
         if (this.#isValidTabName(tabName)) {
-          this.switchAdminTab(tabName);
+          await this.switchAdminTab(tabName);
         }
       },
 
@@ -188,6 +188,9 @@ export class AdminActionService {
       // レッスン状況
       'load-lesson-status': () => this.loadLessonStatus(),
       'update-lesson-status': () => this.updateLessonStatus(),
+
+      // 通知設定
+      'toggle-notification-mode': () => this.toggleNotificationMode(),
 
       // データ管理
       'export-data': () => {
@@ -257,24 +260,59 @@ export class AdminActionService {
    * 管理画面固有の初期化
    * @private
    */
-  setupAdminUI() {
-    // ダッシュボード統計を更新
-    this.updateDashboardStats();
+  async setupAdminUI() {
+    try {
+      console.log('🎨 管理画面UI初期化');
+      
+      // サービス初期化を待機
+      await this.initializeServices();
+      
+      // 通知トグルUIの初期化
+      if (this.uiManagerService) {
+        const currentMode = this.uiManagerService.getNotificationMode();
+        this.#updateNotificationToggleUI(currentMode);
+      }
+      
+      // その他のUI初期化処理...
+      this.setupTabNavigation();
+      this.refreshRecentArticles();
+      this.updateDashboardStats();
+      
+      console.log('✅ 管理画面UI初期化完了');
+      
+    } catch (error) {
+      console.error('❌ 管理画面UI初期化エラー:', error);
+    }
+  }
+
+  /**
+   * サービスの初期化完了を待機
+   * @private
+   */
+  async #waitForServicesReady() {
+    const maxRetries = 10;
+    const retryDelay = 100;
     
-    // 記事統計を更新
-    this.updateAdminStats();
+    for (let i = 0; i < maxRetries; i++) {
+      if (this.articleDataService?.initialized && 
+          this.lessonStatusService?.initialized &&
+          this.uiManagerService?.initialized) {
+        return true;
+      }
+      
+      this.debug(`サービス初期化待機中... (${i + 1}/${maxRetries})`);
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+    }
     
-    // セッション監視を開始
-    this.startSessionMonitoring();
-    
-    this.debug('管理画面UI設定完了');
+    this.warn('一部のサービスの初期化が完了していません');
+    return false;
   }
 
   /**
    * 管理画面タブ切り替え
    * @param {string} tabName - タブ名
    */
-  switchAdminTab(tabName) {
+  async switchAdminTab(tabName) {
     console.log(`🔄 管理画面タブ切り替え: ${tabName}`);
     
     // 現在のアクティブタブを非アクティブに
@@ -299,33 +337,38 @@ export class AdminActionService {
       newActiveNavItem.classList.add('active');
     }
     
-    // タブ固有の初期化処理
-    this.initializeTabContent(tabName);
+    // タブ固有の初期化処理（非同期）
+    await this.initializeTabContent(tabName);
     this.currentTab = tabName;
     
-    this.#showFeedback(`${this.#getTabDisplayName(tabName)}に切り替えました`);
+    // タブ切り替えの通知は表示しない（コンソールログのみ）
+    console.log(`✅ ${this.#getTabDisplayName(tabName)}に切り替え完了`);
   }
 
   /**
    * タブ固有の初期化処理
    * @param {string} tabName - タブ名
    */
-  initializeTabContent(tabName) {
+  async initializeTabContent(tabName) {
     console.log(`🔧 タブコンテンツ初期化: ${tabName}`);
     
-    switch (tabName) {
-      case 'dashboard':
-        this.#initializeDashboard();
-        break;
-      case 'news-management':
-        this.#initializeNewsManagement();
-        break;
-      case 'lesson-status':
-        this.#initializeLessonStatus();
-        break;
-      case 'settings':
-        this.#initializeSettings();
-        break;
+    try {
+      switch (tabName) {
+        case 'dashboard':
+          await this.#initializeDashboard();
+          break;
+        case 'news-management':
+          await this.#initializeNewsManagement();
+          break;
+        case 'lesson-status':
+          await this.#initializeLessonStatus();
+          break;
+        case 'settings':
+          await this.#initializeSettings();
+          break;
+      }
+    } catch (error) {
+      this.error(`タブ初期化エラー (${tabName}):`, error);
     }
   }
 
@@ -359,43 +402,164 @@ export class AdminActionService {
    * ダッシュボード初期化
    * @private
    */
-  #initializeDashboard() {
-    this.updateDashboardStats();
-    this.refreshRecentArticles();
+  async #initializeDashboard() {
+    try {
+      this.debug('📊 ダッシュボード初期化開始');
+      
+      // 記事データが利用可能になるまで待機
+      await this.#ensureArticleDataReady();
+      
+      // 統計情報を更新
+      this.updateDashboardStats();
+      
+      // 最近の記事を読み込み（リトライ付き）
+      await this.#loadRecentArticlesWithRetry();
+      
+      this.debug('📊 ダッシュボード初期化完了');
+    } catch (error) {
+      this.error('ダッシュボード初期化エラー:', error);
+    }
+  }
+
+  /**
+   * 記事データの準備状態を確保
+   * @private
+   */
+  async #ensureArticleDataReady() {
+    const maxRetries = 5;
+    const retryDelay = 200;
+    
+    for (let i = 0; i < maxRetries; i++) {
+      if (this.articleDataService?.initialized) {
+        return true;
+      }
+      
+      this.debug(`記事データサービス準備待機中... (${i + 1}/${maxRetries})`);
+      
+      // 初期化されていない場合は再初期化を試行
+      if (this.articleDataService && !this.articleDataService.initialized) {
+        try {
+          await this.articleDataService.init();
+        } catch (error) {
+          this.warn('記事データサービス再初期化失敗:', error);
+        }
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+    }
+    
+    throw new Error('記事データサービスの初期化がタイムアウトしました');
+  }
+
+  /**
+   * 最近の記事をリトライ付きで読み込み
+   * @private
+   */
+  async #loadRecentArticlesWithRetry() {
+    const maxRetries = 3;
+    const retryDelay = 500;
+    
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        await this.refreshRecentArticles();
+        this.debug('最近の記事読み込み成功');
+        return;
+      } catch (error) {
+        this.warn(`最近の記事読み込み試行 ${i + 1}/${maxRetries} 失敗:`, error);
+        
+        if (i < maxRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+        }
+      }
+    }
+    
+    // 最終的に失敗した場合はエラー状態を表示
+    this.#showRecentArticlesError();
+  }
+
+  /**
+   * 最近の記事のエラー状態を表示
+   * @private
+   */
+  #showRecentArticlesError() {
+    const recentContainer = document.getElementById('recent-articles');
+    if (recentContainer) {
+      recentContainer.innerHTML = `
+        <div class="error-state">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p>記事の読み込みでエラーが発生しました</p>
+          <button class="btn btn-sm btn-outline" data-action="refresh-recent-articles">
+            <i class="fas fa-sync-alt"></i> 再試行
+          </button>
+        </div>
+      `;
+    }
   }
 
   /**
    * ニュース管理初期化
    * @private
    */
-  #initializeNewsManagement() {
-    // フォームをクリアして新規記事作成状態にする
-    this.clearNewsEditor();
-    this.refreshNewsList();
+  async #initializeNewsManagement() {
+    try {
+      this.debug('📝 ニュース管理初期化開始');
+      
+      // 記事データサービスの準備を確認
+      await this.#ensureArticleDataReady();
+      
+      // フォームをクリアして新規記事作成状態にする
+      this.clearNewsEditor();
+      
+      // 記事一覧を更新
+      this.refreshNewsList();
+      
+      this.debug('📝 ニュース管理初期化完了');
+    } catch (error) {
+      this.error('ニュース管理初期化エラー:', error);
+    }
   }
 
   /**
    * レッスン状況初期化
    * @private
    */
-  #initializeLessonStatus() {
-    // 今日の日付を自動設定
-    const today = new Date().toISOString().slice(0, 10);
-    const dateField = document.getElementById('lesson-date');
-    if (dateField && !dateField.value) {
-      dateField.value = today;
+  async #initializeLessonStatus() {
+    try {
+      this.debug('📅 レッスン状況初期化開始');
+      
+      // 今日の日付を自動設定
+      const today = new Date().toISOString().slice(0, 10);
+      const dateField = document.getElementById('lesson-date');
+      if (dateField && !dateField.value) {
+        dateField.value = today;
+      }
+      
+      // 自動的に今日のレッスン状況を読み込み
+      await this.loadLessonStatus();
+      
+      this.debug('📅 レッスン状況初期化完了');
+    } catch (error) {
+      this.error('レッスン状況初期化エラー:', error);
     }
-    
-    // 自動的に今日のレッスン状況を読み込み
-    this.loadLessonStatus();
   }
 
   /**
    * 設定初期化
    * @private
    */
-  #initializeSettings() {
-    console.log('⚙️ 設定タブを初期化しました');
+  async #initializeSettings() {
+    try {
+      this.debug('⚙️ 設定タブ初期化開始');
+      
+      // データエクスポートサービスのセットアップ（まだでなければ）
+      if (!this.dataExportService) {
+        await this.setupDataExportService();
+      }
+      
+      this.debug('⚙️ 設定タブ初期化完了');
+    } catch (error) {
+      this.error('設定初期化エラー:', error);
+    }
   }
 
   // === 記事管理関連メソッド ===
@@ -430,6 +594,7 @@ export class AdminActionService {
         editorTitle.textContent = '新規記事作成';
       }
 
+      // ユーザーアクションなので通知を表示
       this.#showFeedback('記事エディターをクリアしました');
       console.log('📝 記事エディターをクリア');
 
@@ -462,6 +627,7 @@ export class AdminActionService {
       // プレビューモーダルを作成・表示
       this.#showNewsPreviewModal(formData);
       
+      // ユーザーアクションなので通知を表示
       this.#showFeedback('プレビューを表示しました');
       
     } catch (error) {
@@ -490,7 +656,12 @@ export class AdminActionService {
           idField.value = result.id;
         }
 
-        this.#showFeedback('記事を下書きとして保存しました');
+        // ボタンアクション用のイベントを発行（通知表示用）
+        EventBus.emit('button:article:saved', { 
+          title: articleData.title,
+          id: result.id 
+        });
+        
         console.log('💾 記事を保存:', result);
       } else {
         this.#showFeedback(result.message || '保存に失敗しました', 'error');
@@ -528,7 +699,12 @@ export class AdminActionService {
           statusField.value = 'published';
         }
 
-        this.#showFeedback('記事を公開しました');
+        // ボタンアクション用のイベントを発行（通知表示用）
+        EventBus.emit('button:article:published', { 
+          title: articleData.title,
+          id: result.id 
+        });
+        
         console.log('📤 記事を公開:', result);
       } else {
         this.#showFeedback(result.message || '公開に失敗しました', 'error');
@@ -613,7 +789,7 @@ export class AdminActionService {
    */
   filterNewsList(element, params) {
     try {
-      const filterValue = element.value;
+      const filterValue = element?.value || 'all';
       console.log('🔍 ニュース一覧フィルタリング:', filterValue);
       
       this.#renderNewsList(filterValue);
@@ -630,7 +806,8 @@ export class AdminActionService {
     try {
       console.log('🔄 ニュース一覧更新');
       this.#renderNewsList();
-      this.#showFeedback('ニュース一覧を更新しました');
+      // 内部処理なので通知は表示しない（コンソールログのみ）
+      console.log('✅ ニュース一覧更新完了');
       
     } catch (error) {
       console.error('❌ ニュース一覧更新エラー:', error);
@@ -641,24 +818,41 @@ export class AdminActionService {
   /**
    * 最近の記事更新
    */
-  refreshRecentArticles() {
+  async refreshRecentArticles() {
     try {
-      console.log('🔄 最近の記事更新');
-      this.#renderRecentArticles();
+      console.log('🔄 最近の記事更新開始');
+      
+      // ローディング状態を表示
+      this.#showRecentArticlesLoading();
+      
+      // 記事データサービスの準備を確認
+      await this.#ensureArticleDataReady();
+      
+      // 記事をレンダリング
+      await this.#renderRecentArticles();
+      
+      // 内部処理なので通知は表示しない（コンソールログのみ）
+      console.log('✅ 最近の記事更新完了');
       
     } catch (error) {
       console.error('❌ 最近の記事更新エラー:', error);
-      
-      // エラー時の表示
-      const recentContainer = document.getElementById('recent-articles');
-      if (recentContainer) {
-        recentContainer.innerHTML = `
-          <div class="error-state">
-            <p>記事の読み込みでエラーが発生しました</p>
-            <button class="btn btn-sm btn-outline" onclick="adminActionService.refreshRecentArticles()">再試行</button>
-          </div>
-        `;
-      }
+      this.#showRecentArticlesError();
+    }
+  }
+
+  /**
+   * 最近の記事のローディング状態を表示
+   * @private
+   */
+  #showRecentArticlesLoading() {
+    const recentContainer = document.getElementById('recent-articles');
+    if (recentContainer) {
+      recentContainer.innerHTML = `
+        <div class="loading-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          記事を読み込み中...
+        </div>
+      `;
     }
   }
 
@@ -758,7 +952,10 @@ export class AdminActionService {
       const result = await this.lessonStatusService.updateStatus(statusData);
       
       if (result.success) {
-        this.#showFeedback(`${statusData.date} のレッスン状況を更新しました`);
+        // ボタンアクション用のイベントを発行（通知表示用）
+        EventBus.emit('button:lessonStatus:updated', { 
+          date: statusData.date 
+        });
         
         // LP側のレッスン状況表示も更新
         if (window.lessonStatusDisplay && typeof window.lessonStatusDisplay.refresh === 'function') {
@@ -1347,15 +1544,39 @@ export class AdminActionService {
    */
   #renderNewsList(filter = 'all') {
     try {
+      if (!this.articleDataService?.initialized) {
+        console.warn('ArticleDataServiceが初期化されていません');
+        return;
+      }
+
       const articles = this.articleDataService.loadArticles();
       const filteredArticles = this.#filterArticles(articles, filter);
       
       const listContainer = document.getElementById('news-list');
-      if (listContainer) {        listContainer.innerHTML = this.#generateNewsListHTML(filteredArticles);
+      if (listContainer) {
+        listContainer.innerHTML = this.#generateNewsListHTML(filteredArticles);
+      } else {
+        console.warn('news-list要素が見つかりません');
       }
+      
+      console.log(`📋 記事一覧を表示: ${filteredArticles.length}件 (フィルター: ${filter})`);
       
     } catch (error) {
       console.error('❌ ニュース一覧レンダリングエラー:', error);
+      
+      // エラー時の安全なフォールバック
+      const listContainer = document.getElementById('news-list');
+      if (listContainer) {
+        listContainer.innerHTML = `
+          <div class="error-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>記事一覧の読み込みに失敗しました</p>
+            <button class="btn btn-sm btn-outline" data-action="refresh-news-list">
+              <i class="fas fa-sync-alt"></i> 再試行
+            </button>
+          </div>
+        `;
+      }
     }
   }
 
@@ -1363,15 +1584,11 @@ export class AdminActionService {
    * 最近の記事のレンダリング
    * @private
    */
-  #renderRecentArticles() {
+  async #renderRecentArticles() {
     try {
-      // ArticleDataServiceが初期化されているかチェック
-      if (!this.articleDataService || !this.articleDataService.initialized) {
-        const recentContainer = document.getElementById('recent-articles');
-        if (recentContainer) {
-          recentContainer.innerHTML = '<div class="loading-state">記事サービスを初期化中...</div>';
-        }
-        return;
+      // ArticleDataServiceの初期化状態を再確認
+      if (!this.articleDataService?.initialized) {
+        throw new Error('ArticleDataServiceが初期化されていません');
       }
       
       const articles = this.articleDataService.loadArticles();
@@ -1381,17 +1598,53 @@ export class AdminActionService {
       
       const recentContainer = document.getElementById('recent-articles');
       if (recentContainer) {
-        recentContainer.innerHTML = this.#generateRecentArticlesHTML(recentArticles);
+        const html = this.#generateRecentArticlesHTML(recentArticles);
+        recentContainer.innerHTML = html;
+        
+        // ドロップダウンメニューの初期化
+        this.#initializeDropdownMenus(recentContainer);
       }
+      
+      this.debug(`最近の記事を${recentArticles.length}件表示`);
       
     } catch (error) {
       console.error('❌ 最近の記事レンダリングエラー:', error);
-      
-      const recentContainer = document.getElementById('recent-articles');
-      if (recentContainer) {
-        recentContainer.innerHTML = '<div class="error-state">記事の表示でエラーが発生しました</div>';
-      }
+      throw error;
     }
+  }
+
+  /**
+   * ドロップダウンメニューの初期化
+   * @private
+   */
+  #initializeDropdownMenus(container) {
+    const dropdownToggles = container.querySelectorAll('.dropdown-toggle');
+    
+    dropdownToggles.forEach(toggle => {
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        
+        // 他のドロップダウンを閉じる
+        const allDropdowns = container.querySelectorAll('.dropdown');
+        allDropdowns.forEach(dropdown => {
+          if (dropdown !== toggle.closest('.dropdown')) {
+            dropdown.classList.remove('open');
+          }
+        });
+        
+        // 現在のドロップダウンを切り替え
+        const dropdown = toggle.closest('.dropdown');
+        dropdown.classList.toggle('open');
+      });
+    });
+    
+    // クリック外しでドロップダウンを閉じる
+    document.addEventListener('click', () => {
+      const allDropdowns = container.querySelectorAll('.dropdown');
+      allDropdowns.forEach(dropdown => {
+        dropdown.classList.remove('open');
+      });
+    });
   }
 
   /**
@@ -2016,123 +2269,128 @@ export class AdminActionService {
   // === ログメソッド ===
 
   /**
-   * ログ出力（通知システム統合版）
+   * ログ出力（新通知システム統合版）
    * @private
    */
   log(...args) {
     const message = args.join(' ');
     
-    // デバッグモードでのみコンソール出力
-    if (CONFIG.debug?.enabled || window.DEBUG) {
+    // 新通知システムにログ記録
+    if (window.adminLog) {
+      window.adminLog(message, 'info', 'admin-action');
+    } else {
+      // フォールバック: コンソール出力
       console.log('🔧 AdminActionService:', ...args);
-    }
-    
-    // 通知として表示
-    if (this.uiManagerService && message.length > 0) {
-      this.uiManagerService.showNotification('info', message, 3000, {
-        title: 'システム',
-        icon: '🔧'
-      });
     }
   }
 
   /**
-   * デバッグログ出力（通知システム統合版）
+   * デバッグログ出力（新通知システム統合版）
    * @private
    */
   debug(...args) {
     const message = args.join(' ');
     
-    if (CONFIG.debug?.enabled || window.DEBUG) {
+    // 新通知システムにデバッグログ記録
+    if (window.adminLog) {
+      window.adminLog(message, 'debug', 'admin-action');
+    } else if (CONFIG.debug?.enabled || window.DEBUG) {
       console.debug('🔍 AdminActionService:', ...args);
-      
-      // デバッグ情報は画面に表示しない（オプションで表示可能）
-      if (CONFIG.debug?.verbose) {
-        this.uiManagerService?.showNotification('info', message, 2000, {
-          title: 'デバッグ',
-          icon: '🔍'
-        });
-      }
     }
   }
 
   /**
-   * 警告ログ出力（通知システム統合版）
+   * 警告ログ出力（新通知システム統合版）
    * @private
    */
   warn(...args) {
     const message = args.join(' ');
     
-    // 警告は常にコンソールにも出力
-    console.warn('⚠️ AdminActionService:', ...args);
+    // 新通知システムに警告ログ記録
+    if (window.adminLog) {
+      window.adminLog(message, 'warning', 'admin-action');
+    } else {
+      console.warn('⚠️ AdminActionService:', ...args);
+    }
     
-    // 警告通知として表示
-    if (this.uiManagerService && message.length > 0) {
-      this.uiManagerService.showNotification('warning', message, 5000, {
+    // 重要な警告は通知も表示
+    if (window.adminNotify && message.includes('エラー') || message.includes('失敗')) {
+      window.adminNotify({
+        type: 'warning',
         title: '警告',
-        icon: '⚠️'
+        message: message,
+        duration: 5000
       });
     }
   }
 
   /**
-   * エラーログ出力（通知システム統合版）
+   * エラーログ出力（新通知システム統合版）
    * @private
    */
   error(...args) {
     const message = args.join(' ');
     
-    // エラーは常にコンソールにも出力
-    console.error('❌ AdminActionService:', ...args);
+    // 新通知システムにエラーログ記録
+    if (window.adminLog) {
+      window.adminLog(message, 'error', 'admin-action');
+    } else {
+      console.error('❌ AdminActionService:', ...args);
+    }
     
-    // エラー通知として表示
-    if (this.uiManagerService && message.length > 0) {
-      this.uiManagerService.showNotification('error', message, 7000, {
+    // エラー通知を表示
+    if (window.adminNotify) {
+      window.adminNotify({
+        type: 'error',
         title: 'エラー',
-        icon: '❌'
+        message: message,
+        duration: 7000
       });
     }
   }
 
   /**
-   * 成功メッセージの表示
+   * 成功メッセージの表示（新通知システム統合版）
    * @private
    */
   success(...args) {
     const message = args.join(' ');
     
-    // デバッグモードでのみコンソール出力
-    if (CONFIG.debug?.enabled || window.DEBUG) {
+    // 新通知システムにログ記録
+    if (window.adminLog) {
+      window.adminLog(message, 'info', 'admin-action');
+    } else if (CONFIG.debug?.enabled || window.DEBUG) {
       console.log('✅ AdminActionService:', ...args);
     }
     
-    // 成功通知として表示
-    if (this.uiManagerService && message.length > 0) {
-      this.uiManagerService.showNotification('success', message, 4000, {
+    // 成功通知を表示
+    if (window.adminNotify) {
+      window.adminNotify({
+        type: 'success',
         title: '成功',
-        icon: '✅'
+        message: message,
+        duration: 4000
       });
     }
   }
 
   /**
-   * 情報メッセージの表示
+   * 情報メッセージの表示（新通知システム統合版）
    * @private
    */
   info(...args) {
     const message = args.join(' ');
     
-    // デバッグモードでのみコンソール出力
-    if (CONFIG.debug?.enabled || window.DEBUG) {
+    // 新通知システムにログ記録
+    if (window.adminLog) {
+      window.adminLog(message, 'info', 'admin-action');
+    } else if (CONFIG.debug?.enabled || window.DEBUG) {
       console.log('ℹ️ AdminActionService:', ...args);
     }
     
-    // 情報通知として表示
-    if (this.uiManagerService && message.length > 0) {
-      this.uiManagerService.showNotification('info', message, 3000, {
-        title: '情報',
-        icon: 'ℹ️'
-      });
+    // 情報通知を表示（控えめに）
+    if (window.adminToast) {
+      window.adminToast(message, 'info');
     }
   }
 
@@ -2456,6 +2714,65 @@ export class AdminActionService {
     } catch (error) {
       console.error('❌ 記事複製エラー:', error);
       this.#showFeedback('記事の複製中にエラーが発生しました', 'error');
+    }
+  }
+
+  /**
+   * 通知モードを切り替え
+   */
+  toggleNotificationMode() {
+    try {
+      if (!this.uiManagerService) {
+        console.error('❌ UIManagerServiceが利用できません');
+        return;
+      }
+      
+      const currentMode = this.uiManagerService.getNotificationMode();
+      const newMode = !currentMode;
+      
+      this.uiManagerService.setNotificationMode(newMode);
+      
+      // UIの更新
+      this.#updateNotificationToggleUI(newMode);
+      
+      // フィードバック表示
+      const message = newMode ? 
+        '自動通知を有効にしました' : 
+        '通知をボタンアクション時のみに制限しました';
+      
+      // 設定変更の通知は常に表示
+      this.uiManagerService.showNotification('info', message, 3000, {
+        title: '通知設定',
+        icon: newMode ? '🔔' : '🔕'
+      });
+      
+      console.log(`🔔 通知モード変更: ${newMode ? '自動通知有効' : 'ボタンアクションのみ'}`);
+      
+    } catch (error) {
+      console.error('❌ 通知モード切り替えエラー:', error);
+    }
+  }
+
+  /**
+   * 通知トグルUIを更新
+   * @private
+   * @param {boolean} isEnabled - 自動通知が有効かどうか
+   */
+  #updateNotificationToggleUI(isEnabled) {
+    const toggleBtn = document.getElementById('notification-toggle');
+    if (toggleBtn) {
+      const icon = toggleBtn.querySelector('i');
+      const text = toggleBtn.querySelector('.toggle-text');
+      
+      if (isEnabled) {
+        toggleBtn.classList.add('active');
+        if (icon) icon.className = 'fas fa-bell';
+        if (text) text.textContent = '通知ON';
+      } else {
+        toggleBtn.classList.remove('active');
+        if (icon) icon.className = 'fas fa-bell-slash';
+        if (text) text.textContent = '通知OFF';
+      }
     }
   }
 }
