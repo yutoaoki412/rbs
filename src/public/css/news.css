@@ -661,17 +661,6 @@ main {
   background: none;
 }
 
-.btn-primary {
-  background: var(--primary-blue);
-  color: white;
-}
-
-.btn-primary:hover {
-  background: var(--primary-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.3);
-}
-
 .btn-secondary {
   background: var(--gray-medium);
   color: white;

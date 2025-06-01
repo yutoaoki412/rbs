@@ -896,7 +896,6 @@ main {
 
 /* ボタンスタイル統一 */
 .btn {
-  border: none;
   padding: 12px 24px;
   border-radius: 6px;
   font-weight: 600;
@@ -908,10 +907,7 @@ main {
   text-align: center;
 }
 
-.btn-primary {
-  background: var(--primary-blue);
-  color: white;
-}
+/* btn-primaryはcomponents.cssで統一管理 */
 
 .btn-secondary {
   background: var(--gray-light);
@@ -934,9 +930,7 @@ main {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.btn-primary:hover {
-  background: var(--primary-dark);
-}
+/* btn-primary:hoverもcomponents.cssで統一管理 */
 
 .btn-secondary:hover {
   background: var(--gray-medium);

@@ -141,25 +141,26 @@
   display: none !important;
 }
 
-/* ボタン */
+/* ボタン - 統一デザイン */
 .btn-primary {
   display: inline-block;
-  padding: var(--spacing-md) 60px;
-  background: var(--primary-orange);
+  padding: 18px 45px; /* 要求されたサイズ */
+  background: var(--primary-orange); /* オレンジ色に変更 */
   color: var(--white);
   text-decoration: none;
   border-radius: var(--radius-full);
-  font-size: 22px;
+  font-size: 18px; /* 要求されたサイズ */
   font-weight: var(--font-weight-heavy);
   transition: var(--transition-slow);
   box-shadow: 
-    0 15px 35px rgba(245, 167, 35, 0.4),
-    0 8px 20px rgba(0, 0, 0, 0.15);
+    0 12px 28px rgba(245, 167, 35, 0.4), /* オレンジ系シャドウ */
+    0 6px 16px rgba(0, 0, 0, 0.15);
   position: relative;
   border: 2px solid rgba(255, 255, 255, 0.3);
   letter-spacing: 0.5px;
   overflow: hidden;
   cursor: pointer;
+  border: none; /* ボーダーをリセット */
 }
 
 .btn-primary::before {
@@ -174,10 +175,11 @@
 }
 
 .btn-primary:hover {
-  transform: translateY(-5px) scale(1.05);
+  transform: translateY(-3px) scale(1.02);
+  background: #e6941f; /* より濃いオレンジ */
   box-shadow: 
-    0 25px 50px rgba(245, 167, 35, 0.5),
-    0 15px 30px rgba(0, 0, 0, 0.2);
+    0 18px 35px rgba(245, 167, 35, 0.5),
+    0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
 .btn-primary:hover::before {
@@ -185,7 +187,7 @@
 }
 
 .btn-primary:active {
-  transform: translateY(-2px) scale(1.02);
+  transform: translateY(-1px) scale(1.01);
 }
 
 /* カード */
