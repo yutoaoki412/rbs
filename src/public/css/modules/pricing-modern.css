@@ -1,0 +1,599 @@
+/* ==========================================================================
+   Pricing Module - 料金プラン（モダンアーキテクチャ版）
+   ========================================================================== */
+
+/* =================================
+   プライシングセクション
+   ================================= */
+
+.pricing-section {
+  background: var(--gray-light);
+  position: relative;
+  overflow: hidden;
+}
+
+.pricing-section::before {
+  content: '';
+  position: absolute;
+  top: -15%;
+  right: -15%;
+  width: 400px;
+  height: 400px;
+  background: var(--primary-orange);
+  border-radius: var(--radius-full);
+  opacity: 0.06;
+  animation: float 20s ease-in-out infinite;
+}
+
+.pricing-section::after {
+  content: '';
+  position: absolute;
+  bottom: -20%;
+  left: -10%;
+  width: 300px;
+  height: 300px;
+  background: var(--primary-teal);
+  border-radius: var(--radius-full);
+  opacity: 0.08;
+  animation: float 15s ease-in-out infinite reverse;
+}
+
+/* =================================
+   プライシングテーブル
+   ================================= */
+
+.pricing-tables {
+  position: relative;
+  z-index: 2;
+}
+
+.pricing-grid {
+  display: grid;
+  gap: var(--space-8);
+  grid-template-columns: 1fr;
+  margin-bottom: var(--space-10);
+}
+
+/* =================================
+   プライシングカード
+   ================================= */
+
+.pricing-card {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition: var(--transition-slow);
+  position: relative;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+.pricing-card::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: var(--radius-xl);
+  z-index: -1;
+}
+
+.pricing-card:nth-child(1)::before {
+  background: var(--primary-teal);
+}
+
+.pricing-card:nth-child(2)::before {
+  background: var(--primary-orange);
+}
+
+.pricing-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: var(--shadow-elevated);
+}
+
+/* =================================
+   プライシングヘッダー
+   ================================= */
+
+.pricing-header {
+  padding: var(--space-6) var(--space-8);
+  text-align: center;
+  color: var(--white);
+  position: relative;
+  overflow: hidden;
+}
+
+.pricing-card:nth-child(1) .pricing-header {
+  background: var(--primary-teal);
+}
+
+.pricing-card:nth-child(2) .pricing-header {
+  background: var(--primary-orange);
+}
+
+.pricing-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: shimmer 4s infinite;
+}
+
+.pricing-title {
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--space-2);
+  font-weight: var(--font-weight-extrabold);
+  position: relative;
+  z-index: 2;
+}
+
+.pricing-subtitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  opacity: 0.95;
+  position: relative;
+  z-index: 2;
+  margin: 0;
+}
+
+/* =================================
+   プライシングボディ
+   ================================= */
+
+.pricing-body {
+  padding: var(--space-6) var(--space-8);
+  background: var(--white);
+}
+
+.pricing-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* =================================
+   プライシングアイテム
+   ================================= */
+
+.pricing-item {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  padding: var(--space-4);
+  background: var(--gray-light);
+  border-radius: var(--radius-lg);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+  transition: var(--transition-normal);
+  gap: var(--space-2);
+}
+
+.pricing-item::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: var(--primary-blue);
+  border-radius: var(--radius-lg);
+  z-index: -1;
+  opacity: 0.3;
+}
+
+.pricing-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.pricing-label {
+  color: var(--gray-medium);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-snug);
+  margin: 0;
+}
+
+.pricing-amount {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--primary-blue);
+  margin: 0;
+}
+
+.pricing-amount-small {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--gray-medium);
+}
+
+/* =================================
+   初期費用セクション
+   ================================= */
+
+.entry-fees {
+  background: var(--white);
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  text-align: center;
+  border: 4px solid transparent;
+  background-clip: padding-box;
+  box-shadow: var(--shadow-elevated);
+  position: relative;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.entry-fees::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  background: var(--primary-orange);
+  border-radius: var(--radius-xl);
+  z-index: -1;
+}
+
+.entry-fees-title {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-4);
+  color: var(--navy-dark);
+  font-weight: var(--font-weight-extrabold);
+  position: relative;
+}
+
+.entry-fees-title::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 2px;
+  background: var(--primary-orange);
+  border-radius: 2px;
+}
+
+/* =================================
+   費用アイテム
+   ================================= */
+
+.fee-items-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0 auto;
+}
+
+.fee-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  background: var(--gray-light);
+  border-radius: var(--radius-lg);
+  transition: var(--transition-normal);
+  flex: 1;
+}
+
+.fee-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.fee-label {
+  color: var(--gray-medium);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-xs);
+  margin: 0;
+}
+
+.fee-amount {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--primary-orange);
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* =================================
+   レスポンシブデザイン
+   ================================= */
+
+/* タブレット以上 */
+@media (min-width: 768px) {
+  .pricing-section {
+    padding: var(--space-20) 0;
+  }
+
+  .pricing-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-10);
+    margin-bottom: var(--space-16);
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .pricing-card {
+    border-radius: var(--radius-2xl);
+  }
+
+  .pricing-card::before {
+    border-radius: var(--radius-2xl);
+  }
+
+  .pricing-header {
+    padding: var(--space-8) var(--space-10);
+  }
+
+  .pricing-title {
+    font-size: var(--font-size-4xl);
+    margin-bottom: var(--space-3);
+  }
+
+  .pricing-subtitle {
+    font-size: var(--font-size-base);
+  }
+
+  .pricing-body {
+    padding: var(--space-8) var(--space-10);
+  }
+
+  .pricing-item {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    padding: var(--space-5);
+    border-radius: var(--radius-xl);
+    gap: var(--space-5);
+  }
+
+  .pricing-item::before {
+    border-radius: var(--radius-xl);
+  }
+
+  .pricing-label {
+    font-size: var(--font-size-base);
+    white-space: nowrap;
+  }
+
+  .pricing-amount {
+    font-size: var(--font-size-4xl);
+    white-space: nowrap;
+  }
+
+  .pricing-amount-small {
+    font-size: var(--font-size-lg);
+  }
+
+  .fee-items-container {
+    flex-direction: row;
+    gap: var(--space-4);
+    max-width: 100%;
+  }
+
+  .entry-fees {
+    padding: var(--space-8);
+    border-radius: var(--radius-2xl);
+    max-width: 1000px;
+  }
+
+  .entry-fees::before {
+    border-radius: var(--radius-2xl);
+  }
+
+  .entry-fees-title {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-6);
+  }
+
+  .entry-fees-title::after {
+    width: 50px;
+    height: 2px;
+  }
+
+  .fee-item {
+    padding: var(--space-4) var(--space-6);
+    border-radius: var(--radius-xl);
+    min-width: 0;
+    flex: 1;
+  }
+
+  .fee-label {
+    font-size: var(--font-size-sm);
+  }
+
+  .fee-amount {
+    font-size: var(--font-size-3xl);
+  }
+}
+
+/* デスクトップ以上 */
+@media (min-width: 1200px) {
+  .pricing-section {
+    padding: var(--space-24) 0;
+  }
+
+  .pricing-grid {
+    max-width: 1100px;
+  }
+
+  .pricing-card {
+    border-radius: var(--radius-3xl);
+  }
+
+  .pricing-card::before {
+    border-radius: var(--radius-3xl);
+  }
+
+  .pricing-title {
+    font-size: var(--font-size-5xl);
+  }
+
+  .pricing-subtitle {
+    font-size: var(--font-size-lg);
+  }
+
+  .fee-items-container {
+    gap: var(--space-5);
+  }
+
+  .entry-fees {
+    max-width: 1100px;
+    border-radius: var(--radius-3xl);
+  }
+
+  .entry-fees::before {
+    border-radius: var(--radius-3xl);
+  }
+
+  .fee-item {
+    padding: var(--space-6) var(--space-12);
+  }
+}
+
+/* モバイル調整 */
+@media (max-width: 480px) {
+  .pricing-section {
+    padding: var(--space-12) 0;
+  }
+
+  .pricing-grid {
+    gap: var(--space-6);
+    margin-bottom: var(--space-10);
+  }
+
+  .pricing-card {
+    border-radius: var(--radius-lg);
+  }
+
+  .pricing-card::before {
+    border-radius: var(--radius-lg);
+  }
+
+  .pricing-header {
+    padding: var(--space-6) var(--space-5);
+  }
+
+  .pricing-title {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--space-2);
+  }
+
+  .pricing-subtitle {
+    font-size: var(--font-size-xs);
+  }
+
+  .pricing-body {
+    padding: var(--space-6) var(--space-5);
+  }
+
+  .pricing-item {
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+    border-radius: var(--radius-md);
+    gap: var(--space-2);
+  }
+
+  .pricing-item::before {
+    border-radius: var(--radius-md);
+  }
+
+  .pricing-label {
+    font-size: var(--font-size-sm);
+  }
+
+  .pricing-amount {
+    font-size: var(--font-size-3xl);
+  }
+
+  .pricing-amount-small {
+    font-size: var(--font-size-sm);
+  }
+
+  .entry-fees {
+    padding: var(--space-10) var(--space-5);
+    border-radius: var(--radius-lg);
+  }
+
+  .entry-fees::before {
+    border-radius: var(--radius-lg);
+  }
+
+  .entry-fees-title {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--space-5);
+  }
+
+  .entry-fees-title::after {
+    width: 45px;
+    height: 2px;
+  }
+
+  .fee-item {
+    padding: var(--space-4) var(--space-4);
+    margin-bottom: var(--space-4);
+    border-radius: var(--radius-md);
+  }
+
+  .fee-label {
+    font-size: var(--font-size-xs);
+  }
+
+  .fee-amount {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+/* =================================
+   アニメーション
+   ================================= */
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+/* =================================
+   アクセシビリティ対応
+   ================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .pricing-card,
+  .pricing-header::before,
+  .pricing-section::before,
+  .pricing-section::after {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* 高コントラスト対応 */
+@media (prefers-contrast: high) {
+  .pricing-card {
+    border-width: 4px;
+  }
+  
+  .entry-fees {
+    border-width: 5px;
+  }
+  
+  .pricing-item,
+  .fee-item {
+    border: 2px solid var(--gray-medium);
+  }
+} 

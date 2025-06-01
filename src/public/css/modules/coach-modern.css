@@ -1,0 +1,470 @@
+/* ==========================================================================
+   Coach Section - モダンコーチ紹介スタイル
+   Design Tokens、レスポンシブブレークポイント、アクセシビリティ準拠
+   ========================================================================== */
+
+/* コーチセクション全体 */
+.coach-section {
+  background: var(--surface-light);
+  padding: var(--section-padding-y) 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.coach-section::before {
+  content: '';
+  position: absolute;
+  top: 15%;
+  right: -5%;
+  width: clamp(200px, 20vw, 300px);
+  height: clamp(200px, 20vw, 300px);
+  background: var(--primary-teal);
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+  opacity: 0.06;
+  animation: morphing 12s ease-in-out infinite;
+}
+
+/* コーチコンテナー */
+.coach-container {
+  position: relative;
+  z-index: 2;
+}
+
+/* コーチカード */
+.coach-card {
+  background: var(--surface-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-16) var(--space-12);
+  box-shadow: var(--shadow-lg);
+  border: 2px solid transparent;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.coach-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, var(--primary-teal), var(--primary-blue));
+  border-radius: var(--radius-xl);
+  z-index: -1;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.coach-card:hover {
+  transform: translateY(-var(--space-2));
+  box-shadow: var(--shadow-xl);
+}
+
+.coach-card:hover::before {
+  opacity: 0.1;
+}
+
+/* コーチレイアウト */
+.coach-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-12);
+}
+
+/* コーチ写真エリア */
+.coach-photo-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  flex-shrink: 0;
+}
+
+.coach-photo {
+  width: clamp(180px, 15vw, 240px);
+  height: clamp(180px, 15vw, 240px);
+  background: url('../assets/images/coach-portrait.png') center/cover;
+  border-radius: 50%;
+  border: 6px solid var(--surface-primary);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.coach-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+/* コーチバッジ */
+.coach-badge {
+  background: var(--primary-teal);
+  color: var(--surface-primary);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  box-shadow: 0 4px 15px var(--primary-teal-light);
+  white-space: nowrap;
+}
+
+/* コーチ情報エリア */
+.coach-info {
+  text-align: center;
+  width: 100%;
+}
+
+.coach-name {
+  color: var(--text-primary);
+  font-size: var(--text-3xl);
+  font-weight: var(--font-weight-heavy);
+  margin-bottom: var(--space-3);
+  line-height: var(--leading-tight);
+}
+
+.coach-title {
+  color: var(--primary-blue);
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-8);
+  padding: var(--space-3) var(--space-6);
+  background: var(--primary-blue-lighter);
+  border-radius: var(--radius-lg);
+  display: inline-block;
+}
+
+/* コーチ詳細セクション */
+.coach-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  text-align: left;
+}
+
+.coach-detail-item {
+  background: var(--surface-light);
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--primary-teal);
+  transition: all var(--transition-normal);
+}
+
+.coach-detail-item:hover {
+  transform: translateX(var(--space-1));
+  box-shadow: var(--shadow-md);
+}
+
+.coach-detail-item:nth-child(2) {
+  border-left-color: var(--primary-blue);
+}
+
+.coach-detail-item:nth-child(3) {
+  border-left-color: var(--primary-orange);
+}
+
+.coach-detail-item:nth-child(4) {
+  border-left-color: var(--secondary-yellow);
+}
+
+.coach-detail-item h4 {
+  color: var(--text-primary);
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.coach-detail-item h4::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.coach-detail-item p {
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+
+.coach-detail-item ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.coach-detail-item li {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+  position: relative;
+  padding-left: var(--space-6);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+}
+
+.coach-detail-item li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--primary-teal);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--text-sm);
+}
+
+/* コーチからのメッセージ */
+.coach-message {
+  background: var(--surface-primary);
+  border: 3px solid var(--primary-blue);
+  padding: var(--space-12) var(--space-8);
+  border-radius: var(--radius-xl);
+  margin-top: var(--space-16);
+  text-align: center;
+  position: relative;
+  box-shadow: 0 8px 30px var(--primary-blue-lighter);
+}
+
+.coach-message::before {
+  content: '"';
+  position: absolute;
+  top: calc(-1 * var(--space-3));
+  left: var(--space-8);
+  font-size: clamp(48px, 5vw, 60px);
+  color: var(--primary-blue);
+  font-family: serif;
+  line-height: 1;
+}
+
+.coach-message-title {
+  color: var(--text-primary);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-6);
+  position: relative;
+}
+
+.coach-message-title::after {
+  content: '';
+  position: absolute;
+  bottom: calc(-1 * var(--space-3));
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: var(--primary-teal);
+  border-radius: var(--radius-sm);
+}
+
+.coach-message-content {
+  color: var(--text-secondary);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+
+.coach-message-content strong {
+  color: var(--primary-blue);
+  font-weight: var(--font-weight-bold);
+}
+
+/* レスポンシブデザイン */
+@media (min-width: 768px) {
+  .coach-section {
+    padding: var(--section-padding-y-lg) 0;
+  }
+
+  .coach-card {
+    padding: var(--space-20) var(--space-16);
+  }
+
+  .coach-layout {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--space-16);
+  }
+
+  .coach-photo-area {
+    max-width: 280px;
+  }
+
+  .coach-info {
+    flex: 1;
+    text-align: left;
+  }
+
+  .coach-name {
+    font-size: var(--text-4xl);
+  }
+
+  .coach-title {
+    font-size: var(--text-xl);
+    text-align: left;
+    display: block;
+  }
+
+  .coach-detail-item h4 {
+    font-size: var(--text-2xl);
+  }
+
+  .coach-detail-item p,
+  .coach-detail-item li {
+    font-size: var(--text-lg);
+  }
+
+  .coach-message {
+    padding: var(--space-16) var(--space-12);
+  }
+
+  .coach-message-title {
+    font-size: var(--text-3xl);
+  }
+
+  .coach-message-content {
+    font-size: var(--text-xl);
+  }
+}
+
+@media (min-width: 1200px) {
+  .coach-section {
+    padding: var(--section-padding-y-xl) 0;
+  }
+
+  .coach-card {
+    padding: var(--space-24) var(--space-20);
+  }
+
+  .coach-info {
+    padding-left: var(--space-12);
+  }
+
+  .coach-name {
+    font-size: var(--text-5xl);
+  }
+
+  .coach-title {
+    font-size: var(--text-2xl);
+  }
+
+  .coach-message {
+    padding: var(--space-20) var(--space-16);
+  }
+
+  .coach-message-title {
+    font-size: var(--text-4xl);
+  }
+
+  .coach-message-content {
+    font-size: var(--text-2xl);
+  }
+}
+
+@media (max-width: 480px) {
+  .coach-section {
+    padding: var(--section-padding-y-sm) 0;
+  }
+
+  .coach-card {
+    padding: var(--space-8) var(--space-6);
+  }
+
+  .coach-badge {
+    font-size: var(--text-xs);
+    padding: var(--space-2) var(--space-4);
+  }
+
+  .coach-name {
+    font-size: var(--text-2xl);
+  }
+
+  .coach-title {
+    font-size: var(--text-base);
+  }
+
+  .coach-detail-item {
+    padding: var(--space-6);
+  }
+
+  .coach-detail-item h4 {
+    font-size: var(--text-lg);
+  }
+
+  .coach-detail-item p,
+  .coach-detail-item li {
+    font-size: var(--text-sm);
+  }
+
+  .coach-message {
+    padding: var(--space-8) var(--space-6);
+  }
+
+  .coach-message-title {
+    font-size: var(--text-xl);
+  }
+
+  .coach-message-content {
+    font-size: var(--text-base);
+  }
+}
+
+/* アニメーション */
+@keyframes morphing {
+  0%, 100% {
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    transform: rotate(0deg);
+  }
+  25% {
+    border-radius: 58% 42% 75% 25% / 76% 46% 54% 24%;
+    transform: rotate(90deg);
+  }
+  50% {
+    border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%;
+    transform: rotate(180deg);
+  }
+  75% {
+    border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%;
+    transform: rotate(270deg);
+  }
+}
+
+/* アクセシビリティ対応 */
+@media (prefers-reduced-motion: reduce) {
+  .coach-card,
+  .coach-detail-item,
+  .coach-section::before {
+    transition: none;
+    animation: none;
+  }
+  
+  .coach-card:hover,
+  .coach-detail-item:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .coach-photo {
+    border-width: 8px;
+    border-color: var(--text-primary);
+  }
+  
+  .coach-message {
+    border-width: 4px;
+    border-color: var(--text-primary);
+  }
+
+  .coach-detail-item {
+    border-left-width: 6px;
+  }
+}
+
+/* フォーカス管理 */
+.coach-card:focus-within {
+  outline: 2px solid var(--primary-blue);
+  outline-offset: 2px;
+} 

@@ -1,0 +1,650 @@
+/* ==========================================================================
+   Status Banner Module - 開催状況バナー（モダンアーキテクチャ版）
+   ========================================================================== */
+
+/* =================================
+   ステータスバナー基本構造
+   ================================= */
+
+.status-banner {
+  background: var(--primary-blue);
+  color: var(--white);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition-normal);
+  z-index: var(--z-sticky);
+  width: 100%;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  animation: slideInFromTop 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ヒーローセクションとの統合 */
+.hero-section + .status-banner {
+  margin-top: 0;
+  border-top: none;
+}
+
+.status-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.4) 25%, 
+    rgba(255, 255, 255, 0.6) 50%, 
+    rgba(255, 255, 255, 0.4) 75%, 
+    transparent 100%);
+  animation: shimmer 3s ease-in-out infinite;
+  opacity: 0.8;
+}
+
+/* =================================
+   状態管理
+   ================================= */
+
+.status-banner.loading {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.status-banner.loaded {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.status-banner.expanded .status-content {
+  max-height: 2000px;
+  opacity: 1;
+  visibility: visible;
+  padding: var(--space-6) 0 var(--space-8);
+}
+
+/* =================================
+   ステータスヘッダー
+   ================================= */
+
+.status-header {
+  padding: var(--space-5) 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  position: relative;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  min-height: 68px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.status-header:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.status-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex: 1;
+}
+
+/* =================================
+   ステータスドット
+   ================================= */
+
+.status-dot {
+  position: relative;
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.status-dot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: var(--status-scheduled);
+  border-radius: var(--radius-full);
+}
+
+.status-dot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--status-scheduled);
+  border-radius: var(--radius-full);
+  animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+}
+
+/* =================================
+   ステータステキスト
+   ================================= */
+
+.status-text {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--white);
+  margin: 0;
+}
+
+.status-indicator {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--white);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ステータス別カラー */
+.status-indicator.scheduled {
+  background: rgba(39, 174, 96, 0.2);
+  border-color: var(--status-scheduled);
+  color: var(--white);
+}
+
+.status-indicator.cancelled {
+  background: rgba(231, 76, 60, 0.2);
+  border-color: var(--status-cancelled);
+  color: var(--white);
+}
+
+.status-indicator.indoor {
+  background: rgba(243, 156, 18, 0.2);
+  border-color: var(--status-indoor);
+  color: var(--white);
+}
+
+.status-indicator.postponed {
+  background: rgba(52, 152, 219, 0.2);
+  border-color: var(--status-postponed);
+  color: var(--white);
+}
+
+.status-indicator.error {
+  background: rgba(231, 76, 60, 0.3);
+  border-color: var(--error);
+  color: var(--white);
+}
+
+/* =================================
+   トグルアイコン
+   ================================= */
+
+.toggle-icon {
+  font-size: var(--font-size-lg);
+  color: var(--white);
+  transition: var(--transition-normal);
+  margin-left: var(--space-3);
+  opacity: 0.8;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.status-banner.expanded .toggle-icon {
+  transform: rotate(180deg);
+  opacity: 1;
+}
+
+/* =================================
+   ステータスコンテンツ
+   ================================= */
+
+.status-content {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(5px);
+}
+
+.status-details {
+  padding: var(--space-6);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-details::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+}
+
+/* =================================
+   読み込み状態
+   ================================= */
+
+.loading-status {
+  text-align: center;
+  padding: var(--space-8);
+}
+
+.loading-status i {
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--space-4);
+  animation: spin 1s linear infinite;
+}
+
+.loading-status p {
+  font-size: var(--font-size-base);
+  opacity: 0.9;
+}
+
+/* =================================
+   ステータスメッセージ
+   ================================= */
+
+.status-message {
+  margin: var(--space-6) 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.status-message .message-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.status-message .message-content i {
+  font-size: var(--font-size-lg);
+  opacity: 0.9;
+}
+
+/* =================================
+   コースステータス
+   ================================= */
+
+.courses-status {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.course-item {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.course-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--status-scheduled);
+  border-radius: 0 var(--radius-base) var(--radius-base) 0;
+}
+
+.course-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.course-item:hover::before {
+  width: 6px;
+}
+
+.course-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-3);
+}
+
+.course-info h5 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--white);
+  margin: 0 0 var(--space-2) 0;
+  line-height: var(--line-height-tight);
+}
+
+.course-time {
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.8);
+  margin: var(--space-1) 0;
+}
+
+.time-slot strong {
+  color: var(--white);
+  font-weight: var(--font-weight-semibold);
+}
+
+.course-name {
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: var(--font-weight-medium);
+  margin-top: var(--space-2);
+}
+
+/* =================================
+   ステータスバッジ
+   ================================= */
+
+.status-badge {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+  border: 1px solid transparent;
+  backdrop-filter: blur(5px);
+  white-space: nowrap;
+}
+
+.status-badge.running {
+  background: rgba(46, 204, 113, 0.2);
+  color: var(--white);
+  border-color: var(--status-scheduled-light);
+}
+
+.status-badge.scheduled {
+  background: rgba(39, 174, 96, 0.2);
+  color: var(--white);
+  border-color: var(--status-scheduled);
+}
+
+.status-badge.cancelled {
+  background: rgba(231, 76, 60, 0.2);
+  color: var(--white);
+  border-color: var(--status-cancelled);
+}
+
+.status-badge.indoor {
+  background: rgba(243, 156, 18, 0.2);
+  color: var(--white);
+  border-color: var(--status-indoor);
+}
+
+.status-badge.postponed {
+  background: rgba(52, 152, 219, 0.2);
+  color: var(--white);
+  border-color: var(--status-postponed);
+}
+
+.status-badge.error {
+  background: rgba(231, 76, 60, 0.3);
+  color: var(--white);
+  border-color: var(--error);
+}
+
+/* =================================
+   ステータスフッター
+   ================================= */
+
+.status-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.last-updated {
+  font-weight: var(--font-weight-medium);
+}
+
+.update-note {
+  font-size: var(--font-size-xs);
+  opacity: 0.7;
+}
+
+/* =================================
+   エラー状態
+   ================================= */
+
+.error-status {
+  text-align: center;
+  padding: var(--space-8);
+  color: var(--white);
+}
+
+.error-status h4 {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-4);
+  color: var(--error);
+}
+
+.error-status p {
+  font-size: var(--font-size-base);
+  opacity: 0.9;
+}
+
+/* =================================
+   レスポンシブデザイン
+   ================================= */
+
+/* タブレット以下 */
+@media (max-width: 768px) {
+  .status-header {
+    padding: var(--space-4) 0;
+    min-height: 56px;
+  }
+
+  .status-info {
+    gap: var(--space-3);
+  }
+
+  .status-text {
+    font-size: var(--font-size-sm);
+  }
+
+  .status-indicator {
+    font-size: var(--font-size-sm);
+    padding: var(--space-1) var(--space-3);
+  }
+
+  .toggle-icon {
+    font-size: var(--font-size-base);
+    width: 20px;
+    height: 20px;
+  }
+
+  .status-details {
+    padding: var(--space-5);
+  }
+
+  .courses-status {
+    gap: var(--space-3);
+  }
+
+  .course-item {
+    padding: var(--space-3);
+  }
+
+  .course-info h5 {
+    font-size: var(--font-size-base);
+  }
+
+  .course-time {
+    font-size: var(--font-size-xs);
+  }
+
+  .time-slot strong {
+    font-size: var(--font-size-sm);
+  }
+
+  .status-badge {
+    padding: var(--space-1) var(--space-2);
+    font-size: 10px;
+  }
+
+  .status-footer {
+    flex-direction: column;
+    gap: var(--space-2);
+    text-align: center;
+  }
+}
+
+/* 小型モバイル */
+@media (max-width: 480px) {
+  .status-header {
+    padding: var(--space-3) 0;
+    min-height: 48px;
+  }
+
+  .status-info {
+    gap: var(--space-2);
+  }
+
+  .status-text {
+    font-size: var(--font-size-xs);
+  }
+
+  .status-indicator {
+    font-size: var(--font-size-xs);
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .toggle-icon {
+    font-size: var(--font-size-sm);
+    width: 18px;
+    height: 18px;
+  }
+
+  .status-details {
+    padding: var(--space-4);
+  }
+
+  .course-item {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .course-header {
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: flex-start;
+  }
+
+  .course-info h5 {
+    font-size: var(--font-size-sm);
+  }
+
+  .course-time {
+    font-size: 10px;
+  }
+
+  .time-slot strong {
+    font-size: var(--font-size-xs);
+  }
+
+  .course-name {
+    font-size: var(--font-size-xs);
+  }
+
+  .status-badge {
+    padding: var(--space-1);
+    font-size: 9px;
+  }
+}
+
+/* =================================
+   アニメーション
+   ================================= */
+
+@keyframes slideInFromTop {
+  0% {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(0.33);
+    opacity: 1;
+  }
+  80%, 100% {
+    transform: translate(-50%, -50%) scale(2.33);
+    opacity: 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =================================
+   アクセシビリティ対応
+   ================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .status-banner,
+  .status-banner::before,
+  .toggle-icon,
+  .course-item,
+  .status-dot::after,
+  .loading-status i {
+    animation: none;
+    transition: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .status-banner {
+    border: 3px solid var(--white);
+  }
+  
+  .course-item,
+  .status-message,
+  .status-badge {
+    border-width: 2px;
+  }
+} 

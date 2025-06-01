@@ -1,0 +1,467 @@
+/* ==========================================================================
+   Why Junior Section - モダンジュニア期おすすめ理由スタイル
+   Design Tokens、レスポンシブブレークポイント、アクセシビリティ準拠
+   ========================================================================== */
+
+/* ジュニア期セクション全体 */
+.why-junior-section {
+  background: var(--surface-primary);
+  padding: var(--section-padding-y) 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.why-junior-section::before {
+  content: '';
+  position: absolute;
+  top: 20%;
+  right: -5%;
+  width: clamp(200px, 18vw, 280px);
+  height: clamp(200px, 18vw, 280px);
+  background: var(--primary-teal);
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+  opacity: 0.08;
+  animation: morphing 8s ease-in-out infinite;
+}
+
+/* ジュニア期コンテンツコンテナー */
+.why-junior-container {
+  position: relative;
+  z-index: 2;
+}
+
+/* 理由リスト */
+.reasons-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+  margin-bottom: var(--space-16);
+}
+
+/* 理由アイテム */
+.reason-card {
+  background: var(--surface-primary);
+  padding: var(--space-8) var(--space-6);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  border: 2px solid transparent;
+}
+
+.reason-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: var(--radius-lg);
+  z-index: -1;
+  opacity: 0.15;
+  transition: opacity var(--transition-normal);
+}
+
+.reason-card:nth-child(1)::before {
+  background: var(--primary-blue);
+}
+
+.reason-card:nth-child(2)::before {
+  background: var(--primary-teal);
+}
+
+.reason-card:nth-child(3)::before {
+  background: var(--primary-orange);
+}
+
+.reason-card:nth-child(4)::before {
+  background: var(--primary-purple);
+}
+
+.reason-card:hover {
+  transform: translateY(-var(--space-1));
+  box-shadow: var(--shadow-lg);
+}
+
+.reason-card:hover::before {
+  opacity: 0.25;
+}
+
+/* 理由アイテムの左側アクセント */
+.reason-card::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+
+.reason-card:nth-child(1)::after {
+  background: var(--primary-blue);
+}
+
+.reason-card:nth-child(2)::after {
+  background: var(--primary-teal);
+}
+
+.reason-card:nth-child(3)::after {
+  background: var(--primary-orange);
+}
+
+.reason-card:nth-child(4)::after {
+  background: var(--primary-purple);
+}
+
+/* 理由コンテンツ */
+.reason-content {
+  position: relative;
+  z-index: 1;
+  padding-left: var(--space-4);
+}
+
+.reason-title {
+  color: var(--text-primary);
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-heavy);
+  margin-bottom: var(--space-4);
+  line-height: var(--leading-tight);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.reason-title::before {
+  content: counter(reason-counter);
+  counter-increment: reason-counter;
+  background: var(--primary-blue);
+  color: var(--surface-primary);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.reason-card:nth-child(2) .reason-title::before {
+  background: var(--primary-teal);
+}
+
+.reason-card:nth-child(3) .reason-title::before {
+  background: var(--primary-orange);
+}
+
+.reason-card:nth-child(4) .reason-title::before {
+  background: var(--primary-purple);
+}
+
+.reasons-grid {
+  counter-reset: reason-counter;
+}
+
+.reason-description {
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  font-weight: var(--font-weight-medium);
+  margin: 0;
+}
+
+.reason-description strong {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+/* 色付きテキストスタイル - ジュニア期専用 */
+.text-primary-blue {
+  color: var(--primary-blue);
+  font-weight: var(--font-weight-bold);
+}
+
+.text-success-teal {
+  color: var(--primary-teal);
+  font-weight: var(--font-weight-bold);
+}
+
+.text-highlight-yellow {
+  background: var(--secondary-yellow);
+  color: var(--text-primary);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.text-warning-orange {
+  color: var(--primary-orange);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ボトムメッセージ */
+.junior-cta-message {
+  text-align: center;
+  background: var(--primary-blue);
+  color: var(--surface-primary);
+  padding: var(--space-12) var(--space-6);
+  border-radius: var(--radius-xl);
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--leading-normal);
+  box-shadow: 0 12px 40px var(--primary-blue-light);
+  position: relative;
+  overflow: hidden;
+  margin-top: var(--space-12);
+}
+
+.junior-cta-message::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  animation: shimmer 6s infinite;
+}
+
+.junior-cta-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* レスポンシブデザイン */
+@media (min-width: 768px) {
+  .why-junior-section {
+    padding: var(--section-padding-y-lg) 0;
+  }
+
+  .why-junior-section::before {
+    width: clamp(250px, 20vw, 320px);
+    height: clamp(250px, 20vw, 320px);
+  }
+
+  .reasons-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-12);
+    margin-bottom: var(--space-20);
+  }
+
+  .reason-card {
+    padding: var(--space-10) var(--space-8);
+    border-radius: var(--radius-xl);
+  }
+
+  .reason-card::before {
+    border-radius: var(--radius-xl);
+  }
+
+  .reason-card::after {
+    width: 5px;
+    border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
+  }
+
+  .reason-content {
+    padding-left: var(--space-6);
+  }
+
+  .reason-title {
+    font-size: var(--text-2xl);
+    margin-bottom: var(--space-5);
+    gap: var(--space-4);
+  }
+
+  .reason-title::before {
+    width: 32px;
+    height: 32px;
+    font-size: var(--text-base);
+  }
+
+  .reason-description {
+    font-size: var(--text-lg);
+  }
+
+  .junior-cta-message {
+    padding: var(--space-16) var(--space-12);
+    border-radius: var(--radius-2xl);
+    font-size: var(--text-xl);
+    margin-top: var(--space-16);
+  }
+}
+
+@media (min-width: 1200px) {
+  .why-junior-section {
+    padding: var(--section-padding-y-xl) 0;
+  }
+
+  .reasons-grid {
+    gap: var(--space-16);
+    margin-bottom: var(--space-24);
+  }
+
+  .reason-card {
+    padding: var(--space-12) var(--space-10);
+    border-radius: var(--radius-2xl);
+  }
+
+  .reason-card::before {
+    border-radius: var(--radius-2xl);
+  }
+
+  .reason-card::after {
+    width: 6px;
+    border-radius: 0 var(--radius-2xl) var(--radius-2xl) 0;
+  }
+
+  .reason-content {
+    padding-left: var(--space-8);
+  }
+
+  .reason-title {
+    font-size: var(--text-3xl);
+    margin-bottom: var(--space-6);
+    gap: var(--space-5);
+  }
+
+  .reason-title::before {
+    width: 36px;
+    height: 36px;
+    font-size: var(--text-lg);
+  }
+
+  .reason-description {
+    font-size: var(--text-xl);
+  }
+
+  .junior-cta-message {
+    padding: var(--space-20) var(--space-16);
+    font-size: var(--text-2xl);
+    margin-top: var(--space-20);
+  }
+}
+
+@media (max-width: 480px) {
+  .why-junior-section {
+    padding: var(--section-padding-y-sm) 0;
+  }
+
+  .why-junior-section::before {
+    width: clamp(150px, 25vw, 200px);
+    height: clamp(150px, 25vw, 200px);
+  }
+
+  .reasons-grid {
+    gap: var(--space-6);
+    margin-bottom: var(--space-12);
+  }
+
+  .reason-card {
+    padding: var(--space-6) var(--space-4);
+    border-radius: var(--radius-md);
+  }
+
+  .reason-card::before {
+    border-radius: var(--radius-md);
+  }
+
+  .reason-card::after {
+    width: 3px;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  }
+
+  .reason-content {
+    padding-left: var(--space-3);
+  }
+
+  .reason-title {
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-3);
+    gap: var(--space-2);
+    line-height: var(--leading-normal);
+  }
+
+  .reason-title::before {
+    width: 24px;
+    height: 24px;
+    font-size: var(--text-xs);
+  }
+
+  .reason-description {
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+  }
+
+  .junior-cta-message {
+    padding: var(--space-8) var(--space-6);
+    border-radius: var(--radius-lg);
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+    margin-top: var(--space-10);
+  }
+}
+
+/* アニメーション */
+@keyframes morphing {
+  0%, 100% {
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    transform: rotate(0deg);
+  }
+  25% {
+    border-radius: 58% 42% 75% 25% / 76% 46% 54% 24%;
+    transform: rotate(90deg);
+  }
+  50% {
+    border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%;
+    transform: rotate(180deg);
+  }
+  75% {
+    border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%;
+    transform: rotate(270deg);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+/* アクセシビリティ対応 */
+@media (prefers-reduced-motion: reduce) {
+  .reason-card,
+  .junior-cta-message::before,
+  .why-junior-section::before {
+    transition: none;
+    animation: none;
+  }
+
+  .reason-card:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .reason-card {
+    border-width: 3px;
+    border-color: var(--text-primary);
+  }
+  
+  .reason-card::after {
+    width: 6px;
+  }
+  
+  .junior-cta-message {
+    border: 2px solid var(--surface-primary);
+  }
+}
+
+/* フォーカス管理 */
+.reason-card:focus-within {
+  outline: 2px solid var(--primary-blue);
+  outline-offset: 2px;
+} 

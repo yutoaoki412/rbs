@@ -1,0 +1,533 @@
+/* ==========================================================================
+   Location Section - モダン場所・アクセススタイル
+   Design Tokens、レスポンシブブレークポイント、アクセシビリティ準拠
+   ========================================================================== */
+
+/* ロケーションセクション全体 */
+.location-section {
+  background: var(--surface-light);
+  padding: var(--section-padding-y) 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.location-section::before {
+  content: '';
+  position: absolute;
+  top: 25%;
+  left: -8%;
+  width: clamp(180px, 15vw, 220px);
+  height: clamp(180px, 15vw, 220px);
+  background: var(--primary-blue);
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+  opacity: 0.05;
+  animation: morphing 14s ease-in-out infinite;
+}
+
+/* ロケーションコンテナー */
+.location-container {
+  position: relative;
+  z-index: 2;
+}
+
+/* ロケーションコンテンツレイアウト */
+.location-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-12);
+  align-items: start;
+}
+
+/* ロケーション情報 */
+.location-info {
+  background: var(--surface-primary);
+  padding: var(--space-10) var(--space-8);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  border: 2px solid transparent;
+}
+
+.location-info::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, var(--primary-teal), var(--primary-blue));
+  border-radius: var(--radius-xl);
+  z-index: -1;
+  opacity: 0.1;
+}
+
+.location-title {
+  color: var(--text-primary);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-heavy);
+  margin-bottom: var(--space-8);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.location-title::before {
+  content: '📍';
+  font-size: var(--text-xl);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* 情報項目 */
+.info-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin-bottom: var(--space-10);
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface-light);
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--primary-teal);
+  transition: all var(--transition-normal);
+}
+
+.info-item:hover {
+  transform: translateX(var(--space-1));
+  box-shadow: var(--shadow-md);
+}
+
+.info-item::before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  border-radius: var(--radius-sm);
+  background-color: var(--primary-teal);
+  mask-size: 60%;
+  mask-repeat: no-repeat;
+  mask-position: center;
+}
+
+.info-item:first-of-type::before {
+  mask-image: url("data:image/svg+xml,%3Csvg fill='currentColor' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' d='M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z' clip-rule='evenodd'%3E%3C/path%3E%3C/svg%3E");
+  background-color: var(--primary-teal);
+}
+
+.info-item:nth-of-type(2)::before {
+  mask-image: url("data:image/svg+xml,%3Csvg fill='currentColor' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' d='M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z' clip-rule='evenodd'%3E%3C/path%3E%3C/svg%3E");
+  background-color: var(--primary-blue);
+}
+
+.info-item:nth-of-type(3)::before {
+  mask-image: url("data:image/svg+xml,%3Csvg fill='currentColor' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z' clip-rule='evenodd'%3E%3C/path%3E%3C/svg%3E");
+  background-color: var(--primary-orange);
+}
+
+.info-content {
+  flex: 1;
+}
+
+.info-label {
+  color: var(--text-primary);
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-2);
+  display: block;
+}
+
+.info-value {
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  font-weight: var(--font-weight-medium);
+}
+
+/* コーススケジュール */
+.course-schedule {
+  background: var(--surface-primary);
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--primary-blue);
+  position: relative;
+}
+
+.course-schedule::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-blue), var(--primary-teal));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.schedule-title {
+  color: var(--text-primary);
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.schedule-title::before {
+  content: '🏃‍♂️';
+  font-size: var(--text-lg);
+}
+
+/* コース項目リスト */
+.course-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.course-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-light);
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--primary-blue);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.course-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--primary-blue);
+  transition: width var(--transition-normal);
+}
+
+.course-item:hover {
+  transform: translateX(var(--space-1));
+  box-shadow: var(--shadow-md);
+}
+
+.course-item:hover::before {
+  width: 8px;
+}
+
+.course-name {
+  color: var(--text-primary);
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-bold);
+  flex: 1;
+}
+
+.course-time {
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+/* マップラッパー */
+.map-wrapper {
+  background: var(--surface-primary);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  border: 2px solid var(--border-light);
+  position: relative;
+  aspect-ratio: 16 / 10;
+  min-height: 300px;
+}
+
+.map-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--primary-teal), var(--primary-blue), var(--primary-orange));
+  z-index: 10;
+}
+
+.map-wrapper iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}
+
+.map-wrapper::after {
+  content: '地図を読み込み中...';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--text-secondary);
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-medium);
+  z-index: 5;
+}
+
+/* マップが読み込まれた後は擬似要素を非表示 */
+.map-wrapper:not(:has(iframe[src*="maps"])) iframe,
+.map-wrapper:has(iframe[src*="maps"])::after {
+  display: none;
+}
+
+.map-wrapper:not(:has(iframe[src*="maps"]))::after,
+.map-wrapper:has(iframe[src*="maps"]) iframe {
+  display: block;
+}
+
+/* レスポンシブデザイン */
+@media (min-width: 768px) {
+  .location-section {
+    padding: var(--section-padding-y-lg) 0;
+  }
+
+  .location-layout {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-16);
+    align-items: start;
+  }
+
+  .location-info {
+    padding: var(--space-12) var(--space-10);
+  }
+
+  .location-title {
+    font-size: var(--text-3xl);
+    margin-bottom: var(--space-10);
+    gap: var(--space-4);
+  }
+
+  .location-title::before {
+    font-size: var(--text-2xl);
+  }
+
+  .info-items {
+    gap: var(--space-8);
+    margin-bottom: var(--space-12);
+  }
+
+  .info-item {
+    padding: var(--space-6);
+    gap: var(--space-5);
+  }
+
+  .info-item::before {
+    width: 24px;
+    height: 24px;
+  }
+
+  .info-label {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-3);
+  }
+
+  .info-value {
+    font-size: var(--text-lg);
+  }
+
+  .course-schedule {
+    padding: var(--space-10);
+  }
+
+  .schedule-title {
+    font-size: var(--text-2xl);
+    margin-bottom: var(--space-8);
+    gap: var(--space-4);
+  }
+
+  .schedule-title::before {
+    font-size: var(--text-xl);
+  }
+
+  .course-items {
+    gap: var(--space-5);
+  }
+
+  .course-item {
+    padding: var(--space-5) var(--space-6);
+  }
+
+  .course-name {
+    font-size: var(--text-xl);
+  }
+
+  .course-time {
+    font-size: var(--text-lg);
+  }
+
+  .map-wrapper {
+    aspect-ratio: 16 / 12;
+    min-height: 400px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .location-section {
+    padding: var(--section-padding-y-xl) 0;
+  }
+
+  .location-layout {
+    gap: var(--space-20);
+  }
+
+  .location-info {
+    padding: var(--space-16) var(--space-12);
+  }
+
+  .location-title {
+    font-size: var(--text-4xl);
+  }
+
+  .map-wrapper {
+    min-height: 450px;
+  }
+}
+
+@media (max-width: 480px) {
+  .location-section {
+    padding: var(--section-padding-y-sm) 0;
+  }
+
+  .location-layout {
+    gap: var(--space-8);
+  }
+
+  .location-info {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .location-title {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-6);
+    gap: var(--space-2);
+  }
+
+  .info-items {
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+  }
+
+  .info-item {
+    padding: var(--space-3);
+    gap: var(--space-3);
+  }
+
+  .info-item::before {
+    width: 16px;
+    height: 16px;
+  }
+
+  .info-label {
+    font-size: var(--text-base);
+    margin-bottom: var(--space-1);
+  }
+
+  .info-value {
+    font-size: var(--text-sm);
+  }
+
+  .course-schedule {
+    padding: var(--space-5);
+  }
+
+  .schedule-title {
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-4);
+    gap: var(--space-2);
+  }
+
+  .course-items {
+    gap: var(--space-3);
+  }
+
+  .course-item {
+    padding: var(--space-3) var(--space-4);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .course-name {
+    font-size: var(--text-base);
+  }
+
+  .course-time {
+    font-size: var(--text-sm);
+  }
+
+  .map-wrapper {
+    aspect-ratio: 16 / 14;
+    min-height: 250px;
+  }
+}
+
+/* アニメーション */
+@keyframes morphing {
+  0%, 100% {
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    transform: rotate(0deg);
+  }
+  25% {
+    border-radius: 58% 42% 75% 25% / 76% 46% 54% 24%;
+    transform: rotate(90deg);
+  }
+  50% {
+    border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%;
+    transform: rotate(180deg);
+  }
+  75% {
+    border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%;
+    transform: rotate(270deg);
+  }
+}
+
+/* アクセシビリティ対応 */
+@media (prefers-reduced-motion: reduce) {
+  .info-item,
+  .course-item,
+  .location-section::before {
+    transition: none;
+    animation: none;
+  }
+
+  .info-item:hover,
+  .course-item:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .location-info,
+  .course-schedule,
+  .map-wrapper {
+    border-width: 3px;
+    border-color: var(--text-primary);
+  }
+
+  .info-item,
+  .course-item {
+    border-left-width: 6px;
+  }
+}
+
+/* フォーカス管理 */
+.info-item:focus-within,
+.course-item:focus-within {
+  outline: 2px solid var(--primary-blue);
+  outline-offset: 2px;
+} 

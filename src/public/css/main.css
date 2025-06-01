@@ -1,0 +1,64 @@
+/* Main CSS - RBS陸上教室 統合エントリーポイント */
+
+/* =====================================
+   基盤システム - UIの基本土台
+   ===================================== */
+/* ベーススタイル - リセット、CSS変数、基本タイポグラフィ */
+@import url('./base.css');
+
+/* 共通スタイル - ヘッダー、フッター、ボタンなど */
+@import url('./common.css');
+
+/* レイアウトシステム - セクション、コンテナ等 */
+@import url('./layout.css');
+
+/* UIコンポーネント - カード、フォーム、アニメーションなど */
+@import url('./components.css');
+
+/* レスポンシブシステム - モバイル・タブレット対応 */
+@import url('./responsive.css');
+
+/* =====================================
+   ページ固有スタイル - レガシー互換性維持
+   ===================================== */
+/* セクション別スタイル（元のUI維持） */
+@import url('./features.css');
+@import url('./why-junior.css');
+@import url('./program.css');
+@import url('./coach.css');
+@import url('./location.css');
+@import url('./pricing.css');
+@import url('./status-banner.css');
+@import url('./news.css');
+@import url('./news-detail.css');
+@import url('./login.css');
+@import url('./admin.css');
+
+/* =====================================
+   モダンアーキテクチャ - 新設計システム
+   ===================================== */
+/* Design Tokens - デザインシステム統一 */
+@import url('./tokens/design-tokens.css');
+
+/* Utilities - レスポンシブ・ユーティリティ */
+@import url('./utilities/breakpoints.css');
+
+/* UI Components - 新コンポーネントライブラリ */
+@import url('./components/ui-components.css');
+
+/* =====================================
+   機能別モジュール - 各セクション専用スタイル
+   ===================================== */
+@import url('./modules/layout-modern.css');
+@import url('./modules/header-modern.css');
+@import url('./modules/features-modern.css');
+@import url('./modules/status-banner-modern.css');
+@import url('./modules/faq-modern.css');
+@import url('./modules/news-modern.css');
+@import url('./modules/pricing-modern.css');
+@import url('./modules/coach-modern.css');
+@import url('./modules/program-modern.css');
+@import url('./modules/why-junior-modern.css');
+@import url('./modules/location-modern.css');
+@import url('./modules/login-modern.css');
+@import url('./modules/admin-modern.css');
