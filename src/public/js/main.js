@@ -55,16 +55,14 @@ function preInitializeStatusBanner() {
     
     if (statusBanners.length > 0) {
       statusBanners.forEach(banner => {
-        // 必要なクラスを追加
+        // 必要なクラスを追加（CSSで定義されたスタイルを適用）
         banner.classList.add('status-banner');
         banner.classList.remove('status-banner-hidden');
         banner.classList.add('status-banner-visible');
         
-        // 基本的なスタイルを確保（フォールバック）
-        banner.style.display = 'block';
-        banner.style.visibility = 'visible';
-        banner.style.opacity = '1';
-        banner.style.transform = 'translateY(0)';
+        // ヒーローセクションとの隙間を完全に削除
+        banner.style.marginTop = '0';
+        banner.style.marginBottom = '0';
         
         console.log('✅ ステータスバナー表示確保:', banner.id || banner.className);
       });
@@ -93,6 +91,10 @@ function preInitializeStatusBanner() {
 function ensureStatusBannerStructure() {
   const statusBanner = document.querySelector('#today-status');
   if (statusBanner && !statusBanner.querySelector('.container')) {
+    // ヒーローセクションとの隙間を完全に削除
+    statusBanner.style.marginTop = '0';
+    statusBanner.style.marginBottom = '0';
+    
     statusBanner.innerHTML = `
       <div class="container">
         <div class="status-header" data-action="toggle-status" style="cursor: pointer;" aria-expanded="false">
@@ -113,7 +115,7 @@ function ensureStatusBannerStructure() {
         </div>
       </div>
     `;
-    console.log('✅ ステータスバナー基本構造を設定しました');
+    console.log('✅ ステータスバナー基本構造を設定しました（隙間削除済み）');
   }
 }
 

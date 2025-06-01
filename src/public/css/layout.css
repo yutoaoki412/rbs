@@ -4,7 +4,7 @@
 
 /* ヒーローセクション */
 #hero {
-  padding: 180px 0 0;
+  padding: 40px 0 60px; /* 初期値：ヘッダーなしの状態でも適切な余白 */
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -12,10 +12,19 @@
   text-align: center;
   position: relative;
   width: 100%;
-  margin-bottom: 0;
+  margin-bottom: 0 !important; /* ステータスバナーとの隙間を強制削除 */
   overflow: hidden;
   background: var(--primary-blue);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: none; /* ステータスバナーとの統合感を高める */
+  /* 動的ヘッダーによるレイアウトシフトを防ぐ */
+  transition: padding-top 0.3s ease;
+}
+
+/* 動的ヘッダー読み込み後のヒーローセクション調整 */
+body.header-loaded #hero {
+  /* bodyのpadding-topを考慮して、ヒーローセクション自体の上部paddingは減らす */
+  padding-top: 40px;
+  min-height: calc(100vh - var(--header-height));
 }
 
 #hero-video {
@@ -42,10 +51,10 @@
 
 .hero-content {
   max-width: 900px;
-  margin: 0 auto;
+  margin: 20px auto;
   position: relative;
   z-index: 10;
-  padding: 60px 50px;
+  padding: 40px 50px 50px 50px;
   text-align: center;
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(20px);
@@ -105,19 +114,18 @@
 }
 
 .hero-cta {
-  margin-top: 70px;
+  margin-top: 30px;
 }
 
 .cta-message {
-  font-size: 24px;
-  margin-bottom: 40px;
-  font-weight: 800;
+  font-size: clamp(18px, 2.2vw, 24px);
   color: #1a202c;
   max-width: 700px;
   margin-left: auto;
   margin-right: auto;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: 800;
 }
 
 .cta-message strong {

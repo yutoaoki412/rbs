@@ -3,11 +3,11 @@
    ========================================================================== */
 
 /* ステータスバナー基本スタイル */
-.status-banner {
+.status-banner,
+#today-status {
   background: var(--primary-blue);
   color: white;
-  margin: 0;
-  margin-top: -2px; /* ヒーローセクションとの隙間を完全に除去 */
+  margin: 0 !important; /* 全ての余白を強制削除 */
   padding: 0;
   border-radius: 0;
   box-shadow: 0 4px 20px rgba(74, 144, 226, 0.25);
@@ -20,10 +20,10 @@
   transform: translateY(0);
   z-index: 50; /* ヒーローセクションより上、ヘッダーより下の階層に配置 */
   width: 100%;
-  /* ヒーローセクションとの統合を強化 */
+  /* ヒーローセクションとの統合を強化 - 隙間を完全に削除 */
   border-top: 2px solid rgba(255, 255, 255, 0.3); /* ヒーローセクションとの境界線 */
   border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-  scroll-margin-top: 78px; /* ヘッダー高さ考慮 */
+  scroll-margin-top: var(--header-height); /* ヘッダー高さ考慮 */
   
   /* ページ読み込み時のアニメーション */
   animation: slideInFromTop 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
@@ -114,18 +114,18 @@
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
-  background: rgba(255, 255, 255, 0.08); /* ヒーローとの自然な継続感 */
-  backdrop-filter: blur(15px);
+  background: rgba(255, 255, 255, 0.05); /* より控えめなガラス調の背景 */
+  backdrop-filter: blur(10px); /* ブラー効果を軽減 */
   min-height: 68px; /* 適切な高さでバランス調整 */
   border-radius: 0;
   z-index: 48; /* ステータスバナー内で適切な階層 */
   /* ヒーローからの自然な継続感 */
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1); /* より控えめなボーダー */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .status-header:hover {
-  background: rgba(255, 255, 255, 0.12); /* ホバー時の視覚的フィードバック */
+  background: rgba(255, 255, 255, 0.08); /* ホバー時の視覚的フィードバック */
 }
 
 /* ステータス情報エリア */
@@ -478,8 +478,11 @@
 
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
-  .status-banner {
-    margin-top: -1px; /* モバイルでのヒーロー統合 */
+  .status-banner,
+  #today-status {
+    /* モバイルでの追加最適化 */
+    box-shadow: 0 2px 12px rgba(74, 144, 226, 0.2);
+    margin-top: 0 !important; /* モバイルでも隙間を削除 */
   }
   
   .status-banner .container {
@@ -489,7 +492,7 @@
   .status-header {
     padding: 14px 0; /* モバイルでの適切なパディング */
     min-height: 58px; /* モバイルでのバランス */
-    background: rgba(255, 255, 255, 0.1); /* モバイルでの視認性向上 */
+    background: rgba(255, 255, 255, 0.05); /* デスクトップ版と一致させる */
   }
   
   .status-info {
@@ -537,16 +540,17 @@
 }
 
 @media (max-width: 480px) {
-  .status-banner {
+  .status-banner,
+  #today-status {
     /* モバイルでの追加最適化 */
     box-shadow: 0 2px 12px rgba(74, 144, 226, 0.2);
-    margin-top: -1px; /* 小画面でもヒーローとの統合感を維持 */
+    margin-top: 20px !important; /* 小画面でも適切な間隔を設定 */
   }
   
   .status-header {
     padding: 12px 0;
     min-height: 52px; /* 小画面での高さ調整 */
-    background: rgba(255, 255, 255, 0.12); /* 小画面での視認性 */
+    background: rgba(255, 255, 255, 0.05); /* デスクトップ版と一致させる */
   }
   
   .status-info {
@@ -599,17 +603,19 @@
 
 /* ヘッダー固定時の追加調整 */
 @media (max-width: 768px) {
-  body.header-fixed .status-banner {
+  body.header-fixed .status-banner,
+  body.header-fixed #today-status {
     /* モバイルでヘッダーが固定されている場合の調整 */
     position: relative;
     top: 0;
-    margin-top: -1px; /* モバイルでもヘッダーとの統合を維持 */
+    margin-top: 0 !important; /* モバイルでも隙間を完全に削除 */
   }
 }
 
 /* スムーズスクロール対応 - ヘッダー統合版 */
 @media (max-width: 768px) {
-  .status-banner {
+  .status-banner,
+  #today-status {
     scroll-margin-top: 58px; /* モバイルヘッダー統合版 */
   }
 } 

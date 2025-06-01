@@ -53,11 +53,9 @@ class HeaderComponent extends Component {
      */
     async init() {
         try {
-            await super.init();
+            this.log('初期化開始...');
             
-            this.log('HeaderComponent初期化開始');
-            
-            // DOM要素の取得（リトライ機能付き）
+            // DOM要素の検索（リトライ機能付き）
             await this.findElementsWithRetry();
             
             // イベントリスナーの設定
@@ -66,16 +64,38 @@ class HeaderComponent extends Component {
             // スクロール監視の開始
             this.startScrollWatching();
             
-            // セクション監視の開始
-            this.startSectionWatching();
+            // セクション監視の設定
+            this.setupSectionObserver();
             
-            this.log('HeaderComponent初期化完了');
+            this.isInitialized = true;
+            
+            this.log('初期化完了');
+            
+            // 初期化完了イベント発火
+            EventBus.emit('header:initialized', {
+                component: this,
+                container: this.container
+            });
+            
+            // DOM要素が確実に配置された後にheader-loadedクラスを追加
+            // レイアウトシフトを最小化するため少し遅延
+            setTimeout(() => {
+                document.body.classList.add('header-loaded');
+                this.debug('header-loadedクラス追加完了');
+            }, 100);
             
         } catch (error) {
-            this.error('HeaderComponent初期化エラー:', error);
+            this.error('初期化エラー:', error);
             
             // フォールバック処理
             this.setupFallbackMode();
+            
+            // エラー時でもbodyクラスは追加してレイアウト崩れを防ぐ
+            setTimeout(() => {
+                document.body.classList.add('header-loaded');
+                this.debug('フォールバック時にheader-loadedクラス追加');
+            }, 100);
+            
             throw error;
         }
     }
@@ -226,50 +246,58 @@ class HeaderComponent extends Component {
     }
 
     /**
+     * セクション監視の設定
+     */
+    setupSectionObserver() {
+        try {
+            // 監視対象のセクションを取得
+            const sections = document.querySelectorAll('section[id], main[id], .section[id]');
+            
+            if (sections.length === 0) {
+                this.debug('監視対象セクションなし');
+                return;
+            }
+            
+            // IntersectionObserver設定
+            const observerOptions = {
+                root: null,
+                rootMargin: '-20% 0px -60% 0px',
+                threshold: 0.1
+            };
+            
+            this.sectionObserver = new IntersectionObserver(
+                this.handleSectionIntersection.bind(this),
+                observerOptions
+            );
+            
+            // セクションの監視開始
+            sections.forEach(section => {
+                this.sectionObserver.observe(section);
+            });
+            
+            this.log(`セクション監視開始: ${sections.length}個のセクション`);
+        } catch (error) {
+            this.error('セクション監視設定エラー:', error);
+        }
+    }
+
+    /**
      * スクロール監視の開始
      */
     startScrollWatching() {
         if (this.isScrollWatching) return;
         
-        this.addEventListener(window, 'scroll', this.throttle(this.handleScroll.bind(this), 16));
-        this.isScrollWatching = true;
-        
-        // 初期状態を設定
-        this.handleScroll();
-        
-        this.log('スクロール監視開始');
-    }
-
-    /**
-     * セクション監視の開始
-     */
-    startSectionWatching() {
-        // 監視対象のセクションを取得
-        const sections = document.querySelectorAll('section[id], main[id], .section[id]');
-        
-        if (sections.length === 0) {
-            this.debug('監視対象セクションなし');
-            return;
+        try {
+            this.addEventListener(window, 'scroll', this.throttle(this.handleScroll.bind(this), 16));
+            this.isScrollWatching = true;
+            
+            // 初期状態を設定
+            this.handleScroll();
+            
+            this.log('スクロール監視開始');
+        } catch (error) {
+            this.error('スクロール監視開始エラー:', error);
         }
-        
-        // IntersectionObserver設定
-        const observerOptions = {
-            root: null,
-            rootMargin: '-20% 0px -60% 0px',
-            threshold: 0.1
-        };
-        
-        this.sectionObserver = new IntersectionObserver(
-            this.handleSectionIntersection.bind(this),
-            observerOptions
-        );
-        
-        // セクションの監視開始
-        sections.forEach(section => {
-            this.sectionObserver.observe(section);
-        });
-        
-        this.log(`セクション監視開始: ${sections.length}個のセクション`);
     }
 
     /**

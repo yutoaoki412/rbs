@@ -449,6 +449,18 @@ export class TemplateManager extends BaseService {
         if (mobileToggle) {
             mobileToggle.addEventListener('click', this.toggleMobileMenu.bind(this));
         }
+        
+        // ヘッダーコンテナが挿入されたことを通知
+        if (container && container.id === 'header-container') {
+            // DOM要素が確実に配置されるまで短い遅延
+            setTimeout(() => {
+                const event = new CustomEvent('header:template:inserted', {
+                    detail: { container }
+                });
+                window.dispatchEvent(event);
+                this.debug('ヘッダーテンプレート挿入イベント発火');
+            }, 50);
+        }
     }
 
     /**

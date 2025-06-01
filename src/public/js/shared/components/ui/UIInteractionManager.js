@@ -285,20 +285,26 @@ class UIInteractionManager extends Component {
     const statusBanner = this.safeQuerySelector('.status-banner');
     
     if (statusBanner && hero) {
-      // ヒーローセクションの下端に合わせて位置調整
+      // ステータスバナーのレイアウト確認のみ実行（動的margin調整は削除）
       const heroRect = hero.getBoundingClientRect();
-      const heroBottom = heroRect.bottom + window.scrollY;
-      
-      // ステータスバナーが適切に配置されているか確認
       const statusRect = statusBanner.getBoundingClientRect();
-      const statusTop = statusRect.top + window.scrollY;
       
-      // 位置が大きくずれている場合のみ調整
-      if (Math.abs(statusTop - heroBottom) > 10) {
-        statusBanner.style.position = 'relative';
-        statusBanner.style.top = '0';
-        statusBanner.style.marginTop = '-2px';
+      // デバッグ情報のみ出力（実際の位置調整は行わない）
+      if (this.debug) {
+        console.log('ヒーローセクション位置:', {
+          bottom: heroRect.bottom,
+          height: heroRect.height
+        });
+        console.log('ステータスバナー位置:', {
+          top: statusRect.top,
+          height: statusRect.height
+        });
       }
+      
+      // CSSで定義された間隔を尊重し、動的な調整は行わない
+      statusBanner.style.position = '';
+      statusBanner.style.top = '';
+      statusBanner.style.marginTop = '';
     }
   }
 

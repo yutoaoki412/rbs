@@ -57,6 +57,11 @@
     --success: var(--color-success);
     --warning: var(--color-warning);
   
+    /* レイアウト関連 */
+    --header-height: 124px; /* 動的ヘッダーの高さ（ロゴ + パディング） */
+    --header-padding: 12px; /* ヘッダーの上下パディング */
+    --logo-height: 100px; /* ロゴの高さ */
+  
     /* フォント */
     --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
     --font-weight-normal: 500;
@@ -135,6 +140,15 @@
     color: var(--navy-dark);
     background-color: var(--gray-light);
     overflow-x: hidden;
+    /* 動的ヘッダーによるコンテンツの隠れを防ぐ */
+    padding-top: 0;
+    /* レイアウトシフトを最小化 */
+    transition: padding-top 0.3s ease;
+  }
+  
+  /* 動的ヘッダー読み込み後のbody調整 */
+  body.header-loaded {
+    padding-top: var(--header-height);
   }
   
   /* 共通レイアウト */
