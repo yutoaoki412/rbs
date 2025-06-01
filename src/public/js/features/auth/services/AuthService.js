@@ -238,7 +238,8 @@ export class AuthService {
    * ログアウトイベントのセットアップ
    */
   setupLogoutHandlers() {
-    // ログアウトボタンの処理
+    // 認証関連の処理はAuthServiceで一元管理
+    // data-action="logout"の処理
     document.addEventListener('click', (e) => {
       const target = e.target.closest('[data-action="logout"]');
       if (target) {

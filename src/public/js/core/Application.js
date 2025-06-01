@@ -10,7 +10,6 @@ import { newsActionService } from '../features/news/services/NewsActionService.j
 import { authActionService } from '../features/auth/services/AuthActionService.js';
 import { initNewsFeature } from '../features/news/index.js';
 import { initAuthFeature } from '../features/auth/index.js';
-import { initAdminFeature } from '../features/admin/index.js';
 import { getCurrentPageType } from '../shared/utils/urlUtils.js';
 import { initializeLayout, LayoutInitializer } from '../shared/components/layout/index.js';
 
@@ -342,21 +341,19 @@ export default class Application {
   async initializeAdminFeatures() {
     console.log('👨‍💼 管理画面機能を初期化中...');
     
-    // 認証チェック（管理画面アクセス時）
-    const authService = await this.getAuthService();
-    if (!authService.checkAdminPageAuth()) {
-      console.log('⚠️ 認証が必要です。ログインページにリダイレクト');
-      return; // 認証失敗時は初期化を中断
+    try {
+      // admin/index.jsのinitAdminFeature()を使用
+      // 認証チェック、ログアウトハンドラー設定、全サービス初期化が含まれる
+      const { initAdminFeature } = await import('../features/admin/index.js');
+      await initAdminFeature();
+      
+      this.features.set('admin', true);
+      console.log('✅ 管理画面機能の初期化完了');
+      
+    } catch (error) {
+      console.error('❌ 管理画面機能初期化エラー:', error);
+      // エラーの場合はadmin/index.js内でリダイレクト処理済み
     }
-    
-    // ログアウトハンドラーを設定
-    authService.setupLogoutHandlers();
-    
-    // 新しい管理機能を初期化（AdminCore.js の完全な置換）
-    await initAdminFeature();
-    this.features.set('admin', true);
-    
-    console.log('✅ 管理画面機能の初期化完了');
   }
 
   /**

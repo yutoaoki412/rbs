@@ -165,8 +165,7 @@ export class AdminActionService {
     }
 
     const adminActions = {
-      // 認証関連
-      'logout': () => this.logout(),
+      // 認証関連はAuthServiceで処理（責任の分離）
       
       // タブ切り替え
       'switch-tab': async (element, params) => {
@@ -1175,55 +1174,8 @@ export class AdminActionService {
   // === 認証・デバッグメソッド ===
 
   /**
-   * ログアウト処理
-   */
-  logout() {
-    try {
-      this.info('ログアウトしています...');
-      
-      // 認証サービスからログアウト
-      if (this.authService) {
-        const result = this.authService.logout();
-        if (result.success) {
-          this.info(result.message);
-        } else {
-          this.error('ログアウトエラー:', result.message);
-          // フォールバック処理
-          this.performFallbackLogout();
-        }
-      } else {
-        // フォールバック処理
-        this.performFallbackLogout();
-      }
-      
-    } catch (error) {
-      this.error('ログアウト処理中にエラーが発生しました:', error);
-      // フォールバック処理
-      this.performFallbackLogout();
-    }
-  }
-
-  /**
-   * フォールバック ログアウト処理
-   * @private
-   */
-  performFallbackLogout() {
-    try {
-      // 手動で認証データをクリア
-      localStorage.removeItem('rbs_admin_auth');
-      sessionStorage.clear();
-      
-      // 管理画面から離脱
-      window.location.href = '../index.html';
-    } catch (error) {
-      this.error('フォールバック ログアウトエラー:', error);
-      // 強制的にページ移動
-      window.location.href = '../index.html';
-    }
-  }
-
-  /**
    * 認証ログアウト時の処理
+   * AuthServiceからのコールバックとして実行される
    * @private
    */
   handleAuthLogout() {

@@ -144,12 +144,15 @@ export async function initAdminFeature() {
       await authService.init();
     }
 
-    // 認証チェック
-    if (!authService.isAuthenticated()) {
-      console.warn('⚠️ 認証が必要です。ログインページにリダイレクト');
-      authService.redirectToLogin();
-      return;
+    // 管理画面での認証チェック（checkAdminPageAuth()を使用）
+    if (!authService.checkAdminPageAuth()) {
+      console.warn('⚠️ 認証チェック失敗 - リダイレクト処理済み');
+      return; // checkAdminPageAuth()内でリダイレクト済み
     }
+
+    // ログアウトハンドラーを設定（認証チェック成功後）
+    console.log('🔐 ログアウトハンドラーを設定中...');
+    authService.setupLogoutHandlers();
 
     // 2. 管理アクションサービスを初期化
     console.log('👨‍💼 管理アクションサービスを初期化中...');
@@ -173,9 +176,17 @@ export async function initAdminFeature() {
     console.log('🎮 UIイベントを設定中...');
     setupUIEvents();
 
-    // 6. UIManagerServiceをグローバルに設定
-    if (adminActionService?.uiManagerService) {
-      window.uiManagerService = adminActionService.uiManagerService;
+    // 6. グローバルサービス公開
+    console.log('🌐 グローバルサービス公開中...');
+    if (typeof window !== 'undefined') {
+      window.adminActionService = adminActionService;
+      window.adminSystemService = adminSystemService;
+      window.authService = authService;
+      window.actionManager = adminActionService.actionManager;
+      
+      if (adminActionService?.uiManagerService) {
+        window.uiManagerService = adminActionService.uiManagerService;
+      }
     }
 
     // 7. 通知システムのテスト（デバッグモード時のみ）
