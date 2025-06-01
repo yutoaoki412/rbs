@@ -20,6 +20,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  min-height: 100px; /* ヘッダーの最小高さを確保 */
+}
+
+.logo {
+  flex-shrink: 1; /* ロゴは必要に応じて縮小可能 */
+  max-width: 50%; /* ロゴがヘッダーの50%以上を占めないように */
 }
 
 .logo a {
@@ -36,7 +42,7 @@
 .logo-image {
   height: 100px;
   width: auto;
-  max-width: 600px;
+  max-width: 480px;
   object-fit: cover;
   object-position: center;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
@@ -48,10 +54,11 @@
   gap: 0;
   list-style: none;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .nav-links li {
-  margin-right: 32px;
+  margin-right: 24px;
   position: relative;
 }
 

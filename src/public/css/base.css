@@ -59,10 +59,12 @@
   
     /* レイアウト関連 */
     --header-height: 124px; /* 動的ヘッダーの高さ（ロゴ + パディング） */
+    --header-height-medium: 100px; /* 中間画面サイズでのヘッダー高さ */
     --header-height-mobile: 76px; /* モバイル時のヘッダー高さ */
     --header-padding: 12px; /* ヘッダーの上下パディング */
     --header-padding-mobile: 8px; /* モバイル時のヘッダーパディング */
     --logo-height: 100px; /* ロゴの高さ */
+    --logo-height-medium: 80px; /* 中間画面サイズでのロゴ高さ */
     --logo-height-mobile: 60px; /* モバイル時のロゴ高さ */
   
     /* フォント */
