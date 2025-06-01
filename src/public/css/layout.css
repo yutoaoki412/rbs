@@ -1127,6 +1127,89 @@
   color: var(--primary-blue);
 }
 
+/* ニュースリスト表示領域 */
+#news .news-list {
+  margin-bottom: 40px;
+}
+
+/* ニュース一覧ボタンコンテナ */
+.news-list-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 40px;
+  padding: 20px 0;
+}
+
+.news-list-button .btn-outline {
+  background: var(--white);
+  color: var(--primary-blue);
+  border: 2px solid var(--primary-blue);
+  padding: 18px 40px;
+  font-size: 18px;
+  font-weight: 700;
+  border-radius: 50px;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.2);
+}
+
+.news-list-button .btn-outline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.news-list-button .btn-outline::after {
+  content: '→';
+  font-size: 16px;
+  transition: transform 0.3s ease;
+}
+
+.news-list-button .btn-outline:hover {
+  background: var(--primary-blue);
+  color: var(--white);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
+}
+
+.news-list-button .btn-outline:hover::before {
+  left: 100%;
+}
+
+.news-list-button .btn-outline:hover::after {
+  transform: translateX(3px);
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .news-list-button {
+    margin-top: 30px;
+    padding: 15px 0;
+  }
+  
+  .news-list-button .btn-outline {
+    padding: 16px 32px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .news-list-button .btn-outline {
+    padding: 14px 28px;
+    font-size: 15px;
+  }
+}
 
 /* Company セクション */
 #company {
@@ -1517,8 +1600,6 @@ footer p {
   color: var(--navy-dark);
   font-weight: 600;
 }
-
-
 
 .loading-status {
   text-align: center;

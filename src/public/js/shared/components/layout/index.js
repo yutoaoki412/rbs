@@ -97,7 +97,23 @@ export class LayoutInitializer {
             // 2. テンプレートの一括挿入
             await this.templateManager.insertAllTemplates(validatedOptions.pageType, validatedOptions.templateOptions);
 
-            // 3. ヘッダーコンポーネントの初期化
+            // 管理画面の場合はヘッダー・フッターコンポーネントの初期化をスキップ
+            if (validatedOptions.pageType === 'admin') {
+                console.log('[LayoutInitializer] 管理画面のため、ヘッダー・フッターコンポーネントの初期化をスキップ');
+                
+                this.isInitialized = true;
+                console.log(`[LayoutInitializer] Layout初期化完了: ${validatedOptions.pageType}`);
+
+                return {
+                    success: true,
+                    pageType: validatedOptions.pageType,
+                    templateManager: this.templateManager,
+                    headerComponent: null,
+                    footerComponent: null
+                };
+            }
+
+            // 3. ヘッダーコンポーネントの初期化（通常ページのみ）
             try {
                 const headerContainer = document.getElementById(validatedOptions.headerContainerId);
                 if (headerContainer) {
@@ -112,7 +128,7 @@ export class LayoutInitializer {
                 this.headerComponent = null;
             }
 
-            // 4. フッターコンポーネントの初期化
+            // 4. フッターコンポーネントの初期化（通常ページのみ）
             try {
                 const footerContainer = document.getElementById(validatedOptions.footerContainerId);
                 if (footerContainer) {
@@ -141,13 +157,17 @@ export class LayoutInitializer {
         } catch (error) {
             console.error('[LayoutInitializer] Layout初期化エラー:', error);
             
-            // フォールバック初期化
-            await this.initializeFallback(options);
+            // フォールバック初期化（管理画面の場合は無効）
+            if (options.pageType !== 'admin') {
+                await this.initializeFallback(options);
+            } else {
+                console.log('[LayoutInitializer] 管理画面のため、フォールバック初期化をスキップ');
+            }
             
             return {
                 success: false,
                 error: error.message,
-                fallbackInitialized: true
+                fallbackInitialized: options.pageType !== 'admin'
             };
         }
     }

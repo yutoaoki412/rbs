@@ -140,7 +140,7 @@ export class TemplateManager extends BaseService {
             this.error(`ページ設定読み込みエラー: ${pageType}`, error);
             
             // フォールバックデフォルト設定
-            const defaultConfig = this.getDefaultPageConfig();
+            const defaultConfig = this.getDefaultPageConfig(pageType);
             this.pageConfigCache.set(pageType, defaultConfig);
             
             return defaultConfig;
@@ -157,7 +157,8 @@ export class TemplateManager extends BaseService {
         try {
             const container = document.getElementById(containerId);
             if (!container) {
-                throw new Error(`ヘッダーコンテナが見つかりません: ${containerId}`);
+                this.debug(`ヘッダーコンテナが見つかりません: ${containerId} - スキップします`);
+                return;
             }
 
             const headerTemplate = await this.loadTemplate('header.html');
@@ -187,7 +188,8 @@ export class TemplateManager extends BaseService {
         try {
             const container = document.getElementById(containerId);
             if (!container) {
-                throw new Error(`フッターコンテナが見つかりません: ${containerId}`);
+                this.debug(`フッターコンテナが見つかりません: ${containerId} - スキップします`);
+                return;
             }
 
             const footerTemplate = await this.loadTemplate('footer.html');
@@ -354,8 +356,8 @@ export class TemplateManager extends BaseService {
     }
 
     /**
-     * 全テンプレートの一括挿入
-     * @param {string} pageType - ページタイプ
+     * すべてのテンプレートの挿入（ページタイプ別制御）
+     * @param {string} pageType - ページタイプ ('home', 'news', 'news-detail', 'admin')
      * @param {Object} options - オプション設定
      * @returns {Promise<void>}
      */
@@ -366,7 +368,16 @@ export class TemplateManager extends BaseService {
             // ページ設定の読み込み
             this.currentPageConfig = await this.loadPageConfig(pageType);
             
-            // 並列でヘッダー・フッターを挿入
+            // 管理画面の場合はヘッダー・フッターをスキップ
+            if (pageType === 'admin') {
+                this.debug('管理画面のため、ヘッダー・フッターの挿入をスキップ');
+                // ページクラスのみ適用
+                this.applyPageClasses();
+                this.debug(`テンプレート挿入完了: ${pageType}`);
+                return;
+            }
+            
+            // 通常ページの場合は並列でヘッダー・フッターを挿入
             await Promise.all([
                 this.insertHeader('header-container', options),
                 this.insertFooter('footer-container', options)
@@ -379,8 +390,13 @@ export class TemplateManager extends BaseService {
             
         } catch (error) {
             this.error('全テンプレート挿入エラー:', error);
-            // フォールバック処理
-            this.insertFallbackTemplates();
+            
+            // 管理画面の場合はフォールバック処理もスキップ
+            if (pageType !== 'admin') {
+                this.insertFallbackTemplates();
+            } else {
+                this.debug('管理画面のため、フォールバックテンプレートの挿入もスキップ');
+            }
         }
     }
 
@@ -397,7 +413,7 @@ export class TemplateManager extends BaseService {
         const templateElement = doc.getElementById(`meta-${pageType}`) || doc.getElementById('meta-default');
         
         if (!templateElement) {
-            return this.getDefaultPageConfig();
+            return this.getDefaultPageConfig(pageType);
         }
         
         const config = {};
@@ -500,9 +516,24 @@ export class TemplateManager extends BaseService {
 
     /**
      * デフォルトページ設定の取得
+     * @param {string} pageType - ページタイプ
      * @returns {Object} デフォルト設定
      */
-    getDefaultPageConfig() {
+    getDefaultPageConfig(pageType = 'default') {
+        // 管理画面専用設定
+        if (pageType === 'admin') {
+            return {
+                page_title: 'RBS陸上教室 管理画面',
+                page_description: 'RBS陸上教室 管理システム',
+                page_keywords: 'RBS,管理,陸上教室',
+                page_url: '/admin',
+                body_class: 'page-admin admin-layout',
+                main_class: 'admin-content',
+                og_image: '/images/rbs-admin-og.jpg'
+            };
+        }
+        
+        // 通常ページ設定
         return {
             page_title: 'RBS陸上教室',
             page_description: 'RBS陸上教室 - すべての走ることを愛する子どもたちのための陸上教室',
@@ -549,6 +580,8 @@ export class TemplateManager extends BaseService {
         if (container) {
             container.innerHTML = this.getFallbackTemplate('header.html');
             this.warn(`フォールバックヘッダーを挿入: ${containerId}`);
+        } else {
+            this.debug(`フォールバックヘッダー用コンテナが見つかりません: ${containerId}`);
         }
     }
 
@@ -561,6 +594,8 @@ export class TemplateManager extends BaseService {
         if (container) {
             container.innerHTML = this.getFallbackTemplate('footer.html');
             this.warn(`フォールバックフッターを挿入: ${containerId}`);
+        } else {
+            this.debug(`フォールバックフッター用コンテナが見つかりません: ${containerId}`);
         }
     }
 
