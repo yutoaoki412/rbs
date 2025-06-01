@@ -407,6 +407,9 @@ body.page-news-detail #today-status {
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .course-item::before {
@@ -435,40 +438,48 @@ body.page-news-detail #today-status {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 15px;
   gap: 15px;
+  flex-wrap: wrap;
 }
 
 .course-info {
   flex: 1;
+  min-width: 200px;
 }
 
 .course-info h5 {
-  font-size: 16px;
+  font-size: 18px;
   color: #2c3e50;
-  margin: 0 0 5px 0;
+  margin: 0 0 8px 0;
   font-weight: 700;
   line-height: 1.3;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .course-time {
   color: #7f8c8d;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 4px 0;
 }
 
 .time-slot strong {
   display: block;
-  font-size: 20px;
+  font-size: 22px;
   color: var(--navy-dark);
   margin-bottom: 8px;
   font-weight: var(--font-weight-heavy);
+  line-height: 1.2;
 }
 
 .course-name {
   font-size: 16px;
   color: var(--gray-medium);
   font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* ステータスバッジ */
@@ -535,15 +546,17 @@ body.page-news-detail #today-status {
 }
 
 .last-updated {
-  color: #7f8c8d;
-  font-size: 12px;
-  font-weight: 500;
+  color: #2c3e50;
+  font-size: 14px;
+  font-weight: 600;
+  text-shadow: none;
 }
 
 .update-note {
-  color: #7f8c8d;
-  font-size: 11px;
+  color: #2c3e50;
+  font-size: 12px;
   margin-top: 5px;
+  font-weight: 500;
 }
 
 /* エラー状態 */
@@ -674,17 +687,55 @@ body.page-news-detail #today-status {
   }
   
   .course-item {
-    padding: 15px;
+    padding: 18px 15px;
+    gap: 12px;
   }
   
   .course-header {
-    gap: 10px;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .course-info {
+    min-width: auto;
+    order: 1;
+  }
+  
+  .course-info h5 {
+    font-size: 16px;
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+  
+  .course-time {
+    font-size: 14px;
+    margin: 2px 0;
+  }
+  
+  .time-slot strong {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+  
+  .status-badge {
+    order: 2;
+    align-self: flex-start;
+    margin-top: 8px;
   }
   
   .status-footer {
     margin-left: -15px;
     margin-right: -15px;
-    padding: 12px 15px;
+    padding: 15px 20px;
+  }
+  
+  .last-updated {
+    font-size: 13px;
+  }
+  
+  .update-note {
+    font-size: 11px;
   }
   
   .status-item {
@@ -744,17 +795,36 @@ body.page-news-detail #today-status {
   }
   
   .course-item {
-    padding: 12px;
+    padding: 15px 12px;
     border-radius: 8px;
+    gap: 10px;
+  }
+  
+  .course-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
   }
   
   .course-info h5 {
     font-size: 15px;
-    line-height: 1.2;
+    line-height: 1.3;
+    margin-bottom: 4px;
   }
   
   .course-time {
     font-size: 13px;
+    margin: 1px 0;
+  }
+  
+  .time-slot strong {
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+  
+  .course-name {
+    font-size: 14px;
+    line-height: 1.3;
   }
   
   .status-badge {
@@ -762,6 +832,22 @@ body.page-news-detail #today-status {
     font-size: 10px;
     min-width: 60px;
     border-radius: 12px;
+    align-self: flex-start;
+    margin-top: 6px;
+  }
+  
+  .status-footer {
+    margin-left: -12px;
+    margin-right: -12px;
+    padding: 12px 15px;
+  }
+  
+  .last-updated {
+    font-size: 12px;
+  }
+  
+  .update-note {
+    font-size: 10px;
   }
 }
 
