@@ -428,6 +428,13 @@
     font-size: 18px;
   }
 
+  /* 費用アイテムコンテナ - デスクトップでも横並び */
+  .fee-items-container {
+    flex-direction: row;
+    gap: 20px; /* デスクトップでは少し大きめのgap */
+    max-width: 100%;
+  }
+
   .entry-fees {
     max-width: 1100px;
     border-radius: 35px;
@@ -438,9 +445,10 @@
   }
 
   .fee-item {
-    margin: 0 25px 0 0;
+    margin: 0; /* marginを削除 */
     padding: 25px 45px;
-    min-width: 190px;
+    min-width: 0; /* flexで自動調整 */
+    flex: 1; /* 横幅を等しく分割 */
   }
 }
 
