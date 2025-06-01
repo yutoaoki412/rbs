@@ -50,11 +50,11 @@ body.header-loaded #hero {
 }
 
 .hero-content {
-  max-width: 900px;
+  max-width: 1100px;
   margin: 20px auto;
   position: relative;
   z-index: 10;
-  padding: 40px 50px 50px 50px;
+  padding: 60px 70px 70px 70px;
   text-align: center;
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(20px);
@@ -68,12 +68,12 @@ body.header-loaded #hero {
 }
 
 .hero-badge {
-  font-size: 20px;
+  font-size: 22px;
   color: var(--white);
   font-weight: 800;
-  margin-bottom: 35px;
+  margin-bottom: 40px;
   display: inline-block;
-  padding: 18px 40px;
+  padding: 20px 45px;
   background: var(--primary-blue);
   border-radius: 50px;
   box-shadow: 0 10px 30px rgba(74, 144, 226, 0.4);
@@ -95,15 +95,15 @@ body.header-loaded #hero {
 }
 
 .hero-description {
-  margin: 50px 0 60px;
+  margin: 60px 0 70px;
 }
 
 .hero-description p {
-  font-size: 26px;
+  font-size: 28px;
   color: #1a202c;
   line-height: 1.6;
   font-weight: 700;
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -118,12 +118,12 @@ body.header-loaded #hero {
 }
 
 .cta-message {
-  font-size: clamp(18px, 2.2vw, 24px);
+  font-size: clamp(20px, 2.4vw, 26px);
   color: #1a202c;
-  max-width: 700px;
+  max-width: 800px;
   margin-left: auto;
   margin-right: auto;
-  margin-bottom: 30px;
+  margin-bottom: 35px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   font-weight: 800;
 }
