@@ -243,12 +243,14 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  margin: 0; /* margin削除 */
-  padding: 15px 21px;
-  border-radius: 20px;
-  min-width: 0; /* flexで自動調整 */
-  flex: 1; /* 横幅を等しく分割 */
-  vertical-align: top;
+  margin-bottom: 0; /* containerのgapを使用 */
+  padding: 12px 16px;
+  background: var(--gray-light);
+  border-radius: 15px;
+  transition: all 0.3s ease;
+  text-align: left;
+  gap: 0;
+  flex: 1; /* 横幅を揃える */
 }
 
 .fee-item:hover {
