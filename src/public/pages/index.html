@@ -17,6 +17,8 @@
   <link rel="stylesheet" href="../css/features.css">
   <link rel="stylesheet" href="../css/why-junior.css">
   <link rel="stylesheet" href="../css/program.css">
+  <link rel="stylesheet" href="../css/coach.css">
+  <link rel="stylesheet" href="../css/pricing.css">
   <link rel="stylesheet" href="../css/news.css">
   <link rel="stylesheet" href="../css/responsive.css">
 </head>
@@ -356,101 +358,64 @@
   </section>
 
   <!-- コーチ紹介 -->
-  <section id="coach" style="background: var(--white); padding: 80px 0;">
+  <section id="coach">
     <div class="container-wide">
-      <h2 style="margin-bottom: 50px;">コーチ紹介</h2>
+      <h2>コーチ紹介</h2>
       
       <!-- メインコーチ -->
-      <div style="max-width: 950px; margin: 0 auto; background: var(--white); border-radius: 25px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); border: 3px solid var(--primary-blue); margin-bottom: 50px;">
+      <div class="coach-card">
         <div class="coach-grid">
           
           <!-- コーチ写真 -->
-          <div style="height: 240px; background: linear-gradient(135deg, var(--primary-blue), var(--primary-teal)); display: flex; align-items: center; justify-content: center; position: relative;">
-            <div style="width: 140px; height: 140px; background: url('../assets/images/coach-portrait.png') center/cover; border-radius: 50%; box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2); border: 3px solid var(--white);"></div>
-            <div style="position: absolute; bottom: 12px; left: 12px; right: 12px; text-align: center;">
-              <div style="background: var(--white); color: var(--primary-blue); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-block;">代表コーチ</div>
+          <div class="coach-photo-area">
+            <div class="coach-photo"></div>
+            <div class="coach-badge">
+              <div class="badge">代表コーチ</div>
             </div>
           </div>
           
           <!-- コーチ情報 -->
-          <div style="padding: 25px;">
-            <h3 style="color: var(--navy-dark); font-size: 26px; margin-bottom: 8px; font-weight: 800;">今井 悠太</h3>
-            <p style="color: var(--primary-blue); font-size: 15px; font-weight: 700; margin-bottom: 18px;">RBS陸上教室 代表コーチ・合同会社VITA代表</p>
+          <div class="coach-info">
+            <h3 class="coach-name">今井 悠太</h3>
+            <p class="coach-title">RBS陸上教室 代表コーチ・合同会社VITA代表</p>
             
-            <div style="margin-bottom: 16px;">
-              <h4 style="color: var(--navy-dark); font-size: 16px; margin-bottom: 8px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
-                <span style="width: 5px; height: 5px; background: var(--primary-teal); border-radius: 50%;"></span> 指導理念
-              </h4>
-              <p style="color: var(--gray-medium); font-size: 13px; line-height: 1.6; padding-left: 16px;">
+            <div class="coach-detail">
+              <h4>指導理念</h4>
+              <p>
                 「すべての子どもに、走る楽しさと成功体験を」をモットーに、一人ひとりの個性を大切にしながら、運動能力だけでなく人間力の向上を目指した指導を心がけています。
               </p>
             </div>
             
-            <div style="margin-bottom: 16px;">
-              <h4 style="color: var(--navy-dark); font-size: 16px; margin-bottom: 8px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
-                <span style="width: 5px; height: 5px; background: var(--primary-blue); border-radius: 50%;"></span> 専門分野・資格
-              </h4>
-              <div style="padding-left: 16px;">
-                <ul style="list-style: none; margin: 0;">
-                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
-                    <span style="position: absolute; left: 0; color: var(--primary-teal);">•</span>
-                    スポーツ科学専攻（大学院修了）
-                  </li>
-                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
-                    <span style="position: absolute; left: 0; color: var(--primary-teal);">•</span>
-                    JRCA認定ランニングコーチ
-                  </li>
-                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
-                    <span style="position: absolute; left: 0; color: var(--primary-teal);">•</span>
-                    日本スポーツ協会公認コーチ
-                  </li>
-                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
-                    <span style="position: absolute; left: 0; color: var(--primary-teal);">•</span>
-                    幼児体育指導者検定1級
-                  </li>
-                </ul>
-              </div>
+            <div class="coach-detail">
+              <h4>専門分野・資格</h4>
+              <ul>
+                <li>スポーツ科学専攻（大学院修了）</li>
+                <li>JRCA認定ランニングコーチ</li>
+                <li>日本スポーツ協会公認コーチ</li>
+                <li>幼児体育指導者検定1級</li>
+              </ul>
             </div>
             
-            <div>
-              <h4 style="color: var(--navy-dark); font-size: 16px; margin-bottom: 8px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
-                <span style="width: 5px; height: 5px; background: var(--primary-orange); border-radius: 50%;"></span> 指導実績
-              </h4>
-              <div style="padding-left: 16px;">
-                <ul style="list-style: none; margin: 0;">
-                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
-                    <span style="position: absolute; left: 0; color: var(--primary-orange);">•</span>
-                    ジュニア陸上指導歴：8年
-                  </li>
-                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
-                    <span style="position: absolute; left: 0; color: var(--primary-orange);">•</span>
-                    指導した生徒数：延べ500名以上
-                  </li>
-                  <li style="color: var(--gray-medium); margin-bottom: 3px; position: relative; padding-left: 12px; font-size: 13px;">
-                    <span style="position: absolute; left: 0; color: var(--primary-orange);">•</span>
-                    県大会入賞者輩出：15名
-                  </li>
-                  <li style="color: var(--gray-medium); margin-bottom: 0; position: relative; padding-left: 12px; font-size: 13px;">
-                    <span style="position: absolute; left: 0; color: var(--primary-orange);">•</span>
-                    運動会リレー選手輩出：100名以上
-                  </li>
-                </ul>
-              </div>
+            <div class="coach-detail">
+              <h4>指導実績</h4>
+              <ul>
+                <li>ジュニア陸上指導歴：8年</li>
+                <li>指導した生徒数：延べ500名以上</li>
+                <li>県大会入賞者輩出：15名</li>
+                <li>運動会リレー選手輩出：100名以上</li>
+              </ul>
             </div>
           </div>
         </div>
       </div>
       
       <!-- コーチからのメッセージ -->
-      <div style="background: var(--primary-blue); color: white; padding: 50px; border-radius: 25px; margin-top: 60px; text-align: center; position: relative; overflow: hidden;">
-        <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: var(--primary-teal); border-radius: 50%; opacity: 0.2;"></div>
-        <div style="position: absolute; bottom: -30px; left: -30px; width: 80px; height: 80px; background: var(--primary-orange); border-radius: 50%; opacity: 0.2;"></div>
-        
-        <h3 style="font-size: 28px; margin-bottom: 25px; font-weight: 800; position: relative; z-index: 2;">コーチからのメッセージ</h3>
-        <p style="font-size: 20px; line-height: 1.8; max-width: 800px; margin: 0 auto; font-weight: 600; position: relative; z-index: 2;">
+      <div class="coach-message">
+        <h3>コーチからのメッセージ</h3>
+        <p>
           「走ることが楽しい！」と感じてもらえるよう、私たちコーチ一同、<br>
           お子さま一人ひとりの成長に全力で向き合います。<br>
-          <strong style="color: var(--secondary-yellow);">まずは無料体験で、私たちの指導を体感してください！</strong>
+          <strong>まずは無料体験で、私たちの指導を体感してください！</strong>
         </p>
       </div>
     </div>

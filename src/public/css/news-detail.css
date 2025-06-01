@@ -166,9 +166,9 @@ main {
 /* パンくずナビ */
 .breadcrumb {
   background: var(--white);
-  padding: 20px 30px;
-  border-radius: 15px;
-  margin-bottom: 30px;
+  padding: 15px 16px;
+  border-radius: 10px;
+  margin-bottom: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border: 2px solid var(--gray-border);
   position: relative;
@@ -178,9 +178,10 @@ main {
 .breadcrumb-list {
   display: flex;
   align-items: center;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 4px;
   list-style: none;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   margin: 0;
   padding: 0;
@@ -189,7 +190,6 @@ main {
 .breadcrumb-list li {
   display: flex;
   align-items: center;
-  gap: 10px;
 }
 
 .breadcrumb-list a {
@@ -197,20 +197,32 @@ main {
   text-decoration: none;
   transition: color 0.3s ease;
   font-weight: 600;
+  padding: 4px 2px;
+  border-radius: 4px;
+  white-space: nowrap;
 }
 
 .breadcrumb-list a:hover {
   color: var(--primary-teal);
+  background: rgba(74, 144, 226, 0.1);
 }
 
-.breadcrumb-list .current {
+.breadcrumb-list .current,
+.breadcrumb-list #breadcrumb-title {
   color: var(--gray-medium);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
 }
 
 .breadcrumb-separator {
   color: var(--gray-medium);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 400;
+  margin: 0 2px;
+  flex-shrink: 0;
 }
 
 /* 記事ヘッダー */
@@ -804,11 +816,11 @@ main {
   background: var(--primary-blue);
   color: white;
   border: none;
-  padding: 16px 32px;
-  border-radius: 25px;
+  padding: 12px 24px;
+  border-radius: 50px;
   text-decoration: none;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 14px;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
@@ -957,7 +969,7 @@ main {
   }
   
   .breadcrumb {
-    padding: 15px 20px;
+    padding: 12px 16px;
     margin: 0 -20px 20px;
     border-radius: 0;
     border-left: none;
@@ -965,8 +977,17 @@ main {
   }
   
   .breadcrumb-list {
-    font-size: 12px;
-    gap: 8px;
+    font-size: 11px;
+    gap: 3px;
+  }
+
+  .breadcrumb-list #breadcrumb-title {
+    max-width: 100px;
+  }
+  
+  .breadcrumb-separator {
+    font-size: 9px;
+    margin: 0 1px;
   }
   
   .article-header {
@@ -1025,8 +1046,7 @@ main {
   .nav-btn {
     padding: 12px 24px;
     font-size: 14px;
-    border-radius: 0;
-    border-radius: 0;
+    border-radius: 50px;
   }
   
   .loading-message,
@@ -1043,7 +1063,75 @@ main {
   }
 }
 
+/* タブレット以上 (768px以上) */
+@media (min-width: 768px) {
+  .breadcrumb {
+    padding: 18px 24px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+  }
+  
+  .breadcrumb-list {
+    font-size: 13px;
+    gap: 6px;
+  }
+
+  .breadcrumb-list #breadcrumb-title {
+    max-width: 150px;
+  }
+  
+  .breadcrumb-separator {
+    font-size: 11px;
+    margin: 0 3px;
+  }
+}
+
+/* デスクトップ (1200px以上) */
+@media (min-width: 1200px) {
+  .breadcrumb {
+    padding: 20px 30px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+  }
+  
+  .breadcrumb-list {
+    font-size: 14px;
+    gap: 8px;
+  }
+
+  .breadcrumb-list #breadcrumb-title {
+    max-width: 200px;
+  }
+  
+  .breadcrumb-separator {
+    font-size: 12px;
+    margin: 0 4px;
+  }
+}
+
 @media (max-width: 480px) {
+  .breadcrumb {
+    padding: 10px 12px;
+    margin: 0 -20px 15px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+  
+  .breadcrumb-list {
+    font-size: 10px;
+    gap: 2px;
+  }
+
+  .breadcrumb-list #breadcrumb-title {
+    max-width: 80px;
+  }
+  
+  .breadcrumb-separator {
+    font-size: 8px;
+    margin: 0 1px;
+  }
+
   .article-title {
     font-size: 20px;
   }
