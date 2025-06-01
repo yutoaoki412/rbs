@@ -510,10 +510,18 @@ export class TemplateManager extends BaseService {
      * モバイルメニュートグル
      */
     toggleMobileMenu() {
-        const nav = document.querySelector('.header-nav');
-        if (nav) {
-            nav.classList.toggle('mobile-open');
+        const navLinks = document.querySelector('.nav-links');
+        if (navLinks) {
+            navLinks.classList.toggle('mobile-open');
         }
+        
+        const mobileBtn = document.querySelector('.mobile-menu-btn');
+        if (mobileBtn) {
+            mobileBtn.classList.toggle('active');
+        }
+        
+        // body のスクロール制御
+        document.body.classList.toggle('mobile-menu-open');
     }
 
     /**

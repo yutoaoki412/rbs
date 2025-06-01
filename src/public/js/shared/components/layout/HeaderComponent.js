@@ -175,8 +175,8 @@ class HeaderComponent extends Component {
         
         // 安全な要素検索
         this.nav = this.safeQuerySelector('.nav, .header-nav');
-        this.mobileToggle = this.safeQuerySelector('.mobile-menu-btn, .mobile-menu-toggle');
-        this.navLinks = this.safeQuerySelectorAll('.nav-links a, .nav-link');
+        this.mobileToggle = this.safeQuerySelector('.mobile-menu-btn');
+        this.navLinks = this.safeQuerySelectorAll('.nav-links');
         
         // 必須要素の確認
         if (!this.nav) {
@@ -188,10 +188,10 @@ class HeaderComponent extends Component {
         }
         
         if (!this.navLinks || this.navLinks.length === 0) {
-            this.warn('ナビゲーションリンクが見つかりません');
+            this.warn('ナビゲーションリンクコンテナが見つかりません');
         }
         
-        this.debug(`DOM要素検索完了 - nav: ${!!this.nav}, toggle: ${!!this.mobileToggle}, links: ${this.navLinks ? this.navLinks.length : 0}`);
+        this.debug(`DOM要素検索完了 - nav: ${!!this.nav}, toggle: ${!!this.mobileToggle}, navLinks: ${this.navLinks ? this.navLinks.length : 0}`);
     }
 
     /**
@@ -204,13 +204,16 @@ class HeaderComponent extends Component {
                 this.addEventListenerToChild(this.mobileToggle, 'click', this.handleMobileToggle.bind(this));
             }
             
-            // ナビゲーションリンク（存在チェック付き安全なforEach使用）
+            // ナビゲーションリンク（個別のaタグに対してイベント設定）
             if (this.navLinks && this.navLinks.length > 0) {
-                this.safeForEach(this.navLinks, (link) => {
-                    this.addEventListenerToChild(link, 'click', this.handleNavLinkClick.bind(this));
-                }, '(ナビゲーションリンク)');
+                this.navLinks.forEach(navLinksContainer => {
+                    const links = navLinksContainer.querySelectorAll('a');
+                    this.safeForEach(links, (link) => {
+                        this.addEventListenerToChild(link, 'click', this.handleNavLinkClick.bind(this));
+                    }, '(ナビゲーションリンク内のaタグ)');
+                });
             } else {
-                this.debug('ナビゲーションリンクが見つからないため、イベントリスナーをスキップします');
+                this.debug('ナビゲーションリンクコンテナが見つからないため、イベントリスナーをスキップします');
             }
             
             // ページナビゲーションリンク
@@ -573,8 +576,10 @@ class HeaderComponent extends Component {
     updateMobileMenuState() {
         try {
             // ナビゲーションの表示/非表示
-            if (this.nav) {
-                this.nav.classList.toggle('mobile-open', this.isMobileMenuOpen);
+            if (this.navLinks && this.navLinks.length > 0) {
+                this.navLinks.forEach(navLinksContainer => {
+                    navLinksContainer.classList.toggle('mobile-open', this.isMobileMenuOpen);
+                });
             }
             
             // トグルボタンの状態更新
@@ -689,11 +694,14 @@ class HeaderComponent extends Component {
      * @param {HTMLElement} activeLink - アクティブにするリンク
      */
     updateActiveLink(activeLink) {
-        // 全てのナビリンクからactiveクラスを除去（存在チェック付き安全なforEach使用）
+        // 全てのナビリンクからactiveクラスを除去
         if (this.navLinks && this.navLinks.length > 0) {
-            this.safeForEach(this.navLinks, (link) => {
-                link.classList.remove('active');
-            }, '(アクティブリンク除去)');
+            this.navLinks.forEach(navLinksContainer => {
+                const links = navLinksContainer.querySelectorAll('a');
+                this.safeForEach(links, (link) => {
+                    link.classList.remove('active');
+                }, '(アクティブリンク除去)');
+            });
         }
         
         // アクティブリンクにクラス追加
@@ -746,11 +754,14 @@ class HeaderComponent extends Component {
             this.closeMobileMenu();
         }
         
-        // アクティブリンクをクリア（存在チェック付き安全なforEach使用）
+        // アクティブリンクをクリア
         if (this.navLinks && this.navLinks.length > 0) {
-            this.safeForEach(this.navLinks, (link) => {
-                link.classList.remove('active');
-            }, '(リセット時アクティブリンククリア)');
+            this.navLinks.forEach(navLinksContainer => {
+                const links = navLinksContainer.querySelectorAll('a');
+                this.safeForEach(links, (link) => {
+                    link.classList.remove('active');
+                }, '(リセット時アクティブリンククリア)');
+            });
         }
         
         // スクロール状態をクリア
@@ -766,9 +777,17 @@ class HeaderComponent extends Component {
      * @returns {Object} パフォーマンス情報
      */
     getPerformanceInfo() {
+        let totalNavLinks = 0;
+        if (this.navLinks && this.navLinks.length > 0) {
+            this.navLinks.forEach(container => {
+                totalNavLinks += container.querySelectorAll('a').length;
+            });
+        }
+        
         return {
             ...super.getPerformanceInfo(),
-            navLinksCount: this.navLinks ? this.navLinks.length : 0,
+            navLinksContainers: this.navLinks ? this.navLinks.length : 0,
+            totalNavLinks: totalNavLinks,
             isMobileMenuOpen: this.isMobileMenuOpen,
             currentActiveSection: this.currentActiveSection,
             isScrollWatching: this.isScrollWatching,
