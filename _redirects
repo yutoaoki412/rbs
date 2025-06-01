@@ -1,0 +1,11 @@
+# Cloudflare Pages redirects for RBS project
+# admin関連のパス（優先度高）
+/admin-login    /pages/admin-login.html   200
+/admin          /pages/admin.html         200
+
+# 一般ページのリダイレクト
+/               /pages/index.html         200
+/index          /pages/index.html         200
+
+# その他のパスはindex.htmlにフォールバック
+/*              /pages/index.html         200 
