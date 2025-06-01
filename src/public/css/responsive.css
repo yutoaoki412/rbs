@@ -356,6 +356,73 @@
     padding-top: 40px !important;
     min-height: calc(100vh - var(--header-height-mobile)) !important;
   }
+
+  /* 教室開催地セクション */
+  .location-content {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .map-wrapper {
+    min-height: 250px;
+    border-radius: 10px;
+    margin: 20px 0;
+  }
+
+  .map-wrapper iframe {
+    min-height: 250px;
+    border-radius: 7px;
+  }
+
+  .location-info {
+    padding: 20px 15px;
+  }
+
+  .location-info h3 {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+
+  .info-item {
+    margin-bottom: 20px;
+    padding-left: 30px;
+  }
+
+  .info-item::before {
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+  }
+
+  .info-item strong {
+    font-size: 16px;
+    margin-bottom: 5px;
+  }
+
+  .info-item span {
+    font-size: 14px;
+  }
+
+  .course-schedule {
+    padding: 15px;
+    margin-top: 15px;
+  }
+
+  .course-schedule h4 {
+    font-size: 16px;
+    margin-bottom: 15px;
+  }
+
+  .course-item {
+    padding: 15px;
+    margin-bottom: 10px;
+  }
+
+  .weather-notice {
+    padding: 15px;
+    margin-top: 15px;
+    font-size: 14px;
+  }
 }
 
 /* 大きなデスクトップ (1200px以上) */
