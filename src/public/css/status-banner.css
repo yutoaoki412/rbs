@@ -532,7 +532,7 @@ body.page-news-detail #today-status {
   box-shadow: 0 2px 8px rgba(231, 76, 60, 0.4);
 }
 
-/* ステータスフッター */
+/* ステータスフッター - より具体的なセレクター */
 .status-footer {
   margin-top: 20px;
   padding-top: 15px;
@@ -545,18 +545,88 @@ body.page-news-detail #today-status {
   padding: 15px 30px;
 }
 
-.last-updated {
-  color: #2c3e50;
+.status-footer .last-updated,
+.status-banner .last-updated,
+#today-status .last-updated,
+.status-details .last-updated {
+  color: #2c3e50 !important;
   font-size: 14px;
   font-weight: 600;
   text-shadow: none;
+  background: transparent;
 }
 
-.update-note {
-  color: #2c3e50;
+.status-footer .update-note,
+.status-banner .update-note,
+#today-status .update-note,
+.status-details .update-note {
+  color: #2c3e50 !important;
   font-size: 12px;
   margin-top: 5px;
   font-weight: 500;
+  background: transparent;
+}
+
+/* 対象日と最終更新のテキスト内容も強制的に色を変更 */
+.status-footer *,
+.status-banner .status-footer *,
+#today-status .status-footer * {
+  color: #2c3e50 !important;
+}
+
+/* より具体的なフッター内テキスト要素 */
+.status-footer span,
+.status-footer p,
+.status-footer div,
+.status-banner .status-footer span,
+.status-banner .status-footer p,
+.status-banner .status-footer div,
+#today-status .status-footer span,
+#today-status .status-footer p,
+#today-status .status-footer div {
+  color: #2c3e50 !important;
+  font-weight: 600;
+}
+
+/* JavaScript生成要素用スタイル */
+.status-info-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 0;
+}
+
+.status-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.status-info-item i {
+  color: #4a90e2 !important;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.status-info-item .info-label,
+.status-footer .info-label,
+.status-banner .info-label,
+#today-status .info-label {
+  color: #2c3e50 !important;
+  font-size: 12px;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.status-info-item .info-value,
+.status-footer .info-value,
+.status-banner .info-value,
+#today-status .info-value {
+  color: #2c3e50 !important;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 /* エラー状態 */
@@ -730,6 +800,25 @@ body.page-news-detail #today-status {
     padding: 15px 20px;
   }
   
+  .status-info-grid {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .status-info-item {
+    justify-content: center;
+    gap: 6px;
+  }
+  
+  .status-info-item .info-label {
+    font-size: 11px;
+  }
+  
+  .status-info-item .info-value {
+    font-size: 12px;
+  }
+  
   .last-updated {
     font-size: 13px;
   }
@@ -840,6 +929,29 @@ body.page-news-detail #today-status {
     margin-left: -12px;
     margin-right: -12px;
     padding: 12px 15px;
+  }
+  
+  .status-info-grid {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  
+  .status-info-item {
+    justify-content: center;
+    gap: 5px;
+  }
+  
+  .status-info-item i {
+    font-size: 12px;
+  }
+  
+  .status-info-item .info-label {
+    font-size: 10px;
+  }
+  
+  .status-info-item .info-value {
+    font-size: 11px;
   }
   
   .last-updated {

@@ -842,30 +842,6 @@
   color: white;
 }
 
-.lesson-status-display .status-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  background: #f8f9fa;
-  border-top: 1px solid #e2e8f0;
-}
-
-.lesson-status-display .update-time {
-  color: #7f8c8d;
-  font-size: 0.8rem;
-}
-
-.lesson-status-display .refresh-btn {
-  background: transparent;
-  border: 1px solid #bdc3c7;
-  color: #7f8c8d;
-  padding: 0.4rem 0.6rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: all 0.2s ease;
-}
 
 .lesson-status-display .refresh-btn:hover {
   background: var(--status-postponed);
