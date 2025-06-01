@@ -100,12 +100,12 @@ body.header-loaded #hero {
 
 .hero-description p {
   font-size: 24px;
-  color: #2d3748;
+  color: var(--white);
   line-height: 1.7;
   font-weight: 700;
   max-width: 900px;
   margin: 0 auto;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   letter-spacing: 0.02em;
 }
 
@@ -120,12 +120,12 @@ body.header-loaded #hero {
 
 .cta-message {
   font-size: clamp(20px, 2.4vw, 26px);
-  color: #1a202c;
+  color: var(--white);
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
   margin-bottom: 35px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   font-weight: 800;
 }
 
