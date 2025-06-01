@@ -192,6 +192,40 @@ export class AdminActionService {
       'insert-markdown': (element, params) => this.insertMarkdown(element, params),
       'switch-news-tab': (element, params) => this.switchNewsTab(params.tab),
       'show-writing-guide': () => this.#showWritingGuide(),
+      
+      // 記事編集関連（新しく追加）
+      'edit-article': (element, params) => {
+        const articleId = params.articleId || element.dataset.articleId;
+        if (articleId) {
+          this.editArticle(articleId);
+        } else {
+          this.#showFeedback('記事IDが見つかりません', 'error');
+        }
+      },
+      'delete-article': async (element, params) => {
+        const articleId = params.articleId || element.dataset.articleId;
+        if (articleId) {
+          await this.deleteArticle(articleId);
+        } else {
+          this.#showFeedback('記事IDが見つかりません', 'error');
+        }
+      },
+      'preview-article': (element, params) => {
+        const articleId = params.articleId || element.dataset.articleId;
+        if (articleId) {
+          this.previewArticleById(articleId);
+        } else {
+          this.#showFeedback('記事IDが見つかりません', 'error');
+        }
+      },
+      'duplicate-article': async (element, params) => {
+        const articleId = params.articleId || element.dataset.articleId;
+        if (articleId) {
+          await this.duplicateArticle(articleId);
+        } else {
+          this.#showFeedback('記事IDが見つかりません', 'error');
+        }
+      },
 
       // レッスン状況
       'load-lesson-status': () => this.loadLessonStatus(),
@@ -1715,8 +1749,8 @@ export class AdminActionService {
           <span class="date">${new Date(article.createdAt).toLocaleDateString('ja-JP')}</span>
         </div>
         <div class="news-item-actions">
-          <button class="btn btn-sm btn-outline" onclick="adminActionService.editArticle('${article.id}')">編集</button>
-          <button class="btn btn-sm btn-danger" onclick="adminActionService.deleteArticle('${article.id}')">削除</button>
+          <button class="btn btn-sm btn-outline" data-action="edit-article" data-article-id="${article.id}">編集</button>
+          <button class="btn btn-sm btn-danger" data-action="delete-article" data-article-id="${article.id}">削除</button>
         </div>
       </div>
     `).join('');
@@ -1761,10 +1795,10 @@ export class AdminActionService {
               <div class="recent-article-summary">${this.escapeHtml(summary)}</div>
             </div>
             <div class="recent-article-actions">
-              <button class="btn-icon" onclick="adminActionService.editArticle('${article.id}')" title="編集">
+              <button class="btn-icon" data-action="edit-article" data-article-id="${article.id}" title="編集">
                 <i class="fas fa-edit"></i>
               </button>
-              <button class="btn-icon" onclick="adminActionService.previewArticleById('${article.id}')" title="プレビュー">
+              <button class="btn-icon" data-action="preview-article" data-article-id="${article.id}" title="プレビュー">
                 <i class="fas fa-eye"></i>
               </button>
               <div class="dropdown">
@@ -1772,10 +1806,10 @@ export class AdminActionService {
                   <i class="fas fa-ellipsis-v"></i>
                 </button>
                 <div class="dropdown-menu">
-                  <button class="dropdown-item" onclick="adminActionService.duplicateArticle('${article.id}')">
+                  <button class="dropdown-item" data-action="duplicate-article" data-article-id="${article.id}">
                     <i class="fas fa-copy"></i> 複製
                   </button>
-                  <button class="dropdown-item danger" onclick="adminActionService.deleteArticle('${article.id}')">
+                  <button class="dropdown-item danger" data-action="delete-article" data-article-id="${article.id}">
                     <i class="fas fa-trash"></i> 削除
                   </button>
                 </div>
@@ -1838,36 +1872,105 @@ export class AdminActionService {
    */
   editArticle(articleId) {
     try {
+      console.log('🖊️ 記事編集開始:', articleId);
+      
       const article = this.articleDataService.getArticleById(articleId);
       if (!article) {
         this.#showFeedback('記事が見つかりません', 'error');
         return;
       }
       
-      // フォームに記事データを読み込み
-      document.getElementById('news-id').value = article.id;
-      document.getElementById('news-title').value = article.title;
-      document.getElementById('news-category').value = article.category;
-      document.getElementById('news-date').value = article.date || '';
-      document.getElementById('news-status').value = article.status;
-      document.getElementById('news-summary').value = article.summary || '';
-      document.getElementById('news-content').value = this.articleDataService.getArticleContent(article.id);
-      document.getElementById('news-featured').checked = article.featured || false;
-      
-      // エディタータイトルを更新
-      const editorTitle = document.getElementById('editor-title');
-      if (editorTitle) {
-        editorTitle.textContent = '記事編集';
-      }
+      console.log('📄 編集対象記事:', article);
       
       // 記事管理タブに切り替え
       this.switchAdminTab('news-management');
       
-      this.#showFeedback('記事をエディターに読み込みました');
+      // エディタータブに切り替え（少し遅延させて確実にタブが切り替わるようにする）
+      setTimeout(() => {
+        this.switchNewsTab('editor');
+        
+        // さらに少し遅延させてフォームにデータを読み込み
+        setTimeout(() => {
+          this.#loadArticleToEditor(article, articleId);
+        }, 100);
+      }, 100);
       
     } catch (error) {
       console.error('❌ 記事編集エラー:', error);
       this.#showFeedback('記事の編集に失敗しました', 'error');
+    }
+  }
+
+  /**
+   * 記事データをエディターに読み込み
+   * @private
+   * @param {Object} article - 記事データ
+   * @param {string} articleId - 記事ID
+   */
+  #loadArticleToEditor(article, articleId) {
+    try {
+      console.log('📝 記事データをエディターに読み込み中...');
+      
+      // フォーム要素を取得
+      const elements = {
+        id: document.getElementById('news-id'),
+        title: document.getElementById('news-title'),
+        category: document.getElementById('news-category'),
+        date: document.getElementById('news-date'),
+        status: document.getElementById('news-status'),
+        summary: document.getElementById('news-summary'),
+        content: document.getElementById('news-content'),
+        featured: document.getElementById('news-featured')
+      };
+      
+      // 各要素が存在するかチェック
+      const missingElements = Object.keys(elements).filter(key => !elements[key]);
+      if (missingElements.length > 0) {
+        console.warn('⚠️ 一部のフォーム要素が見つかりません:', missingElements);
+      }
+      
+      // フォームに記事データを設定
+      if (elements.id) elements.id.value = article.id || '';
+      if (elements.title) elements.title.value = article.title || '';
+      if (elements.category) elements.category.value = article.category || 'announcement';
+      if (elements.date) {
+        const dateValue = article.date || article.createdAt || '';
+        // 日付形式を正規化（YYYY-MM-DD形式にする）
+        if (dateValue) {
+          const date = new Date(dateValue);
+          if (!isNaN(date.getTime())) {
+            elements.date.value = date.toISOString().split('T')[0];
+          }
+        }
+      }
+      if (elements.status) elements.status.value = article.status || 'draft';
+      if (elements.summary) elements.summary.value = article.summary || article.excerpt || '';
+      if (elements.featured) elements.featured.checked = article.featured || false;
+      
+      // 記事本文を取得して設定
+      if (elements.content) {
+        const content = this.articleDataService.getArticleContent(articleId);
+        elements.content.value = content || '';
+        console.log('📄 記事本文を読み込み:', content ? `${content.length}文字` : '本文なし');
+      }
+      
+      // エディタータイトルを更新
+      const editorTitle = document.getElementById('editor-title');
+      if (editorTitle) {
+        editorTitle.textContent = `記事編集: ${article.title}`;
+      }
+      
+      // タイトルフィールドにフォーカス
+      if (elements.title) {
+        elements.title.focus();
+      }
+      
+      this.#showFeedback(`記事「${article.title}」をエディターに読み込みました`);
+      console.log('✅ 記事データの読み込み完了');
+      
+    } catch (error) {
+      console.error('❌ 記事データ読み込みエラー:', error);
+      this.#showFeedback('記事データの読み込みに失敗しました', 'error');
     }
   }
 
@@ -1884,6 +1987,11 @@ export class AdminActionService {
       const result = await this.articleDataService.deleteArticle(articleId);
       
       if (result.success) {
+        // 記事一覧とダッシュボードを更新
+        this.refreshRecentArticles();
+        this.refreshNewsList();
+        this.updateDashboardStats();
+        
         this.#showFeedback('記事を削除しました');
       } else {
         this.#showFeedback(result.message || '削除に失敗しました', 'error');
