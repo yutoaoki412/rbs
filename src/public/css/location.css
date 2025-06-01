@@ -7,7 +7,7 @@
   background: var(--white);
   position: relative;
   overflow: hidden;
-  padding: 80px 0; /* 縦幅を縮める */
+  padding: 60px 0; /* 縮小して調整 */
 }
 
 #location::before {
@@ -31,21 +31,18 @@
   align-items: start;
   position: relative;
   z-index: 2;
-  max-height: 80vh; /* 最大高さを制限 */
 }
 
 /* 教室情報カード - 縮小版 */
 .location-info {
   background: var(--white);
-  padding: 35px; /* パディングを縮小 */
+  padding: 30px; /* パディングをさらに縮小 */
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
   border: 3px solid transparent;
   background-clip: padding-box;
   position: relative;
   height: fit-content;
-  max-height: 75vh; /* 最大高さを制限 */
-  overflow-y: auto; /* 必要に応じてスクロール */
 }
 
 .location-info::before {
@@ -134,9 +131,9 @@
 /* コーススケジュール - コンパクト版 */
 .course-schedule {
   background: var(--gray-light);
-  padding: 20px; /* パディングを縮小 */
+  padding: 18px; /* パディングをさらに縮小 */
   border-radius: var(--radius-lg);
-  margin-top: 20px; /* マージンを縮小 */
+  margin-top: 18px; /* マージンをさらに縮小 */
   position: relative;
   overflow: hidden;
 }
@@ -153,21 +150,32 @@
 
 .course-schedule h4 {
   color: var(--navy-dark);
-  margin-bottom: 15px; /* マージンを縮小 */
-  font-size: 18px; /* フォントサイズを縮小 */
+  margin-bottom: 12px; /* マージンをさらに縮小 */
+  font-size: 16px; /* フォントサイズを縮小 */
   font-weight: var(--font-weight-black);
+  text-align: center;
+}
+
+/* コースアイテムを横並びに */
+.course-items {
+  display: flex;
+  gap: 12px; /* アイテム間のギャップ */
+  flex-wrap: wrap; /* 小画面では折り返し */
 }
 
 .course-item {
-  margin-bottom: 12px; /* マージンを縮小 */
-  padding: 15px; /* パディングを縮小 */
+  margin-bottom: 0; /* 下マージンを削除 */
+  padding: 12px; /* パディングを縮小 */
   background: var(--white);
-  border-radius: 15px; /* 角丸を縮小 */
+  border-radius: 12px; /* 角丸を縮小 */
   box-shadow: var(--shadow-sm);
   border: 2px solid transparent;
   background-clip: padding-box;
   position: relative;
   transition: var(--transition-normal);
+  flex: 1; /* 横幅を均等に */
+  min-width: 0; /* flexの縮小を許可 */
+  text-align: center; /* テキストを中央揃え */
 }
 
 .course-item::before {
@@ -175,7 +183,7 @@
   position: absolute;
   inset: -2px;
   background: var(--primary-purple);
-  border-radius: 15px;
+  border-radius: 12px;
   z-index: -1;
   opacity: 0.3;
 }
@@ -188,8 +196,16 @@
 .course-item strong {
   color: var(--primary-purple);
   font-weight: var(--font-weight-black);
-  font-size: 14px; /* フォントサイズを調整 */
+  font-size: 13px; /* フォントサイズを調整 */
   line-height: 1.3;
+  display: block;
+  margin-bottom: 4px; /* コース名と時間の間隔 */
+}
+
+.course-time {
+  font-size: 12px;
+  color: var(--gray-medium);
+  font-weight: var(--font-weight-bold);
 }
 
 /* マップエリア - 最適化 */
@@ -198,8 +214,7 @@
   overflow: hidden;
   box-shadow: var(--shadow-lg);
   height: 100%;
-  min-height: 400px; /* 高さを縮小 */
-  max-height: 75vh; /* 最大高さを制限 */
+  min-height: 350px; /* 高さをさらに縮小 */
   border: 3px solid transparent;
   background-clip: padding-box;
   position: relative;
@@ -221,7 +236,7 @@
 .map-wrapper iframe {
   width: 100%;
   height: 100%;
-  min-height: 400px; /* 高さを縮小 */
+  min-height: 350px; /* 高さをさらに縮小 */
   border-radius: 27px;
   border: none;
   background: var(--white);
@@ -259,75 +274,42 @@
   opacity: 1;
 }
 
-/* 天候注意事項 - コンパクト版 */
-.weather-notice {
-  background: var(--primary-orange);
-  color: white;
-  padding: 18px; /* パディングを縮小 */
-  border-radius: 15px; /* 角丸を縮小 */
-  margin-top: 20px; /* マージンを縮小 */
-  text-align: center;
-  font-size: 14px; /* フォントサイズを縮小 */
-  font-weight: var(--font-weight-bold);
-  box-shadow: 0 6px 25px rgba(245, 167, 35, 0.3);
-  position: relative;
-  overflow: hidden;
-  line-height: 1.4;
-}
-
-.weather-notice::before {
-  content: '';
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  width: 10px; /* サイズを縮小 */
-  height: 10px;
-  background: var(--secondary-yellow);
-  border-radius: 50%;
-  box-shadow: 0 0 12px var(--secondary-yellow);
-  animation: pulse 2s infinite;
-}
-
 /* レスポンシブ対応 - タブレット */
 @media (max-width: 1024px) {
   #location {
-    padding: 60px 0;
+    padding: 50px 0; /* パディングをさらに縮小 */
   }
   
   .location-content {
     gap: 30px;
-    max-height: none;
   }
   
   .location-info {
     padding: 25px;
-    max-height: none;
   }
   
   .map-wrapper {
-    min-height: 350px;
+    min-height: 300px; /* タブレットでさらに縮小 */
   }
   
   .map-wrapper iframe {
-    min-height: 350px;
+    min-height: 300px; /* タブレットでさらに縮小 */
   }
 }
 
 /* レスポンシブ対応 - モバイル */
 @media (max-width: 768px) {
   #location {
-    padding: 40px 0;
+    padding: 40px 0; /* モバイルでさらに縮小 */
   }
   
   .location-content {
     grid-template-columns: 1fr;
-    gap: 30px;
-    max-height: none;
+    gap: 25px; /* ギャップを縮小 */
   }
   
   .location-info {
     padding: 20px 15px;
-    max-height: none;
     overflow-y: visible;
   }
   
@@ -369,26 +351,38 @@
   }
   
   .course-schedule h4 {
-    font-size: 16px;
-    margin-bottom: 12px;
+    font-size: 14px; /* モバイルでさらに縮小 */
+    margin-bottom: 10px;
+  }
+  
+  /* モバイルでは縦並びに戻す */
+  .course-items {
+    flex-direction: column;
+    gap: 8px;
   }
   
   .course-item {
-    padding: 12px;
-    margin-bottom: 10px;
-    border-radius: 12px;
+    padding: 10px;
+    margin-bottom: 8px; /* モバイルでは下マージンを復活 */
+    border-radius: 10px;
+    text-align: left; /* モバイルでは左寄せ */
   }
   
   .course-item::before {
-    border-radius: 12px;
+    border-radius: 10px;
   }
   
   .course-item strong {
-    font-size: 13px;
+    font-size: 12px;
+    margin-bottom: 3px;
+  }
+  
+  .course-time {
+    font-size: 11px;
   }
   
   .map-wrapper {
-    min-height: 250px;
+    min-height: 220px; /* モバイルでさらに縮小 */
     border-radius: 15px;
     margin: 15px 0;
   }
@@ -398,22 +392,8 @@
   }
   
   .map-wrapper iframe {
-    min-height: 250px;
+    min-height: 220px; /* モバイルでさらに縮小 */
     border-radius: 12px;
-  }
-  
-  .weather-notice {
-    padding: 15px;
-    margin-top: 15px;
-    font-size: 13px;
-    border-radius: 12px;
-  }
-  
-  .weather-notice::before {
-    top: 10px;
-    left: 10px;
-    width: 8px;
-    height: 8px;
   }
 }
 
@@ -458,15 +438,10 @@
   .course-item strong {
     font-size: 12px;
   }
-}
-
-/* パフォーマンス最適化 */
-.location-info {
-  will-change: scroll-position;
-}
-
-.map-wrapper iframe {
-  will-change: opacity;
+  
+  .course-time {
+    font-size: 10px;
+  }
 }
 
 /* アクセシビリティ改善 */
@@ -476,10 +451,6 @@
   }
   
   #location::before {
-    animation: none;
-  }
-  
-  .weather-notice::before {
     animation: none;
   }
 } 
