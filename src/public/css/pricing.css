@@ -5,7 +5,7 @@
 /* 料金セクション全体 */
 #price {
   background: var(--gray-light);
-  padding: 80px 0;
+  padding: 60px 0;
   position: relative;
   overflow: hidden;
 }
@@ -40,8 +40,8 @@
 .price-tables {
   display: flex;
   flex-direction: column;
-  gap: 40px;
-  margin-bottom: 60px;
+  gap: 30px;
+  margin-bottom: 40px;
   position: relative;
   z-index: 2;
 }
@@ -82,7 +82,7 @@
 
 /* 料金ヘッダー */
 .price-header {
-  padding: 40px 30px;
+  padding: 25px 30px;
   text-align: center;
   color: var(--white);
   position: relative;
@@ -109,15 +109,15 @@
 }
 
 .price-header h3 {
-  font-size: 28px;
-  margin-bottom: 12px;
+  font-size: 24px;
+  margin-bottom: 8px;
   font-weight: 800;
   position: relative;
   z-index: 2;
 }
 
 .price-header p {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   opacity: 0.95;
   position: relative;
@@ -127,7 +127,7 @@
 
 /* 料金ボディ */
 .price-body {
-  padding: 40px 30px;
+  padding: 25px 30px;
   background: var(--white);
 }
 
@@ -136,15 +136,15 @@
   display: flex;
   flex-direction: column;
   text-align: center;
-  margin-bottom: 25px;
-  padding: 20px;
+  margin-bottom: 18px;
+  padding: 16px;
   background: var(--gray-light);
   border-radius: 15px;
   border: 2px solid transparent;
   background-clip: padding-box;
   position: relative;
   transition: all 0.3s ease;
-  gap: 12px;
+  gap: 8px;
 }
 
 .price-item::before {
@@ -168,21 +168,21 @@
 
 .price-label {
   color: var(--gray-medium);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
   margin-bottom: 0;
 }
 
 .price-amount {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 800;
   color: var(--primary-blue);
   margin-top: 0;
 }
 
 .price-amount small {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--gray-medium);
 }
@@ -190,14 +190,14 @@
 /* 初期費用 */
 .entry-fees {
   background: var(--white);
-  padding: 50px 30px;
-  border-radius: 25px;
+  padding: 50px 50px;
+  border-radius: 30px;
   text-align: center;
   border: 4px solid transparent;
   background-clip: padding-box;
   box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
   position: relative;
-  max-width: 100%;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
@@ -211,8 +211,8 @@
 }
 
 .entry-fees h4 {
-  font-size: 24px;
-  margin-bottom: 30px;
+  font-size: 26px;
+  margin-bottom: 35px;
   color: var(--navy-dark);
   font-weight: 800;
   position: relative;
@@ -221,10 +221,10 @@
 .entry-fees h4::after {
   content: '';
   position: absolute;
-  bottom: -10px;
+  bottom: -8px;
   left: 50%;
   transform: translateX(-50%);
-  width: 60px;
+  width: 70px;
   height: 4px;
   background: var(--primary-orange);
   border-radius: 2px;
@@ -233,13 +233,13 @@
 .fee-item {
   display: flex;
   flex-direction: column;
-  margin-bottom: 25px;
-  padding: 25px 20px;
+  margin-bottom: 20px;
+  padding: 20px 20px;
   background: var(--gray-light);
   border-radius: 15px;
   transition: all 0.3s ease;
   text-align: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .fee-item:hover {
@@ -269,14 +269,14 @@
 /* タブレット以上 (768px以上) */
 @media (min-width: 768px) {
   #price {
-    padding: 100px 0;
+    padding: 80px 0;
   }
 
   .price-tables {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 50px;
-    margin-bottom: 80px;
+    gap: 40px;
+    margin-bottom: 60px;
     max-width: 1000px;
     margin-left: auto;
     margin-right: auto;
@@ -291,20 +291,20 @@
   }
 
   .price-header {
-    padding: 50px 40px;
+    padding: 35px 40px;
   }
 
   .price-header h3 {
-    font-size: 32px;
-    margin-bottom: 15px;
+    font-size: 28px;
+    margin-bottom: 10px;
   }
 
   .price-header p {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .price-body {
-    padding: 50px 40px;
+    padding: 35px 40px;
   }
 
   .price-item {
@@ -312,7 +312,7 @@
     justify-content: space-between;
     align-items: center;
     text-align: left;
-    padding: 25px;
+    padding: 20px;
     border-radius: 20px;
     gap: 20px;
   }
@@ -336,7 +336,7 @@
   }
 
   .entry-fees {
-    padding: 60px 50px;
+    padding: 50px 50px;
     border-radius: 30px;
     max-width: 1000px;
   }
@@ -346,21 +346,21 @@
   }
 
   .entry-fees h4 {
-    font-size: 28px;
-    margin-bottom: 40px;
+    font-size: 26px;
+    margin-bottom: 35px;
   }
 
   .entry-fees h4::after {
-    width: 80px;
+    width: 70px;
     height: 4px;
   }
 
   .fee-item {
     display: inline-block;
     margin: 0 20px 0 0;
-    padding: 30px 40px;
+    padding: 25px 35px;
     border-radius: 20px;
-    min-width: 180px;
+    min-width: 170px;
     vertical-align: top;
   }
 
@@ -381,7 +381,7 @@
 /* デスクトップ (1200px以上) */
 @media (min-width: 1200px) {
   #price {
-    padding: 120px 0;
+    padding: 100px 0;
   }
 
   .price-tables {
@@ -397,11 +397,11 @@
   }
 
   .price-header h3 {
-    font-size: 36px;
+    font-size: 32px;
   }
 
   .price-header p {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .entry-fees {
@@ -414,21 +414,21 @@
   }
 
   .fee-item {
-    margin: 0 30px 0 0;
-    padding: 30px 50px;
-    min-width: 200px;
+    margin: 0 25px 0 0;
+    padding: 25px 45px;
+    min-width: 190px;
   }
 }
 
 /* モバイル（480px以下） */
 @media (max-width: 480px) {
   #price {
-    padding: 60px 0;
+    padding: 50px 0;
   }
 
   .price-tables {
-    gap: 30px;
-    margin-bottom: 50px;
+    gap: 25px;
+    margin-bottom: 40px;
   }
 
   .price-card {
@@ -440,27 +440,27 @@
   }
 
   .price-header {
-    padding: 30px 20px;
+    padding: 22px 20px;
   }
 
   .price-header h3 {
-    font-size: 24px;
-    margin-bottom: 8px;
+    font-size: 22px;
+    margin-bottom: 6px;
   }
 
   .price-header p {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .price-body {
-    padding: 30px 20px;
+    padding: 22px 20px;
   }
 
   .price-item {
-    padding: 18px;
-    margin-bottom: 20px;
+    padding: 14px;
+    margin-bottom: 16px;
     border-radius: 12px;
-    gap: 10px;
+    gap: 7px;
   }
 
   .price-item::before {
