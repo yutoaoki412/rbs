@@ -74,13 +74,13 @@
   }
 
   .nav-links li {
-    margin: 0 0 30px 0;
+    margin: 0 0 17px 0;
     width: 100%;
     max-width: 300px;
   }
 
   .nav-links li:last-child {
-    margin: 20px 0 0 0;
+    margin: 15px 0 0 0;
   }
 
   .nav-links a {
