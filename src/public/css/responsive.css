@@ -147,6 +147,16 @@
     margin-bottom: 22px;
   }
 
+  .hero-highlight {
+    margin: 0 1px;
+  }
+
+  .hero-highlight::before {
+    left: -6px;
+    right: -6px;
+    border-radius: 4px;
+  }
+
   .hero-description p {
     font-size: 20px;
     line-height: 1.6;
@@ -382,6 +392,16 @@
     font-size: 24px;
     line-height: 1.3;
     margin-bottom: 15px;
+  }
+
+  .hero-highlight {
+    margin: 0 1px;
+  }
+
+  .hero-highlight::before {
+    left: -6px;
+    right: -6px;
+    border-radius: 4px;
   }
 
   .hero-description p {

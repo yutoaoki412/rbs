@@ -133,6 +133,53 @@ body.header-loaded #hero {
   color: var(--secondary-yellow);
 }
 
+/* ヒーローセクションタイトル */
+.hero-content h1 {
+  color: var(--white);
+  font-size: clamp(32px, 7vw, 56px);
+  line-height: 1.3;
+  margin-bottom: 40px;
+  font-weight: 800;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  letter-spacing: -0.02em;
+}
+
+/* ヒーローセクションキーワードハイライト */
+.hero-highlight {
+  color: var(--white);
+  font-weight: 800;
+  position: relative;
+  display: inline;
+  margin: 0 2px;
+}
+
+.hero-highlight::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -8px;
+  right: -8px;
+  bottom: 0;
+  background: var(--primary-teal);
+  border-radius: 6px;
+  box-shadow: 0 4px 15px rgba(20, 184, 166, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  z-index: -1;
+}
+
+.hero-highlight::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: shimmer 4s infinite;
+  z-index: -1;
+  border-radius: 6px;
+}
+
 /* About セクション */
 #about {
   background: var(--gray-light);
