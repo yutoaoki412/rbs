@@ -18,16 +18,18 @@ export class AuthService {
     
     // セキュリティ設定
     this.config = {
-      maxAttempts: config.security?.maxLoginAttempts || 3,
+      maxAttempts: config.security?.maxLoginAttempts || 5,
       lockoutDuration: config.security?.admin?.lockoutDuration || 15 * 60 * 1000,
-      sessionDuration: config.security?.admin?.sessionDuration || 60 * 60 * 1000,
-      sessionExtensionThreshold: 30 * 60 * 1000,
-      adminPassword: config.security?.admin?.password || 'admin123'
+      sessionDuration: config.security?.admin?.sessionDuration || 24 * 60 * 60 * 1000,
+      sessionExtensionThreshold: config.security?.admin?.sessionExtensionThreshold || 2 * 60 * 60 * 1000,
+      sessionCheckInterval: config.security?.admin?.sessionCheckInterval || 5 * 60 * 1000,
+      adminPassword: config.security?.admin?.password || 'rbs2024admin'
     };
 
     // 状態管理
     this.isAuthenticatedCache = null;
     this.sessionCheckInterval = null;
+    this.sessionMonitorInterval = null;
     this.initialized = false;
   }
 
@@ -50,8 +52,13 @@ export class AuthService {
       // 現在の認証状態をチェック
       this.isAuthenticatedCache = this.isAuthenticated();
       
+      // 管理画面でのセッション監視を開始
+      if (this.isAuthenticatedCache) {
+        this.startSessionMonitoring();
+      }
+      
       this.initialized = true;
-      this.log('認証サービス初期化完了');
+      this.log(`認証サービス初期化完了 (セッション時間: ${this.config.sessionDuration / (60 * 60 * 1000)}時間)`);
       
     } catch (error) {
       this.error('認証サービス初期化エラー:', error);
@@ -197,6 +204,9 @@ export class AuthService {
   logout() {
     try {
       this.log('ログアウト処理開始');
+      
+      // セッション監視を停止
+      this.stopSessionMonitoring();
       
       // 認証データを削除
       localStorage.removeItem(this.storageKeys.auth);
@@ -482,7 +492,9 @@ export class AuthService {
         adminPassword: CONFIG.security?.admin?.password || 'rbs2024admin',
         sessionDuration: CONFIG.security?.admin?.sessionDuration || 24 * 60 * 60 * 1000, // 24時間
         maxLoginAttempts: CONFIG.security?.maxLoginAttempts || 5,
-        lockoutDuration: CONFIG.security?.admin?.lockoutDuration || 15 * 60 * 1000 // 15分
+        lockoutDuration: CONFIG.security?.admin?.lockoutDuration || 15 * 60 * 1000, // 15分
+        sessionExtensionThreshold: CONFIG.security?.admin?.sessionExtensionThreshold || 2 * 60 * 60 * 1000,
+        sessionCheckInterval: CONFIG.security?.admin?.sessionCheckInterval || 5 * 60 * 1000
       };
     } catch (error) {
       this.warn('設定ファイル読み込み失敗、デフォルト設定を使用:', error);
@@ -490,7 +502,9 @@ export class AuthService {
         adminPassword: 'rbs2024admin',
         sessionDuration: 24 * 60 * 60 * 1000,
         maxLoginAttempts: 5,
-        lockoutDuration: 15 * 60 * 1000
+        lockoutDuration: 15 * 60 * 1000,
+        sessionExtensionThreshold: 2 * 60 * 60 * 1000,
+        sessionCheckInterval: 5 * 60 * 1000
       };
     }
   }
@@ -541,6 +555,82 @@ export class AuthService {
     this.isAuthenticatedCache = true;
     
     this.log(`認証セッションを保存: ${isDev ? '開発モード' : '通常モード'}`);
+  }
+
+  /**
+   * セッション監視を開始
+   * @private
+   */
+  startSessionMonitoring() {
+    // 既存の監視を停止
+    this.stopSessionMonitoring();
+    
+    // 定期的にセッションをチェック
+    this.sessionMonitorInterval = setInterval(() => {
+      this.checkSessionValidity();
+      this.updateSessionActivity();
+    }, this.config.sessionCheckInterval);
+    
+    this.log(`セッション監視開始 (${this.config.sessionCheckInterval / 60000}分間隔)`);
+  }
+
+  /**
+   * セッション監視を停止
+   * @private
+   */
+  stopSessionMonitoring() {
+    if (this.sessionMonitorInterval) {
+      clearInterval(this.sessionMonitorInterval);
+      this.sessionMonitorInterval = null;
+      this.log('セッション監視停止');
+    }
+  }
+
+  /**
+   * セッションアクティビティを更新
+   * @private
+   */
+  updateSessionActivity() {
+    const authData = this.getAuthData();
+    if (authData) {
+      authData.lastActivity = Date.now();
+      localStorage.setItem(this.storageKeys.auth, JSON.stringify(authData));
+    }
+  }
+
+  /**
+   * セッション残り時間を取得
+   * @returns {number} 残り時間（ミリ秒）
+   */
+  getSessionRemainingTime() {
+    const authData = this.getAuthData();
+    if (!authData || !authData.expires) {
+      return 0;
+    }
+    
+    const remaining = authData.expires - Date.now();
+    return Math.max(0, remaining);
+  }
+
+  /**
+   * セッション残り時間を人間が読める形式で取得
+   * @returns {string}
+   */
+  getSessionRemainingTimeFormatted() {
+    const remaining = this.getSessionRemainingTime();
+    
+    if (remaining <= 0) {
+      return '期限切れ';
+    }
+    
+    const hours = Math.floor(remaining / (60 * 60 * 1000));
+    const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+    
+    if (hours > 0) {
+      return `${hours}時間${minutes}分`;
+    } else {
+      return `${minutes}分`;
+    }
   }
 
   // === ログメソッド ===

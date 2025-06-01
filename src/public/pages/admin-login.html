@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../css/login.css">
   
   <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="../assets/images/favicon.ico">
+  <link rel="icon" type="image/png" href="../assets/images/lp-logo.png">
   
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -191,15 +191,21 @@
         if (password === ADMIN_PASSWORD) {
           console.log('パスワード認証成功');
           
-          // セッションを作成
+          // セッションを作成（設定ファイルの値を使用）
           const authData = {
             token: generateSessionToken(),
             created: Date.now(),
-            expires: Date.now() + (8 * 60 * 60 * 1000), // 8時間
-            lastActivity: Date.now()
+            expires: Date.now() + config.security.admin.sessionDuration, // 24時間
+            lastActivity: Date.now(),
+            version: '3.0.0'
           };
           
           localStorage.setItem('rbs_admin_auth', JSON.stringify(authData));
+          
+          console.log('セッション作成完了:', {
+            duration: config.security.admin.sessionDuration / (60 * 60 * 1000) + '時間',
+            expires: new Date(authData.expires).toLocaleString('ja-JP')
+          });
           
           showSuccessAndRedirect();
         } else {

@@ -89,6 +89,36 @@
   gap: 1rem;
 }
 
+.session-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--admin-gray-100);
+  border: 1px solid var(--admin-gray-300);
+  border-radius: var(--admin-border-radius-sm);
+  font-size: 0.75rem;
+  color: var(--admin-gray-700);
+  font-weight: 500;
+  min-width: 120px;
+  transition: var(--admin-transition);
+}
+
+.session-info i {
+  color: var(--admin-success);
+  font-size: 0.75rem;
+}
+
+.session-info.warning {
+  background: var(--admin-warning);
+  color: var(--admin-white);
+  border-color: #d69e2e;
+}
+
+.session-info.warning i {
+  color: var(--admin-white);
+}
+
 .logout-btn {
   display: flex;
   align-items: center;
@@ -2324,5 +2354,326 @@ input[id*="postponed"]:checked + .status-btn {
   .code-block {
     font-size: 0.8125rem;
     padding: 0.75rem;
+  }
+}
+
+/* =============================================================================
+   通知システム
+   ============================================================================= */
+
+/* 通知コンテナ */
+.notification-container {
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  z-index: 9999;
+  max-width: 420px;
+  width: 100%;
+  pointer-events: none;
+}
+
+/* 通知ベーススタイル */
+.admin-notification {
+  position: relative;
+  background: var(--admin-white);
+  border-radius: var(--admin-border-radius);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.1);
+  margin-bottom: 12px;
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: auto;
+  overflow: hidden;
+  border-left: 5px solid var(--admin-primary);
+  backdrop-filter: blur(8px);
+}
+
+/* 通知表示状態 */
+.admin-notification.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* 通知アニメーション */
+.admin-notification.animating-in {
+  animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.admin-notification.animating-out {
+  animation: slideOutRight 0.3s ease-in-out forwards;
+}
+
+/* 通知タイプ別スタイル */
+.admin-notification.success {
+  border-left-color: var(--admin-success);
+  background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
+}
+
+.admin-notification.error {
+  border-left-color: var(--admin-error);
+  background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+}
+
+.admin-notification.warning {
+  border-left-color: var(--admin-warning);
+  background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+}
+
+.admin-notification.info {
+  border-left-color: var(--admin-primary);
+  background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
+}
+
+/* 通知コンテンツ */
+.notification-content {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px 20px;
+  gap: 12px;
+}
+
+.notification-icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.admin-notification.success .notification-icon {
+  color: var(--admin-success);
+}
+
+.admin-notification.error .notification-icon {
+  color: var(--admin-error);
+}
+
+.admin-notification.warning .notification-icon {
+  color: var(--admin-warning);
+}
+
+.admin-notification.info .notification-icon {
+  color: var(--admin-primary);
+}
+
+/* メッセージエリア */
+.notification-message-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.notification-message {
+  font-size: 13px;
+  color: var(--admin-gray-700);
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+/* 閉じるボタン */
+.notification-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: none;
+  color: var(--admin-gray-400);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.notification-close:hover {
+  background: var(--admin-gray-100);
+  color: var(--admin-gray-600);
+  transform: scale(1.1);
+}
+
+/* プログレスバー */
+.notification-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, rgba(74, 144, 226, 0.8) 0%, rgba(74, 144, 226, 0.4) 100%);
+  transition: width linear;
+  border-radius: 0 0 var(--admin-border-radius) 0;
+}
+
+.admin-notification.success .notification-progress {
+  background: linear-gradient(90deg, var(--admin-success) 0%, rgba(34, 197, 94, 0.4) 100%);
+}
+
+.admin-notification.error .notification-progress {
+  background: linear-gradient(90deg, var(--admin-error) 0%, rgba(239, 68, 68, 0.4) 100%);
+}
+
+.admin-notification.warning .notification-progress {
+  background: linear-gradient(90deg, var(--admin-warning) 0%, rgba(245, 158, 11, 0.4) 100%);
+}
+
+/* アニメーション定義 */
+@keyframes slideInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(100%) scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-10px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes slideOutRight {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%) scale(0.9);
+  }
+}
+
+/* ホバー効果 */
+.admin-notification:hover {
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.admin-notification:hover .notification-progress {
+  opacity: 0.7;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .notification-container {
+    top: 70px;
+    right: 16px;
+    left: 16px;
+    max-width: none;
+  }
+  
+  .admin-notification {
+    margin-bottom: 10px;
+  }
+  
+  .notification-content {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+  
+  .notification-icon {
+    font-size: 18px;
+  }
+  
+  .notification-title {
+    font-size: 13px;
+  }
+  
+  .notification-message {
+    font-size: 12px;
+  }
+}
+
+/* 高コントラストモード対応 */
+@media (prefers-contrast: high) {
+  .admin-notification {
+    border-width: 2px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .notification-title {
+    font-weight: 700;
+  }
+  
+  .notification-close {
+    border: 2px solid var(--admin-gray-300);
+  }
+}
+
+/* アクセシビリティ向上 */
+@media (prefers-reduced-motion: reduce) {
+  .admin-notification {
+    transition: opacity 0.2s ease;
+    transform: none !important;
+  }
+  
+  .admin-notification.animating-in,
+  .admin-notification.animating-out {
+    animation: none;
+  }
+  
+  .admin-notification:hover {
+    transform: none;
+  }
+}
+
+/* 通知が複数表示される場合のスタック効果 */
+.admin-notification:nth-child(1) { z-index: 100; }
+.admin-notification:nth-child(2) { z-index: 99; }
+.admin-notification:nth-child(3) { z-index: 98; }
+.admin-notification:nth-child(4) { z-index: 97; }
+.admin-notification:nth-child(5) { z-index: 96; }
+
+/* フォーカス可能な要素のスタイル */
+.notification-close:focus {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 2px;
+}
+
+/* ダークモード強化 */
+@media (prefers-color-scheme: dark) {
+  .admin-notification {
+    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);
+  }
+  
+  .notification-title {
+    color: #f9fafb;
+  }
+  
+  .notification-message {
+    color: #d1d5db;
+  }
+  
+  .notification-close {
+    color: #9ca3af;
+  }
+  
+  .notification-close:hover {
+    background: #4b5563;
+    color: #f3f4f6;
+  }
+}
+
+/* アクセシビリティ向上 */
+@media (prefers-reduced-motion: reduce) {
+  .admin-notification {
+    transition: opacity 0.2s ease;
+    transform: none !important;
+  }
+  
+  .admin-notification.animating-in,
+  .admin-notification.animating-out {
+    animation: none;
   }
 } 

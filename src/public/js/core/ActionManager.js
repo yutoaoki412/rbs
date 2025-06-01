@@ -97,7 +97,7 @@ export class ActionManager {
     }
 
     // デバッグログは重要なアクションのみ
-    if (['toggle-faq', 'toggle-status'].includes(actionName)) {
+    if (this.#isDebugMode() && ['toggle-faq', 'toggle-status', 'switch-tab'].includes(actionName)) {
       console.log(`🔧 アクション処理開始: "${actionName}"`);
     }
     
@@ -109,12 +109,21 @@ export class ActionManager {
         await handler(element, params, event);
         
         // 成功ログは重要なアクションのみ
-        if (['toggle-faq', 'toggle-status'].includes(actionName)) {
+        if (this.#isDebugMode() && ['toggle-faq', 'toggle-status', 'switch-tab'].includes(actionName)) {
           console.log(`✅ アクション処理完了: "${actionName}"`);
         }
       } else {
-        // 未登録アクションは警告を表示
-        console.log(`📢 未登録アクションをEventBusに配信: "${actionName}"`);
+        // 未登録アクションは管理画面でのみ通知システムで警告表示
+        if (this.#isDebugMode()) {
+          console.log(`📢 未登録アクション: "${actionName}"`);
+        }
+        
+        // 管理画面の場合は通知で表示
+        if (window.location.pathname.includes('admin') && window.showWarning) {
+          window.showWarning(`未登録のアクション: ${actionName}`, 3000);
+        }
+        
+        // EventBusに配信
         EventBus.emit(`action:${actionName}`, {
           element,
           params,
@@ -441,6 +450,18 @@ export class ActionManager {
       this.#actions.delete(actionName);
       console.log(`🗑️ ActionManager: アクション登録解除 - ${actionName}`);
     }
+  }
+
+  /**
+   * デバッグモードかどうかを判定
+   * @private
+   * @returns {boolean}
+   */
+  #isDebugMode() {
+    return window.DEBUG || 
+           window.location.hostname === 'localhost' || 
+           window.location.hostname === '127.0.0.1' ||
+           window.location.search.includes('debug=true');
   }
 
   /**

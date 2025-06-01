@@ -22,42 +22,62 @@ export class AdminActionService {
     this.uiManagerService = null;
     this.newsFormManager = null;
     this.authService = null;
+    this.sessionUpdateInterval = null;
   }
 
   /**
    * 初期化
    */
   async init() {
-    if (this.initialized) {
-      console.log('⚠️ AdminActionService: 既に初期化済み');
-      return;
-    }
-
-    console.log('🔧 AdminActionService: 初期化開始');
-    
     try {
+      console.log('🔧 AdminActionService初期化開始');
+      
       // サービス初期化
       await this.initializeServices();
       
-      // データエクスポートサービスの設定
-      await this.setupDataExportService();
-      
-      // アクション登録
+      // 管理画面アクションの登録
       this.#registerAdminActions();
       
-      // UIイベントの設定
+      // UIイベント設定
       this.setupUIEvents();
       
-      // 管理画面固有の初期化
+      // 管理画面UI設定
       this.setupAdminUI();
       
+      // UIManagerServiceをグローバルに設定
+      window.uiManagerService = this.uiManagerService;
+      
+      // 通知システムのテスト（デバッグモード時のみ）
+      if (CONFIG.debug?.enabled || window.DEBUG) {
+        this.testNotificationSystem();
+      }
+      
       this.initialized = true;
-      console.log('✅ AdminActionService: 初期化完了');
       
     } catch (error) {
-      console.error('❌ AdminActionService初期化エラー:', error);
+      this.error('全サービス初期化エラー:', error);
       throw error;
     }
+    
+    this.success('管理画面が正常に初期化されました');
+  }
+
+  /**
+   * 通知システムのテスト
+   * @private
+   */
+  testNotificationSystem() {
+    if (!this.uiManagerService) {
+      console.warn('通知システムが利用できません');
+      return;
+    }
+    
+    // 3秒後にテスト通知を表示
+    setTimeout(() => {
+      this.info('通知システムが正常に動作しています');
+    }, 3000);
+    
+    console.log('📢 通知システムのテストを開始しました');
   }
 
   /**
@@ -114,40 +134,19 @@ export class AdminActionService {
   }
 
   /**
-   * データエクスポートサービスの設定
+   * データエクスポートサービスのセットアップ
    * @private
    */
   async setupDataExportService() {
     try {
-      // DataExportServiceの初期化
-      if (!dataExportService.initialized) {
-        await dataExportService.init();
-      }
+      const { DataExportService } = await import('../../../shared/services/DataExportService.js');
       
-      // データサービスの登録
-      dataExportService.registerDataService('articles', this.articleDataService);
-      dataExportService.registerDataService('instagram', this.instagramDataService);
-      dataExportService.registerDataService('lessonStatus', this.lessonStatusService);
+      this.dataExportService = new DataExportService();
+      await this.dataExportService.init();
       
-      // エクスポートイベントのリスナー設定
-      EventBus.on('dataExport:completed', (data) => {
-        uiManagerService.showSuccessNotification('data-export', {
-          filename: data.filename,
-          recordCount: data.recordCount
-        });
-      });
-      
-      EventBus.on('dataExport:failed', (data) => {
-        uiManagerService.showErrorNotification('data-export', {
-          message: data.error
-        });
-      });
-      
-      this.log('DataExportService設定完了');
-      
+      this.debug('DataExportService設定完了');
     } catch (error) {
-      this.error('DataExportService設定エラー:', error);
-      throw error;
+      this.error('DataExportServiceの設定に失敗しました:', error);
     }
   }
 
@@ -259,11 +258,16 @@ export class AdminActionService {
    * @private
    */
   setupAdminUI() {
-    // 管理画面特有の初期化処理
-    this.updateAdminStats();
-    this.setupTabNavigation();
+    // ダッシュボード統計を更新
+    this.updateDashboardStats();
     
-    this.log('管理画面UI初期化完了');
+    // 記事統計を更新
+    this.updateAdminStats();
+    
+    // セッション監視を開始
+    this.startSessionMonitoring();
+    
+    this.debug('管理画面UI設定完了');
   }
 
   /**
@@ -822,32 +826,21 @@ export class AdminActionService {
    */
   async exportData() {
     try {
-      console.log('📥 データエクスポート開始');
+      this.info('データエクスポートを開始しています...');
       
-      const result = await dataExportService.exportAllData();
-      
-      if (result.success) {
-        this.log(`データエクスポート成功: ${result.filename}`);
-      } else {
-        this.error('データエクスポート失敗:', result.message);
+      if (!this.dataExportService) {
+        throw new Error('DataExportServiceが初期化されていません');
       }
       
-      return result;
+      const result = await this.dataExportService.exportAllData();
+      if (result.success) {
+        this.success(`データエクスポートが完了しました: ${result.filename}`);
+      } else {
+        this.error(`データエクスポートに失敗しました: ${result.message}`);
+      }
       
     } catch (error) {
-      console.error('❌ データエクスポートエラー:', error);
-      
-      const errorResult = {
-        success: false,
-        message: `データのエクスポートに失敗しました: ${error.message}`
-      };
-      
-      // UIManagerServiceを使って通知
-      uiManagerService.showErrorNotification('data-export', {
-        message: error.message
-      });
-      
-      return errorResult;
+      this.error('データエクスポート処理中にエラーが発生しました:', error);
     }
   }
 
@@ -980,7 +973,7 @@ export class AdminActionService {
    */
   logout() {
     try {
-      this.log('ログアウト処理開始');
+      this.info('ログアウトしています...');
       
       // 認証状態をクリア
       if (this.authService) {
@@ -995,9 +988,73 @@ export class AdminActionService {
       window.location.href = '../index.html';
       
     } catch (error) {
-      this.error('ログアウト処理エラー:', error);
+      this.error('ログアウト処理中にエラーが発生しました:', error);
       // フォールバック
       window.location.href = '../index.html';
+    }
+  }
+
+  /**
+   * セッション情報の更新
+   */
+  updateSessionInfo() {
+    try {
+      const sessionInfoElement = document.getElementById('session-remaining');
+      if (!sessionInfoElement) return;
+
+      if (this.authService && typeof this.authService.getSessionRemainingTimeFormatted === 'function') {
+        const remainingTime = this.authService.getSessionRemainingTimeFormatted();
+        const remainingMs = this.authService.getSessionRemainingTime();
+        
+        sessionInfoElement.textContent = remainingTime;
+        
+        // 残り時間に応じてスタイルを変更
+        const sessionInfoContainer = document.getElementById('session-info');
+        if (sessionInfoContainer) {
+          // 2時間未満の場合は警告表示
+          if (remainingMs < 2 * 60 * 60 * 1000) {
+            sessionInfoContainer.classList.add('warning');
+          } else {
+            sessionInfoContainer.classList.remove('warning');
+          }
+        }
+        
+        this.debug(`セッション残り時間: ${remainingTime}`);
+      } else {
+        sessionInfoElement.textContent = '情報なし';
+      }
+    } catch (error) {
+      this.error('セッション情報更新エラー:', error);
+    }
+  }
+
+  /**
+   * セッション監視を開始
+   */
+  startSessionMonitoring() {
+    // 即座に一度更新
+    this.updateSessionInfo();
+    
+    // 1分ごとにセッション情報を更新
+    if (this.sessionUpdateInterval) {
+      clearInterval(this.sessionUpdateInterval);
+    }
+    
+    this.sessionUpdateInterval = setInterval(() => {
+      this.updateSessionInfo();
+    }, 60000); // 1分間隔
+    
+    this.log('セッション情報の定期更新を開始しました (1分間隔)');
+  }
+
+  /**
+   * セッション監視を停止
+   */
+  stopSessionMonitoring() {
+    if (this.sessionUpdateInterval) {
+      clearInterval(this.sessionUpdateInterval);
+      this.sessionUpdateInterval = null;
+      this.log('セッション情報の定期更新を停止しました');
     }
   }
 
@@ -1959,37 +2016,124 @@ export class AdminActionService {
   // === ログメソッド ===
 
   /**
-   * ログ出力
+   * ログ出力（通知システム統合版）
    * @private
    */
   log(...args) {
-    console.log('🔧 AdminActionService:', ...args);
-  }
-
-  /**
-   * デバッグログ出力
-   * @private
-   */
-  debug(...args) {
-    if (CONFIG.debug.enabled) {
-      console.debug('🔍 AdminActionService:', ...args);
+    const message = args.join(' ');
+    
+    // デバッグモードでのみコンソール出力
+    if (CONFIG.debug?.enabled || window.DEBUG) {
+      console.log('🔧 AdminActionService:', ...args);
+    }
+    
+    // 通知として表示
+    if (this.uiManagerService && message.length > 0) {
+      this.uiManagerService.showNotification('info', message, 3000, {
+        title: 'システム',
+        icon: '🔧'
+      });
     }
   }
 
   /**
-   * 警告ログ出力
+   * デバッグログ出力（通知システム統合版）
    * @private
    */
-  warn(...args) {
-    console.warn('⚠️ AdminActionService:', ...args);
+  debug(...args) {
+    const message = args.join(' ');
+    
+    if (CONFIG.debug?.enabled || window.DEBUG) {
+      console.debug('🔍 AdminActionService:', ...args);
+      
+      // デバッグ情報は画面に表示しない（オプションで表示可能）
+      if (CONFIG.debug?.verbose) {
+        this.uiManagerService?.showNotification('info', message, 2000, {
+          title: 'デバッグ',
+          icon: '🔍'
+        });
+      }
+    }
   }
 
   /**
-   * エラーログ出力
+   * 警告ログ出力（通知システム統合版）
+   * @private
+   */
+  warn(...args) {
+    const message = args.join(' ');
+    
+    // 警告は常にコンソールにも出力
+    console.warn('⚠️ AdminActionService:', ...args);
+    
+    // 警告通知として表示
+    if (this.uiManagerService && message.length > 0) {
+      this.uiManagerService.showNotification('warning', message, 5000, {
+        title: '警告',
+        icon: '⚠️'
+      });
+    }
+  }
+
+  /**
+   * エラーログ出力（通知システム統合版）
    * @private
    */
   error(...args) {
+    const message = args.join(' ');
+    
+    // エラーは常にコンソールにも出力
     console.error('❌ AdminActionService:', ...args);
+    
+    // エラー通知として表示
+    if (this.uiManagerService && message.length > 0) {
+      this.uiManagerService.showNotification('error', message, 7000, {
+        title: 'エラー',
+        icon: '❌'
+      });
+    }
+  }
+
+  /**
+   * 成功メッセージの表示
+   * @private
+   */
+  success(...args) {
+    const message = args.join(' ');
+    
+    // デバッグモードでのみコンソール出力
+    if (CONFIG.debug?.enabled || window.DEBUG) {
+      console.log('✅ AdminActionService:', ...args);
+    }
+    
+    // 成功通知として表示
+    if (this.uiManagerService && message.length > 0) {
+      this.uiManagerService.showNotification('success', message, 4000, {
+        title: '成功',
+        icon: '✅'
+      });
+    }
+  }
+
+  /**
+   * 情報メッセージの表示
+   * @private
+   */
+  info(...args) {
+    const message = args.join(' ');
+    
+    // デバッグモードでのみコンソール出力
+    if (CONFIG.debug?.enabled || window.DEBUG) {
+      console.log('ℹ️ AdminActionService:', ...args);
+    }
+    
+    // 情報通知として表示
+    if (this.uiManagerService && message.length > 0) {
+      this.uiManagerService.showNotification('info', message, 3000, {
+        title: '情報',
+        icon: 'ℹ️'
+      });
+    }
   }
 
   /**

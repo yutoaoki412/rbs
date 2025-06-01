@@ -80,8 +80,10 @@ const config = {
     maxLoginAttempts: 5,
     admin: {
       password: 'rbs2024admin',
-      sessionDuration: 8 * 60 * 60 * 1000, // 8時間
-      lockoutDuration: 15 * 60 * 1000 // 15分
+      sessionDuration: 24 * 60 * 60 * 1000, // 24時間
+      lockoutDuration: 15 * 60 * 1000, // 15分
+      sessionCheckInterval: 5 * 60 * 1000, // 5分ごとにセッションチェック
+      sessionExtensionThreshold: 2 * 60 * 60 * 1000 // セッション延長の閾値（残り2時間以下で延長）
     }
   }
 };
