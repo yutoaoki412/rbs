@@ -1,14 +1,28 @@
 /* ==========================================================================
-   ステータスバナー専用スタイル - レイアウト・アニメーション修正版
+   ステータスバナー専用スタイル - 完全統合リファクタリング版
    ========================================================================== */
 
-/* ステータスバナー基本スタイル */
+/* ヒーローセクションとの隙間を完全に削除するためのリセット */
+#hero {
+  margin-bottom: 0 !important;
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+}
+
+#hero + .status-banner,
+#hero + #today-status {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  border-top: none !important;
+}
+
+/* ステータスバナー基本スタイル - 完全統合版 */
 .status-banner,
 #today-status {
   background: var(--primary-blue);
   color: white;
-  margin: 0 !important; /* 全ての余白を強制削除 */
-  padding: 0;
+  margin: 0 !important;
+  padding: 0 !important;
   border-radius: 0;
   box-shadow: 0 4px 20px rgba(74, 144, 226, 0.25);
   position: relative;
@@ -18,15 +32,36 @@
   visibility: visible;
   opacity: 1;
   transform: translateY(0);
-  z-index: 50; /* ヒーローセクションより上、ヘッダーより下の階層に配置 */
+  z-index: 50;
   width: 100%;
-  /* ヒーローセクションとの統合を強化 - 隙間を完全に削除 */
-  border-top: 2px solid rgba(255, 255, 255, 0.3); /* ヒーローセクションとの境界線 */
-  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-  scroll-margin-top: var(--header-height); /* ヘッダー高さ考慮 */
+  scroll-margin-top: var(--header-height);
+  
+  /* ヒーローセクションと完全に統合 */
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
   
   /* ページ読み込み時のアニメーション */
   animation: slideInFromTop 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* 隙間削除を強制するためのグローバル設定 */
+body.page-index #hero,
+body.page-news #hero,
+body.page-news-detail #hero {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+  border-bottom: none !important;
+}
+
+body.page-index .status-banner,
+body.page-news .status-banner,
+body.page-news-detail .status-banner,
+body.page-index #today-status,
+body.page-news #today-status,
+body.page-news-detail #today-status {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  border-top: none !important;
 }
 
 /* ページ読み込み時のアニメーション定義 */
@@ -107,25 +142,24 @@
 
 /* ステータスヘッダー */
 .status-header {
-  padding: 18px 0; /* ヒーローとの一体感のため調整 */
+  padding: 18px 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
-  background: rgba(255, 255, 255, 0.05); /* より控えめなガラス調の背景 */
-  backdrop-filter: blur(10px); /* ブラー効果を軽減 */
-  min-height: 68px; /* 適切な高さでバランス調整 */
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  min-height: 68px;
   border-radius: 0;
-  z-index: 48; /* ステータスバナー内で適切な階層 */
-  /* ヒーローからの自然な継続感 */
-  border-top: 1px solid rgba(255, 255, 255, 0.1); /* より控えめなボーダー */
+  z-index: 48;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .status-header:hover {
-  background: rgba(255, 255, 255, 0.08); /* ホバー時の視覚的フィードバック */
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* ステータス情報エリア */
@@ -229,6 +263,12 @@
   box-shadow: 0 2px 10px var(--status-postponed-light);
 }
 
+.status-indicator.error {
+  background: var(--primary-red);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 10px rgba(231, 76, 60, 0.4);
+}
+
 /* トグルアイコン */
 .toggle-icon {
   font-size: 16px;
@@ -252,7 +292,7 @@
   border-color: rgba(255, 255, 255, 0.4);
 }
 
-/* ステータスコンテンツ - 修正版 */
+/* ステータスコンテンツ - 完全版 */
 .status-content {
   max-height: 0;
   overflow: hidden;
@@ -262,12 +302,11 @@
   -webkit-backdrop-filter: blur(10px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
-  z-index: 45; /* ステータスバナー本体より少し下 */
+  z-index: 45;
 }
 
 /* 展開時のスタイル */
 .status-banner.expanded .status-content {
-  /* JavaScriptで動的に設定されるため、ここでは基本設定のみ */
   opacity: 1;
 }
 
@@ -277,7 +316,7 @@
   background: #f8f9fa;
   border-radius: 0;
   position: relative;
-  z-index: 40; /* さらに下の階層 */
+  z-index: 40;
 }
 
 .status-details::before {
@@ -304,12 +343,18 @@
   animation: spin 1s linear infinite;
 }
 
+.loading-status p {
+  margin: 10px 0 0 0;
+  font-weight: 600;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
 /* グローバルメッセージ */
+.status-message,
 .global-message {
   background: #e8f4fd;
   color: #2c3e50;
@@ -320,16 +365,29 @@
   box-shadow: 0 2px 10px rgba(74, 144, 226, 0.1);
 }
 
+.status-message::before,
 .global-message::before {
   content: '📢';
   margin-right: 10px;
   font-size: 16px;
 }
 
+.status-message p,
 .global-message p {
   margin: 0;
   font-weight: 500;
   line-height: 1.5;
+}
+
+.status-message .message-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-message .message-content i {
+  color: #4a90e2;
+  font-size: 18px;
 }
 
 /* コース状況表示 */
@@ -399,6 +457,20 @@
   font-weight: 500;
 }
 
+.time-slot strong {
+  display: block;
+  font-size: 20px;
+  color: var(--navy-dark);
+  margin-bottom: 8px;
+  font-weight: var(--font-weight-heavy);
+}
+
+.course-name {
+  font-size: 16px;
+  color: var(--gray-medium);
+  font-weight: var(--font-weight-medium);
+}
+
 /* ステータスバッジ */
 .status-badge {
   padding: 6px 12px;
@@ -410,6 +482,13 @@
   min-width: 70px;
   text-align: center;
   flex-shrink: 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.status-badge.running {
+  background: var(--primary-teal);
+  color: white;
+  box-shadow: 0 2px 8px rgba(80, 200, 163, 0.4);
 }
 
 .status-badge.scheduled {
@@ -436,8 +515,11 @@
   box-shadow: 0 2px 8px var(--status-postponed-light);
 }
 
-/* コースメッセージ */
-
+.status-badge.error {
+  background: var(--primary-red);
+  color: white;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.4);
+}
 
 /* ステータスフッター */
 .status-footer {
@@ -458,6 +540,12 @@
   font-weight: 500;
 }
 
+.update-note {
+  color: #7f8c8d;
+  font-size: 11px;
+  margin-top: 5px;
+}
+
 /* エラー状態 */
 .error-status {
   background: #ffeaea;
@@ -476,13 +564,74 @@
   font-weight: 700;
 }
 
-/* レスポンシブ対応 */
+.error-status p {
+  margin: 5px 0;
+  font-weight: 500;
+}
+
+/* ステータス項目（一般） */
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px 20px;
+  border-bottom: 2px solid var(--gray-border);
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.status-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary-blue);
+  border-radius: 2px;
+}
+
+.status-item:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+/* タブレット対応 (992px以下) */
+@media (max-width: 992px) {
+  .status-banner .container {
+    padding: 0 15px;
+  }
+  
+  .status-header {
+    padding: 16px 0;
+    min-height: 62px;
+  }
+  
+  .status-text {
+    font-size: 17px;
+  }
+  
+  .courses-status {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 18px;
+  }
+}
+
+/* タブレット・モバイル対応 (768px以下) */
 @media (max-width: 768px) {
+  /* 完全に隙間を削除するモバイル版設定 */
+  #hero {
+    margin-bottom: 0 !important;
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+  }
+  
   .status-banner,
   #today-status {
-    /* モバイルでの追加最適化 */
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-top: none !important;
     box-shadow: 0 2px 12px rgba(74, 144, 226, 0.2);
-    margin-top: 0 !important; /* モバイルでも隙間を削除 */
   }
   
   .status-banner .container {
@@ -490,9 +639,9 @@
   }
   
   .status-header {
-    padding: 14px 0; /* モバイルでの適切なパディング */
-    min-height: 58px; /* モバイルでのバランス */
-    background: rgba(255, 255, 255, 0.05); /* デスクトップ版と一致させる */
+    padding: 14px 0;
+    min-height: 58px;
+    background: rgba(255, 255, 255, 0.05);
   }
   
   .status-info {
@@ -537,20 +686,35 @@
     margin-right: -15px;
     padding: 12px 15px;
   }
+  
+  .status-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
 }
 
+/* 小画面モバイル対応 (480px以下) */
 @media (max-width: 480px) {
+  /* 小画面での隙間完全削除 */
+  #hero {
+    margin-bottom: 0 !important;
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+  }
+  
   .status-banner,
   #today-status {
-    /* モバイルでの追加最適化 */
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-top: none !important;
     box-shadow: 0 2px 12px rgba(74, 144, 226, 0.2);
-    margin-top: 20px !important; /* 小画面でも適切な間隔を設定 */
   }
   
   .status-header {
     padding: 12px 0;
-    min-height: 52px; /* 小画面での高さ調整 */
-    background: rgba(255, 255, 255, 0.05); /* デスクトップ版と一致させる */
+    min-height: 52px;
+    background: rgba(255, 255, 255, 0.05);
   }
   
   .status-info {
@@ -602,20 +766,56 @@
 }
 
 /* ヘッダー固定時の追加調整 */
-@media (max-width: 768px) {
-  body.header-fixed .status-banner,
-  body.header-fixed #today-status {
-    /* モバイルでヘッダーが固定されている場合の調整 */
-    position: relative;
-    top: 0;
-    margin-top: 0 !important; /* モバイルでも隙間を完全に削除 */
+body.header-fixed .status-banner,
+body.header-fixed #today-status {
+  position: relative;
+  top: 0;
+  margin-top: 0 !important;
+}
+
+/* スムーズスクロール対応 */
+@media (min-width: 769px) {
+  .status-banner,
+  #today-status {
+    scroll-margin-top: var(--header-height);
   }
 }
 
-/* スムーズスクロール対応 - ヘッダー統合版 */
 @media (max-width: 768px) {
   .status-banner,
   #today-status {
-    scroll-margin-top: 58px; /* モバイルヘッダー統合版 */
+    scroll-margin-top: 58px;
   }
+}
+
+/* ページタイプ別の追加設定 */
+.page-index .status-banner,
+.page-index #today-status {
+  /* ホームページ専用設定 */
+}
+
+.page-news .status-banner,
+.page-news #today-status,
+.page-news-detail .status-banner,
+.page-news-detail #today-status {
+  /* ニュースページ専用設定 */
+  display: none; /* ニュースページではステータスバナーを非表示 */
+}
+
+/* デバッグ用（開発時のみ） */
+.status-banner.debug {
+  border: 3px solid red !important;
+}
+
+.status-banner.debug::after {
+  content: 'DEBUG MODE';
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: red;
+  color: white;
+  padding: 2px 6px;
+  font-size: 10px;
+  border-radius: 3px;
+  z-index: 1000;
 } 
