@@ -104,9 +104,9 @@
   <!-- JavaScript -->
   <script type="module">
     // 設定読み込み
-    import config from '../js/shared/constants/config.js';
+    import { CONFIG } from '../js/shared/constants/config.js';
     
-    const ADMIN_PASSWORD = config.security.admin.password;
+    const ADMIN_PASSWORD = CONFIG.security.admin.password;
     
     let isLoading = false;
 
@@ -195,7 +195,7 @@
           const authData = {
             token: generateSessionToken(),
             created: Date.now(),
-            expires: Date.now() + config.security.admin.sessionDuration, // 24時間
+            expires: Date.now() + CONFIG.security.admin.sessionDuration, // 24時間
             lastActivity: Date.now(),
             version: '3.0.0'
           };
@@ -203,7 +203,7 @@
           localStorage.setItem('rbs_admin_auth', JSON.stringify(authData));
           
           console.log('セッション作成完了:', {
-            duration: config.security.admin.sessionDuration / (60 * 60 * 1000) + '時間',
+            duration: CONFIG.security.admin.sessionDuration / (60 * 60 * 1000) + '時間',
             expires: new Date(authData.expires).toLocaleString('ja-JP')
           });
           

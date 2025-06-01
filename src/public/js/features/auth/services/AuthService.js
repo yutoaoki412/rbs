@@ -1,36 +1,31 @@
 /**
  * 認証サービス
  * RBS陸上教室の管理画面認証システム
- * @version 2.0.0
+ * @version 3.0.0
  */
 
 import { EventBus } from '../../../shared/services/EventBus.js';
-import config from '../../../shared/constants/config.js';
+import { CONFIG } from '../../../shared/constants/config.js';
 
 export class AuthService {
   constructor() {
-    // ストレージキー
-    this.storageKeys = {
-      auth: 'rbs_admin_auth',
-      attempts: 'rbs_admin_attempts',
-      lastAttempt: 'rbs_admin_last_attempt'
-    };
-    
-    // セキュリティ設定
-    this.config = {
-      maxAttempts: config.security?.maxLoginAttempts || 5,
-      lockoutDuration: config.security?.admin?.lockoutDuration || 15 * 60 * 1000,
-      sessionDuration: config.security?.admin?.sessionDuration || 24 * 60 * 60 * 1000,
-      sessionExtensionThreshold: config.security?.admin?.sessionExtensionThreshold || 2 * 60 * 60 * 1000,
-      sessionCheckInterval: config.security?.admin?.sessionCheckInterval || 5 * 60 * 1000,
-      adminPassword: config.security?.admin?.password || 'rbs2024admin'
-    };
-
-    // 状態管理
+    this.initialized = false;
     this.isAuthenticatedCache = null;
+    this.config = null;
     this.sessionCheckInterval = null;
     this.sessionMonitorInterval = null;
-    this.initialized = false;
+    this.sessionInfoUpdateInterval = null;
+    this.storageKeys = {
+      auth: 'rbs_admin_auth',
+      attempts: 'rbs_login_attempts',
+      lastAttempt: 'rbs_last_attempt'
+    };
+
+    // セッション情報更新コールバック
+    this.sessionInfoCallbacks = new Set();
+    
+    // ログアウトコールバック
+    this.logoutCallbacks = new Set();
   }
 
   /**
@@ -55,6 +50,7 @@ export class AuthService {
       // 管理画面でのセッション監視を開始
       if (this.isAuthenticatedCache) {
         this.startSessionMonitoring();
+        this.startSessionInfoUpdates();
       }
       
       this.initialized = true;
@@ -207,18 +203,26 @@ export class AuthService {
       
       // セッション監視を停止
       this.stopSessionMonitoring();
+      this.stopSessionInfoUpdates();
       
       // 認証データを削除
       localStorage.removeItem(this.storageKeys.auth);
+      this.isAuthenticatedCache = false;
+      
+      // ログアウトコールバックを実行
+      this.#notifyLogout();
       
       // ログイン画面にリダイレクト
       this.redirectToLogin();
       
       this.log('ログアウト完了');
+      
+      return { success: true, message: 'ログアウトしました' };
     } catch (error) {
       this.error('ログアウトエラー:', error);
       // エラーが発生してもログイン画面にリダイレクト
       this.redirectToLogin();
+      return { success: false, message: 'ログアウト処理中にエラーが発生しました' };
     }
   }
 
@@ -295,9 +299,17 @@ export class AuthService {
     this.isAuthenticatedCache = null; // キャッシュをクリア
     const currentState = this.isAuthenticated();
     
-    // 認証状態が変更された場合はイベント発火
+    // 認証状態が変更された場合
     if (previousState !== currentState) {
-      EventBus.emit('auth:changed', currentState);
+      this.log(`認証状態変更: ${previousState} -> ${currentState}`);
+      
+      if (!currentState) {
+        // セッションが無効になった場合はログアウト処理
+        this.#notifyLogout();
+      } else {
+        // セッション情報を更新
+        this.#notifySessionInfoUpdate();
+      }
     }
   }
 
@@ -467,16 +479,178 @@ export class AuthService {
   }
 
   /**
-   * 破棄処理
+   * セッション情報更新コールバックを登録
+   * @param {Function} callback - セッション情報更新時に呼び出される関数
    */
-  destroy() {
-    if (this.sessionCheckInterval) {
-      clearInterval(this.sessionCheckInterval);
-      this.sessionCheckInterval = null;
+  onSessionInfoUpdate(callback) {
+    this.sessionInfoCallbacks.add(callback);
+  }
+
+  /**
+   * セッション情報更新コールバックを削除
+   * @param {Function} callback - 削除するコールバック関数
+   */
+  offSessionInfoUpdate(callback) {
+    this.sessionInfoCallbacks.delete(callback);
+  }
+
+  /**
+   * ログアウトコールバックを登録
+   * @param {Function} callback - ログアウト時に呼び出される関数
+   */
+  onLogout(callback) {
+    this.logoutCallbacks.add(callback);
+  }
+
+  /**
+   * ログアウトコールバックを削除
+   * @param {Function} callback - 削除するコールバック関数
+   */
+  offLogout(callback) {
+    this.logoutCallbacks.delete(callback);
+  }
+
+  /**
+   * セッション情報更新コールバックを実行
+   * @private
+   */
+  #notifySessionInfoUpdate() {
+    const sessionInfo = this.getSessionInfo();
+    this.sessionInfoCallbacks.forEach(callback => {
+      try {
+        callback(sessionInfo);
+      } catch (error) {
+        this.error('セッション情報更新コールバックエラー:', error);
+      }
+    });
+  }
+
+  /**
+   * ログアウトコールバックを実行
+   * @private
+   */
+  #notifyLogout() {
+    this.logoutCallbacks.forEach(callback => {
+      try {
+        callback();
+      } catch (error) {
+        this.error('ログアウトコールバックエラー:', error);
+      }
+    });
+  }
+
+  /**
+   * セッション情報更新を開始
+   * @private
+   */
+  startSessionInfoUpdates() {
+    // 既存の更新を停止
+    this.stopSessionInfoUpdates();
+    
+    // 即座に一度更新
+    this.#notifySessionInfoUpdate();
+    
+    // 定期的にセッション情報を更新（1分間隔）
+    this.sessionInfoUpdateInterval = setInterval(() => {
+      this.#notifySessionInfoUpdate();
+    }, 60000);
+    
+    this.log('セッション情報更新開始 (1分間隔)');
+  }
+
+  /**
+   * セッション情報更新を停止
+   * @private
+   */
+  stopSessionInfoUpdates() {
+    if (this.sessionInfoUpdateInterval) {
+      clearInterval(this.sessionInfoUpdateInterval);
+      this.sessionInfoUpdateInterval = null;
+      this.log('セッション情報更新停止');
+    }
+  }
+
+  /**
+   * セッションアクティビティを更新
+   * @private
+   */
+  updateSessionActivity() {
+    const authData = this.getAuthData();
+    if (authData) {
+      authData.lastActivity = Date.now();
+      localStorage.setItem(this.storageKeys.auth, JSON.stringify(authData));
+    }
+  }
+
+  /**
+   * セッション残り時間を取得
+   * @returns {number} 残り時間（ミリ秒）
+   */
+  getSessionRemainingTime() {
+    const authData = this.getAuthData();
+    if (!authData || !authData.expires) {
+      return 0;
     }
     
-    this.initialized = false;
-    console.log('🗑️ AuthService: 破棄完了');
+    const remaining = authData.expires - Date.now();
+    return Math.max(0, remaining);
+  }
+
+  /**
+   * セッション残り時間を人間が読める形式で取得
+   * @returns {string}
+   */
+  getSessionRemainingTimeFormatted() {
+    const remaining = this.getSessionRemainingTime();
+    
+    if (remaining <= 0) {
+      return '期限切れ';
+    }
+    
+    const hours = Math.floor(remaining / (60 * 60 * 1000));
+    const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+    
+    if (hours > 0) {
+      return `${hours}時間${minutes}分`;
+    } else {
+      return `${minutes}分`;
+    }
+  }
+
+  // === ログメソッド ===
+
+  /**
+   * ログ出力
+   * @private
+   */
+  log(...args) {
+    console.log('🔐 AuthService:', ...args);
+  }
+
+  /**
+   * デバッグログ出力
+   * @private
+   */
+  debug(...args) {
+    if (CONFIG.debug?.enabled) {
+      console.debug('🔍 AuthService:', ...args);
+    }
+  }
+
+  /**
+   * 警告ログ出力
+   * @private
+   */
+  warn(...args) {
+    console.warn('⚠️ AuthService:', ...args);
+  }
+
+  /**
+   * エラーログ出力
+   * @private
+   */
+  error(...args) {
+    console.error('❌ AuthService:', ...args);
   }
 
   /**
@@ -487,7 +661,6 @@ export class AuthService {
   async loadConfig() {
     try {
       // 設定ファイルから読み込み（将来的に外部設定対応）
-      const { CONFIG } = await import('../../../shared/constants/config.js');
       return {
         adminPassword: CONFIG.security?.admin?.password || 'rbs2024admin',
         sessionDuration: CONFIG.security?.admin?.sessionDuration || 24 * 60 * 60 * 1000, // 24時間
@@ -587,86 +760,27 @@ export class AuthService {
   }
 
   /**
-   * セッションアクティビティを更新
-   * @private
+   * 破棄処理
    */
-  updateSessionActivity() {
-    const authData = this.getAuthData();
-    if (authData) {
-      authData.lastActivity = Date.now();
-      localStorage.setItem(this.storageKeys.auth, JSON.stringify(authData));
-    }
-  }
-
-  /**
-   * セッション残り時間を取得
-   * @returns {number} 残り時間（ミリ秒）
-   */
-  getSessionRemainingTime() {
-    const authData = this.getAuthData();
-    if (!authData || !authData.expires) {
-      return 0;
+  destroy() {
+    // 全ての監視を停止
+    this.stopSessionMonitoring();
+    this.stopSessionInfoUpdates();
+    
+    if (this.sessionCheckInterval) {
+      clearInterval(this.sessionCheckInterval);
+      this.sessionCheckInterval = null;
     }
     
-    const remaining = authData.expires - Date.now();
-    return Math.max(0, remaining);
-  }
-
-  /**
-   * セッション残り時間を人間が読める形式で取得
-   * @returns {string}
-   */
-  getSessionRemainingTimeFormatted() {
-    const remaining = this.getSessionRemainingTime();
+    // コールバックをクリア
+    this.sessionInfoCallbacks.clear();
+    this.logoutCallbacks.clear();
     
-    if (remaining <= 0) {
-      return '期限切れ';
-    }
+    // キャッシュをクリア
+    this.isAuthenticatedCache = null;
     
-    const hours = Math.floor(remaining / (60 * 60 * 1000));
-    const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
-    
-    if (hours > 0) {
-      return `${hours}時間${minutes}分`;
-    } else {
-      return `${minutes}分`;
-    }
-  }
-
-  // === ログメソッド ===
-
-  /**
-   * ログ出力
-   * @private
-   */
-  log(...args) {
-    console.log('🔐 AuthService:', ...args);
-  }
-
-  /**
-   * デバッグログ出力
-   * @private
-   */
-  debug(...args) {
-    if (config.debug?.enabled) {
-      console.debug('🔍 AuthService:', ...args);
-    }
-  }
-
-  /**
-   * 警告ログ出力
-   * @private
-   */
-  warn(...args) {
-    console.warn('⚠️ AuthService:', ...args);
-  }
-
-  /**
-   * エラーログ出力
-   * @private
-   */
-  error(...args) {
-    console.error('❌ AuthService:', ...args);
+    this.initialized = false;
+    console.log('🗑️ AuthService: 破棄完了');
   }
 }
 

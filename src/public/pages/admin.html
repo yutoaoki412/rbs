@@ -37,9 +37,9 @@
       </div>
       <div class="session-info" id="session-info">
         <i class="fas fa-clock"></i>
-        <span id="session-remaining">読み込み中...</span>
+        <span id="session-remaining">初期化中...</span>
       </div>
-      <button class="logout-btn" data-action="logout">
+      <button class="logout-btn" data-action="logout" title="ログアウト">
         <i class="fas fa-sign-out-alt"></i>
         ログアウト
       </button>
@@ -523,9 +523,125 @@
     <!-- 通知がここに表示される -->
   </div>
 
-  <!-- メインアプリケーション（ES6モジュール） -->
-  <script type="module" src="../js/main.js"></script>
-  
+  <!-- アプリケーション本体 -->
+  <script type="module">
+    // 管理画面専用の初期化スクリプト（Application.jsを使わない）
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        console.log('🏗️ 管理画面初期化開始');
+        
+        // 1. 認証サービスを最初に初期化
+        console.log('🔐 認証サービスを初期化中...');
+        const { authService } = await import('../js/features/auth/services/AuthService.js');
+        
+        if (!authService.initialized) {
+          console.log('🔐 認証サービス初期化実行中...');
+          await authService.init();
+          console.log('✅ 認証サービス初期化完了');
+        } else {
+          console.log('ℹ️ 認証サービスは既に初期化済み');
+        }
+
+        // 認証チェック
+        console.log('🔐 認証状態チェック中...');
+        if (!authService.checkAdminPageAuth()) {
+          console.warn('⚠️ 認証失敗 - ログインページにリダイレクト');
+          return;
+        }
+        console.log('✅ 認証チェック成功');
+
+        // 2. AdminActionServiceを初期化（ActionManagerも内部で初期化される）
+        console.log('👨‍💼 AdminActionServiceを初期化中...');
+        const { AdminActionService } = await import('../js/features/admin/services/AdminActionService.js');
+        
+        const adminActionService = new AdminActionService();
+        console.log('👨‍💼 AdminActionService初期化実行中...');
+        await adminActionService.init();
+        console.log('✅ AdminActionService初期化完了');
+
+        // 3. グローバルアクセス用にサービスを公開
+        console.log('🌐 グローバルサービス公開中...');
+        window.adminActionService = adminActionService;
+        window.actionManager = adminActionService.actionManager;
+        window.uiManagerService = adminActionService.uiManagerService;
+        window.authService = authService;
+        console.log('✅ グローバルサービス公開完了');
+
+        console.log('✅ 管理画面初期化完了');
+        
+        // 成功通知
+        if (window.showSuccess) {
+          window.showSuccess('管理画面を開きました', 2000);
+        }
+        
+        // デバッグ: セッション情報を定期的にログ出力（開発環境のみ）
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          console.log('🔍 デバッグモード: セッション監視開始');
+          setInterval(() => {
+            const sessionElement = document.getElementById('session-remaining');
+            if (sessionElement) {
+              console.log('🔍 セッション表示:', sessionElement.textContent);
+            }
+          }, 30000); // 30秒ごと
+        }
+        
+      } catch (error) {
+        console.error('❌ 管理画面初期化エラー:', error);
+        console.error('❌ エラースタック:', error.stack);
+        
+        // エラー詳細を表示
+        let errorMessage = `管理画面の初期化に失敗しました。\n\nエラー: ${error.message}`;
+        if (error.stack) {
+          errorMessage += `\n\nスタック:\n${error.stack.split('\n').slice(0, 5).join('\n')}`;
+        }
+        
+        // エラー時はログイン画面にリダイレクト
+        const shouldRedirect = confirm(errorMessage + '\n\nログイン画面に戻りますか？');
+        if (shouldRedirect) {
+          window.location.href = 'admin-login.html';
+        } else {
+          // エラー表示を維持してデバッグできるようにする
+          console.error('❌ 初期化エラーが発生しました。詳細はコンソールを確認してください。');
+          
+          // 簡易エラー表示を画面に作成
+          const errorDiv = document.createElement('div');
+          errorDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: #fee;
+            border: 2px solid #f00;
+            padding: 20px;
+            border-radius: 8px;
+            z-index: 9999;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 50vh;
+            overflow-y: auto;
+          `;
+          errorDiv.innerHTML = `
+            <h3 style="color: #c00; margin: 0 0 10px 0;">管理画面初期化エラー</h3>
+            <p><strong>エラー:</strong> ${error.message}</p>
+            <details>
+              <summary>詳細スタック情報</summary>
+              <pre style="margin: 10px 0; font-size: 12px;">${error.stack}</pre>
+            </details>
+            <button onclick="this.parentElement.remove()" style="
+              background: #ccc;
+              border: none;
+              padding: 5px 10px;
+              border-radius: 4px;
+              cursor: pointer;
+              margin-top: 10px;
+            ">閉じる</button>
+          `;
+          document.body.appendChild(errorDiv);
+        }
+      }
+    });
+  </script>
+
   <!-- 通知システムヘルパー -->
   <script>
     // グローバル通知ヘルパー関数

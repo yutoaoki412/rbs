@@ -30,36 +30,42 @@ export class AdminActionService {
    */
   async init() {
     try {
-      console.log('🔧 AdminActionService初期化開始');
+      console.log('👨‍💼 AdminActionService 初期化開始');
       
-      // サービス初期化
+      // 認証サービスの初期化
+      if (!this.authService) {
+        const { authService } = await import('../../auth/services/AuthService.js');
+        this.authService = authService;
+      }
+
+      // 認証サービスが初期化されていない場合は初期化
+      if (!this.authService.initialized) {
+        await this.authService.init();
+      }
+
+      // サービス依存関係を初期化
       await this.initializeServices();
       
-      // 管理画面アクションの登録
-      this.#registerAdminActions();
-      
-      // UIイベント設定
-      this.setupUIEvents();
-      
-      // 管理画面UI設定（サービス初期化後に実行）
+      // UI設定
       await this.setupAdminUI();
       
-      // UIManagerServiceをグローバルに設定
-      window.uiManagerService = this.uiManagerService;
-      
-      // 通知システムのテスト（デバッグモード時のみ）
-      if (CONFIG.debug?.enabled || window.DEBUG) {
-        this.testNotificationSystem();
-      }
+      // セッション情報更新のコールバックを登録
+      this.authService.onSessionInfoUpdate((sessionInfo) => {
+        this.updateSessionInfoDisplay(sessionInfo);
+      });
+
+      // ログアウトコールバックを登録
+      this.authService.onLogout(() => {
+        this.handleAuthLogout();
+      });
       
       this.initialized = true;
+      console.log('✅ AdminActionService 初期化完了');
       
     } catch (error) {
-      this.error('全サービス初期化エラー:', error);
+      this.error('AdminActionService 初期化エラー:', error);
       throw error;
     }
-    
-    this.success('管理画面が正常に初期化されました');
   }
 
   /**
@@ -85,7 +91,13 @@ export class AdminActionService {
    * @private
    */
   async initializeServices() {
+    // アクションマネージャーを設定（既にファイル冒頭でインポート済み）
+    this.actionManager = actionManager;
+    
     // サービス依存関係の取得
+    const { getArticleDataService } = await import('./ArticleDataService.js');
+    const { getLessonStatusStorageService } = await import('../../../shared/services/LessonStatusStorageService.js');
+    
     this.articleDataService = getArticleDataService();
     this.lessonStatusService = getLessonStatusStorageService();
      
@@ -100,10 +112,6 @@ export class AdminActionService {
     // NewsFormManagerのインポートと初期化
     const { newsFormManager } = await import('../components/NewsFormManager.js');
     this.newsFormManager = newsFormManager;
-    
-    // AuthServiceのインポートと初期化
-    const { authService } = await import('../../auth/services/AuthService.js');
-    this.authService = authService;
     
     // サービスの初期化確認
     if (!this.articleDataService.initialized) {
@@ -124,10 +132,6 @@ export class AdminActionService {
     
     if (!this.newsFormManager.initialized) {
       this.newsFormManager.init();
-    }
-    
-    if (!this.authService.initialized) {
-      await this.authService.init();
     }
     
     this.log('全サービス初期化完了');
@@ -155,6 +159,11 @@ export class AdminActionService {
    * @private
    */
   #registerAdminActions() {
+    if (!this.actionManager) {
+      this.error('ActionManagerが初期化されていません');
+      return;
+    }
+
     const adminActions = {
       // 認証関連
       'logout': () => this.logout(),
@@ -220,7 +229,7 @@ export class AdminActionService {
       'toggle-mobile-menu': (element) => this.toggleMobileMenu(element)
     };
 
-    actionManager.registerMultiple(adminActions);
+    this.actionManager.registerMultiple(adminActions);
     this.log('管理画面アクション登録完了');
   }
 
@@ -262,26 +271,26 @@ export class AdminActionService {
    */
   async setupAdminUI() {
     try {
-      console.log('🎨 管理画面UI初期化');
+      // アクション登録
+      this.#registerAdminActions();
       
-      // サービス初期化を待機
-      await this.initializeServices();
+      // UIイベント設定
+      this.setupUIEvents();
       
-      // 通知トグルUIの初期化
-      if (this.uiManagerService) {
-        const currentMode = this.uiManagerService.getNotificationMode();
-        this.#updateNotificationToggleUI(currentMode);
-      }
-      
-      // その他のUI初期化処理...
+      // タブナビゲーション設定
       this.setupTabNavigation();
-      this.refreshRecentArticles();
+
+      // 管理画面固有のUI初期化
+      await this.initializeTabContent('dashboard');
+
+      // 最新統計の更新
       this.updateDashboardStats();
+      this.updateAdminStats();
       
-      console.log('✅ 管理画面UI初期化完了');
-      
+      this.log('管理画面UI設定完了');
     } catch (error) {
-      console.error('❌ 管理画面UI初期化エラー:', error);
+      this.error('管理画面UI設定エラー:', error);
+      throw error;
     }
   }
 
@@ -1172,34 +1181,77 @@ export class AdminActionService {
     try {
       this.info('ログアウトしています...');
       
-      // 認証状態をクリア
+      // 認証サービスからログアウト
       if (this.authService) {
-        this.authService.logout();
+        const result = this.authService.logout();
+        if (result.success) {
+          this.info(result.message);
+        } else {
+          this.error('ログアウトエラー:', result.message);
+          // フォールバック処理
+          this.performFallbackLogout();
+        }
       } else {
-        // フォールバック: 手動で認証データをクリア
-        localStorage.removeItem(CONFIG.storage.keys.auth);
-        sessionStorage.clear();
+        // フォールバック処理
+        this.performFallbackLogout();
       }
-      
-      // 管理画面から離脱
-      window.location.href = '../index.html';
       
     } catch (error) {
       this.error('ログアウト処理中にエラーが発生しました:', error);
-      // フォールバック
+      // フォールバック処理
+      this.performFallbackLogout();
+    }
+  }
+
+  /**
+   * フォールバック ログアウト処理
+   * @private
+   */
+  performFallbackLogout() {
+    try {
+      // 手動で認証データをクリア
+      localStorage.removeItem('rbs_admin_auth');
+      sessionStorage.clear();
+      
+      // 管理画面から離脱
+      window.location.href = '../index.html';
+    } catch (error) {
+      this.error('フォールバック ログアウトエラー:', error);
+      // 強制的にページ移動
       window.location.href = '../index.html';
     }
   }
 
   /**
-   * セッション情報の更新
+   * 認証ログアウト時の処理
+   * @private
    */
-  updateSessionInfo() {
+  handleAuthLogout() {
+    try {
+      this.info('認証サービスからログアウトされました');
+      
+      // セッション監視を停止（既にAuthServiceで停止されているが念のため）
+      this.stopSessionMonitoring();
+      
+      // UIをクリア
+      this.clearAdminUI();
+      
+    } catch (error) {
+      this.error('認証ログアウト処理エラー:', error);
+    }
+  }
+
+  /**
+   * セッション情報表示の更新
+   * @param {Object} sessionInfo - セッション情報
+   * @private
+   */
+  updateSessionInfoDisplay(sessionInfo) {
     try {
       const sessionInfoElement = document.getElementById('session-remaining');
       if (!sessionInfoElement) return;
 
-      if (this.authService && typeof this.authService.getSessionRemainingTimeFormatted === 'function') {
+      if (sessionInfo && sessionInfo.isAuthenticated) {
         const remainingTime = this.authService.getSessionRemainingTimeFormatted();
         const remainingMs = this.authService.getSessionRemainingTime();
         
@@ -1218,30 +1270,54 @@ export class AdminActionService {
         
         this.debug(`セッション残り時間: ${remainingTime}`);
       } else {
-        sessionInfoElement.textContent = '情報なし';
+        sessionInfoElement.textContent = '未認証';
       }
     } catch (error) {
-      this.error('セッション情報更新エラー:', error);
+      this.error('セッション情報表示更新エラー:', error);
+      const sessionInfoElement = document.getElementById('session-remaining');
+      if (sessionInfoElement) {
+        sessionInfoElement.textContent = 'エラー';
+      }
     }
   }
 
   /**
-   * セッション監視を開始
+   * 管理画面UIをクリア
+   * @private
+   */
+  clearAdminUI() {
+    try {
+      // フォームをクリア
+      const forms = document.querySelectorAll('form');
+      forms.forEach(form => form.reset());
+      
+      // 編集中のデータをクリア
+      this.hasUnsavedChanges = false;
+      
+      this.debug('管理画面UIクリア完了');
+    } catch (error) {
+      this.error('管理画面UIクリアエラー:', error);
+    }
+  }
+
+  /**
+   * セッション情報の更新 - DEPRECATED
+   * 
+   * @deprecated AuthServiceのコールバック機能を使用してください
+   */
+  updateSessionInfo() {
+    this.warn('updateSessionInfo() は非推奨です。AuthServiceのコールバック機能を使用してください。');
+    // AuthServiceのコールバック機能によって自動的に更新されるため、何もしない
+  }
+
+  /**
+   * セッション監視を開始 - DEPRECATED
+   * 
+   * @deprecated AuthServiceのセッション監視を使用してください
    */
   startSessionMonitoring() {
-    // 即座に一度更新
-    this.updateSessionInfo();
-    
-    // 1分ごとにセッション情報を更新
-    if (this.sessionUpdateInterval) {
-      clearInterval(this.sessionUpdateInterval);
-    }
-    
-    this.sessionUpdateInterval = setInterval(() => {
-      this.updateSessionInfo();
-    }, 60000); // 1分間隔
-    
-    this.log('セッション情報の定期更新を開始しました (1分間隔)');
+    this.warn('startSessionMonitoring() は非推奨です。AuthServiceで自動的に開始されます。');
+    // AuthServiceで自動的に開始されるため、何もしない
   }
 
   /**
@@ -1251,7 +1327,7 @@ export class AdminActionService {
     if (this.sessionUpdateInterval) {
       clearInterval(this.sessionUpdateInterval);
       this.sessionUpdateInterval = null;
-      this.log('セッション情報の定期更新を停止しました');
+      this.log('レガシーセッション情報の定期更新を停止しました');
     }
   }
 

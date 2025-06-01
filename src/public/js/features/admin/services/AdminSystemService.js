@@ -312,19 +312,55 @@ export class AdminSystemService {
       }
       
       // 認証サービスからのログアウト
-      if (authService.initialized) {
-        await authService.logout();
+      if (authService?.initialized) {
+        const result = authService.logout();
+        if (result.success) {
+          console.log('✅ 認証サービスからのログアウト成功');
+          
+          // システムクリーンアップ
+          this.destroy();
+          
+          // ログインページへリダイレクト（AuthServiceが処理する）
+        } else {
+          console.error('❌ 認証サービスログアウトエラー:', result.message);
+          // フォールバック処理
+          await this.performFallbackLogout();
+        }
+      } else {
+        console.warn('⚠️ 認証サービスが利用できません。フォールバック処理を実行');
+        await this.performFallbackLogout();
       }
+      
+    } catch (error) {
+      console.error('❌ ログアウトエラー:', error);
+      // フォールバック処理
+      await this.performFallbackLogout();
+    }
+  }
+
+  /**
+   * フォールバック ログアウト処理
+   * @private
+   */
+  async performFallbackLogout() {
+    try {
+      console.log('🔄 フォールバック ログアウト処理開始');
+      
+      // 手動で認証データをクリア
+      localStorage.removeItem('rbs_admin_auth');
+      sessionStorage.clear();
       
       // システムクリーンアップ
       this.destroy();
       
-      // ログインページへリダイレクト
+      // ログインページにリダイレクト
       this.redirectToLogin();
       
+      console.log('✅ フォールバック ログアウト完了');
     } catch (error) {
-      console.error('❌ ログアウトエラー:', error);
-      uiManagerService.showNotification('error', 'ログアウトに失敗しました');
+      console.error('❌ フォールバック ログアウトエラー:', error);
+      // 強制的にページ移動
+      this.redirectToLogin();
     }
   }
 
