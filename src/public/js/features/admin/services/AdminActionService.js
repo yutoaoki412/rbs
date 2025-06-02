@@ -67,7 +67,8 @@ export class AdminActionService {
       'wizard-prev', 'wizard-next',
       'toggle-notification-mode', 'export-data', 'clear-all-data', 'test-site-connection',
       'reset-local-storage', 'show-debug-info', 'show-news-debug', 'close-modal',
-      'open-external', 'toggle-mobile-menu', 'logout'
+      'open-external', 'toggle-mobile-menu', 'logout',
+      'switch-instagram-tab', 'add-instagram-post', 'save-instagram-post', 'refresh-instagram-posts', 'save-instagram-settings', 'close-instagram-modal', 'edit-instagram-post', 'toggle-instagram-post', 'delete-instagram-post'
     ];
   }
 
@@ -338,7 +339,37 @@ export class AdminActionService {
       'logout': () => this.handleAuthLogout(),
 
       // UIイベント
-      'toggle-mobile-menu': (element) => this.toggleMobileMenu(element)
+      'toggle-mobile-menu': (element) => this.toggleMobileMenu(element),
+
+      // Instagram管理
+      'switch-instagram-tab': (element, params) => this.switchInstagramTab(params.tab),
+      'add-instagram-post': () => this.addInstagramPost(),
+      'save-instagram-post': () => this.saveInstagramPost(),
+      'refresh-instagram-posts': () => this.refreshInstagramPosts(),
+      'save-instagram-settings': () => this.saveInstagramSettings(),
+      'close-instagram-modal': () => this.closeInstagramModal(),
+      'edit-instagram-post': (element, params) => {
+        const postId = params.postId || element.dataset.postId;
+        if (postId) {
+          this.editInstagramPost(postId);
+        } else {
+          this.#showFeedback('投稿IDが見つかりません', 'error');
+        }
+      },
+      'toggle-instagram-post': (element, params) => {
+        const postId = params.postId || element.dataset.postId;
+        if (postId) {
+          this.toggleInstagramPostStatus(postId);
+        } else {
+          this.#showFeedback('投稿IDが見つかりません', 'error');
+        }
+      },
+      'delete-instagram-post': async (element, params) => {
+        const postId = params.postId || element.dataset.postId;
+        if (postId && confirm('この投稿を削除しますか？')) {
+          await this.deleteInstagramPost(postId);
+        }
+      }
     };
 
     // アクションを登録
@@ -395,6 +426,8 @@ export class AdminActionService {
    */
   async setupAdminUI() {
     try {
+      this.log('管理画面UI設定開始');
+      
       // アクション登録
       this.#registerAdminActions();
       
@@ -404,8 +437,8 @@ export class AdminActionService {
       // タブナビゲーション設定
       this.setupTabNavigation();
 
-      // 管理画面固有のUI初期化
-      await this.initializeTabContent('dashboard');
+      // 初期タブを強制的にダッシュボードに設定
+      await this.forceTabSwitch('dashboard');
 
       // 最新統計の更新
       this.updateDashboardStats();
@@ -542,25 +575,39 @@ export class AdminActionService {
    * @param {string} tabName - タブ名
    */
   async initializeTabContent(tabName) {
-    console.log(`🔧 タブコンテンツ初期化: ${tabName}`);
+    console.log(`🔄 タブコンテンツ初期化: ${tabName}`);
     
     try {
+      // 各タブごとの個別初期化
       switch (tabName) {
         case 'dashboard':
-          await this.#initializeDashboard();
+          this.updateDashboardStats();
+          this.refreshRecentArticles();
           break;
+          
         case 'news-management':
+          // ダッシュボードクラスを削除して記事管理モードに
+          document.body.classList.remove('dashboard-optimized');
+          document.querySelector('.admin-main')?.classList.add('news-management-active');
           await this.#initializeNewsManagement();
           break;
+          
         case 'lesson-status':
           await this.#initializeLessonStatus();
           break;
+          
         case 'settings':
           await this.#initializeSettings();
           break;
+          
+        default:
+          console.warn(`未知のタブ: ${tabName}`);
       }
+      
+      console.log(`✅ タブコンテンツ初期化完了: ${tabName}`);
+      
     } catch (error) {
-      this.error(`タブ初期化エラー (${tabName}):`, error);
+      console.error(`❌ タブコンテンツ初期化エラー (${tabName}):`, error);
     }
   }
 
@@ -698,9 +745,6 @@ export class AdminActionService {
     try {
       this.debug('📝 ニュース管理初期化開始');
       
-      // 記事データサービスの準備を確認
-      await this.#ensureArticleDataReady();
-      
       // フォームをクリアして新規記事作成状態にする
       this.clearNewsEditor();
       
@@ -753,6 +797,112 @@ export class AdminActionService {
       this.debug('⚙️ 設定タブ初期化完了');
     } catch (error) {
       this.error('設定初期化エラー:', error);
+    }
+  }
+
+  /**
+   * Instagram管理初期化
+   * @private
+   */
+  async #initializeInstagramManagement() {
+    try {
+      this.debug('📸 Instagram管理初期化開始');
+      
+      // Instagram管理セクションが存在することを確認
+      const instagramSection = document.getElementById('instagram-management');
+      if (!instagramSection) {
+        console.warn('⚠️ Instagram管理セクションが見つかりません');
+        return;
+      }
+      
+      // Instagram管理セクションがアクティブかどうか確認
+      if (!instagramSection.classList.contains('active')) {
+        console.warn('⚠️ Instagram管理セクションがアクティブではありません');
+        return;
+      }
+      
+      console.log('✅ Instagram管理セクションを確認しました');
+      
+      // Instagram管理タブの設定と表示を確実に行う
+      this.#setupInstagramTabs();
+      
+      // DOM要素の存在確認後にタブ切り替えと投稿読み込みを実行
+      setTimeout(() => {
+        // デフォルトで投稿管理タブを表示
+        this.switchInstagramTab('posts');
+        
+        // Instagram投稿一覧を読み込み
+        this.refreshInstagramPosts();
+      }, 100);
+      
+      this.debug('📸 Instagram管理初期化完了');
+    } catch (error) {
+      this.error('Instagram管理初期化エラー:', error);
+    }
+  }
+
+  /**
+   * Instagramタブの設定
+   * @private
+   */
+  #setupInstagramTabs() {
+    console.log('🔧 Instagramタブ設定開始');
+    
+    try {
+      // タブボタンが存在することを確認
+      const tabButtons = document.querySelectorAll('.sub-nav-item[data-action="switch-instagram-tab"]');
+      console.log('📋 検出されたタブボタン数:', tabButtons.length);
+      
+      if (tabButtons.length === 0) {
+        console.warn('⚠️ Instagramタブボタンが見つかりません');
+        return;
+      }
+      
+      // タブコンテンツが存在することを確認
+      const tabContents = document.querySelectorAll('.instagram-tab-content');
+      console.log('📄 検出されたタブコンテンツ数:', tabContents.length);
+      
+      if (tabContents.length === 0) {
+        console.warn('⚠️ Instagramタブコンテンツが見つかりません');
+        return;
+      }
+      
+      // 各タブボタンの状態をチェック
+      tabButtons.forEach((button, index) => {
+        const tabName = button.dataset.tab;
+        console.log(`🏷️ タブ${index + 1}: ${tabName}`);
+        
+        // data-tab属性が正しく設定されているかチェック
+        if (!tabName) {
+          console.warn(`⚠️ タブボタン${index + 1}にdata-tab属性がありません`, button);
+        }
+      });
+      
+      // 各タブコンテンツの状態をチェック
+      tabContents.forEach((content, index) => {
+        const contentId = content.id;
+        console.log(`📖 コンテンツ${index + 1}: ${contentId}`);
+        
+        // IDが正しく設定されているかチェック
+        if (!contentId || !contentId.includes('instagram-') || !contentId.includes('-tab')) {
+          console.warn(`⚠️ タブコンテンツ${index + 1}のIDが不正です:`, contentId);
+        }
+      });
+      
+      // 必要なタブが揃っているかチェック
+      const expectedTabs = ['posts', 'settings'];
+      const availableTabs = Array.from(tabButtons).map(btn => btn.dataset.tab).filter(Boolean);
+      
+      expectedTabs.forEach(expectedTab => {
+        if (!availableTabs.includes(expectedTab)) {
+          console.warn(`⚠️ 必要なタブが見つかりません: ${expectedTab}`);
+        }
+      });
+      
+      console.log('✅ Instagramタブ設定完了');
+      
+    } catch (error) {
+      console.error('❌ Instagramタブ設定エラー:', error);
     }
   }
 
@@ -1010,27 +1160,145 @@ export class AdminActionService {
   }
 
   /**
-   * 最近の記事更新
+   * 最近の記事更新表示
    */
   async refreshRecentArticles() {
     try {
       console.log('🔄 最近の記事更新開始');
       
-      // ローディング状態を表示
-      this.#showRecentArticlesLoading();
+      const recentContainer = document.getElementById('recent-articles');
+      if (!recentContainer) {
+        console.warn('⚠️ recent-articles コンテナが見つかりません');
+        return;
+      }
       
-      // 記事データサービスの準備を確認
-      await this.#ensureArticleDataReady();
+      // ローディング表示
+      recentContainer.innerHTML = `
+        <div class="loading-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          記事を読み込み中...
+        </div>
+      `;
       
-      // 記事をレンダリング
-      await this.#renderRecentArticles();
+      // CONFIG.jsで定義されたキーを使用して記事データを取得
+      const articlesKey = CONFIG.storage.keys.articles;
+      const articlesData = localStorage.getItem(articlesKey);
       
-      // 内部処理なので通知は表示しない（コンソールログのみ）
-      console.log('✅ 最近の記事更新完了');
+      let articles = [];
+      
+      if (articlesData) {
+        try {
+          const parsedArticles = JSON.parse(articlesData);
+          if (Array.isArray(parsedArticles)) {
+            // 有効な記事のみフィルタリング（Instagram関連を完全除外）
+            articles = parsedArticles.filter(article => {
+              if (!article || !article.id || !article.title) {
+                return false;
+              }
+              
+              // Instagram関連のコンテンツを完全除外
+              const title = article.title.toLowerCase();
+              const summary = (article.summary || '').toLowerCase();
+              const content = (article.content || '').toLowerCase();
+              
+              const hasInstagram = title.includes('instagram') || 
+                                 title.includes('インスタグラム') ||
+                                 title.includes('インスタ') ||
+                                 summary.includes('instagram') ||
+                                 summary.includes('インスタグラム') ||
+                                 content.includes('instagram管理') ||
+                                 content.includes('投稿リンク');
+              
+              return !hasInstagram;
+            });
+            
+            console.log(`📄 有効な記事: ${articles.length}件（除外後）`);
+          }
+        } catch (parseError) {
+          console.error('記事データの解析エラー:', parseError);
+          articles = [];
+        }
+      }
+      
+      // 最近の記事をソートして最大5件表示
+      const recentArticles = articles
+        .sort((a, b) => {
+          const dateA = new Date(a.updatedAt || a.createdAt || 0);
+          const dateB = new Date(b.updatedAt || b.createdAt || 0);
+          return dateB - dateA;
+        })
+        .slice(0, 5);
+      
+      // HTML生成
+      let html = '';
+      
+      if (recentArticles.length === 0) {
+        html = `
+          <div class="empty-state">
+            <i class="fas fa-newspaper"></i>
+            <p>記事がまだありません</p>
+            <button class="btn btn-primary" data-action="new-news-article">
+              <i class="fas fa-plus"></i> 新規記事を作成
+            </button>
+          </div>
+        `;
+      } else {
+        html = recentArticles.map(article => {
+          const title = this.escapeHtml(article.title || '無題の記事');
+          const summary = article.summary ? 
+            this.escapeHtml(article.summary.length > 60 ? article.summary.substring(0, 60) + '...' : article.summary) : 
+            '概要なし';
+          const createdDate = new Date(article.createdAt || Date.now());
+          const formattedDate = createdDate.toLocaleDateString('ja-JP', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          });
+          const statusText = article.status === 'published' ? '公開中' : '下書き';
+          const categoryName = this.#getCategoryName(article.category || 'announcement');
+          
+          return `
+            <div class="recent-article-item" data-id="${article.id}">
+              <div class="article-header">
+                <h3 class="article-title">${title}</h3>
+                <div class="article-actions">
+                  <button class="btn-icon" data-action="edit-article" data-article-id="${article.id}" title="編集">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-icon" data-action="preview-article" data-article-id="${article.id}" title="プレビュー">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="article-summary">${summary}</div>
+              <div class="article-meta">
+                <span class="category-badge ${article.category || 'announcement'}">${categoryName}</span>
+                <span class="status-badge ${article.status || 'draft'}">${statusText}</span>
+                <span class="date">${formattedDate}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+      
+      recentContainer.innerHTML = html;
+      console.log(`✅ 最近の記事更新完了 - ${recentArticles.length}件表示`);
       
     } catch (error) {
       console.error('❌ 最近の記事更新エラー:', error);
-      this.#showRecentArticlesError();
+      
+      const recentContainer = document.getElementById('recent-articles');
+      if (recentContainer) {
+        recentContainer.innerHTML = `
+          <div class="error-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>記事の読み込みに失敗しました</p>
+            <button class="btn btn-outline" data-action="refresh-recent-articles">
+              <i class="fas fa-refresh"></i> 再試行
+            </button>
+          </div>
+        `;
+      }
     }
   }
 
@@ -1038,17 +1306,7 @@ export class AdminActionService {
    * 最近の記事のローディング状態を表示
    * @private
    */
-  #showRecentArticlesLoading() {
-    const recentContainer = document.getElementById('recent-articles');
-    if (recentContainer) {
-      recentContainer.innerHTML = `
-        <div class="loading-state">
-          <i class="fas fa-spinner fa-spin"></i>
-          記事を読み込み中...
-        </div>
-      `;
-    }
-  }
+  // このメソッドは削除 - refreshRecentArticles内で直接処理
 
   // === レッスン状況管理メソッド ===
 
@@ -1239,24 +1497,82 @@ export class AdminActionService {
    * 全データクリア
    */
   async clearAllData() {
+    console.log('🗑️ 全データクリア開始');
+    
+    const confirmed = confirm(
+      '全てのデータ（記事、レッスン状況、Instagram投稿、設定など）を削除します。\n\nこの操作は元に戻せません。実行しますか？'
+    );
+    
+    if (!confirmed) {
+      console.log('❌ ユーザーによってキャンセルされました');
+      return;
+    }
+    
     try {
-      console.log('🗑️ 全データクリア実行');
+      // 統合ストレージサービスのクリア
+      if (this.articleDataService?.storageService) {
+        await this.articleDataService.storageService.clearAllData();
+        console.log('✅ 記事データクリア完了');
+      }
       
-      // 各サービスのデータクリア
-      await this.articleDataService.clearAllData();
-      await this.instagramDataService.clearAllData();
-      await this.lessonStatusService.clearAllData();
+      // レッスン状況データのクリア
+      if (this.lessonStatusService) {
+        this.lessonStatusService.clearAllData();
+        console.log('✅ レッスン状況データクリア完了');
+      }
       
-      // UI更新
-      this.refreshNewsList();
+      // Instagram関連データのクリア
+      const instagramKeys = [
+        `${CONFIG.storage.prefix}instagram_posts`,
+        `${CONFIG.storage.prefix}instagram_settings`,
+        'rbs_instagram_posts',  // 旧形式
+        'rbs_instagram_settings'  // 旧形式
+      ];
+      
+      instagramKeys.forEach(key => {
+        const had = localStorage.getItem(key) !== null;
+        localStorage.removeItem(key);
+        if (had) {
+          console.log(`✅ Instagram データクリア: ${key}`);
+        }
+      });
+      
+      // 管理画面設定のクリア
+      Object.values(this.storageKeys).forEach(key => {
+        const had = localStorage.getItem(key) !== null;
+        localStorage.removeItem(key);
+        if (had) {
+          console.log(`✅ 管理画面設定クリア: ${key}`);
+        }
+      });
+      
+      // 認証データのクリア
+      const authKeys = [
+        CONFIG.storage.keys.auth,
+        CONFIG.storage.keys.session
+      ];
+      
+      authKeys.forEach(key => {
+        const had = localStorage.getItem(key) !== null;
+        localStorage.removeItem(key);
+        if (had) {
+          console.log(`✅ 認証データクリア: ${key}`);
+        }
+      });
+      
+      console.log('✅ 全データクリア完了');
+      this.success('全てのデータを削除しました');
+      
+      // データ更新を全体に通知
       this.refreshRecentArticles();
-      this.clearNewsEditor();
+      this.updateDashboardStats();
       
-      this.#showFeedback('全データを削除しました');
+      // ダッシュボードタブに強制切り替え
+      await this.forceTabSwitch('dashboard');
       
     } catch (error) {
       console.error('❌ 全データクリアエラー:', error);
-      this.#showFeedback('データの削除中にエラーが発生しました', 'error');
+      this.error(`データ削除中にエラーが発生しました: ${error.message}`);
     }
   }
 
@@ -2613,44 +2929,96 @@ export class AdminActionService {
    */
   updateDashboardStats() {
     try {
-      // ArticleDataServiceのgetStatsメソッドを使用
-      let stats;
-      if (this.articleDataService && typeof this.articleDataService.getStats === 'function') {
-        stats = this.articleDataService.getStats();
-      } else {
-        // フォールバック: 手動で統計を計算
-        const articles = this.articleDataService?.articles || [];
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-        
-        stats = {
-          total: articles.length,
-          published: articles.filter(a => a.status === 'published').length,
-          drafts: articles.filter(a => a.status === 'draft').length,
-          currentMonth: articles.filter(a => {
-            const articleDate = new Date(a.createdAt || a.date);
-            return articleDate.getMonth() === currentMonth && articleDate.getFullYear() === currentYear;
-          }).length
-        };
+      console.log('📊 ダッシュボード統計更新開始');
+      
+      // CONFIG.jsで定義されたキーを使用して記事データを取得
+      const articlesKey = CONFIG.storage.keys.articles;
+      const articlesData = localStorage.getItem(articlesKey);
+      
+      let publishedCount = 0;
+      let draftCount = 0;
+      let currentMonthCount = 0;
+      
+      if (articlesData) {
+        try {
+          const articles = JSON.parse(articlesData);
+          if (Array.isArray(articles)) {
+            // 有効な記事のみフィルタリング（Instagram管理コンテンツを除外）
+            const validArticles = articles.filter(article => 
+              article && 
+              article.id && 
+              article.title &&
+              !article.title.includes('Instagram') &&
+              !article.title.includes('instagram')
+            );
+            
+            // 公開記事数をカウント
+            publishedCount = validArticles.filter(article => 
+              article.status === 'published'
+            ).length;
+            
+            // 下書き記事数をカウント
+            draftCount = validArticles.filter(article => 
+              article.status === 'draft'
+            ).length;
+            
+            // 今月の記事数をカウント
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            
+            currentMonthCount = validArticles.filter(article => {
+              const articleDate = new Date(article.createdAt || article.date);
+              return articleDate.getMonth() === currentMonth && 
+                     articleDate.getFullYear() === currentYear;
+            }).length;
+            
+            console.log(`📈 統計データ: 公開=${publishedCount}, 下書き=${draftCount}, 今月=${currentMonthCount}`);
+          }
+        } catch (parseError) {
+          console.error('記事データの解析エラー:', parseError);
+          // データが破損している場合はクリア
+          localStorage.removeItem(articlesKey);
+        }
       }
       
-      // 統計要素の更新
-      this.#updateStatsElement('total-articles', stats.total);
-      this.#updateStatsElement('published-articles', stats.published);
-      this.#updateStatsElement('draft-articles', stats.drafts);
-      this.#updateStatsElement('current-month-articles', stats.currentMonth);
+      // DOM要素に値を設定
+      const publishedElement = document.getElementById('stat-published');
+      const draftsElement = document.getElementById('stat-drafts');
+      const currentMonthElement = document.getElementById('stat-current-month');
       
-      console.log('📊 ダッシュボード統計を更新:', stats);
+      if (publishedElement) {
+        publishedElement.textContent = publishedCount;
+        publishedElement.style.animation = 'none';
+        publishedElement.offsetHeight; // reflow
+        publishedElement.style.animation = 'countUp 0.5s ease-out';
+      }
+      
+      if (draftsElement) {
+        draftsElement.textContent = draftCount;
+        draftsElement.style.animation = 'none';
+        draftsElement.offsetHeight; // reflow
+        draftsElement.style.animation = 'countUp 0.5s ease-out';
+      }
+      
+      if (currentMonthElement) {
+        currentMonthElement.textContent = currentMonthCount;
+        currentMonthElement.style.animation = 'none';
+        currentMonthElement.offsetHeight; // reflow
+        currentMonthElement.style.animation = 'countUp 0.5s ease-out';
+      }
+      
+      console.log('✅ ダッシュボード統計更新完了');
       
     } catch (error) {
       console.error('❌ ダッシュボード統計更新エラー:', error);
       
-      // フォールバック: ゼロ値で初期化
-      this.#updateStatsElement('total-articles', 0);
-      this.#updateStatsElement('published-articles', 0);
-      this.#updateStatsElement('draft-articles', 0);
-      this.#updateStatsElement('current-month-articles', 0);
+      // エラー時は0を表示
+      ['stat-published', 'stat-drafts', 'stat-current-month'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.textContent = '0';
+        }
+      });
     }
   }
 
@@ -3340,7 +3708,7 @@ export class AdminActionService {
    * @public
    * @param {string} tabName - タブ名
    */
-  forceTabSwitch(tabName) {
+  async forceTabSwitch(tabName) {
     console.log(`🔧 タブ強制切り替え: ${tabName}`);
     
     if (!this.#isValidTabName(tabName)) {
@@ -3348,7 +3716,49 @@ export class AdminActionService {
       return;
     }
     
-    this.switchAdminTab(tabName);
+    try {
+      // LocalStorageを即座に更新
+      localStorage.setItem(this.storageKeys.adminTab, tabName);
+      
+      // 全ての.admin-sectionからactiveクラスを削除
+      document.querySelectorAll('.admin-section').forEach(section => {
+        section.classList.remove('active');
+      });
+      
+      // 全ての.nav-itemからactiveクラスを削除
+      document.querySelectorAll('.nav-item').forEach(navItem => {
+        navItem.classList.remove('active');
+      });
+      
+      // 指定されたタブをアクティブにする
+      const targetSection = document.getElementById(tabName);
+      const targetNav = document.querySelector(`[data-tab="${tabName}"]`);
+      
+      if (targetSection) {
+        targetSection.classList.add('active');
+        console.log(`✅ セクション "${tabName}" をアクティブに設定`);
+      } else {
+        console.error(`❌ セクション "${tabName}" が見つかりません`);
+      }
+      
+      if (targetNav) {
+        targetNav.classList.add('active');
+        console.log(`✅ ナビゲーション "${tabName}" をアクティブに設定`);
+      } else {
+        console.error(`❌ ナビゲーション "${tabName}" が見つかりません`);
+      }
+      
+      // タブ固有の初期化処理
+      await this.initializeTabContent(tabName);
+      this.currentTab = tabName;
+      
+      console.log(`✅ タブ強制切り替え完了: ${tabName}`);
+      
+    } catch (error) {
+      console.error(`❌ タブ強制切り替えエラー:`, error);
+      // フォールバックとして通常の切り替えを試す
+      this.switchAdminTab(tabName);
+    }
   }
   
   /**
@@ -3577,18 +3987,16 @@ export class AdminActionService {
    * 次のステップに進む
    */
   wizardNextStep() {
-    const currentStep = this.#getCurrentWizardStep();
-    const maxStep = 2; // 最大ステップ数
+    console.log('📝 ウィザード: 次のステップへ');
     
-    // 現在のステップの検証
-    if (this.#validateCurrentStep(currentStep)) {
-      if (currentStep < maxStep) {
-        this.#setWizardStep(currentStep + 1);
-        this.#updateWizardButtons();
-        console.log(`📝 ウィザード: ステップ${currentStep + 1}に進みました`);
-      }
-    } else {
-      this.#showError('入力内容に不備があります。確認してください。');
+    const currentStep = this.#getCurrentWizardStep();
+    const maxStep = 2;
+    
+    if (currentStep < maxStep) {
+      this.#setWizardStep(currentStep + 1);
+      this.#updateWizardButtons();
+      
+      this.success(`ステップ ${currentStep + 1} に進みました`);
     }
   }
 
@@ -3709,6 +4117,737 @@ export class AdminActionService {
     } else {
       alert(`エラー: ${message}`);
     }
+  }
+
+  // === Instagram管理機能 ===
+
+  /**
+   * Instagram管理: タブ切り替え
+   * @param {string} tabName - 切り替え先のタブ名 ('posts' または 'settings')
+   */
+  switchInstagramTab(tabName = null) {
+    console.log('🔄 Instagram タブ切り替え開始:', tabName);
+    
+    try {
+      // パラメータの検証
+      const targetTab = tabName || 'posts';
+      const validTabs = ['posts', 'settings'];
+      
+      if (!validTabs.includes(targetTab)) {
+        console.warn('⚠️ 無効なタブ名:', targetTab);
+        return;
+      }
+      
+      console.log('✅ タブ切り替え対象:', targetTab);
+      
+      // タブボタンの状態更新
+      const tabButtons = document.querySelectorAll('.sub-nav-item[data-action="switch-instagram-tab"]');
+      console.log('📋 タブボタン検索結果:', tabButtons.length, '個');
+      
+      if (tabButtons.length === 0) {
+        console.warn('⚠️ タブボタンが見つかりません');
+        return;
+      }
+      
+      let targetButtonFound = false;
+      tabButtons.forEach((btn, index) => {
+        const isTarget = btn.dataset.tab === targetTab;
+        btn.classList.toggle('active', isTarget);
+        
+        if (isTarget) {
+          targetButtonFound = true;
+          console.log(`🎯 ターゲットボタン発見 (インデックス: ${index}):`, btn.dataset.tab);
+        }
+        
+        console.log(`📝 ボタン${index + 1}(${btn.dataset.tab}): ${isTarget ? 'アクティブ' : '非アクティブ'}`);
+      });
+      
+      if (!targetButtonFound) {
+        console.warn('⚠️ ターゲットボタンが見つかりませんでした:', targetTab);
+      }
+      
+      // タブコンテンツの表示切り替え
+      const tabContents = document.querySelectorAll('.instagram-tab-content');
+      console.log('📄 タブコンテンツ検索結果:', tabContents.length, '個');
+      
+      if (tabContents.length === 0) {
+        console.warn('⚠️ タブコンテンツが見つかりません');
+        return;
+      }
+      
+      let targetContentFound = false;
+      tabContents.forEach((content, index) => {
+        const expectedId = `instagram-${targetTab}-tab`;
+        const isTarget = content.id === expectedId;
+        
+        // クラスの更新
+        content.classList.toggle('active', isTarget);
+        
+        // 表示状態の直接制御も追加
+        content.style.display = isTarget ? 'flex' : 'none';
+        
+        if (isTarget) {
+          targetContentFound = true;
+          console.log(`🎯 ターゲットコンテンツ発見 (インデックス: ${index}):`, content.id);
+        }
+        
+        console.log(`📄 コンテンツ${index + 1}(${content.id}): ${isTarget ? '表示' : '非表示'}`);
+      });
+      
+      if (!targetContentFound) {
+        console.warn('⚠️ ターゲットコンテンツが見つかりませんでした:', `instagram-${targetTab}-tab`);
+      }
+      
+      // タブ固有の初期化
+      if (targetTab === 'posts') {
+        console.log('📸 投稿管理タブの初期化');
+        this.refreshInstagramPosts();
+      } else if (targetTab === 'settings') {
+        console.log('⚙️ 連携設定タブの初期化');
+        this.#loadInstagramSettings();
+      }
+      
+      const tabDisplayName = targetTab === 'posts' ? '投稿管理' : '連携設定';
+      this.success(`${tabDisplayName}タブに切り替えました`);
+      
+      console.log('✅ Instagram タブ切り替え完了:', targetTab);
+      
+    } catch (error) {
+      console.error('❌ Instagram タブ切り替えエラー:', error);
+      this.error('タブの切り替えに失敗しました');
+    }
+  }
+
+  /**
+   * Instagram管理: 投稿一覧更新
+   */
+  refreshInstagramPosts() {
+    console.log('🔄 Instagram投稿一覧を更新中...');
+    
+    try {
+      const container = document.getElementById('instagram-posts-list');
+      if (!container) {
+        console.warn('⚠️ Instagram投稿リストコンテナが見つかりません');
+        return;
+      }
+      
+      // ローディング状態表示
+      container.innerHTML = `
+        <div class="loading-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          Instagram投稿を読み込み中...
+        </div>
+      `;
+      
+      // LocalStorageからInstagram投稿データを取得
+      const instagramPosts = this.#getInstagramPosts();
+      
+      // 投稿グリッドの生成
+      const postsHTML = this.#generateInstagramPostsHTML(instagramPosts);
+      
+      // 少し遅延してローディング感を演出
+      setTimeout(() => {
+        container.innerHTML = postsHTML;
+        this.success(`${instagramPosts.length}件のInstagram投稿を読み込みました`);
+      }, 500);
+      
+    } catch (error) {
+      console.error('❌ Instagram投稿読み込みエラー:', error);
+      const container = document.getElementById('instagram-posts-list');
+      if (container) {
+        container.innerHTML = `
+          <div class="error-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>Instagram投稿の読み込みに失敗しました</p>
+          </div>
+        `;
+      }
+      this.error('Instagram投稿の読み込みに失敗しました');
+    }
+  }
+
+  /**
+   * Instagram管理: 新規投稿追加
+   */
+  addInstagramPost() {
+    console.log('➕ Instagram投稿追加モーダルを開く');
+    
+    try {
+      // フォームをリセット
+      const form = document.querySelector('.instagram-form');
+      if (form) {
+        form.reset();
+        document.getElementById('instagram-post-id').value = '';
+        document.getElementById('instagram-modal-title').innerHTML = 
+          '<i class="fab fa-instagram"></i> Instagram投稿追加';
+      }
+      
+      // 今日の日付をデフォルトに設定
+      const dateInput = document.getElementById('instagram-post-date');
+      if (dateInput) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+      }
+      
+      // モーダルを表示
+      const modal = document.getElementById('instagram-modal');
+      if (modal) {
+        modal.classList.add('show');
+        modal.style.display = 'flex';
+        
+        // フォーカスをURLフィールドに移動
+        const urlInput = document.getElementById('instagram-post-url');
+        if (urlInput) {
+          setTimeout(() => urlInput.focus(), 100);
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ Instagram投稿追加モーダルエラー:', error);
+      this.error('モーダルの表示に失敗しました');
+    }
+  }
+
+  /**
+   * Instagram管理: 投稿保存
+   */
+  saveInstagramPost() {
+    console.log('💾 Instagram投稿を保存中...');
+    
+    try {
+      // フォームデータの取得
+      const postData = {
+        id: document.getElementById('instagram-post-id').value || this.#generateId(),
+        url: document.getElementById('instagram-post-url').value.trim(),
+        caption: document.getElementById('instagram-post-caption').value.trim(),
+        date: document.getElementById('instagram-post-date').value,
+        type: document.getElementById('instagram-post-type').value,
+        featured: document.getElementById('instagram-post-featured').checked,
+        createdAt: new Date().toISOString(),
+        status: 'active'
+      };
+      
+      // バリデーション
+      if (!postData.url) {
+        this.error('Instagram投稿URLは必須です');
+        return;
+      }
+      
+      if (!this.#isValidInstagramURL(postData.url)) {
+        this.error('有効なInstagram投稿URLを入力してください');
+        return;
+      }
+      
+      // LocalStorageに保存
+      const posts = this.#getInstagramPosts();
+      const existingIndex = posts.findIndex(post => post.id === postData.id);
+      
+      if (existingIndex >= 0) {
+        posts[existingIndex] = { ...posts[existingIndex], ...postData, updatedAt: new Date().toISOString() };
+      } else {
+        posts.unshift(postData);
+      }
+      
+      localStorage.setItem(this.storageKeys.instagram, JSON.stringify(posts));
+      
+      // モーダルを閉じる
+      this.closeInstagramModal();
+      
+      // 投稿一覧を更新
+      this.refreshInstagramPosts();
+      
+      this.success(existingIndex >= 0 ? 'Instagram投稿を更新しました' : 'Instagram投稿を追加しました');
+      
+    } catch (error) {
+      console.error('❌ Instagram投稿保存エラー:', error);
+      this.error('Instagram投稿の保存に失敗しました');
+    }
+  }
+
+  /**
+   * Instagram管理: モーダルを閉じる
+   */
+  closeInstagramModal() {
+    console.log('✖️ Instagram投稿モーダルを閉じる');
+    
+    const modal = document.getElementById('instagram-modal');
+    if (modal) {
+      modal.classList.remove('show');
+      setTimeout(() => {
+        modal.style.display = 'none';
+      }, 300);
+    }
+  }
+
+  /**
+   * Instagram管理: 設定保存
+   */
+  saveInstagramSettings() {
+    console.log('⚙️ Instagram設定を保存中...');
+    
+    try {
+      const settings = {
+        username: document.getElementById('instagram-username').value.trim(),
+        displayCount: parseInt(document.getElementById('instagram-display-count').value),
+        autoSync: document.getElementById('instagram-auto-sync').checked,
+        syncInterval: parseInt(document.getElementById('instagram-sync-interval').value),
+        updatedAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem(`${this.storageKeys.instagram}_settings`, JSON.stringify(settings));
+      
+      this.success('Instagram設定を保存しました');
+      
+    } catch (error) {
+      console.error('❌ Instagram設定保存エラー:', error);
+      this.error('Instagram設定の保存に失敗しました');
+    }
+  }
+
+  /**
+   * Instagram管理: 投稿編集
+   */
+  editInstagramPost(postId) {
+    console.log('✏️ Instagram投稿編集:', postId);
+    
+    try {
+      const posts = this.#getInstagramPosts();
+      const post = posts.find(p => p.id === postId);
+      
+      if (!post) {
+        this.error('投稿が見つかりません');
+        return;
+      }
+      
+      // フォームに投稿データを設定
+      document.getElementById('instagram-post-id').value = post.id;
+      document.getElementById('instagram-post-url').value = post.url || '';
+      document.getElementById('instagram-post-caption').value = post.caption || '';
+      document.getElementById('instagram-post-date').value = post.date || '';
+      document.getElementById('instagram-post-type').value = post.type || 'photo';
+      document.getElementById('instagram-post-featured').checked = post.featured || false;
+      
+      // モーダルタイトルを更新
+      document.getElementById('instagram-modal-title').innerHTML = 
+        '<i class="fab fa-instagram"></i> Instagram投稿編集';
+      
+      // モーダルを表示
+      const modal = document.getElementById('instagram-modal');
+      if (modal) {
+        modal.classList.add('show');
+        modal.style.display = 'flex';
+      }
+      
+    } catch (error) {
+      console.error('❌ Instagram投稿編集エラー:', error);
+      this.error('投稿の編集に失敗しました');
+    }
+  }
+
+  /**
+   * Instagram管理: 投稿ステータス切り替え
+   */
+  toggleInstagramPostStatus(postId) {
+    console.log('👁️ Instagram投稿ステータス切り替え:', postId);
+    
+    try {
+      const posts = this.#getInstagramPosts();
+      const postIndex = posts.findIndex(p => p.id === postId);
+      
+      if (postIndex === -1) {
+        this.error('投稿が見つかりません');
+        return;
+      }
+      
+      const post = posts[postIndex];
+      post.status = post.status === 'hidden' ? 'active' : 'hidden';
+      post.updatedAt = new Date().toISOString();
+      
+      localStorage.setItem(this.storageKeys.instagram, JSON.stringify(posts));
+      
+      // 投稿一覧を更新
+      this.refreshInstagramPosts();
+      
+      this.success(`投稿を${post.status === 'hidden' ? '非表示' : '表示'}に変更しました`);
+      
+    } catch (error) {
+      console.error('❌ Instagram投稿ステータス切り替えエラー:', error);
+      this.error('投稿ステータスの変更に失敗しました');
+    }
+  }
+
+  /**
+   * Instagram管理: 投稿削除
+   */
+  async deleteInstagramPost(postId) {
+    console.log('🗑️ Instagram投稿削除:', postId);
+    
+    try {
+      const posts = this.#getInstagramPosts();
+      const filteredPosts = posts.filter(post => post.id !== postId);
+      
+      if (posts.length === filteredPosts.length) {
+        this.error('投稿が見つかりません');
+        return;
+      }
+      
+      localStorage.setItem(this.storageKeys.instagram, JSON.stringify(filteredPosts));
+      
+      // 投稿一覧を更新
+      this.refreshInstagramPosts();
+      
+      this.success('Instagram投稿を削除しました');
+      
+    } catch (error) {
+      console.error('❌ Instagram投稿削除エラー:', error);
+      this.error('投稿の削除に失敗しました');
+    }
+  }
+
+  // プライベートメソッド - Instagram管理
+
+  /**
+   * LocalStorageからInstagram投稿を取得（移行機能付き）
+   * @private
+   */
+  #getInstagramPosts() {
+    try {
+      // 現在のキーでデータを確認
+      const currentKey = this.storageKeys.instagram;
+      console.log('🔍 Instagram投稿データ確認:', currentKey);
+      
+      let stored = localStorage.getItem(currentKey);
+      let posts = stored ? JSON.parse(stored) : [];
+      
+      console.log(`📊 現在のキー (${currentKey}) で見つかった投稿数:`, posts.length);
+      
+      // データが見つからない場合、古い可能性のあるキーを確認
+      if (posts.length === 0) {
+        const oldPossibleKeys = [
+          'rbs_instagram',
+          'instagram_posts', 
+          'instagram_data',
+          'admin_instagram',
+          'rbs_instagram_posts'
+        ];
+        
+        console.log('🔄 古いキーでInstagram投稿を検索中...');
+        
+        for (const oldKey of oldPossibleKeys) {
+          try {
+            const oldStored = localStorage.getItem(oldKey);
+            if (oldStored) {
+              const oldPosts = JSON.parse(oldStored);
+              if (oldPosts && oldPosts.length > 0) {
+                console.log(`✅ 古いキー (${oldKey}) で${oldPosts.length}件の投稿を発見`);
+                
+                // 新しいキーに移行
+                localStorage.setItem(currentKey, oldStored);
+                posts = oldPosts;
+                
+                // 古いキーを削除
+                localStorage.removeItem(oldKey);
+                
+                this.success(`Instagram投稿データを移行しました (${oldPosts.length}件)`);
+                console.log('🚀 データ移行完了:', oldKey, '->', currentKey);
+                break;
+              }
+            }
+          } catch (error) {
+            console.warn(`⚠️ 古いキー ${oldKey} の読み込みエラー:`, error);
+          }
+        }
+      }
+      
+      // デバッグ情報を追加
+      if (posts.length > 0) {
+        console.log('📝 Instagram投稿サンプル:', posts[0]);
+        console.log('📅 投稿日時範囲:', {
+          oldest: posts.length > 0 ? Math.min(...posts.map(p => new Date(p.date || p.createdAt).getTime())) : null,
+          newest: posts.length > 0 ? Math.max(...posts.map(p => new Date(p.date || p.createdAt).getTime())) : null
+        });
+      } else {
+        console.log('📭 Instagram投稿データが見つかりません');
+      }
+      
+      return posts;
+      
+    } catch (error) {
+      console.error('❌ Instagram投稿データ読み込みエラー:', error);
+      this.error('Instagram投稿の読み込みでエラーが発生しました');
+      return [];
+    }
+  }
+
+  /**
+   * Instagram投稿HTMLの生成
+   * @private
+   */
+  #generateInstagramPostsHTML(posts) {
+    if (!posts || posts.length === 0) {
+      return `
+        <div class="instagram-post-card add-new" data-action="add-instagram-post">
+          <div class="add-new-content">
+            <i class="fab fa-instagram"></i>
+            <h4>最初の投稿を追加</h4>
+            <p>Instagram投稿のリンクを追加して管理を始めましょう</p>
+          </div>
+        </div>
+      `;
+    }
+    
+    let html = `
+      <div class="instagram-post-card add-new" data-action="add-instagram-post">
+        <div class="add-new-content">
+          <i class="fas fa-plus"></i>
+          <h4>新規投稿追加</h4>
+          <p>新しいInstagram投稿を追加</p>
+        </div>
+      </div>
+    `;
+    
+    posts.forEach(post => {
+      const postDate = new Date(post.date || post.createdAt);
+      const thumbnailUrl = this.#getInstagramThumbnail(post.url);
+      
+      html += `
+        <div class="instagram-post-card" data-post-id="${post.id}">
+          <div class="instagram-post-image">
+            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+              <i class="fab fa-instagram"></i>
+            </div>
+            <div class="instagram-post-overlay">
+              <div class="instagram-post-stats">
+                <span><i class="fas fa-heart"></i> --</span>
+                <span><i class="fas fa-comment"></i> --</span>
+              </div>
+            </div>
+          </div>
+          <div class="instagram-post-content">
+            <div class="instagram-post-header">
+              <div class="instagram-post-info">
+                <div class="instagram-post-date">
+                  <i class="fas fa-calendar-alt"></i>
+                  ${this.#formatDate(postDate)}
+                </div>
+                <a href="${post.url}" target="_blank" class="instagram-post-url">
+                  <i class="fab fa-instagram"></i>
+                  投稿を開く
+                </a>
+              </div>
+              <div class="instagram-post-actions">
+                <button class="btn-icon" data-action="edit-instagram-post" data-post-id="${post.id}" title="編集">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <div class="dropdown">
+                  <button class="btn-icon dropdown-toggle" title="メニュー">
+                    <i class="fas fa-ellipsis-v"></i>
+                  </button>
+                  <div class="dropdown-menu">
+                    <button class="dropdown-item" data-action="toggle-instagram-post" data-post-id="${post.id}">
+                      <i class="fas fa-eye${post.status === 'hidden' ? '' : '-slash'}"></i>
+                      ${post.status === 'hidden' ? '表示' : '非表示'}
+                    </button>
+                    <button class="dropdown-item danger" data-action="delete-instagram-post" data-post-id="${post.id}">
+                      <i class="fas fa-trash"></i>
+                      削除
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            ${post.caption ? `<div class="instagram-post-caption">${post.caption}</div>` : ''}
+            <div class="instagram-post-meta">
+              <div class="instagram-post-type">
+                <i class="fas fa-${this.#getPostTypeIcon(post.type)}"></i>
+                ${this.#getPostTypeLabel(post.type)}
+              </div>
+              <div class="instagram-post-status ${post.status || 'active'}">
+                ${post.status === 'hidden' ? '非表示' : '表示中'}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    
+    return html;
+  }
+
+  /**
+   * Instagram設定を読み込み
+   * @private
+   */
+  #loadInstagramSettings() {
+    try {
+      const stored = localStorage.getItem(`${this.storageKeys.instagram}_settings`);
+      const settings = stored ? JSON.parse(stored) : {
+        username: '',
+        displayCount: 9,
+        autoSync: false,
+        syncInterval: 30
+      };
+      
+      document.getElementById('instagram-username').value = settings.username || '';
+      document.getElementById('instagram-display-count').value = settings.displayCount || 9;
+      document.getElementById('instagram-auto-sync').checked = settings.autoSync || false;
+      document.getElementById('instagram-sync-interval').value = settings.syncInterval || 30;
+      
+    } catch (error) {
+      console.error('❌ Instagram設定読み込みエラー:', error);
+    }
+  }
+
+  /**
+   * Instagram URL バリデーション
+   * @private
+   */
+  #isValidInstagramURL(url) {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.hostname === 'www.instagram.com' && urlObj.pathname.includes('/p/');
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Instagram サムネイル取得（プレースホルダー）
+   * @private
+   */
+  #getInstagramThumbnail(url) {
+    // 実際の実装では Instagram Graph API などを使用
+    return 'https://via.placeholder.com/400x400/833ab4/ffffff?text=Instagram';
+  }
+
+  /**
+   * 投稿タイプのアイコン取得
+   * @private
+   */
+  #getPostTypeIcon(type) {
+    const icons = {
+      photo: 'image',
+      video: 'video',
+      carousel: 'images'
+    };
+    return icons[type] || 'image';
+  }
+
+  /**
+   * 投稿タイプのラベル取得
+   * @private
+   */
+  #getPostTypeLabel(type) {
+    const labels = {
+      photo: '写真',
+      video: '動画',
+      carousel: '複数投稿'
+    };
+    return labels[type] || '写真';
+  }
+
+  /**
+   * ユニークIDの生成
+   * @private
+   */
+  #generateId() {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * 日付フォーマット
+   * @private
+   */
+  #formatDate(date) {
+    try {
+      const options = {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        timeZone: 'Asia/Tokyo'
+      };
+      return new Intl.DateTimeFormat('ja-JP', options).format(date);
+    } catch (error) {
+      console.error('日付フォーマットエラー:', error);
+      return new Date(date).toLocaleDateString('ja-JP');
+    }
+  }
+
+  // === Instagram管理機能（開発中） ===
+  
+  /**
+   * Instagram管理: タブ切り替え（開発中）
+   * @param {string} tabName - タブ名
+   */
+  switchInstagramTab(tabName = null) {
+    console.warn('⚠️ Instagram管理機能は開発中です');
+    this.info('Instagram管理機能は現在開発中です。ダッシュボードをご利用ください。');
+  }
+
+  /**
+   * Instagram管理: 投稿一覧更新（開発中）
+   */
+  refreshInstagramPosts() {
+    console.warn('⚠️ Instagram投稿管理機能は開発中です');
+    this.info('Instagram投稿管理機能は現在開発中です。');
+  }
+
+  /**
+   * Instagram管理: 新規投稿追加（開発中）
+   */
+  addInstagramPost() {
+    console.warn('⚠️ Instagram投稿追加機能は開発中です');
+    this.info('Instagram投稿追加機能は現在開発中です。');
+  }
+
+  /**
+   * Instagram管理: 投稿保存（開発中）
+   */
+  saveInstagramPost() {
+    console.warn('⚠️ Instagram投稿保存機能は開発中です');
+    this.info('Instagram投稿保存機能は現在開発中です。');
+  }
+
+  /**
+   * Instagram管理: モーダルを閉じる（開発中）
+   */
+  closeInstagramModal() {
+    console.warn('⚠️ Instagramモーダル機能は開発中です');
+    const modal = document.getElementById('instagram-modal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  }
+
+  /**
+   * Instagram管理: 設定保存（開発中）
+   */
+  saveInstagramSettings() {
+    console.warn('⚠️ Instagram設定保存機能は開発中です');
+    this.info('Instagram設定保存機能は現在開発中です。');
+  }
+
+  /**
+   * Instagram管理: 投稿編集（開発中）
+   */
+  editInstagramPost(postId) {
+    console.warn('⚠️ Instagram投稿編集機能は開発中です');
+    this.info('Instagram投稿編集機能は現在開発中です。');
+  }
+
+  /**
+   * Instagram管理: 投稿ステータス切り替え（開発中）
+   */
+  toggleInstagramPostStatus(postId) {
+    console.warn('⚠️ Instagram投稿ステータス機能は開発中です');
+    this.info('Instagram投稿ステータス機能は現在開発中です。');
+  }
+
+  /**
+   * Instagram管理: 投稿削除（開発中）
+   */
+  async deleteInstagramPost(postId) {
+    console.warn('⚠️ Instagram投稿削除機能は開発中です');
+    this.info('Instagram投稿削除機能は現在開発中です。');
   }
 }
 
