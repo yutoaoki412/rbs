@@ -368,6 +368,12 @@
                 <p>すべてのコースに適用される基本的な開催状況を選択してください</p>
               </div>
               
+              <!-- 日付選択フィールドを追加 -->
+              <div class="form-group">
+                <label for="lesson-date">対象日</label>
+                <input type="date" id="lesson-date" class="form-input" />
+              </div>
+              
               <div class="status-selector-grid">
                 <label class="status-option scheduled" for="global-scheduled">
                   <input type="radio" id="global-scheduled" name="global-status" value="通常開催" checked>
@@ -418,10 +424,10 @@
                 </label>
               </div>
               
-              <!-- 保護者向けメッセージ -->
+              <!-- 保護者向けメッセージ（IDを修正） -->
               <div class="form-group">
-                <label for="lesson-message">保護者向けメッセージ</label>
-                <textarea id="lesson-message" class="form-textarea" rows="3" placeholder="保護者向けの連絡事項やメッセージがあれば入力してください"></textarea>
+                <label for="global-message">保護者向けメッセージ</label>
+                <textarea id="global-message" class="form-textarea" rows="3" placeholder="保護者向けの連絡事項やメッセージがあれば入力してください"></textarea>
                 <div class="form-help">
                   <small>このメッセージは保護者の方に表示されます。天候による変更、持参物、注意事項などをお知らせできます。</small>
                 </div>
@@ -486,6 +492,12 @@
                       </div>
                     </label>
                   </div>
+                  
+                  <!-- ベーシックコース用メッセージフィールドを追加 -->
+                  <div class="form-group">
+                    <label for="basic-lesson-note">ベーシックコース向けメッセージ</label>
+                    <textarea id="basic-lesson-note" class="form-textarea" rows="2" placeholder="ベーシックコース向けの個別メッセージがあれば入力してください"></textarea>
+                  </div>
                 </div>
                 
                 <!-- アドバンスコース -->
@@ -535,6 +547,12 @@
                         <span>延期</span>
                       </div>
                     </label>
+                  </div>
+                  
+                  <!-- アドバンスコース用メッセージフィールドを追加 -->
+                  <div class="form-group">
+                    <label for="advance-lesson-note">アドバンスコース向けメッセージ</label>
+                    <textarea id="advance-lesson-note" class="form-textarea" rows="2" placeholder="アドバンスコース向けの個別メッセージがあれば入力してください"></textarea>
                   </div>
                 </div>
               </div>

@@ -6,9 +6,8 @@
 /* 管理画面用CSS変数 */
 :root {
   /* LP側の色味と統一 */
-  --admin-primary: #4a90e2;
+  --admin-primary: var(--color-primary-blue);
   --admin-primary-dark: #3a7bc8;
-  --admin-primary-light: #6ba5e8;
   --admin-secondary: var(--color-primary-teal);
   --admin-success: var(--color-success);
   --admin-warning: var(--color-warning);
@@ -305,23 +304,23 @@
 }
 
 .notification-item.error .notification-avatar {
-  background: var(--admin-error);
-  border-color: var(--admin-error);
+  background: linear-gradient(135deg, var(--admin-error), #dc2626);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 .notification-item.warning .notification-avatar {
-  background: var(--admin-warning);
-  border-color: var(--admin-warning);
+  background: linear-gradient(135deg, var(--admin-warning), #d97706);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 .notification-item.success .notification-avatar {
-  background: var(--admin-success);
-  border-color: var(--admin-success);
+  background: linear-gradient(135deg, var(--admin-success), #059669);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
 }
 
 .notification-item.info .notification-avatar {
-  background: var(--admin-primary);
-  border-color: var(--admin-primary);
+  background: linear-gradient(135deg, var(--admin-primary), #2563eb);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 /* 通知ボディ */
@@ -560,14 +559,7 @@
   flex-direction: column;
 }
 
-/* 記事管理タブのみ全体スクロール対応 */
-.admin-main.news-management-active {
-  height: auto;
-  min-height: calc(100vh - var(--admin-header-height));
-  overflow-y: visible;
-}
-
-/* セクション統一スタイル */
+/* セクション */
 .admin-section {
   display: none;
   flex: 1;
@@ -580,16 +572,13 @@
   animation: fadeIn 0.3s ease-in-out;
 }
 
-/* セクションヘッダー統一 */
 .section-header {
-  margin-bottom: 1rem;
+  margin-bottom: 1rem; /* 1.5remからさらに縮小 */
   flex-shrink: 0;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--admin-gray-200);
 }
 
 .section-header h1 {
-  font-size: 1.75rem;
+  font-size: 1.75rem; /* 少し縮小 */
   font-weight: 700;
   color: var(--admin-gray-900);
   margin: 0;
@@ -602,26 +591,19 @@
   color: var(--admin-primary);
 }
 
-.section-description {
-  color: var(--admin-gray-600);
-  font-size: 0.9rem;
-  margin: 0.5rem 0 0 0;
-  font-weight: 400;
-}
-
-/* 統計グリッド（ダッシュボード専用） */
+/* 統計グリッド */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* 最小幅を縮小 */
+  gap: 1rem; /* 1.5remから縮小 */
+  margin-bottom: 1.5rem; /* 2remから縮小 */
   flex-shrink: 0;
 }
 
 .stat-card {
   background: var(--admin-white);
   border-radius: var(--admin-border-radius);
-  padding: 1.25rem;
+  padding: 1.25rem; /* 1.5remから縮小 */
   box-shadow: var(--admin-shadow);
   display: flex;
   align-items: center;
@@ -682,7 +664,6 @@
   gap: 1.5rem;
   flex: 1;
   min-height: 0;
-  height: 100%;
 }
 
 .widget {
@@ -692,8 +673,8 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 350px; /* 枠を少し広げる */
-  max-height: 100%;
+  min-height: 320px; /* 最小高度を設定して枠を広げる */
+  max-height: calc(100vh - var(--admin-header-height) - 240px); /* 1画面に収める */
 }
 
 .widget-header {
@@ -722,40 +703,29 @@
 }
 
 .widget-content {
-  background: var(--admin-white);
-  padding: 1.25rem;
+  padding: 1rem 1.25rem; /* パディングを調整 */
+  overflow-y: auto;
   flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
   min-height: 0;
 }
 
-/* 最近の記事: スクロール可能な縦並び */
-.recent-articles-widget .widget-content {
-  padding: 0.75rem;
-  max-height: 350px; /* 高さを制限してスクロールを有効にする */
-  overflow-y: auto; /* 縦スクロールを有効にする */
+/* 最近の記事：3つ縦並び制限 */
+.widget-content::-webkit-scrollbar {
+  width: 4px;
 }
 
-/* 美しいスクロールバースタイル */
-.recent-articles-widget .widget-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.recent-articles-widget .widget-content::-webkit-scrollbar-track {
+.widget-content::-webkit-scrollbar-track {
   background: var(--admin-gray-100);
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
-.recent-articles-widget .widget-content::-webkit-scrollbar-thumb {
+.widget-content::-webkit-scrollbar-thumb {
   background: var(--admin-gray-300);
-  border-radius: 3px;
-  transition: background 0.2s ease;
+  border-radius: 2px;
 }
 
-.recent-articles-widget .widget-content::-webkit-scrollbar-thumb:hover {
-  background: var(--admin-primary);
+.widget-content::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-gray-500);
 }
 
 /* 最近の記事のコンパクトスタイル */
@@ -763,8 +733,8 @@
   background: var(--admin-white);
   border: 1px solid var(--admin-gray-200);
   border-radius: var(--admin-border-radius-sm);
-  padding: 0.875rem;
-  margin-bottom: 0.75rem;
+  padding: 0.875rem; /* パディングを縮小 */
+  margin-bottom: 0.75rem; /* マージンを縮小 */
   transition: all 0.2s ease;
   cursor: pointer;
   position: relative;
@@ -774,23 +744,9 @@
   animation: fadeInUp 0.3s ease forwards;
 }
 
-/* 記事管理タブの一覧モード */
-.recent-article-item.list-mode {
-  opacity: 1;
-  transform: translateY(0);
-  animation: none;
-  margin-bottom: 1rem;
-  padding: 1.25rem;
-}
-
-/* 記事管理タブでは全ての記事を表示 */
-.admin-main.news-management-active .recent-article-item:nth-child(n+4) {
-  display: block;
-}
-
-/* 最初の3つのみ表示するための制限（ダッシュボードのみ） */
+/* 最初の3つのみ表示するための制限 */
 .recent-article-item:nth-child(n+4) {
-  display: none;
+  display: none; /* 4番目以降は非表示 */
 }
 
 .recent-article-item:nth-child(1) { animation-delay: 0.1s; }
@@ -824,7 +780,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.5rem; /* マージンを縮小 */
   gap: 1rem;
 }
 
@@ -834,7 +790,7 @@
 }
 
 .recent-article-title {
-  font-size: 0.9rem;
+  font-size: 0.9rem; /* フォントサイズを縮小 */
   font-weight: 600;
   color: var(--admin-gray-900);
   line-height: 1.4;
@@ -848,22 +804,26 @@
 }
 
 .new-badge {
-  background: var(--admin-primary);
+  background: linear-gradient(45deg, #ff6b6b, #ee5a52);
   color: white;
-  font-size: 0.6rem;
-  padding: 2px 6px;
-  border-radius: 10px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  font-size: 0.5rem; /* サイズを縮小 */
+  font-weight: 700;
+  padding: 0.1rem 0.3rem;
+  border-radius: 6px;
   text-transform: uppercase;
-  display: inline-block;
-  margin-left: 8px;
+  letter-spacing: 0.5px;
   animation: pulse 2s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 .recent-article-summary {
   color: var(--admin-gray-600);
-  font-size: 0.8rem;
+  font-size: 0.8rem; /* フォントサイズを縮小 */
   line-height: 1.4;
   margin: 0;
   display: -webkit-box;
@@ -887,8 +847,8 @@
 }
 
 .btn-icon {
-  width: 28px;
-  height: 28px;
+  width: 28px; /* サイズを縮小 */
+  height: 28px; /* サイズを縮小 */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -898,7 +858,7 @@
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s ease;
-  font-size: 0.7rem;
+  font-size: 0.7rem; /* フォントサイズを縮小 */
 }
 
 .btn-icon:hover {
@@ -933,8 +893,7 @@
   transition: all 0.2s ease;
 }
 
-.dropdown:hover .dropdown-menu,
-.dropdown.open .dropdown-menu {
+.dropdown:hover .dropdown-menu {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
@@ -972,23 +931,24 @@
 /* メタ情報 */
 .recent-article-meta {
   display: flex;
+  gap: 1rem;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--admin-gray-100);
+  margin-bottom: 0.75rem;
+  align-items: center;
 }
 
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.7rem;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
   color: var(--admin-gray-500);
+  font-weight: 500;
 }
 
 .meta-item i {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
+  color: var(--admin-gray-400);
 }
 
 .meta-item i.published {
@@ -1000,36 +960,34 @@
 }
 
 .meta-item i.featured {
-  color: var(--admin-orange);
+  color: #f59e0b;
 }
 
+/* カテゴリーバッジ */
 .category-badge {
-  padding: 0.1rem 0.4rem;
-  border-radius: 4px;
-  font-size: 0.625rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.6875rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.025em;
+  color: white;
 }
 
 .category-badge.announcement {
-  background: #e0e7ff;
-  color: #3730a3;
+  background: #4a90e2; /* LP側と同じ青 - お知らせ */
 }
 
 .category-badge.event {
-  background: #dcfce7;
-  color: #166534;
+  background: #50c8a3; /* LP側と同じティール - 体験会 */
 }
 
 .category-badge.media {
-  background: #fef3c7;
-  color: #92400e;
+  background: #9b59b6; /* LP側と同じ紫 - メディア */
 }
 
 .category-badge.important {
-  background: #fee2e2;
-  color: #991b1b;
+  background: #e74c3c; /* LP側と同じ赤 - 重要 */
 }
 
 .status-text {
@@ -1037,282 +995,317 @@
 }
 
 .date-text {
-  font-weight: 400;
+  cursor: help;
 }
 
-/* 統計 */
+/* 統計情報 */
 .recent-article-stats {
   display: flex;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
+  gap: 1rem;
+  padding-top: 0.75rem;
   border-top: 1px solid var(--admin-gray-100);
+  font-size: 0.75rem;
+  color: var(--admin-gray-500);
 }
 
 .stat-item {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.7rem;
-  color: var(--admin-gray-500);
+  gap: 0.375rem;
 }
 
 .stat-item i {
-  font-size: 0.65rem;
+  font-size: 0.6875rem;
+  opacity: 0.7;
 }
 
-/* クイックアクション: 4つ縦並び */
-.quick-actions .widget-content {
-  max-height: none;
-  overflow-y: auto;
-  padding: 1rem;
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .recent-article-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .recent-article-actions {
+    opacity: 1;
+    order: -1;
+    align-self: flex-end;
+  }
+
+  .recent-article-meta {
+    gap: 0.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .meta-item {
+    font-size: 0.75rem;
+  }
+
+  .recent-article-stats {
+    gap: 0.75rem;
+    flex-direction: column;
+  }
 }
 
-/* アクションボタングリッド: 確実に4つ縦並び */
-.action-buttons-grid {
-  display: flex !important;
-  flex-direction: column !important;
+/* バッジスタイル */
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid transparent;
+}
+
+.badge-success {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.badge-warning {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.badge-info {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #bfdbfe;
+}
+
+.badge-error {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+/* 空の状態表示の改善 */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--admin-gray-500);
+  background: var(--admin-white);
+  border: 2px dashed var(--admin-gray-200);
+  border-radius: var(--admin-border-radius);
+  transition: all 0.3s ease;
+}
+
+.empty-state:hover {
+  border-color: var(--admin-primary);
+  background: rgba(74, 144, 226, 0.02);
+}
+
+.empty-state i {
+  font-size: 3rem;
+  color: var(--admin-gray-300);
+  margin-bottom: 1rem;
+  display: block;
+  transition: all 0.3s ease;
+}
+
+.empty-state:hover i {
+  color: var(--admin-primary);
+  transform: scale(1.1);
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+  color: var(--admin-gray-600);
+}
+
+.empty-state .btn {
+  transform: translateY(0);
+  transition: all 0.2s ease;
+}
+
+.empty-state .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+/* ローディングとエラー状態 */
+.loading-state,
+.error-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  min-height: 120px;
+  color: var(--admin-gray-500);
+}
+
+.loading-state i {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--admin-primary);
+}
+
+.error-state {
+  color: var(--admin-danger);
+}
+
+.error-state i {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  color: var(--admin-danger);
+}
+
+.empty-state {
+  color: var(--admin-gray-400);
+}
+
+/* デバッグボタンのスタイル */
+.btn-icon[title*="デバッグ"] {
+  background: var(--admin-warning);
+  color: white;
+}
+
+.btn-icon[title*="デバッグ"]:hover {
+  background: var(--admin-warning-dark, #e6ac00);
+}
+
+/* チェックボックス */
+input[type="checkbox"] {
+  margin-right: 0.5rem;
+  transform: scale(1.1);
+}
+
+/* セクションアクション */
+.section-actions {
+  display: flex;
   gap: 0.75rem;
-  margin-top: 0;
 }
 
 /* レスポンシブ対応 */
 @media (max-width: 1400px) {
-  .dashboard-widgets {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  .management-layout {
+    gap: 0;
   }
   
-  .status-selector-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.75rem;
+  .editor-panel,
+  .list-panel {
+    width: 100%;
   }
   
   .form-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
   }
 }
 
 @media (max-width: 1024px) {
-  .admin-main.dashboard-optimized {
-    padding: 0.75rem;
-  }
-  
-  .widget {
-    min-height: 280px;
+  .management-layout {
+    gap: 0;
   }
   
   .panel-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
+    padding: 0.875rem 1rem;
   }
   
-  .panel-actions {
-    justify-content: center;
+  .editor-form {
+    padding: 1.5rem;
   }
   
-  .status-selector-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
+  .form-textarea.editor-content {
+    min-height: 300px;
   }
 }
 
 @media (max-width: 768px) {
-  .wizard-steps {
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 1rem;
-  }
-  
-  .step {
-    justify-content: center;
-  }
-  
-  .wizard-actions {
-    flex-direction: column;
-    gap: 1.5rem;
-    padding: 1.5rem;
-    align-items: stretch;
-  }
-  
-  .nav-buttons {
-    order: 2;
-    justify-content: space-between;
-    width: 100%;
-  }
-  
-  .wizard-prev,
-  .wizard-next {
-    flex: 1;
-    min-width: auto;
-    max-width: calc(50% - 0.5rem);
-  }
-  
-  .action-buttons {
-    order: 1;
-    width: 100%;
-    justify-content: center;
-    flex-direction: row;
-  }
-  
-  .sub-nav {
-  flex-direction: column;
-  }
-  
-  .sub-nav-item {
-    border-right: none;
-    border-bottom: 1px solid var(--admin-gray-200);
-    justify-content: center;
-  }
-  
-  .sub-nav-item:last-child {
-    border-bottom: none;
-  }
-  
-  .editor-form {
-    padding: 1.5rem;
+  .management-layout {
+    gap: 0;
+    margin-top: 0.5rem;
   }
   
   .panel-header {
-    padding: 1rem 1.5rem;
-  }
-  
-  .panel-actions {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  
-  .btn {
-    font-size: 0.8125rem;
-    padding: 0.625rem 1.25rem;
-  }
-  
-  .editor-toolbar {
-    flex-wrap: wrap;
-  }
-  
-  .form-textarea.editor-content {
-    min-height: 250px;
-    font-size: 0.75rem;
-  }
-  
-  .action-btn.compact {
-    padding: 0.625rem;
-  }
-  
-  .action-icon {
-    width: 32px;
-    height: 32px;
-    font-size: 0.9rem;
-  }
-  
-  .action-title {
-    font-size: 0.8rem;
-  }
-  
-  .action-desc {
-    font-size: 0.65rem;
-  }
-
-  /* 最近の記事のレスポンシブ対応 */
-  .recent-article-header {
     flex-direction: column;
+    gap: 0.75rem;
     align-items: stretch;
-    gap: 0.5rem;
+    padding: 1rem;
   }
-
-  .recent-article-actions {
-    opacity: 1;
-    justify-content: flex-end;
+  
+  .panel-actions,
+  .panel-filters {
+    justify-content: center;
+    flex-wrap: wrap;
   }
-
-  .recent-article-meta {
-    flex-direction: column;
-    gap: 0.25rem;
+  
+  .editor-form {
+    padding: 1rem;
   }
-
-  .meta-item {
-    justify-content: flex-start;
-  }
-
-  .recent-article-stats {
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .status-selector-grid {
+  
+  .form-grid {
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
   
-  .option-card {
-    padding: 1.25rem 1rem;
-    min-height: 80px;
-    flex-direction: row;
-    text-align: left;
-    gap: 1rem;
+  .form-textarea.editor-content {
+    min-height: 250px;
+    font-size: 0.8125rem;
   }
   
-  .option-icon {
-    margin-bottom: 0;
-    flex-shrink: 0;
+  .news-item {
+    padding: 1rem;
   }
   
-  .option-content {
-    flex: 1;
+  .news-item-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .news-item-actions {
+    align-self: flex-start;
+  }
+  
+  .news-item-meta {
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .panel-header h2 {
+    font-size: 1rem;
+  }
+  
+  .panel-actions .btn {
+    font-size: 0.8125rem;
+    padding: 0.5rem 0.75rem;
   }
   
   .editor-form {
-    padding: 1rem;
-  }
-  
-  .panel-header {
-    padding: 1rem;
-  }
-  
-  .panel-header h2 {
-    font-size: 1.125rem;
+    padding: 0.75rem;
   }
   
   .form-group {
     margin-bottom: 1rem;
   }
   
-  .btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.75rem;
+  .list-content {
+    padding: 0.75rem;
   }
   
   .form-textarea.editor-content {
     min-height: 200px;
   }
-  
-  .action-btn.compact {
-    padding: 0.5rem;
-    gap: 0.75rem;
-  }
-  
-  .action-icon {
-    width: 30px;
-    height: 30px;
-    font-size: 0.9rem;
-  }
 }
 
-/* アニメーション統一 */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* アニメーション */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes fadeInUp {
@@ -1320,16 +1313,6 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
 }
 
 /* 設定 */
@@ -1404,13 +1387,13 @@
 }
 
 .modal-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--admin-gray-200);
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 1.5rem;
-  background: var(--admin-primary);
+  align-items: center;
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
   color: white;
-  border-radius: var(--admin-border-radius) var(--admin-border-radius) 0 0;
 }
 
 .modal-header h3 {
@@ -1455,11 +1438,12 @@
 .preview-status-display {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: var(--admin-gray-100);
-  border-radius: var(--admin-border-radius-sm);
-  margin-bottom: 1.5rem;
+  gap: 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid var(--admin-gray-200);
 }
 
 .preview-icon {
@@ -1546,11 +1530,11 @@
 }
 
 .preview-info {
-  background: var(--admin-primary);
-  color: white;
-  padding: 1rem;
-  border-radius: var(--admin-border-radius-sm);
-  margin-top: 1rem;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-radius: 12px;
+  padding: 1.25rem;
+  border-left: 4px solid #2196f3;
+  margin-top: 1.5rem;
 }
 
 .preview-info p {
@@ -1720,8 +1704,7 @@
 /* ダークモード対応 */
 @media (prefers-color-scheme: dark) {
   .log-viewer {
-    background: var(--admin-gray-900);
-    color: var(--admin-gray-100);
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   }
 
   .notification-item {
@@ -1754,7 +1737,7 @@
   .debug-panel {
     transition: opacity 0.2s ease;
   }
-  
+
   .log-entry {
     animation: none;
   }
@@ -1839,51 +1822,47 @@
 
 /* 選択された状態のスタイル */
 input[id*="status-scheduled"]:checked + .global-status-btn {
-  background: var(--status-scheduled) !important;
-  border-color: var(--status-scheduled-dark) !important;
+  border-color: var(--status-scheduled) !important;
+  background: linear-gradient(135deg, var(--status-scheduled), var(--status-scheduled-light)) !important;
   color: white !important;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3);
+  box-shadow: 0 6px 20px rgba(39, 174, 96, 0.3);
 }
 
 input[id*="status-scheduled"]:checked + .global-status-btn::before {
-  opacity: 1;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 input[id*="status-cancelled"]:checked + .global-status-btn {
-  background: var(--status-cancelled) !important;
-  border-color: var(--status-cancelled-dark) !important;
+  border-color: var(--status-cancelled) !important;
+  background: linear-gradient(135deg, var(--status-cancelled), var(--status-cancelled-light)) !important;
   color: white !important;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
 }
 
 input[id*="status-cancelled"]:checked + .global-status-btn::before {
-  opacity: 1;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 input[id*="status-indoor"]:checked + .global-status-btn {
-  background: var(--status-indoor) !important;
-  border-color: var(--status-indoor-dark) !important;
+  border-color: var(--status-indoor) !important;
+  background: linear-gradient(135deg, var(--status-indoor), var(--status-indoor-light)) !important;
   color: white !important;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(243, 156, 18, 0.3);
+  box-shadow: 0 6px 20px rgba(243, 156, 18, 0.3);
 }
 
 input[id*="status-indoor"]:checked + .global-status-btn::before {
-  opacity: 1;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 input[id*="status-postponed"]:checked + .global-status-btn {
-  background: var(--status-postponed) !important;
-  border-color: var(--status-postponed-dark) !important;
+  border-color: var(--status-postponed) !important;
+  background: linear-gradient(135deg, var(--status-postponed), var(--status-postponed-light)) !important;
   color: white !important;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
 }
 
 input[id*="status-postponed"]:checked + .global-status-btn::before {
-  opacity: 1;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* ホバー時の各ステータス色 */
@@ -1915,7 +1894,7 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
 @media (max-width: 1200px) {
   .global-status-cards {
     grid-template-columns: repeat(2, 1fr) !important;
-  gap: 1rem;
+    gap: 1rem;
   }
 }
 
@@ -1948,48 +1927,86 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
  * 新しいレッスン状況UI - ウィザード形式
  * ============================================================================= */
 
-/* レッスン状況ウィザード - リファクタリング版 */
+/* セクション説明 */
+.section-description {
+  color: var(--admin-gray-600);
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0 0;
+  font-weight: 400;
+}
+
+/* ウィザードコンテナ */
 .lesson-status-wizard {
-  background: white;
+  background: var(--admin-white);
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  padding: 1rem;
-  margin-top: 1rem;
-  max-height: 85vh;
-  overflow-y: auto;
+  overflow: hidden;
+  margin-bottom: 2rem;
 }
 
 /* ステップナビゲーション */
 .wizard-steps {
   display: flex;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-  position: relative;
   background: #4a90e2;
-  border-radius: 12px;
-  padding: 1rem;
+  padding: 1.5rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.wizard-steps::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.15)"/><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+  opacity: 0.3;
 }
 
 .step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   flex: 1;
-  max-width: 200px;
-  position: relative;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
   transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
   cursor: pointer;
 }
 
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: -1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid rgba(255, 255, 255, 0.3);
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  z-index: 2;
+}
+
 .step.active {
-  color: white;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.step.active::after {
+  border-left-color: rgba(255, 255, 255, 0.4);
+}
+
+.step.completed {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .step-number {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.2);
   display: flex;
@@ -1997,8 +2014,7 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   justify-content: center;
   font-weight: 700;
   color: white;
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
   transition: all 0.3s ease;
 }
 
@@ -2008,10 +2024,25 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+.step.completed .step-number {
+  background: #27ae60;
+  color: white;
+}
+
+.step span {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.step.active span {
+  color: white;
+}
+
 /* ウィザードコンテンツ */
 .wizard-content {
   display: none;
-  animation: fadeIn 0.3s ease-in-out;
+  padding: 0;
 }
 
 .wizard-content.active {
@@ -2019,47 +2050,50 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
 }
 
 .step-panel {
-  padding: 1rem 0;
+  padding: 2rem;
 }
 
 .step-header {
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
 }
 
 .step-header h3 {
-  font-size: 1.25rem;
-  color: var(--admin-text);
-  margin: 0 0 0.25rem 0;
+  font-size: 1.375rem;
   font-weight: 700;
+  color: var(--admin-gray-900);
+  margin: 0 0 0.5rem 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .step-header h3 i {
   color: var(--admin-primary);
+  font-size: 1.25rem;
 }
 
 .step-header p {
-  color: var(--admin-text-muted);
+  color: var(--admin-gray-600);
+  font-size: 0.95rem;
   margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.4;
+  max-width: 500px;
+  margin: 0 auto;
 }
 
-/* 全体ステータス選択グリッド */
+/* ステップ1: ステータス選択グリッド */
 .status-selector-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-top: 2rem;
 }
 
 .status-option {
-  display: block;
   cursor: pointer;
+  display: block;
+  transition: all 0.2s ease;
 }
 
 .status-option input[type="radio"] {
@@ -2067,33 +2101,42 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
 }
 
 .option-card {
-  background: white;
+  background: var(--admin-white);
   border: 2px solid var(--admin-gray-200);
   border-radius: 12px;
-  padding: 1.25rem;
-  cursor: pointer;
+  padding: 1.25rem 1rem;
   transition: all 0.3s ease;
-  text-align: center;
   position: relative;
-  min-height: 120px;
+  overflow: hidden;
+  min-height: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.option-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--admin-gray-300);
+  transition: all 0.3s ease;
 }
 
 .option-card:hover {
-  border-color: var(--admin-primary);
+  border-color: var(--admin-gray-400);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 .option-icon {
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: var(--admin-gray-200);
+  background: var(--admin-gray-100);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2102,467 +2145,371 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
 }
 
 .option-icon i {
-  font-size: 1.5rem;
-  color: var(--admin-gray-400);
+  font-size: 1.125rem;
+  color: var(--admin-gray-500);
   transition: all 0.3s ease;
 }
 
 .option-content h4 {
-  font-size: 1rem;
-  color: var(--admin-gray-700);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--admin-gray-900);
+  margin: 0 0 0.25rem 0;
+}
+
+.option-content p {
+  font-size: 0.75rem;
+  color: var(--admin-gray-600);
   margin: 0;
-  font-weight: 600;
+  line-height: 1.3;
+}
+
+.option-check {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--admin-gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
   transition: all 0.3s ease;
 }
 
-/* 全体ステータス - ホバー状態（ステータス別色分け） */
-.status-option.scheduled:hover .option-card {
-  border-color: var(--status-scheduled);
-  background: rgba(39, 174, 96, 0.05);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(39, 174, 96, 0.15);
-}
-
-.status-option.scheduled:hover .option-icon {
-  background: var(--status-scheduled);
-}
-
-.status-option.scheduled:hover .option-icon i {
+.option-check i {
+  font-size: 0.625rem;
   color: white;
 }
 
-.status-option.scheduled:hover .option-content h4 {
-  color: var(--status-scheduled);
-}
-
-.status-option.cancelled:hover .option-card {
-  border-color: var(--status-cancelled);
-  background: rgba(231, 76, 60, 0.05);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(231, 76, 60, 0.15);
-}
-
-.status-option.cancelled:hover .option-icon {
-  background: var(--status-cancelled);
-}
-
-.status-option.cancelled:hover .option-icon i {
-  color: white;
-}
-
-.status-option.cancelled:hover .option-content h4 {
-  color: var(--status-cancelled);
-}
-
-.status-option.indoor:hover .option-card {
-  border-color: var(--status-indoor);
-  background: rgba(243, 156, 18, 0.05);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(243, 156, 18, 0.15);
-}
-
-.status-option.indoor:hover .option-icon {
-  background: var(--status-indoor);
-}
-
-.status-option.indoor:hover .option-icon i {
-  color: white;
-}
-
-.status-option.indoor:hover .option-content h4 {
-  color: var(--status-indoor);
-}
-
-.status-option.postponed:hover .option-card {
-  border-color: var(--status-postponed);
-  background: rgba(52, 152, 219, 0.05);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.15);
-}
-
-.status-option.postponed:hover .option-icon {
-  background: var(--status-postponed);
-}
-
-.status-option.postponed:hover .option-icon i {
-  color: white;
-}
-
-.status-option.postponed:hover .option-content h4 {
-  color: var(--status-postponed);
-}
-
-/* 全体ステータス - 選択状態 */
+/* 選択状態のスタイル */
 .status-option.scheduled input:checked ~ .option-card {
   border-color: var(--status-scheduled);
-  background: rgba(39, 174, 96, 0.1);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(39, 174, 96, 0.2);
+  background: linear-gradient(135deg, rgba(39, 174, 96, 0.05), rgba(46, 204, 113, 0.1));
+}
+
+.status-option.scheduled input:checked ~ .option-card::before {
+  background: var(--status-scheduled);
 }
 
 .status-option.scheduled input:checked ~ .option-card .option-icon {
   background: var(--status-scheduled);
-  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
 }
 
 .status-option.scheduled input:checked ~ .option-card .option-icon i {
   color: white;
 }
 
-.status-option.scheduled input:checked ~ .option-card .option-content h4 {
-  color: var(--status-scheduled);
-  font-weight: 700;
+.status-option.scheduled input:checked ~ .option-card .option-check {
+  background: var(--status-scheduled);
+  opacity: 1;
 }
 
 .status-option.cancelled input:checked ~ .option-card {
   border-color: var(--status-cancelled);
-  background: rgba(231, 76, 60, 0.1);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(231, 76, 60, 0.2);
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.05), rgba(236, 85, 105, 0.1));
+}
+
+.status-option.cancelled input:checked ~ .option-card::before {
+  background: var(--status-cancelled);
 }
 
 .status-option.cancelled input:checked ~ .option-card .option-icon {
   background: var(--status-cancelled);
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
 }
 
 .status-option.cancelled input:checked ~ .option-card .option-icon i {
   color: white;
 }
 
-.status-option.cancelled input:checked ~ .option-card .option-content h4 {
-  color: var(--status-cancelled);
-  font-weight: 700;
+.status-option.cancelled input:checked ~ .option-card .option-check {
+  background: var(--status-cancelled);
+  opacity: 1;
 }
 
 .status-option.indoor input:checked ~ .option-card {
   border-color: var(--status-indoor);
-  background: rgba(243, 156, 18, 0.1);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(243, 156, 18, 0.2);
+  background: linear-gradient(135deg, rgba(243, 156, 18, 0.05), rgba(245, 166, 35, 0.1));
+}
+
+.status-option.indoor input:checked ~ .option-card::before {
+  background: var(--status-indoor);
 }
 
 .status-option.indoor input:checked ~ .option-card .option-icon {
   background: var(--status-indoor);
-  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
 }
 
 .status-option.indoor input:checked ~ .option-card .option-icon i {
   color: white;
 }
 
-.status-option.indoor input:checked ~ .option-card .option-content h4 {
-  color: var(--status-indoor);
-  font-weight: 700;
+.status-option.indoor input:checked ~ .option-card .option-check {
+  background: var(--status-indoor);
+  opacity: 1;
 }
 
 .status-option.postponed input:checked ~ .option-card {
   border-color: var(--status-postponed);
-  background: rgba(52, 152, 219, 0.1);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.2);
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.05), rgba(93, 173, 226, 0.1));
+}
+
+.status-option.postponed input:checked ~ .option-card::before {
+  background: var(--status-postponed);
 }
 
 .status-option.postponed input:checked ~ .option-card .option-icon {
   background: var(--status-postponed);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
 }
 
 .status-option.postponed input:checked ~ .option-card .option-icon i {
   color: white;
 }
 
-.status-option.postponed input:checked ~ .option-card .option-content h4 {
-  color: var(--status-postponed);
-  font-weight: 700;
+.status-option.postponed input:checked ~ .option-card .option-check {
+  background: var(--status-postponed);
+  opacity: 1;
 }
 
-/* =============================================================================
- * コース別設定UIの完全リファクタリング（全体ステータスと統一）
- * ============================================================================= */
+/* ステップ2: 詳細設定グリッド */
+.detail-settings-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
 
-/* コース設定 */
-.course-settings {
-  display: flex;
-  flex-direction: column;
-    gap: 1.5rem;
-  }
-  
-.course-item {
-  background: white;
+.setting-card {
+  background: var(--admin-gray-50);
   border: 1px solid var(--admin-gray-200);
   border-radius: 12px;
   padding: 1.5rem;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.course-item:hover {
-  border-color: var(--admin-gray-300);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+.setting-card:hover {
+  border-color: var(--admin-primary);
+  background: var(--admin-white);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.1);
 }
 
-.course-header {
+.setting-card.full-width {
+  grid-column: 1 / -1;
+}
+
+.setting-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.setting-header i {
+  color: var(--admin-primary);
+  font-size: 1.125rem;
+}
+
+.setting-header h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+  margin: 0;
+}
+
+.date-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--admin-gray-200);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: var(--admin-white);
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.message-textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid var(--admin-gray-200);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: var(--admin-white);
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+.message-textarea:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.textarea-help {
+  margin-top: 0.75rem;
+}
+
+.textarea-help small {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--admin-gray-500);
+  font-size: 0.75rem;
+}
+
+.textarea-help i {
+  color: var(--admin-info);
+}
+
+/* ステップ3: コース設定 */
+.courses-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.course-setting-card {
+  background: var(--admin-white);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.course-setting-card:hover {
+  border-color: var(--admin-primary);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.08);
+}
+
+.course-setting-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--admin-gray-100);
 }
 
-.course-header h4 {
-  margin: 0;
+.course-info h4 {
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--admin-gray-900);
+  margin: 0 0 0.25rem 0;
 }
 
-.course-time {
-  font-size: 0.875rem;
+.course-detail {
+  font-size: 0.8125rem;
   color: var(--admin-gray-600);
-  background: var(--admin-gray-50);
-  padding: 0.375rem 0.75rem;
-  border-radius: 6px;
   font-weight: 500;
 }
 
-/* コース別ステータス選択 */
-.course-status-selector {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 0.75rem;
-  }
-  
-.course-status-option {
-  display: block;
-  cursor: pointer;
+.course-status-indicator .status-badge {
+  padding: 0.375rem 0.875rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.course-status-option input[type="radio"] {
+.status-badge.scheduled {
+  background: rgba(39, 174, 96, 0.1);
+  color: var(--status-scheduled);
+  border: 1px solid rgba(39, 174, 96, 0.2);
+}
+
+.status-badge.cancelled {
+  background: rgba(231, 76, 60, 0.1);
+  color: var(--status-cancelled);
+  border: 1px solid rgba(231, 76, 60, 0.2);
+}
+
+.status-badge.indoor {
+  background: rgba(243, 156, 18, 0.1);
+  color: var(--status-indoor);
+  border: 1px solid rgba(243, 156, 18, 0.2);
+}
+
+.status-badge.postponed {
+  background: rgba(52, 152, 219, 0.1);
+  color: var(--status-postponed);
+  border: 1px solid rgba(52, 152, 219, 0.2);
+}
+
+.course-status-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.mini-status-option {
+  cursor: pointer;
+  display: block;
+}
+
+.mini-status-option input[type="radio"] {
   display: none;
 }
 
-/* コース別ステータスカード - デフォルト状態 */
-.course-option-card {
-  display: flex;
-  align-items: center;
-    gap: 0.75rem;
-  padding: 1rem;
-  border: 2px solid var(--admin-gray-200);
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  font-size: 0.9rem;
-  background: white;
-  cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  min-height: 64px;
-}
-
-/* コース別ステータスアイコン - デフォルト状態 */
-.course-option-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--admin-gray-200);
+.option-text {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-}
-
-.course-option-icon i {
-  font-size: 1rem;
-  color: var(--admin-gray-400);
-  transition: all 0.3s ease;
-}
-
-.course-option-card span {
-  font-weight: 600;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  border: 1px solid var(--admin-gray-300);
+  border-radius: 8px;
+  background: var(--admin-white);
+  font-size: 0.8125rem;
+  font-weight: 500;
   color: var(--admin-gray-700);
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  text-align: center;
 }
 
-/* コース別ステータス - ホバー状態（ステータス別色分け） */
-.course-status-option.scheduled:hover .course-option-card {
-  border-color: var(--status-scheduled);
-  background: rgba(39, 174, 96, 0.05);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.15);
+.option-text:hover {
+  border-color: var(--admin-primary);
+  background: rgba(74, 144, 226, 0.05);
 }
 
-.course-status-option.scheduled:hover .course-option-icon {
-  background: var(--status-scheduled);
-}
-
-.course-status-option.scheduled:hover .course-option-icon i {
+.mini-status-option input:checked + .option-text {
+  border-color: var(--admin-primary);
+  background: var(--admin-primary);
   color: white;
+  font-weight: 600;
 }
 
-.course-status-option.scheduled:hover .course-option-card span {
-  color: var(--status-scheduled);
-}
-
-.course-status-option.cancelled:hover .course-option-card {
-  border-color: var(--status-cancelled);
-  background: rgba(231, 76, 60, 0.05);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.15);
-}
-
-.course-status-option.cancelled:hover .course-option-icon {
-  background: var(--status-cancelled);
-}
-
-.course-status-option.cancelled:hover .course-option-icon i {
-  color: white;
-}
-
-.course-status-option.cancelled:hover .course-option-card span {
-  color: var(--status-cancelled);
-}
-
-.course-status-option.indoor:hover .course-option-card {
-  border-color: var(--status-indoor);
-  background: rgba(243, 156, 18, 0.05);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.15);
-}
-
-.course-status-option.indoor:hover .course-option-icon {
-  background: var(--status-indoor);
-}
-
-.course-status-option.indoor:hover .course-option-icon i {
-  color: white;
-}
-
-.course-status-option.indoor:hover .course-option-card span {
-  color: var(--status-indoor);
-}
-
-.course-status-option.postponed:hover .course-option-card {
-  border-color: var(--status-postponed);
-  background: rgba(52, 152, 219, 0.05);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15);
-}
-
-.course-status-option.postponed:hover .course-option-icon {
-  background: var(--status-postponed);
-}
-
-.course-status-option.postponed:hover .course-option-icon i {
-  color: white;
-}
-
-.course-status-option.postponed:hover .course-option-card span {
-  color: var(--status-postponed);
-}
-
-/* コース別ステータス - 選択状態 */
-.course-status-option.scheduled input:checked ~ .course-option-card {
-  border-color: var(--status-scheduled);
-  background: rgba(39, 174, 96, 0.1);
-  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.2);
-}
-
-.course-status-option.scheduled input:checked ~ .course-option-card .course-option-icon {
-  background: var(--status-scheduled);
-  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
-}
-
-.course-status-option.scheduled input:checked ~ .course-option-card .course-option-icon i {
-  color: white;
-}
-
-.course-status-option.scheduled input:checked ~ .course-option-card span {
-  color: var(--status-scheduled);
-  font-weight: 700;
-}
-
-.course-status-option.cancelled input:checked ~ .course-option-card {
-  border-color: var(--status-cancelled);
-  background: rgba(231, 76, 60, 0.1);
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);
-}
-
-.course-status-option.cancelled input:checked ~ .course-option-card .course-option-icon {
-  background: var(--status-cancelled);
-  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
-}
-
-.course-status-option.cancelled input:checked ~ .course-option-card .course-option-icon i {
-  color: white;
-}
-
-.course-status-option.cancelled input:checked ~ .course-option-card span {
-  color: var(--status-cancelled);
-  font-weight: 700;
-}
-
-.course-status-option.indoor input:checked ~ .course-option-card {
-  border-color: var(--status-indoor);
-  background: rgba(243, 156, 18, 0.1);
-  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.2);
-}
-
-.course-status-option.indoor input:checked ~ .course-option-card .course-option-icon {
-  background: var(--status-indoor);
-  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
-}
-
-.course-status-option.indoor input:checked ~ .course-option-card .course-option-icon i {
-  color: white;
-}
-
-.course-status-option.indoor input:checked ~ .course-option-card span {
-  color: var(--status-indoor);
-  font-weight: 700;
-}
-
-.course-status-option.postponed input:checked ~ .course-option-card {
-  border-color: var(--status-postponed);
-  background: rgba(52, 152, 219, 0.1);
-  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
-}
-
-.course-status-option.postponed input:checked ~ .course-option-card .course-option-icon {
-  background: var(--status-postponed);
-  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
-}
-
-.course-status-option.postponed input:checked ~ .course-option-card .course-option-icon i {
-  color: white;
-}
-
-.course-status-option.postponed input:checked ~ .course-option-card span {
-  color: var(--status-postponed);
-  font-weight: 700;
-}
-
-/* ウィザードアクション */
+/* ウィザードナビゲーション */
 .wizard-actions {
-  display: flex;
+  display: flex !important;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
+  padding: 1.5rem 2rem;
   background: var(--admin-gray-50);
   border-top: 1px solid var(--admin-gray-200);
-  margin-top: 1.5rem;
-  border-radius: 0 0 16px 16px;
+  margin-top: 2rem;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .nav-buttons {
-  display: flex;
+  display: flex !important;
   gap: 1rem;
   align-items: center;
 }
 
 .wizard-prev,
 .wizard-next {
-  display: flex;
+  display: flex !important;
   align-items: center;
   gap: 0.5rem;
   min-width: 120px;
@@ -2572,16 +2519,324 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   font-weight: 600;
   font-size: 0.875rem;
   transition: var(--admin-transition);
-  border: 2px solid transparent;
+  cursor: pointer;
+  border: 1px solid var(--admin-primary);
+  background: var(--admin-white);
+  color: var(--admin-primary);
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.wizard-prev:hover:not(:disabled),
+.wizard-next:hover:not(:disabled) {
+  background: var(--admin-primary);
+  color: var(--admin-white);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+}
+
+.wizard-prev:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--admin-gray-100);
+  border-color: var(--admin-gray-300);
+  color: var(--admin-gray-500);
+}
+
+.wizard-prev:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.wizard-next {
+  background: var(--admin-primary);
+  color: var(--admin-white);
+}
+
+.action-buttons {
+  display: flex !important;
+  gap: 1rem;
+  align-items: center;
+}
+
+/* プレビューパネル */
+.status-preview-panel {
+  background: var(--admin-white);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.preview-header {
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+}
+
+.preview-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.preview-header p {
+  font-size: 0.875rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.preview-content {
+  padding: 2rem;
+}
+
+.preview-status-display {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: var(--admin-gray-50);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.preview-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--status-scheduled);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.preview-text h4 {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--admin-gray-900);
+  margin: 0 0 0.25rem 0;
+}
+
+.preview-date {
+  font-size: 0.875rem;
+  color: var(--admin-gray-600);
+  margin: 0 0 0.5rem 0;
+}
+
+.preview-message {
+  font-size: 0.875rem;
+  color: var(--admin-gray-700);
+  margin: 0;
+  font-style: italic;
+}
+
+.preview-courses {
+  display: flex;
+  gap: 1rem;
+}
+
+.preview-course {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--admin-white);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.course-name {
+  font-weight: 600;
+  color: var(--admin-gray-900);
+}
+
+.course-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.course-status.scheduled {
+  background: rgba(39, 174, 96, 0.1);
+  color: var(--status-scheduled);
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 1200px) {
+  .status-selector-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .option-card {
+    padding: 1rem 0.75rem;
+    min-height: 90px;
+  }
+  
+  .option-content h4 {
+    font-size: 0.875rem;
+  }
+  
+  .option-content p {
+    font-size: 0.7rem;
+  }
+  
+  .detail-settings-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .course-status-options {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .wizard-steps {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+  
+  .step {
+    justify-content: center;
+  }
+  
+  .step:not(:last-child)::after {
+    display: none;
+  }
+  
+  .status-selector-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .option-card {
+    padding: 1rem 0.75rem;
+    min-height: 85px;
+  }
+  
+  .option-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .option-icon i {
+    font-size: 1rem;
+  }
+  
+  .option-content h4 {
+    font-size: 0.8125rem;
+  }
+  
+  .option-content p {
+    font-size: 0.6875rem;
+  }
+  
+  .step-panel {
+    padding: 1.5rem;
+  }
+  
+  .wizard-actions {
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    align-items: stretch;
+  }
+  
+  .nav-buttons {
+    order: 2;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .wizard-prev,
+  .wizard-next {
+    flex: 1;
+    min-width: auto;
+    max-width: calc(50% - 0.5rem);
+  }
+  
+  .action-buttons {
+    order: 1;
+    width: 100%;
+    justify-content: center;
+    flex-direction: row;
+  }
+  
+  .course-status-options {
+    grid-template-columns: 1fr;
+  }
+  
+  .preview-content {
+    padding: 1rem;
+  }
+  
+  .preview-status-display {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .preview-courses {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .status-selector-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .option-card {
+    padding: 1.25rem 1rem;
+    min-height: 80px;
+    flex-direction: row;
+    text-align: left;
+    gap: 1rem;
+  }
+  
+  .option-icon {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+  
+  .option-content {
+    flex: 1;
+  }
+}
+
+/* コース別設定アクション */
+.course-preview-actions {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--admin-gray-200);
+}
+
+.course-preview-actions .btn {
+  min-width: 200px;
 }
 
 .wizard-prev {
-  background: var(--admin-gray-200);
+  background: var(--admin-gray-100);
+  border: 2px solid var(--admin-gray-300);
   color: var(--admin-gray-700);
 }
 
 .wizard-prev:hover:not(:disabled) {
-  background: var(--admin-gray-300);
+  background: var(--admin-gray-200);
+  border-color: var(--admin-gray-400);
   transform: translateY(-1px);
 }
 
@@ -2591,44 +2846,23 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
 }
 
 .wizard-next {
-  background: var(--admin-primary);
+  background: linear-gradient(135deg, var(--admin-primary), var(--admin-primary-dark));
+  border: 2px solid var(--admin-primary);
   color: white;
-  border-color: var(--admin-primary);
+  box-shadow: 0 2px 4px rgba(74, 144, 226, 0.2);
 }
 
 .wizard-next:hover {
-  background: var(--admin-primary-dark);
-  border-color: var(--admin-primary-dark);
+  background: linear-gradient(135deg, var(--admin-primary-dark), var(--admin-primary));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3);
 }
 
-.action-buttons {
-  display: flex;
-  flex-direction: row;
-  gap: 1rem;
-  align-items: center;
-}
+/* =============================================================================
+ * 記事管理 UI
+ * ============================================================================= */
 
-/* アニメーション */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* セクション説明 */
-.section-description {
-  color: var(--admin-gray-600);
-  font-size: 0.9rem;
-  margin: 0.5rem 0 0 0;
-  font-weight: 400;
-}
-
-/* サブナビゲーション（記事管理専用） */
+/* サブナビゲーション */
 .sub-nav {
   display: flex;
   background: var(--admin-white);
@@ -2693,17 +2927,12 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   animation: fadeIn 0.3s ease-in-out;
 }
 
-/* パネル統一スタイル */
-.editor-panel,
-.list-panel {
+/* エディターパネル */
+.editor-panel {
   background: var(--admin-white);
   border-radius: var(--admin-border-radius);
   box-shadow: var(--admin-shadow);
   overflow: hidden;
-}
-
-.list-panel.full-width {
-  width: 100%;
 }
 
 .panel-header {
@@ -2730,14 +2959,13 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   font-size: 1.125rem;
 }
 
-.panel-actions,
-.panel-filters {
+.panel-actions {
   display: flex;
   gap: 0.75rem;
   align-items: center;
 }
 
-/* フォーム統一スタイル */
+/* エディターフォーム */
 .editor-form {
   padding: 2rem;
 }
@@ -2899,71 +3127,41 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
 }
 
 .btn-primary {
-  background: var(--admin-primary);
-  color: white;
+  background: linear-gradient(135deg, var(--admin-primary), var(--admin-primary-dark));
   border-color: var(--admin-primary);
+  color: white;
+  box-shadow: 0 2px 4px rgba(74, 144, 226, 0.2);
 }
 
 .btn-primary:hover {
-  background: var(--admin-primary-dark);
-  border-color: var(--admin-primary-dark);
+  background: linear-gradient(135deg, var(--admin-primary-dark), var(--admin-primary));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3);
 }
 
 .btn-secondary {
-  background: var(--admin-gray-200);
-  color: var(--admin-gray-700);
-  border: 1px solid var(--admin-gray-300);
+  background: var(--admin-gray-500);
+  border-color: var(--admin-gray-500);
+  color: white;
 }
 
 .btn-secondary:hover {
-  background: var(--admin-gray-300);
-}
-
-.btn-success {
-  background: var(--admin-success);
-  color: white;
-}
-
-.btn-success:hover {
-  background: #16a085;
-}
-
-.btn-info {
-  background: var(--admin-secondary);
-  color: white;
-}
-
-.btn-info:hover {
-  background: #36a2a2;
-}
-
-.btn-warning {
-  background: var(--admin-warning);
-  color: white;
-}
-
-.btn-warning:hover {
-  background: #d69e2e;
-}
-
-.btn-ghost {
-  background: transparent;
-  color: var(--admin-gray-600);
-  border: 1px solid var(--admin-gray-300);
-  transition: var(--admin-transition);
-}
-
-.btn-ghost:hover {
-  background: var(--admin-gray-100);
-  color: var(--admin-gray-700);
-  border-color: var(--admin-gray-400);
+  background: var(--admin-gray-600);
+  border-color: var(--admin-gray-600);
   transform: translateY(-1px);
 }
 
-.btn-sm {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  border-radius: 6px;
+.btn-success {
+  background: linear-gradient(135deg, var(--admin-success), #16a085);
+  border-color: var(--admin-success);
+  color: white;
+  box-shadow: 0 2px 4px rgba(39, 174, 96, 0.2);
+}
+
+.btn-success:hover {
+  background: #22c55e;
+  border-color: #22c55e;
+  transform: translateY(-1px);
 }
 
 /* チェックボックススタイル */
@@ -2973,60 +3171,112 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   accent-color: var(--admin-primary);
 }
 
-/* 設定パネル */
-.settings-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+/* レスポンシブ対応 */
+@media (max-width: 1024px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .panel-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .panel-actions {
+    justify-content: center;
+  }
 }
 
-.setting-group {
+@media (max-width: 768px) {
+  .sub-nav {
+    flex-direction: column;
+  }
+  
+  .sub-nav-item {
+    border-right: none;
+    border-bottom: 1px solid var(--admin-gray-200);
+    justify-content: center;
+  }
+  
+  .sub-nav-item:last-child {
+    border-bottom: none;
+  }
+  
+  .editor-form {
+    padding: 1.5rem;
+  }
+  
+  .panel-header {
+    padding: 1rem 1.5rem;
+  }
+  
+  .panel-actions {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .btn {
+    font-size: 0.8125rem;
+    padding: 0.625rem 1.25rem;
+  }
+  
+  .editor-toolbar {
+    flex-wrap: wrap;
+  }
+  
+  .form-textarea.editor-content {
+    min-height: 250px;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .editor-form {
+    padding: 1rem;
+  }
+  
+  .panel-header {
+    padding: 1rem;
+  }
+  
+  .panel-header h2 {
+    font-size: 1.125rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+  }
+  
+  .form-textarea.editor-content {
+    min-height: 200px;
+  }
+}
+
+/* 記事一覧パネル */
+.list-panel {
   background: var(--admin-white);
-  padding: 1.5rem;
   border-radius: var(--admin-border-radius);
   box-shadow: var(--admin-shadow);
+  overflow: hidden;
 }
 
-.setting-group h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--admin-gray-900);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.list-panel.full-width {
+  width: 100%;
 }
 
-.setting-group h3 i {
-  color: var(--admin-primary);
-}
-
-.setting-group p {
-  margin: 0 0 1rem 0;
-  color: var(--admin-gray-600);
-  font-size: 0.875rem;
-}
-
-.setting-actions {
+.panel-filters {
   display: flex;
   gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.setting-note {
-  display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--admin-gray-500);
-  font-size: 0.75rem;
-  margin-top: 0.75rem;
 }
 
-.setting-note i {
-  color: var(--admin-info);
-}
-
-/* リストコンテンツ */
 .list-content {
   padding: 2rem;
   min-height: 400px;
@@ -3133,61 +3383,323 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   transition: all 0.2s ease;
   border: 2px solid transparent;
   white-space: nowrap;
+  text-align: center;
+  min-width: 120px;
+  justify-content: center;
 }
 
 .action-btn.primary {
-  background: var(--admin-primary);
+  background: linear-gradient(135deg, var(--admin-primary), var(--admin-primary-dark));
   color: white;
-  border-color: var(--admin-primary);
+  box-shadow: 0 2px 4px rgba(74, 144, 226, 0.2);
 }
 
 .action-btn.primary:hover {
-  background: var(--admin-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.3);
 }
 
 .action-btn.success {
-  background: var(--admin-success);
+  background: linear-gradient(135deg, var(--admin-success), #16a085);
   color: white;
+  box-shadow: 0 2px 4px rgba(39, 174, 96, 0.2);
 }
 
 .action-btn.success:hover {
-  background: #16a085;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(39, 174, 96, 0.3);
 }
 
 .action-btn.secondary {
-  background: var(--admin-gray-500);
+  background: linear-gradient(135deg, var(--admin-gray-500), var(--admin-gray-600));
   color: white;
+  box-shadow: 0 2px 4px rgba(100, 116, 139, 0.2);
 }
 
 .action-btn.secondary:hover {
-  background: var(--admin-gray-600);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(100, 116, 139, 0.3);
 }
 
 .action-btn.info {
-  background: var(--admin-secondary);
+  background: linear-gradient(135deg, var(--admin-secondary), #36a2a2);
   color: white;
+  box-shadow: 0 2px 4px rgba(80, 200, 163, 0.2);
 }
 
 .action-btn.info:hover {
-  background: #36a2a2;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(80, 200, 163, 0.3);
 }
 
-/* クイックアクション統一 */
-.action-buttons-grid {
+/* クイックアクション */
+.quick-actions .widget-content {
+  padding: 1.5rem;
+}
+
+.quick-actions .action-buttons {
   display: flex;
   flex-direction: column;
+  gap: 1rem;
+}
+
+.quick-actions .action-btn {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+/* レスポンシブ対応 - 記事管理専用 */
+@media (max-width: 1024px) {
+  .news-item-header {
+    flex-direction: column;
+    align-items: stretch;
     gap: 0.75rem;
+  }
+  
+  .news-item-actions {
+    opacity: 1;
+    align-self: flex-start;
+  }
+  
+  .quick-actions .action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .news-item {
+    padding: 1rem;
+  }
+  
+  .news-item-title {
+    font-size: 1rem;
+  }
+  
+  .news-item-summary {
+    font-size: 0.8125rem;
+  }
+  
+  .news-item-meta {
+    gap: 0.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .list-content {
+    padding: 1rem;
+  }
+  
+  .quick-actions .action-buttons {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .news-item-actions {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .action-btn {
+    min-width: auto;
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* =========================================================================
+ * 新規記事作成 - ヒーローアクション UI（削除済み機能のため無効化）
+ * ========================================================================= */
+
+/*
+ヒーローアクション全体
+.hero-action {
+  margin-bottom: 2rem;
+}
+
+.hero-action-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  padding: 2rem;
+  color: white;
+  box-shadow: 0 20px 40px rgba(102, 126, 234, 0.2);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  transition: all 0.3s ease;
+}
+
+.hero-action-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.hero-action-card:hover::before {
+  opacity: 1;
+}
+
+.hero-action-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 25px 50px rgba(102, 126, 234, 0.3);
+}
+
+アイコン部分
+.hero-action-icon {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  flex-shrink: 0;
+}
+
+.hero-action-icon i {
+  font-size: 2rem;
+  color: white;
+}
+
+コンテンツ部分
+.hero-action-content {
+  flex: 1;
+}
+
+.hero-action-content h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.hero-action-content p {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+機能タグ
+.hero-action-features {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.feature-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.feature-tag i {
+  font-size: 0.75rem;
+}
+
+ヒーローボタン
+.hero-action-button {
+  flex-shrink: 0;
+}
+
+.btn-hero {
+  position: relative;
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 15px;
+  background: white;
+  color: #667eea;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-hero:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.btn-hero i {
+  font-size: 1rem;
+}
+
+ボタンシャイン効果
+.btn-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-hero:hover .btn-shine {
+  left: 100%;
+}
+*/
+
+/* セカンダリアクション */
+.secondary-actions {
+  margin-top: 1.5rem;
+}
+
+.secondary-actions h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--admin-gray-700);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.secondary-actions h4 i {
+  color: var(--admin-primary);
+}
+
+/* アクションボタングリッド */
+.action-buttons-grid {
+  display: flex;
+  flex-direction: column; /* グリッドから縦並びフレックスに変更 */
+  gap: 0.75rem; /* 1remから縮小 */
   margin-top: 0;
 }
 
+/* コンパクトアクションボタン */
 .action-btn.compact {
   background: white;
   border: 1px solid var(--admin-gray-200);
   border-radius: 12px;
-  padding: 0.75rem;
+  padding: 0.75rem; /* 1remから縮小 */
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.75rem; /* 1remから縮小 */
   transition: all 0.2s ease;
   cursor: pointer;
   text-align: left;
@@ -3213,7 +3725,7 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
 }
 
 .action-content {
-    flex: 1;
+  flex: 1;
 }
 
 .action-title {
@@ -3248,475 +3760,801 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   background: var(--admin-warning);
 }
 
-/* 空状態・ローディング状態 */
-.loading-state,
-.error-state,
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  text-align: center;
-  min-height: 120px;
-  color: var(--admin-gray-500);
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .action-buttons-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-btn.compact {
+    padding: 0.625rem; /* 0.75remからさらに縮小 */
+  }
+  
+  .action-icon {
+    width: 32px; /* 35pxから縮小 */
+    height: 32px; /* 35pxから縮小 */
+    font-size: 0.9rem; /* 1remから縮小 */
+  }
+  
+  .action-title {
+    font-size: 0.8rem; /* 0.85remから縮小 */
+  }
+  
+  .action-desc {
+    font-size: 0.65rem; /* 0.7remから縮小 */
+  }
+  
+  .widget {
+    min-height: 250px; /* モバイルでは高さをさらに調整 */
+  }
 }
 
-.loading-state i {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
-  color: var(--admin-primary);
+@media (max-width: 480px) {
+  .action-btn.compact {
+    padding: 0.5rem;
+    gap: 0.75rem;
+  }
+  
+  .action-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 0.9rem;
+  }
 }
 
-.error-state {
-  color: var(--admin-error);
-}
-
-.error-state i {
-  font-size: 2rem;
-  margin-bottom: 0.75rem;
-  color: var(--admin-error);
-}
-
-.empty-state {
-  color: var(--admin-gray-400);
-}
-
-/* スクロール可能である事を示すフェードエフェクト */
-.recent-articles-widget {
-  position: relative;
-}
-
-.recent-articles-widget::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 20px;
-  background: linear-gradient(transparent, rgba(255, 255, 255, 0.9));
-  pointer-events: none;
-  border-radius: 0 0 var(--admin-border-radius) var(--admin-border-radius);
-}
-
-/* 記事管理セクションの特別スタイル */
-#news-management.active {
-  overflow: visible;
-  flex: none;
-}
-
-/* 記事管理タブの記事一覧を全体スクロール対応 */
-.admin-main.news-management-active #news-list {
-  max-height: none;
-  overflow-y: visible;
-}
-
-.admin-main.news-management-active .list-content {
-  min-height: auto;
-  max-height: none;
-}
-
-/* 記事管理タブの記事一覧コンテナスタイル */
-#news-list {
-  background: var(--admin-white);
-  border-radius: var(--admin-border-radius);
-  padding: 1rem;
-}
-
-/* 記事管理タブで統一されたスクロールバー */
-.admin-main.news-management-active #news-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.admin-main.news-management-active #news-list::-webkit-scrollbar-track {
-  background: var(--admin-gray-100);
-  border-radius: 3px;
-}
-
-.admin-main.news-management-active #news-list::-webkit-scrollbar-thumb {
-  background: var(--admin-gray-300);
-  border-radius: 3px;
-  transition: background 0.2s ease;
-}
-
-.admin-main.news-management-active #news-list::-webkit-scrollbar-thumb:hover {
-  background: var(--admin-primary);
-}
-
-/* =============================================================================
- * Instagram管理タブ専用スタイル（セクション限定）
- * ============================================================================= */
-
-/* Instagram管理全体のレイアウト */
-#instagram-management {
-  max-height: calc(100vh - var(--admin-header-height) - 2rem);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-#instagram-management .section-header {
-  flex-shrink: 0;
-}
-
-/* Instagram管理サブナビゲーション（Instagram管理内のみ） */
-#instagram-management .sub-nav {
-  display: flex;
-  background: var(--admin-white);
-  border-bottom: 1px solid var(--admin-gray-200);
-  margin-bottom: 0;
-  border-radius: var(--admin-border-radius) var(--admin-border-radius) 0 0;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-#instagram-management .sub-nav-item {
-  flex: 1;
-  padding: 1rem 1.5rem;
-  background: var(--admin-gray-50);
-  border: none;
-  border-right: 1px solid var(--admin-gray-200);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-weight: 500;
+.btn-ghost {
+  background: transparent;
   color: var(--admin-gray-600);
-  text-decoration: none;
+  border: 1px solid var(--admin-gray-300);
+  transition: var(--admin-transition);
 }
 
-#instagram-management .sub-nav-item:last-child {
-  border-right: none;
-}
-
-#instagram-management .sub-nav-item:hover {
+.btn-ghost:hover {
   background: var(--admin-gray-100);
-  color: var(--admin-gray-800);
+  color: var(--admin-gray-700);
+  border-color: var(--admin-gray-400);
+  transform: translateY(-1px);
 }
 
-#instagram-management .sub-nav-item.active {
-  background: var(--admin-white);
-  color: var(--admin-primary);
-  border-bottom: 3px solid var(--admin-primary);
-  position: relative;
-}
-
-#instagram-management .sub-nav-item.active i {
-  color: var(--admin-primary);
-}
-
-/* Instagram管理タブコンテンツ（Instagram管理内のみ） */
-#instagram-management .instagram-tab-content {
-  display: none;
-  flex: 1;
-  min-height: 0;
-}
-
-#instagram-management .instagram-tab-content.active {
-  display: flex;
-  flex-direction: column;
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-/* Instagram管理パネル（Instagram管理内のみ） */
-#instagram-management .instagram-panel {
-  background: var(--admin-white);
-  border-radius: 0 0 var(--admin-border-radius) var(--admin-border-radius);
-  box-shadow: var(--admin-shadow);
-  overflow: hidden;
-  border-top: none;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-#instagram-management .instagram-panel .panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid var(--admin-gray-200);
-  background: var(--admin-gray-50);
-  flex-shrink: 0;
-}
-
-#instagram-management .instagram-panel .panel-header h2 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--admin-gray-900);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-#instagram-management .instagram-panel .panel-header h2 i {
-  color: var(--admin-primary);
-}
-
-#instagram-management .instagram-panel .panel-actions {
-  display: flex;
-  gap: 0.75rem;
-}
-
-#instagram-management .instagram-panel .panel-actions .btn {
-  padding: 0.5rem 1rem;
+.btn-sm {
+  padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
   border-radius: 6px;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  text-decoration: none;
-  font-weight: 500;
 }
 
-#instagram-management .instagram-panel .panel-actions .btn-outline {
-  background: var(--admin-white);
-  border-color: var(--admin-gray-300);
-  color: var(--admin-gray-700);
+/* クイックアクション専用：高さ制限を解除 */
+.quick-actions .widget-content {
+  max-height: none;
+  overflow-y: auto; /* スクロール可能にする */
+  padding: 1rem; /* パディングを調整 */
 }
 
-#instagram-management .instagram-panel .panel-actions .btn-outline:hover {
-  background: var(--admin-gray-50);
-  border-color: var(--admin-primary);
-  color: var(--admin-primary);
-}
+/* レスポンシブ対応 */
 
-#instagram-management .instagram-panel .panel-actions .btn-primary {
-  background: var(--admin-primary);
-  border-color: var(--admin-primary);
-  color: white;
-}
-
-#instagram-management .instagram-panel .panel-actions .btn-primary:hover {
-  background: var(--admin-primary-dark);
-  border-color: var(--admin-primary-dark);
-}
-
-#instagram-management .instagram-panel .panel-actions .btn-success {
-  background: var(--admin-success);
-  border-color: var(--admin-success);
-  color: white;
-}
-
-#instagram-management .instagram-panel .panel-actions .btn-success:hover {
-  background: #059669;
-  border-color: #059669;
-}
-
-/* Instagram管理コンテンツエリア（Instagram管理内のみ） */
-#instagram-management .instagram-content {
-  padding: 2rem;
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  min-height: 0;
-  max-height: 100%;
-}
-
-/* カスタムスクロールバー（Instagram管理内のみ） */
-#instagram-management .instagram-content::-webkit-scrollbar {
-  width: 8px;
-}
-
-#instagram-management .instagram-content::-webkit-scrollbar-track {
-  background: var(--admin-gray-100);
-  border-radius: 4px;
-}
-
-#instagram-management .instagram-content::-webkit-scrollbar-thumb {
-  background: var(--admin-gray-300);
-  border-radius: 4px;
-  transition: background 0.2s ease;
-}
-
-#instagram-management .instagram-content::-webkit-scrollbar-thumb:hover {
-  background: var(--admin-primary);
-}
-
-/* Instagram投稿グリッド（Instagram管理内のみ） */
-#instagram-management .instagram-posts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1rem;
-}
-
-/* Instagram投稿カード（Instagram管理内のみ） */
-#instagram-management .instagram-post-card {
-  background: var(--admin-white);
-  border: 1px solid var(--admin-gray-200);
-  border-radius: var(--admin-border-radius);
-  overflow: hidden;
-  transition: all 0.3s ease;
-  position: relative;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  height: 350px;
-  display: flex;
-  flex-direction: column;
-}
-
-#instagram-management .instagram-post-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-  border-color: var(--admin-primary);
-}
-
-/* 新規追加カード（Instagram管理内のみ） */
-#instagram-management .instagram-post-card.add-new {
-  border: 2px dashed var(--admin-gray-300);
-  background: var(--admin-gray-50);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-#instagram-management .instagram-post-card.add-new:hover {
-  border-color: var(--admin-primary);
-  background: rgba(74, 144, 226, 0.05);
-  transform: translateY(-2px);
-}
-
-#instagram-management .add-new-content {
-  text-align: center;
-  color: var(--admin-gray-500);
-}
-
-#instagram-management .add-new-content i {
-  font-size: 2rem;
-  margin-bottom: 0.75rem;
-  color: var(--admin-gray-400);
-  transition: color 0.3s ease;
-}
-
-#instagram-management .instagram-post-card.add-new:hover .add-new-content i {
-  color: var(--admin-primary);
-}
-
-#instagram-management .add-new-content h4 {
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-  color: var(--admin-gray-700);
-}
-
-#instagram-management .add-new-content p {
-  font-size: 0.8rem;
-  margin: 0;
-  color: var(--admin-gray-500);
-}
-
-/* Instagram設定フォーム（Instagram管理内のみ） */
-#instagram-management .settings-form {
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-#instagram-management .settings-form .form-group {
-  margin-bottom: 2rem;
-}
-
-#instagram-management .settings-form label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-  font-weight: 600;
-  color: var(--admin-gray-800);
-  font-size: 0.9rem;
-}
-
-#instagram-management .settings-form label i {
-  color: var(--admin-primary);
-  width: 1.25rem;
-  text-align: center;
-}
-
-/* ローディング・エラー状態（Instagram管理内のみ） */
-#instagram-management .loading-state,
-#instagram-management .error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  color: var(--admin-gray-500);
-  text-align: center;
-}
-
-#instagram-management .loading-state i {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  color: var(--admin-primary);
-}
-
-#instagram-management .error-state i {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  color: var(--admin-error);
-}
-
-/* レスポンシブ対応（Instagram管理内のみ） */
-@media (max-width: 768px) {
-  #instagram-management .sub-nav-item {
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-  
-  #instagram-management .instagram-panel .panel-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-    padding: 1rem;
-  }
-  
-  #instagram-management .instagram-panel .panel-actions {
-    justify-content: center;
-  }
-  
-  #instagram-management .instagram-posts-grid {
+@media (max-width: 1400px) {
+  .dashboard-widgets {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
   
-  #instagram-management .instagram-content {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .admin-main {
     padding: 1rem;
   }
   
-  #instagram-management .settings-form {
-    max-width: none;
+  .section-header {
+    margin-bottom: 1rem;
+  }
+  
+  .section-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .stats-grid {
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .stat-card {
+    padding: 1rem;
+  }
+  
+  .dashboard-widgets {
+    gap: 1rem;
+  }
+  
+  .widget {
+    min-height: 280px; /* モバイルでは高さを調整 */
   }
 }
 
-/* アニメーション定義 */
-@keyframes countUp {
-  from {
-    transform: scale(1.2);
-    opacity: 0.7;
+@media (max-width: 768px) {
+  .admin-main {
+    margin-left: 0;
+    padding: 0.75rem;
   }
-  to {
-    transform: scale(1);
-    opacity: 1;
+  
+  .admin-sidebar {
+    display: none; /* モバイルではサイドバーを非表示 */
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  
+  .stat-card {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+  
+  .stat-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+  }
+  
+  .stat-number {
+    font-size: 1.5rem;
+  }
+  
+  .widget-header {
+    padding: 1rem;
+  }
+  
+  .widget-content {
+    padding: 1rem;
+  }
+  
+  .recent-article-item {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
   }
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+.recent-articles-widget .widget-content {
+  padding: 1rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* 美しいスクロールバースタイル */
+.recent-articles-widget .widget-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.recent-articles-widget .widget-content::-webkit-scrollbar-track {
+  background: var(--admin-gray-100);
+  border-radius: 3px;
+}
+
+.recent-articles-widget .widget-content::-webkit-scrollbar-thumb {
+  background: var(--admin-gray-300);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.recent-articles-widget .widget-content::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-primary);
+}
+
+/* 最近の記事のコンパクトスタイル */
+.recent-article-item {
+  background: var(--admin-white);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius-sm);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.3s ease forwards;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* 記事管理タブの一覧モード */
+.recent-article-item.list-mode {
+  opacity: 1;
+  transform: translateY(0);
+  animation: none;
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+}
+
+/* 記事管理タブでは全ての記事を表示 */
+.admin-main.news-management-active .recent-article-item:nth-child(n+4) {
+  display: flex;
+}
+
+/* ダッシュボードでは最初の3つのみ表示 */
+.recent-article-item:nth-child(n+4) {
+  display: none;
+}
+
+.recent-article-item:nth-child(1) { animation-delay: 0.1s; }
+.recent-article-item:nth-child(2) { animation-delay: 0.2s; }
+.recent-article-item:nth-child(3) { animation-delay: 0.3s; }
+
+.recent-article-item:hover {
+  border-color: var(--admin-primary);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.1);
+  transform: translateY(-2px);
+}
+
+.recent-article-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--admin-primary);
+  transform: scaleY(0);
+  transition: transform 0.2s ease;
+}
+
+.recent-article-item:hover::before {
+  transform: scaleY(1);
+}
+
+/* ヘッダー部分 */
+.recent-article-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  width: 100%;
+}
+
+.recent-article-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recent-article-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+  line-height: 1.4;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.new-badge {
+  background: var(--admin-primary);
+  color: white;
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  display: inline-block;
+  flex-shrink: 0;
+  animation: pulse 2s infinite;
+}
+
+.recent-article-summary {
+  color: var(--admin-gray-600);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* アクション部分 */
+.recent-article-actions {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  align-self: flex-start;
+}
+
+.recent-article-item:hover .recent-article-actions {
+  opacity: 1;
+}
+
+.btn-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--admin-gray-300);
+  background: var(--admin-white);
+  color: var(--admin-gray-600);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.7rem;
+}
+
+.btn-icon:hover {
+  background: var(--admin-primary);
+  border-color: var(--admin-primary);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* ドロップダウン */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-toggle {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--admin-white);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 120px;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+}
+
+.dropdown:hover .dropdown-menu,
+.dropdown-menu:hover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  color: var(--admin-gray-700);
+  font-size: 0.8rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-bottom: 1px solid var(--admin-gray-100);
+  text-align: left;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: var(--admin-gray-50);
+  color: var(--admin-primary);
+}
+
+.dropdown-item.danger {
+  color: var(--admin-error);
+}
+
+.dropdown-item.danger:hover {
+  background: #fef2f2;
+  color: var(--admin-error);
+}
+
+/* メタ情報 */
+.recent-article-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--admin-gray-100);
+  width: 100%;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  color: var(--admin-gray-500);
+  white-space: nowrap;
+}
+
+.meta-item i {
+  font-size: 0.65rem;
+  flex-shrink: 0;
+}
+
+.meta-item i.published {
+  color: var(--admin-success);
+}
+
+.meta-item i.draft {
+  color: var(--admin-warning);
+}
+
+.meta-item i.featured {
+  color: var(--admin-orange);
+}
+
+.category-badge {
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  flex-shrink: 0;
+}
+
+.category-badge.announcement {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.category-badge.event {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.category-badge.media {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.category-badge.important {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-text {
+  font-weight: 500;
+}
+
+.date-text {
+  font-weight: 400;
+}
+
+/* 統計 */
+.recent-article-stats {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  width: 100%;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  color: var(--admin-gray-500);
+  white-space: nowrap;
+}
+
+.stat-item i {
+  font-size: 0.65rem;
+  flex-shrink: 0;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .recent-article-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
   }
-  to {
+
+  .recent-article-actions {
     opacity: 1;
-    transform: translateY(0);
+    justify-content: flex-end;
+    align-self: stretch;
   }
+
+  .recent-article-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .meta-item {
+    font-size: 0.75rem;
+  }
+
+  .recent-article-stats {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .recent-article-item {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .recent-article-title {
+    font-size: 0.85rem;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+
+  .recent-article-summary {
+    font-size: 0.75rem;
+    -webkit-line-clamp: 3;
+  }
+
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+}
+
+/* ウィザードフォーム要素 */
+.step-panel .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.step-panel .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--admin-gray-800);
+  font-size: 0.875rem;
+}
+
+.step-panel .form-input,
+.step-panel .form-textarea {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius-sm);
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  background: var(--admin-white);
+}
+
+.step-panel .form-input:focus,
+.step-panel .form-textarea:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.step-panel .form-textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+/* コースアイテムのフォーム */
+.course-item .form-group {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--admin-gray-100);
+}
+
+.course-item .form-textarea {
+  background: var(--admin-gray-50);
+  border-color: var(--admin-gray-200);
+  font-size: 0.8125rem;
+}
+
+.course-item .form-textarea:focus {
+  background: var(--admin-white);
+  border-color: var(--admin-primary);
+}
+
+/* コース設定 */
+.course-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.course-item {
+  background: var(--admin-white);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.course-item:hover {
+  border-color: var(--admin-primary);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.08);
+}
+
+.course-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--admin-gray-100);
+}
+
+.course-header h4 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--admin-gray-900);
+  margin: 0;
+}
+
+.course-time {
+  font-size: 0.875rem;
+  color: var(--admin-gray-600);
+  font-weight: 500;
+  background: var(--admin-gray-100);
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+}
+
+.course-status-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.course-status-option {
+  cursor: pointer;
+  display: block;
+}
+
+.course-status-option input[type="radio"] {
+  display: none;
+}
+
+.course-option-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  border: 1px solid var(--admin-gray-300);
+  border-radius: 8px;
+  background: var(--admin-white);
+  transition: all 0.2s ease;
+  text-align: center;
+  min-height: 80px;
+  justify-content: center;
+}
+
+.course-option-card:hover {
+  border-color: var(--admin-primary);
+  background: rgba(74, 144, 226, 0.05);
+}
+
+.course-option-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--admin-gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.course-option-icon i {
+  font-size: 0.875rem;
+  color: var(--admin-gray-500);
+  transition: all 0.2s ease;
+}
+
+.course-option-card span {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--admin-gray-700);
+  transition: all 0.2s ease;
+}
+
+/* 選択状態のコースオプション */
+.course-status-option.scheduled input:checked ~ .course-option-card {
+  border-color: var(--status-scheduled);
+  background: var(--status-scheduled);
+  color: white;
+}
+
+.course-status-option.scheduled input:checked ~ .course-option-card .course-option-icon {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.course-status-option.scheduled input:checked ~ .course-option-card .course-option-icon i {
+  color: white;
+}
+
+.course-status-option.scheduled input:checked ~ .course-option-card span {
+  color: white;
+  font-weight: 600;
+}
+
+.course-status-option.cancelled input:checked ~ .course-option-card {
+  border-color: var(--status-cancelled);
+  background: var(--status-cancelled);
+  color: white;
+}
+
+.course-status-option.cancelled input:checked ~ .course-option-card .course-option-icon {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.course-status-option.cancelled input:checked ~ .course-option-card .course-option-icon i {
+  color: white;
+}
+
+.course-status-option.cancelled input:checked ~ .course-option-card span {
+  color: white;
+  font-weight: 600;
+}
+
+.course-status-option.indoor input:checked ~ .course-option-card {
+  border-color: var(--status-indoor);
+  background: var(--status-indoor);
+  color: white;
+}
+
+.course-status-option.indoor input:checked ~ .course-option-card .course-option-icon {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.course-status-option.indoor input:checked ~ .course-option-card .course-option-icon i {
+  color: white;
+}
+
+.course-status-option.indoor input:checked ~ .course-option-card span {
+  color: white;
+  font-weight: 600;
+}
+
+.course-status-option.postponed input:checked ~ .course-option-card {
+  border-color: var(--status-postponed);
+  background: var(--status-postponed);
+  color: white;
+}
+
+.course-status-option.postponed input:checked ~ .course-option-card .course-option-icon {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.course-status-option.postponed input:checked ~ .course-option-card .course-option-icon i {
+  color: white;
+}
+
+.course-status-option.postponed input:checked ~ .course-option-card span {
+  color: white;
+  font-weight: 600;
 }
 

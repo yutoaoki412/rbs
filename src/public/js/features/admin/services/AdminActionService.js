@@ -571,33 +571,37 @@ export class AdminActionService {
   }
 
   /**
-   * タブ固有の初期化処理
+   * タブ初期化（コンテンツ読み込み）
+   * @private
    * @param {string} tabName - タブ名
    */
   async initializeTabContent(tabName) {
-    console.log(`🔄 タブコンテンツ初期化: ${tabName}`);
+    console.log(`📋 タブコンテンツ初期化: ${tabName}`);
     
     try {
-      // 各タブごとの個別初期化
       switch (tabName) {
         case 'dashboard':
+          // ダッシュボード統計の更新
           this.updateDashboardStats();
-          this.refreshRecentArticles();
+          
+          // 最近の記事を読み込み
+          await this.refreshRecentArticles();
           break;
           
         case 'news-management':
-          // ダッシュボードクラスを削除して記事管理モードに
-          document.body.classList.remove('dashboard-optimized');
-          document.querySelector('.admin-main')?.classList.add('news-management-active');
-          await this.#initializeNewsManagement();
+          // 記事管理の初期化
+          await this.refreshRecentArticles();
+          this.refreshNewsList();
           break;
           
         case 'lesson-status':
-          await this.#initializeLessonStatus();
+          // レッスン状況の初期化
+          this.initializeWizard();
+          await this.loadLessonStatus();
           break;
           
         case 'settings':
-          await this.#initializeSettings();
+          // 設定タブの初期化（必要に応じて）
           break;
           
         default:
@@ -607,7 +611,8 @@ export class AdminActionService {
       console.log(`✅ タブコンテンツ初期化完了: ${tabName}`);
       
     } catch (error) {
-      console.error(`❌ タブコンテンツ初期化エラー (${tabName}):`, error);
+      console.error(`❌ タブコンテンツ初期化エラー [${tabName}]:`, error);
+      this.#showFeedback(`${tabName}タブの初期化に失敗しました`, 'error');
     }
   }
 
@@ -765,6 +770,9 @@ export class AdminActionService {
     try {
       this.debug('📅 レッスン状況初期化開始');
       
+      // ウィザードステップを初期化
+      this.initializeWizard();
+      
       // 今日の日付を自動設定
       const today = new Date().toISOString().slice(0, 10);
       const dateField = document.getElementById('lesson-date');
@@ -778,6 +786,126 @@ export class AdminActionService {
       this.debug('📅 レッスン状況初期化完了');
     } catch (error) {
       this.error('レッスン状況初期化エラー:', error);
+    }
+  }
+
+  /**
+   * ウィザードを初期化
+   */
+  initializeWizard() {
+    // 今日の日付を設定
+    const today = new Date().toISOString().slice(0, 10);
+    const dateField = document.getElementById('lesson-date');
+    if (dateField && !dateField.value) {
+      dateField.value = today;
+    }
+    
+    // ボタンの初期状態を設定
+    this.updateWizardButtons();
+    
+    console.log('✅ レッスン状況ウィザードを初期化しました');
+  }
+
+  /**
+   * ウィザードステップを設定
+   * @private
+   * @param {number} step ステップ番号
+   */
+  #setWizardStep(step) {
+    try {
+      console.log(`🔮 ウィザードステップ設定: ${step}`);
+      
+      // 現在のステップを保存
+      this.currentWizardStep = step;
+      
+      // すべてのステップからactiveクラスを削除
+      document.querySelectorAll('.step').forEach(stepEl => {
+        stepEl.classList.remove('active', 'completed');
+      });
+      
+      // すべてのステップコンテンツを非表示
+      document.querySelectorAll('.wizard-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      // 現在のステップと以前のステップにクラスを設定
+      for (let i = 1; i <= 2; i++) {
+        const stepEl = document.querySelector(`.step[data-step="${i}"]`);
+        const contentEl = document.querySelector(`.wizard-content.step-${i}`);
+        
+        if (i < step) {
+          // 完了したステップ
+          if (stepEl) stepEl.classList.add('completed');
+        } else if (i === step) {
+          // 現在のステップ
+          if (stepEl) stepEl.classList.add('active');
+          if (contentEl) contentEl.classList.add('active');
+        }
+      }
+      
+      console.log(`✅ ウィザードステップ ${step} に設定完了`);
+      
+    } catch (error) {
+      console.error('❌ ウィザードステップ設定エラー:', error);
+    }
+  }
+
+  /**
+   * ウィザードボタンの状態を更新
+   */
+  updateWizardButtons() {
+    try {
+      const prevBtn = document.querySelector('.wizard-prev');
+      const nextBtn = document.querySelector('.wizard-next');
+      
+      if (!prevBtn || !nextBtn) {
+        console.warn('⚠️ ウィザードボタンが見つかりません', {
+          'prevBtn': !!prevBtn,
+          'nextBtn': !!nextBtn
+        });
+        return;
+      }
+      
+      // 現在のステップに基づいてボタンの状態を設定
+      const currentStep = this.currentWizardStep || 1;
+      
+      // 前へボタンの表示と状態設定
+      prevBtn.style.display = 'flex';
+      prevBtn.style.visibility = 'visible';
+      prevBtn.style.opacity = '1';
+      
+      if (currentStep <= 1) {
+        prevBtn.disabled = true;
+        prevBtn.classList.add('disabled');
+      } else {
+        prevBtn.disabled = false;
+        prevBtn.classList.remove('disabled');
+      }
+      
+      // 次へボタンの表示と状態設定
+      nextBtn.style.display = 'flex';
+      nextBtn.style.visibility = 'visible';
+      nextBtn.style.opacity = '1';
+      
+      if (currentStep >= 2) {
+        nextBtn.disabled = true;
+        nextBtn.classList.add('disabled');
+        nextBtn.innerHTML = '<i class="fas fa-check"></i> 完了';
+      } else {
+        nextBtn.disabled = false;
+        nextBtn.classList.remove('disabled');
+        nextBtn.innerHTML = '次へ <i class="fas fa-chevron-right"></i>';
+      }
+      
+      console.log(`✅ ウィザードボタン状態更新: ステップ${currentStep}`, {
+        'prevBtn-display': prevBtn.style.display,
+        'nextBtn-display': nextBtn.style.display,
+        'prevBtn-disabled': prevBtn.disabled,
+        'nextBtn-disabled': nextBtn.disabled
+      });
+      
+    } catch (error) {
+      console.error('❌ ウィザードボタン状態更新エラー:', error);
     }
   }
 
@@ -1461,6 +1589,12 @@ export class AdminActionService {
     for (const [courseKey, courseData] of Object.entries(statusData.courses)) {
       if (!validStatuses.includes(courseData.status)) {
         this.#showFeedback(`無効な${courseKey}コースステータスが選択されています`, 'error');
+        return false;
+      }
+      
+      // コースメッセージ長チェックを追加
+      if (courseData.message && courseData.message.length > 500) {
+        this.#showFeedback(`${courseKey}コースのメッセージは500文字以内で入力してください`, 'error');
         return false;
       }
     }
@@ -2843,7 +2977,7 @@ export class AdminActionService {
     return {
       date: document.getElementById('lesson-date')?.value || today,
       globalStatus: globalStatus,
-      globalMessage: document.getElementById('lesson-message')?.value || '',
+      globalMessage: document.getElementById('global-message')?.value || '',
       courses: {
         basic: {
           name: 'ベーシックコース（年長〜小3）',
@@ -2867,44 +3001,49 @@ export class AdminActionService {
    * @param {Object} status - レッスン状況
    */
   #loadLessonStatusToForm(status) {
-    if (status.date) {
-      const dateField = document.getElementById('lesson-date');
-      if (dateField) dateField.value = status.date;
-    }
-    
-    if (status.globalMessage) {
-      const messageField = document.getElementById('global-message');
-      if (messageField) messageField.value = status.globalMessage;
-    }
-    
-    // ラジオボタンの設定（英語キーから日本語値にマッピング）
-    if (status.globalStatus) {
-      const globalJapanese = this.#mapStatusKeyToJapanese(status.globalStatus);
-      const globalRadio = document.querySelector(`input[name="global-status"][value="${globalJapanese}"]`);
-      if (globalRadio) globalRadio.checked = true;
-    }
-    
-    // コースデータの処理
-    if (status.courses?.basic?.status) {
-      const basicJapanese = this.#mapStatusKeyToJapanese(status.courses.basic.status);
-      const basicRadio = document.querySelector(`input[name="basic-lesson"][value="${basicJapanese}"]`);
-      if (basicRadio) basicRadio.checked = true;
-    }
-    
-    if (status.courses?.basic?.message) {
-      const basicMessageField = document.getElementById('basic-lesson-note');
-      if (basicMessageField) basicMessageField.value = status.courses.basic.message;
-    }
-    
-    if (status.courses?.advance?.status) {
-      const advanceJapanese = this.#mapStatusKeyToJapanese(status.courses.advance.status);
-      const advanceRadio = document.querySelector(`input[name="advance-lesson"][value="${advanceJapanese}"]`);
-      if (advanceRadio) advanceRadio.checked = true;
-    }
-    
-    if (status.courses?.advance?.message) {
-      const advanceMessageField = document.getElementById('advance-lesson-note');
-      if (advanceMessageField) advanceMessageField.value = status.courses.advance.message;
+    try {
+      if (status.date) {
+        const dateField = document.getElementById('lesson-date');
+        if (dateField) dateField.value = status.date;
+      }
+      
+      if (status.globalMessage) {
+        const messageField = document.getElementById('global-message');
+        if (messageField) messageField.value = status.globalMessage;
+      }
+      
+      // ラジオボタンの設定（英語キーから日本語値にマッピング）
+      if (status.globalStatus) {
+        const globalJapanese = this.#mapStatusKeyToJapanese(status.globalStatus);
+        const globalRadio = document.querySelector(`input[name="global-status"][value="${globalJapanese}"]`);
+        if (globalRadio) globalRadio.checked = true;
+      }
+      
+      // コースデータの処理
+      if (status.courses?.basic?.status) {
+        const basicJapanese = this.#mapStatusKeyToJapanese(status.courses.basic.status);
+        const basicRadio = document.querySelector(`input[name="basic-lesson"][value="${basicJapanese}"]`);
+        if (basicRadio) basicRadio.checked = true;
+      }
+      
+      if (status.courses?.basic?.message) {
+        const basicMessageField = document.getElementById('basic-lesson-note');
+        if (basicMessageField) basicMessageField.value = status.courses.basic.message;
+      }
+      
+      if (status.courses?.advance?.status) {
+        const advanceJapanese = this.#mapStatusKeyToJapanese(status.courses.advance.status);
+        const advanceRadio = document.querySelector(`input[name="advance-lesson"][value="${advanceJapanese}"]`);
+        if (advanceRadio) advanceRadio.checked = true;
+      }
+      
+      if (status.courses?.advance?.message) {
+        const advanceMessageField = document.getElementById('advance-lesson-note');
+        if (advanceMessageField) advanceMessageField.value = status.courses.advance.message;
+      }
+    } catch (error) {
+      console.error('❌ レッスン状況フォーム読み込みエラー:', error);
+      this.#showFeedback('データの読み込み中にエラーが発生しました', 'error');
     }
   }
 
@@ -3975,147 +4114,135 @@ export class AdminActionService {
    * 前のステップに戻る
    */
   wizardPrevStep() {
-    const currentStep = this.#getCurrentWizardStep();
-    if (currentStep > 1) {
-      this.#setWizardStep(currentStep - 1);
-      this.#updateWizardButtons();
-      console.log(`📝 ウィザード: ステップ${currentStep - 1}に戻りました`);
+    const currentStep = document.querySelector('.wizard-content.active');
+    const prevStep = currentStep?.previousElementSibling;
+    
+    if (!prevStep || !prevStep.classList.contains('wizard-content')) {
+      console.log('前のステップがありません');
+      return;
     }
+    
+    // ステップ切り替え
+    this.switchWizardStep(prevStep);
+    this.updateWizardButtons();
   }
 
   /**
    * 次のステップに進む
    */
   wizardNextStep() {
-    console.log('📝 ウィザード: 次のステップへ');
+    const currentStep = document.querySelector('.wizard-content.active');
+    const nextStep = currentStep?.nextElementSibling;
     
-    const currentStep = this.#getCurrentWizardStep();
-    const maxStep = 2;
+    if (!nextStep || !nextStep.classList.contains('wizard-content')) {
+      console.log('次のステップがありません');
+      return;
+    }
     
-    if (currentStep < maxStep) {
-      this.#setWizardStep(currentStep + 1);
-      this.#updateWizardButtons();
-      
-      this.success(`ステップ ${currentStep + 1} に進みました`);
+    // 現在のステップのバリデーション
+    if (!this.validateCurrentWizardStep()) {
+      return;
     }
+    
+    // ステップ切り替え
+    this.#switchWizardStep(nextStep);
+    this.#updateWizardButtons();
   }
 
   /**
-   * 現在のウィザードステップを取得
+   * ウィザードステップ切り替え
+   * @param {Element} targetStep - 切り替え先のステップ
    */
-  #getCurrentWizardStep() {
-    const activeStep = document.querySelector('.wizard-steps .step.active');
-    if (activeStep) {
-      return parseInt(activeStep.dataset.step) || 1;
+  #switchWizardStep(targetStep) {
+    // 全てのステップを非アクティブに
+    document.querySelectorAll('.wizard-content').forEach(step => {
+      step.classList.remove('active');
+    });
+    
+    document.querySelectorAll('.step').forEach(step => {
+      step.classList.remove('active');
+    });
+    
+    // 対象ステップをアクティブに
+    targetStep.classList.add('active');
+    
+    // ステップインジケーターを更新
+    const stepNumber = targetStep.classList.contains('step-1') ? 1 : 2;
+    const stepIndicator = document.querySelector(`[data-step="${stepNumber}"]`);
+    if (stepIndicator) {
+      stepIndicator.classList.add('active');
     }
-    return 1;
+    
+    console.log(`ウィザードステップ ${stepNumber} に切り替えました`);
   }
 
   /**
-   * ウィザードステップを設定
-   */
-  #setWizardStep(stepNumber) {
-    try {
-      // ステップナビゲーションの更新
-      const steps = document.querySelectorAll('.wizard-steps .step');
-      steps.forEach((step, index) => {
-        if (index + 1 === stepNumber) {
-          step.classList.add('active');
-        } else {
-          step.classList.remove('active');
-        }
-      });
-
-      // ステップコンテンツの表示・非表示
-      const stepContents = document.querySelectorAll('.wizard-content');
-      stepContents.forEach((content, index) => {
-        if (index + 1 === stepNumber) {
-          content.classList.add('active');
-        } else {
-          content.classList.remove('active');
-        }
-      });
-
-      console.log(`✅ ウィザードステップ${stepNumber}に変更しました`);
-    } catch (error) {
-      console.error('❌ ウィザードステップ設定エラー:', error);
-    }
-  }
-
-  /**
-   * ウィザードボタンの状態を更新
+   * ウィザードボタンの状態更新
    */
   #updateWizardButtons() {
-    const currentStep = this.#getCurrentWizardStep();
+    const currentStep = document.querySelector('.wizard-content.active');
     const prevBtn = document.querySelector('.wizard-prev');
     const nextBtn = document.querySelector('.wizard-next');
-
-    if (prevBtn) {
-      if (currentStep === 1) {
-        prevBtn.disabled = true;
-        prevBtn.classList.add('disabled');
-      } else {
-        prevBtn.disabled = false;
-        prevBtn.classList.remove('disabled');
-      }
-    }
-
-    if (nextBtn) {
-      if (currentStep === 2) {
-        nextBtn.innerHTML = '<i class="fas fa-check"></i> 完了';
-        nextBtn.onclick = () => this.updateLessonStatus();
-      } else {
-        nextBtn.innerHTML = '次へ <i class="fas fa-chevron-right"></i>';
-        nextBtn.onclick = () => this.wizardNextStep();
-      }
-    }
-
-    console.log(`🔄 ウィザードボタン状態更新: ステップ${currentStep}`);
-  }
-
-  /**
-   * 現在のステップの検証
-   */
-  #validateCurrentStep(stepNumber) {
-    try {
-      switch (stepNumber) {
-        case 1:
-          // 全体ステータスが選択されているかチェック
-          const globalStatus = document.querySelector('input[name="global-status"]:checked');
-          if (!globalStatus) {
-            this.#showError('全体ステータスを選択してください。');
-            return false;
-          }
-          return true;
-
-        case 2:
-          // コース別設定が正しく設定されているかチェック
-          const basicStatus = document.querySelector('input[name="basic-lesson"]:checked');
-          const advanceStatus = document.querySelector('input[name="advance-lesson"]:checked');
-          
-          if (!basicStatus || !advanceStatus) {
-            this.#showError('全てのコースの開催状況を設定してください。');
-            return false;
-          }
-          return true;
-
-        default:
-          return true;
-      }
-    } catch (error) {
-      console.error('❌ ステップ検証エラー:', error);
-      return false;
-    }
-  }
-
-  /**
-   * エラーメッセージ表示（簡易版）
-   */
-  #showError(message) {
-    if (window.showError) {
-      window.showError(message);
+    
+    if (!currentStep || !prevBtn || !nextBtn) return;
+    
+    // 前へボタンの状態
+    if (currentStep.classList.contains('step-1')) {
+      prevBtn.disabled = true;
+      prevBtn.style.opacity = '0.6';
     } else {
-      alert(`エラー: ${message}`);
+      prevBtn.disabled = false;
+      prevBtn.style.opacity = '1';
+    }
+    
+    // 次へボタンの状態
+    if (currentStep.classList.contains('step-2')) {
+      nextBtn.style.display = 'none';
+    } else {
+      nextBtn.style.display = 'flex';
+    }
+  }
+
+  /**
+   * 現在のウィザードステップのバリデーション
+   * @returns {boolean}
+   */
+  validateCurrentWizardStep() {
+    const currentStep = document.querySelector('.wizard-content.active');
+    
+    if (currentStep?.classList.contains('step-1')) {
+      // ステップ1: グローバルステータスの選択確認
+      const selectedStatus = document.querySelector('input[name="global-status"]:checked');
+      if (!selectedStatus) {
+        this.#showFeedback('全体ステータスを選択してください', 'error');
+        return false;
+      }
+      
+      // 日付の確認
+      const dateInput = document.getElementById('lesson-date');
+      if (!dateInput?.value) {
+        this.#showFeedback('対象日を選択してください', 'error');
+        return false;
+      }
+      
+      return true;
+    }
+    
+    return true;
+  }
+
+  /**
+   * フィードバックメッセージを表示
+   * @param {string} message - メッセージ
+   * @param {string} type - メッセージタイプ
+   */
+  showFeedbackMessage(message, type = 'success') {
+    console.log(`${type === 'error' ? '❌' : '✅'} ${message}`);
+    
+    if (this.uiManagerService?.showNotification) {
+      this.uiManagerService.showNotification(type, message);
+    } else if (typeof window.showFeedback === 'function') {
+      window.showFeedback(message, type);
     }
   }
 
@@ -4132,7 +4259,6 @@ export class AdminActionService {
       // パラメータの検証
       const targetTab = tabName || 'posts';
       const validTabs = ['posts', 'settings'];
-      
       if (!validTabs.includes(targetTab)) {
         console.warn('⚠️ 無効なタブ名:', targetTab);
         return;
@@ -4770,84 +4896,6 @@ export class AdminActionService {
       console.error('日付フォーマットエラー:', error);
       return new Date(date).toLocaleDateString('ja-JP');
     }
-  }
-
-  // === Instagram管理機能（開発中） ===
-  
-  /**
-   * Instagram管理: タブ切り替え（開発中）
-   * @param {string} tabName - タブ名
-   */
-  switchInstagramTab(tabName = null) {
-    console.warn('⚠️ Instagram管理機能は開発中です');
-    this.info('Instagram管理機能は現在開発中です。ダッシュボードをご利用ください。');
-  }
-
-  /**
-   * Instagram管理: 投稿一覧更新（開発中）
-   */
-  refreshInstagramPosts() {
-    console.warn('⚠️ Instagram投稿管理機能は開発中です');
-    this.info('Instagram投稿管理機能は現在開発中です。');
-  }
-
-  /**
-   * Instagram管理: 新規投稿追加（開発中）
-   */
-  addInstagramPost() {
-    console.warn('⚠️ Instagram投稿追加機能は開発中です');
-    this.info('Instagram投稿追加機能は現在開発中です。');
-  }
-
-  /**
-   * Instagram管理: 投稿保存（開発中）
-   */
-  saveInstagramPost() {
-    console.warn('⚠️ Instagram投稿保存機能は開発中です');
-    this.info('Instagram投稿保存機能は現在開発中です。');
-  }
-
-  /**
-   * Instagram管理: モーダルを閉じる（開発中）
-   */
-  closeInstagramModal() {
-    console.warn('⚠️ Instagramモーダル機能は開発中です');
-    const modal = document.getElementById('instagram-modal');
-    if (modal) {
-      modal.style.display = 'none';
-    }
-  }
-
-  /**
-   * Instagram管理: 設定保存（開発中）
-   */
-  saveInstagramSettings() {
-    console.warn('⚠️ Instagram設定保存機能は開発中です');
-    this.info('Instagram設定保存機能は現在開発中です。');
-  }
-
-  /**
-   * Instagram管理: 投稿編集（開発中）
-   */
-  editInstagramPost(postId) {
-    console.warn('⚠️ Instagram投稿編集機能は開発中です');
-    this.info('Instagram投稿編集機能は現在開発中です。');
-  }
-
-  /**
-   * Instagram管理: 投稿ステータス切り替え（開発中）
-   */
-  toggleInstagramPostStatus(postId) {
-    console.warn('⚠️ Instagram投稿ステータス機能は開発中です');
-    this.info('Instagram投稿ステータス機能は現在開発中です。');
-  }
-
-  /**
-   * Instagram管理: 投稿削除（開発中）
-   */
-  async deleteInstagramPost(postId) {
-    console.warn('⚠️ Instagram投稿削除機能は開発中です');
-    this.info('Instagram投稿削除機能は現在開発中です。');
   }
 }
 
