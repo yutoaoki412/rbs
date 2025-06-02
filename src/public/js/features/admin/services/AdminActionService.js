@@ -503,6 +503,18 @@ export class AdminActionService {
       console.log(`📥 新タブアクティブ: ${newActiveTab.id}`);
       console.log(`📥 新ナビアクティブ: ${newActiveNavItem.dataset.tab}`);
       
+      // 記事管理タブの場合は全体スクロール用のクラスを追加
+      const adminMain = document.querySelector('.admin-main');
+      if (adminMain) {
+        if (tabName === 'news-management') {
+          adminMain.classList.add('news-management-active');
+          console.log('📄 記事管理タブ: 全体スクロールモード有効');
+        } else {
+          adminMain.classList.remove('news-management-active');
+          console.log('📱 他のタブ: 固定高さモード');
+        }
+      }
+      
       // タブ状態を統一ストレージキーで保存
       localStorage.setItem(this.storageKeys.adminTab, tabName);
       console.log(`💾 タブ状態保存: ${tabName}`);
@@ -2569,6 +2581,18 @@ export class AdminActionService {
       // 初期タブを設定
       this.switchAdminTab(activeTab);
       console.log(`✅ 初期タブ設定完了: ${activeTab}`);
+      
+      // ページロード時の記事管理タブのクラス状態を確認・修正
+      const adminMain = document.querySelector('.admin-main');
+      if (adminMain) {
+        if (activeTab === 'news-management') {
+          adminMain.classList.add('news-management-active');
+          console.log('📄 初期化: 記事管理タブのため全体スクロールモード有効');
+        } else {
+          adminMain.classList.remove('news-management-active');
+          console.log('📱 初期化: 他のタブのため固定高さモード');
+        }
+      }
       
       // デバッグ情報
       if (CONFIG.debug?.enabled || window.DEBUG) {

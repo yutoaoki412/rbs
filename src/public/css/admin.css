@@ -559,6 +559,13 @@
   flex-direction: column;
 }
 
+/* 記事管理タブのみ全体スクロール対応 */
+.admin-main.news-management-active {
+  height: auto;
+  min-height: calc(100vh - var(--admin-header-height));
+  overflow-y: visible;
+}
+
 /* セクション統一スタイル */
 .admin-section {
   display: none;
@@ -2910,4 +2917,21 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   background: linear-gradient(transparent, rgba(255, 255, 255, 0.9));
   pointer-events: none;
   border-radius: 0 0 var(--admin-border-radius) var(--admin-border-radius);
+}
+
+/* 記事管理セクションの特別スタイル */
+#news-management.active {
+  overflow: visible;
+  flex: none;
+}
+
+/* 記事管理タブの記事一覧を全体スクロール対応 */
+.admin-main.news-management-active #news-list {
+  max-height: none;
+  overflow-y: visible;
+}
+
+.admin-main.news-management-active .list-content {
+  min-height: auto;
+  max-height: none;
 }
