@@ -440,14 +440,101 @@
             </div>
           </div>
           
+          <!-- ステップ2: 詳細設定 -->
+          <div class="wizard-content step-2">
+            <div class="step-panel">
+              <div class="step-header">
+                <h3><i class="fas fa-cogs"></i> 詳細設定</h3>
+                <p>開催時間、場所、その他の詳細情報を設定してください</p>
+              </div>
+              
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="lesson-time">開催時間</label>
+                  <input type="time" id="lesson-time" class="form-input" value="10:00">
+                </div>
+                <div class="form-group">
+                  <label for="lesson-location">開催場所</label>
+                  <select id="lesson-location" class="form-select">
+                    <option value="outdoor">屋外（通常）</option>
+                    <option value="gymnasium">体育館</option>
+                    <option value="other">その他</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="lesson-message">保護者向けメッセージ</label>
+                <textarea id="lesson-message" class="form-textarea" rows="3" placeholder="保護者向けの連絡事項やメッセージがあれば入力してください"></textarea>
+              </div>
+              
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" id="weather-dependent"> 天候により変更の可能性あり
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <!-- ステップ3: コース別設定 -->
+          <div class="wizard-content step-3">
+            <div class="step-panel">
+              <div class="step-header">
+                <h3><i class="fas fa-users"></i> コース別設定</h3>
+                <p>各コースの個別設定を行ってください</p>
+              </div>
+              
+              <div class="course-settings">
+                <div class="course-item">
+                  <div class="course-header">
+                    <h4>小学生コース</h4>
+                    <label class="status-toggle">
+                      <input type="checkbox" checked>
+                      <span>開催</span>
+                    </label>
+                  </div>
+                  <div class="course-details">
+                    <input type="text" class="form-input" placeholder="特別な連絡事項があれば入力">
+                  </div>
+                </div>
+                
+                <div class="course-item">
+                  <div class="course-header">
+                    <h4>中学生コース</h4>
+                    <label class="status-toggle">
+                      <input type="checkbox" checked>
+                      <span>開催</span>
+                    </label>
+                  </div>
+                  <div class="course-details">
+                    <input type="text" class="form-input" placeholder="特別な連絡事項があれば入力">
+                  </div>
+                </div>
+                
+                <div class="course-item">
+                  <div class="course-header">
+                    <h4>高校生・一般コース</h4>
+                    <label class="status-toggle">
+                      <input type="checkbox" checked>
+                      <span>開催</span>
+                    </label>
+                  </div>
+                  <div class="course-details">
+                    <input type="text" class="form-input" placeholder="特別な連絡事項があれば入力">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <!-- ウィザードアクション -->
           <div class="wizard-actions">
             <div class="nav-buttons">
-              <button class="wizard-prev" disabled>
+              <button class="wizard-prev" data-action="wizard-prev" disabled>
                 <i class="fas fa-chevron-left"></i>
                 前へ
               </button>
-              <button class="wizard-next">
+              <button class="wizard-next" data-action="wizard-next">
                 次へ
                 <i class="fas fa-chevron-right"></i>
               </button>

@@ -2976,3 +2976,73 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
 .admin-main.news-management-active #news-list::-webkit-scrollbar-thumb:hover {
   background: var(--admin-primary);
 }
+
+/* ウィザードアクション */
+.wizard-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  background: var(--admin-gray-50);
+  border-top: 1px solid var(--admin-gray-200);
+}
+
+/* コース設定スタイル */
+.course-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.course-item {
+  background: var(--admin-white);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius-sm);
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.course-item:hover {
+  border-color: var(--admin-primary);
+  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.1);
+}
+
+.course-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.course-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+}
+
+.status-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--admin-gray-700);
+}
+
+.status-toggle input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--admin-success);
+}
+
+.course-details {
+  margin-top: 0.5rem;
+}
+
+.course-details .form-input {
+  margin: 0;
+  font-size: 0.875rem;
+}

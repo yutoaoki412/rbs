@@ -64,6 +64,7 @@ export class AdminActionService {
       'filter-news-list', 'refresh-news-list', 'refresh-recent-articles',
       'insert-markdown', 'show-writing-guide', 'edit-article', 'delete-article',
       'preview-article', 'duplicate-article', 'load-lesson-status', 'update-lesson-status',
+      'wizard-prev', 'wizard-next',
       'toggle-notification-mode', 'export-data', 'clear-all-data', 'test-site-connection',
       'reset-local-storage', 'show-debug-info', 'show-news-debug', 'close-modal',
       'open-external', 'toggle-mobile-menu', 'logout'
@@ -303,6 +304,8 @@ export class AdminActionService {
       // レッスン状況
       'load-lesson-status': () => this.loadLessonStatus(),
       'update-lesson-status': () => this.updateLessonStatus(),
+      'wizard-prev': () => this.wizardPrevStep(),
+      'wizard-next': () => this.wizardNextStep(),
 
       // 通知設定
       'toggle-notification-mode': () => this.toggleNotificationMode(),
@@ -3540,6 +3543,174 @@ export class AdminActionService {
     } catch (error) {
       this.error('統計情報更新エラー:', error);
     }
+  }
+
+  /**
+   * ウィザード - 前のステップに戻る
+   */
+  wizardPrevStep() {
+    try {
+      const currentStep = this.#getCurrentWizardStep();
+      if (currentStep <= 1) {
+        console.log('🔙 既に最初のステップです');
+        return;
+      }
+      
+      const prevStep = currentStep - 1;
+      this.#setWizardStep(prevStep);
+      console.log(`🔙 ウィザードステップ移動: ${currentStep} → ${prevStep}`);
+      
+    } catch (error) {
+      console.error('❌ ウィザード前ステップエラー:', error);
+      this.#showFeedback('ステップの移動に失敗しました', 'error');
+    }
+  }
+
+  /**
+   * ウィザード - 次のステップに進む
+   */
+  wizardNextStep() {
+    try {
+      const currentStep = this.#getCurrentWizardStep();
+      const maxSteps = 3; // 全体ステータス、詳細設定、コース別設定
+      
+      if (currentStep >= maxSteps) {
+        console.log('🔚 既に最後のステップです');
+        return;
+      }
+      
+      // 現在のステップの妥当性チェック
+      if (!this.#validateCurrentStep(currentStep)) {
+        return;
+      }
+      
+      const nextStep = currentStep + 1;
+      this.#setWizardStep(nextStep);
+      console.log(`🔜 ウィザードステップ移動: ${currentStep} → ${nextStep}`);
+      
+    } catch (error) {
+      console.error('❌ ウィザード次ステップエラー:', error);
+      this.#showFeedback('ステップの移動に失敗しました', 'error');
+    }
+  }
+
+  /**
+   * 現在のウィザードステップを取得
+   * @private
+   * @returns {number}
+   */
+  #getCurrentWizardStep() {
+    const steps = document.querySelectorAll('.lesson-status-wizard .step');
+    for (let i = 0; i < steps.length; i++) {
+      if (steps[i].classList.contains('active')) {
+        return i + 1;
+      }
+    }
+    return 1; // デフォルトは1番目のステップ
+  }
+
+  /**
+   * ウィザードステップを設定
+   * @private
+   * @param {number} stepNumber - ステップ番号
+   */
+  #setWizardStep(stepNumber) {
+    // ステップナビゲーションの更新
+    const steps = document.querySelectorAll('.lesson-status-wizard .step');
+    const contents = document.querySelectorAll('.lesson-status-wizard .wizard-content');
+    
+    // 全てのステップとコンテンツを非アクティブに
+    steps.forEach(step => step.classList.remove('active'));
+    contents.forEach(content => content.classList.remove('active'));
+    
+    // 指定されたステップをアクティブに
+    if (steps[stepNumber - 1]) {
+      steps[stepNumber - 1].classList.add('active');
+    }
+    if (contents[stepNumber - 1]) {
+      contents[stepNumber - 1].classList.add('active');
+    }
+    
+    // ボタンの状態を更新
+    this.#updateWizardButtons(stepNumber);
+    
+    // ステップタイトルの更新
+    this.#updateWizardStepTitle(stepNumber);
+  }
+
+  /**
+   * ウィザードボタンの状態を更新
+   * @private
+   * @param {number} currentStep - 現在のステップ
+   */
+  #updateWizardButtons(currentStep) {
+    const prevBtn = document.querySelector('.wizard-prev');
+    const nextBtn = document.querySelector('.wizard-next');
+    
+    if (prevBtn) {
+      prevBtn.disabled = currentStep <= 1;
+    }
+    
+    if (nextBtn) {
+      // 最後のステップでは「完了」に変更
+      if (currentStep >= 3) {
+        nextBtn.innerHTML = '<i class="fas fa-check"></i> 完了';
+        nextBtn.onclick = () => this.updateLessonStatus();
+      } else {
+        nextBtn.innerHTML = '次へ <i class="fas fa-chevron-right"></i>';
+        nextBtn.onclick = null; // data-actionに任せる
+      }
+      nextBtn.disabled = false;
+    }
+  }
+
+  /**
+   * ウィザードステップタイトルの更新
+   * @private
+   * @param {number} stepNumber - ステップ番号
+   */
+  #updateWizardStepTitle(stepNumber) {
+    const titles = {
+      1: '全体開催ステータス',
+      2: '詳細設定',
+      3: 'コース別設定'
+    };
+    
+    const titleElement = document.querySelector('.lesson-status-wizard .step-header h3');
+    if (titleElement && titles[stepNumber]) {
+      const icon = titleElement.querySelector('i');
+      const iconHTML = icon ? icon.outerHTML : '<i class="fas fa-cog"></i>';
+      titleElement.innerHTML = `${iconHTML} ${titles[stepNumber]}`;
+    }
+  }
+
+  /**
+   * 現在のステップの妥当性チェック
+   * @private
+   * @param {number} currentStep - 現在のステップ
+   * @returns {boolean}
+   */
+  #validateCurrentStep(currentStep) {
+    switch (currentStep) {
+      case 1:
+        // 全体ステータスが選択されているかチェック
+        const globalStatus = document.querySelector('input[name="global-status"]:checked');
+        if (!globalStatus) {
+          this.#showFeedback('全体開催ステータスを選択してください', 'warning');
+          return false;
+        }
+        break;
+      
+      case 2:
+        // 詳細設定のバリデーション（必要に応じて）
+        break;
+      
+      case 3:
+        // コース別設定のバリデーション（必要に応じて）
+        break;
+    }
+    
+    return true;
   }
 }
 
