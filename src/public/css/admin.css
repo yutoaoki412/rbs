@@ -559,7 +559,7 @@
   flex-direction: column;
 }
 
-/* セクション */
+/* セクション統一スタイル */
 .admin-section {
   display: none;
   flex: 1;
@@ -572,13 +572,16 @@
   animation: fadeIn 0.3s ease-in-out;
 }
 
+/* セクションヘッダー統一 */
 .section-header {
-  margin-bottom: 1rem; /* 1.5remからさらに縮小 */
+  margin-bottom: 1rem;
   flex-shrink: 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--admin-gray-200);
 }
 
 .section-header h1 {
-  font-size: 1.75rem; /* 少し縮小 */
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--admin-gray-900);
   margin: 0;
@@ -591,19 +594,26 @@
   color: var(--admin-primary);
 }
 
-/* 統計グリッド */
+.section-description {
+  color: var(--admin-gray-600);
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0 0;
+  font-weight: 400;
+}
+
+/* 統計グリッド（ダッシュボード専用） */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* 最小幅を縮小 */
-  gap: 1rem; /* 1.5remから縮小 */
-  margin-bottom: 1.5rem; /* 2remから縮小 */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
   flex-shrink: 0;
 }
 
 .stat-card {
   background: var(--admin-white);
   border-radius: var(--admin-border-radius);
-  padding: 1.25rem; /* 1.5remから縮小 */
+  padding: 1.25rem;
   box-shadow: var(--admin-shadow);
   display: flex;
   align-items: center;
@@ -704,67 +714,40 @@
 }
 
 .widget-content {
+  background: var(--admin-white);
+  padding: 1.25rem;
   flex: 1;
-  overflow-y: auto;
-  padding: 1rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
 }
 
-/* 最近の記事: 3つ縦並び + スクロール */
+/* 最近の記事: スクロール可能な縦並び */
 .recent-articles-widget .widget-content {
   padding: 0.75rem;
+  max-height: 350px; /* 高さを制限してスクロールを有効にする */
+  overflow-y: auto; /* 縦スクロールを有効にする */
 }
 
-/* クイックアクション: 4つ縦並び */
-.quick-actions .widget-content {
-  max-height: none;
-  overflow-y: auto;
-  padding: 1rem;
+/* 美しいスクロールバースタイル */
+.recent-articles-widget .widget-content::-webkit-scrollbar {
+  width: 6px;
 }
 
-/* アクションボタングリッド: 確実に4つ縦並び */
-.action-buttons-grid {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 0.75rem;
-  margin-top: 0;
-}
-
-/* レスポンシブ対応 */
-@media (max-width: 1400px) {
-  .dashboard-widgets {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .admin-main.dashboard-optimized {
-    padding: 0.75rem;
-  }
-  
-  .widget {
-    min-height: 280px;
-  }
-}
-
-/* 最近の記事：3つ縦並び制限 */
-.widget-content::-webkit-scrollbar {
-  width: 4px;
-}
-
-.widget-content::-webkit-scrollbar-track {
+.recent-articles-widget .widget-content::-webkit-scrollbar-track {
   background: var(--admin-gray-100);
-  border-radius: 2px;
+  border-radius: 3px;
 }
 
-.widget-content::-webkit-scrollbar-thumb {
+.recent-articles-widget .widget-content::-webkit-scrollbar-thumb {
   background: var(--admin-gray-300);
-  border-radius: 2px;
+  border-radius: 3px;
+  transition: background 0.2s ease;
 }
 
-.widget-content::-webkit-scrollbar-thumb:hover {
-  background: var(--admin-gray-500);
+.recent-articles-widget .widget-content::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-primary);
 }
 
 /* 最近の記事のコンパクトスタイル */
@@ -772,8 +755,8 @@
   background: var(--admin-white);
   border: 1px solid var(--admin-gray-200);
   border-radius: var(--admin-border-radius-sm);
-  padding: 0.875rem; /* パディングを縮小 */
-  margin-bottom: 0.75rem; /* マージンを縮小 */
+  padding: 0.875rem;
+  margin-bottom: 0.75rem;
   transition: all 0.2s ease;
   cursor: pointer;
   position: relative;
@@ -783,26 +766,14 @@
   animation: fadeInUp 0.3s ease forwards;
 }
 
-/* 最初の3つのみ完全表示、4つ目以降はスクロールエリア */
+/* 最初の3つのみ表示するための制限 */
+.recent-article-item:nth-child(n+4) {
+  display: none;
+}
+
 .recent-article-item:nth-child(1) { animation-delay: 0.1s; }
 .recent-article-item:nth-child(2) { animation-delay: 0.2s; }
 .recent-article-item:nth-child(3) { animation-delay: 0.3s; }
-
-/* 4つ目以降は少し薄く表示 */
-.recent-article-item:nth-child(n+4) {
-  opacity: 0.9;
-  padding: 0.75rem; /* より小さく */
-  margin-bottom: 0.5rem;
-}
-
-.recent-article-item:nth-child(n+4) .recent-article-title {
-  font-size: 0.85rem; /* さらに小さく */
-}
-
-.recent-article-item:nth-child(n+4) .recent-article-summary {
-  font-size: 0.75rem; /* さらに小さく */
-  -webkit-line-clamp: 1; /* 1行のみ */
-}
 
 .recent-article-item:hover {
   border-color: var(--admin-primary);
@@ -831,7 +802,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 0.5rem; /* マージンを縮小 */
+  margin-bottom: 0.5rem;
   gap: 1rem;
 }
 
@@ -841,7 +812,7 @@
 }
 
 .recent-article-title {
-  font-size: 0.9rem; /* フォントサイズを縮小 */
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--admin-gray-900);
   line-height: 1.4;
@@ -857,7 +828,7 @@
 .new-badge {
   background: linear-gradient(45deg, #ff6b6b, #ee5a52);
   color: white;
-  font-size: 0.5rem; /* サイズを縮小 */
+  font-size: 0.5rem;
   font-weight: 700;
   padding: 0.1rem 0.3rem;
   border-radius: 6px;
@@ -867,14 +838,9 @@
   flex-shrink: 0;
 }
 
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-
 .recent-article-summary {
   color: var(--admin-gray-600);
-  font-size: 0.8rem; /* フォントサイズを縮小 */
+  font-size: 0.8rem;
   line-height: 1.4;
   margin: 0;
   display: -webkit-box;
@@ -898,8 +864,8 @@
 }
 
 .btn-icon {
-  width: 28px; /* サイズを縮小 */
-  height: 28px; /* サイズを縮小 */
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -909,7 +875,7 @@
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s ease;
-  font-size: 0.7rem; /* フォントサイズを縮小 */
+  font-size: 0.7rem;
 }
 
 .btn-icon:hover {
@@ -944,7 +910,8 @@
   transition: all 0.2s ease;
 }
 
-.dropdown:hover .dropdown-menu {
+.dropdown:hover .dropdown-menu,
+.dropdown.open .dropdown-menu {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
@@ -982,24 +949,23 @@
 /* メタ情報 */
 .recent-article-meta {
   display: flex;
-  gap: 1rem;
   flex-wrap: wrap;
-  margin-bottom: 0.75rem;
-  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--admin-gray-100);
 }
 
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
-  font-size: 0.8125rem;
+  gap: 0.25rem;
+  font-size: 0.7rem;
   color: var(--admin-gray-500);
-  font-weight: 500;
 }
 
 .meta-item i {
-  font-size: 0.75rem;
-  color: var(--admin-gray-400);
+  font-size: 0.65rem;
 }
 
 .meta-item i.published {
@@ -1011,34 +977,36 @@
 }
 
 .meta-item i.featured {
-  color: #f59e0b;
+  color: var(--admin-orange);
 }
 
-/* カテゴリーバッジ */
 .category-badge {
-  padding: 0.125rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.6875rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.025em;
-  color: white;
 }
 
 .category-badge.announcement {
-  background: #4a90e2; /* LP側と同じ青 - お知らせ */
+  background: #e0e7ff;
+  color: #3730a3;
 }
 
 .category-badge.event {
-  background: #50c8a3; /* LP側と同じティール - 体験会 */
+  background: #dcfce7;
+  color: #166534;
 }
 
 .category-badge.media {
-  background: #9b59b6; /* LP側と同じ紫 - メディア */
+  background: #fef3c7;
+  color: #92400e;
 }
 
 .category-badge.important {
-  background: #e74c3c; /* LP側と同じ赤 - 重要 */
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .status-text {
@@ -1046,317 +1014,276 @@
 }
 
 .date-text {
-  cursor: help;
+  font-weight: 400;
 }
 
-/* 統計情報 */
+/* 統計 */
 .recent-article-stats {
   display: flex;
-  gap: 1rem;
-  padding-top: 0.75rem;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
   border-top: 1px solid var(--admin-gray-100);
-  font-size: 0.75rem;
-  color: var(--admin-gray-500);
 }
 
 .stat-item {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  color: var(--admin-gray-500);
 }
 
 .stat-item i {
-  font-size: 0.6875rem;
-  opacity: 0.7;
+  font-size: 0.65rem;
 }
 
-/* レスポンシブ対応 */
-@media (max-width: 768px) {
-  .recent-article-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
-  }
-
-  .recent-article-actions {
-    opacity: 1;
-    order: -1;
-    align-self: flex-end;
-  }
-
-  .recent-article-meta {
-    gap: 0.5rem;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .meta-item {
-    font-size: 0.75rem;
-  }
-
-  .recent-article-stats {
-    gap: 0.75rem;
-    flex-direction: column;
-  }
+/* クイックアクション: 4つ縦並び */
+.quick-actions .widget-content {
+  max-height: none;
+  overflow-y: auto;
+  padding: 1rem;
 }
 
-/* バッジスタイル */
-.badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid transparent;
-}
-
-.badge-success {
-  background: #dcfce7;
-  color: #166534;
-  border-color: #bbf7d0;
-}
-
-.badge-warning {
-  background: #fef3c7;
-  color: #92400e;
-  border-color: #fde68a;
-}
-
-.badge-info {
-  background: #dbeafe;
-  color: #1e40af;
-  border-color: #bfdbfe;
-}
-
-.badge-error {
-  background: #fee2e2;
-  color: #dc2626;
-  border-color: #fecaca;
-}
-
-/* 空の状態表示の改善 */
-.empty-state {
-  text-align: center;
-  padding: 3rem 1.5rem;
-  color: var(--admin-gray-500);
-  background: var(--admin-white);
-  border: 2px dashed var(--admin-gray-200);
-  border-radius: var(--admin-border-radius);
-  transition: all 0.3s ease;
-}
-
-.empty-state:hover {
-  border-color: var(--admin-primary);
-  background: rgba(74, 144, 226, 0.02);
-}
-
-.empty-state i {
-  font-size: 3rem;
-  color: var(--admin-gray-300);
-  margin-bottom: 1rem;
-  display: block;
-  transition: all 0.3s ease;
-}
-
-.empty-state:hover i {
-  color: var(--admin-primary);
-  transform: scale(1.1);
-}
-
-.empty-state p {
-  font-size: 1.1rem;
-  margin-bottom: 1.5rem;
-  color: var(--admin-gray-600);
-}
-
-.empty-state .btn {
-  transform: translateY(0);
-  transition: all 0.2s ease;
-}
-
-.empty-state .btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
-}
-
-/* ローディングとエラー状態 */
-.loading-state,
-.error-state,
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  text-align: center;
-  min-height: 120px;
-  color: var(--admin-gray-500);
-}
-
-.loading-state i {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
-  color: var(--admin-primary);
-}
-
-.error-state {
-  color: var(--admin-danger);
-}
-
-.error-state i {
-  font-size: 2rem;
-  margin-bottom: 0.75rem;
-  color: var(--admin-danger);
-}
-
-.empty-state {
-  color: var(--admin-gray-400);
-}
-
-/* デバッグボタンのスタイル */
-.btn-icon[title*="デバッグ"] {
-  background: var(--admin-warning);
-  color: white;
-}
-
-.btn-icon[title*="デバッグ"]:hover {
-  background: var(--admin-warning-dark, #e6ac00);
-}
-
-/* チェックボックス */
-input[type="checkbox"] {
-  margin-right: 0.5rem;
-  transform: scale(1.1);
-}
-
-/* セクションアクション */
-.section-actions {
-  display: flex;
+/* アクションボタングリッド: 確実に4つ縦並び */
+.action-buttons-grid {
+  display: flex !important;
+  flex-direction: column !important;
   gap: 0.75rem;
+  margin-top: 0;
 }
 
 /* レスポンシブ対応 */
 @media (max-width: 1400px) {
-  .management-layout {
-    gap: 0;
+  .dashboard-widgets {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
   
-  .editor-panel,
-  .list-panel {
-    width: 100%;
+  .status-selector-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
   }
   
   .form-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 1rem;
   }
 }
 
 @media (max-width: 1024px) {
-  .management-layout {
-    gap: 0;
+  .admin-main.dashboard-optimized {
+    padding: 0.75rem;
+  }
+  
+  .widget {
+    min-height: 280px;
   }
   
   .panel-header {
-    padding: 0.875rem 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .panel-actions {
+    justify-content: center;
+  }
+  
+  .status-selector-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .wizard-steps {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+  
+  .step {
+    justify-content: center;
+  }
+  
+  .wizard-actions {
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    align-items: stretch;
+  }
+  
+  .nav-buttons {
+    order: 2;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .wizard-prev,
+  .wizard-next {
+    flex: 1;
+    min-width: auto;
+    max-width: calc(50% - 0.5rem);
+  }
+  
+  .action-buttons {
+    order: 1;
+    width: 100%;
+    justify-content: center;
+    flex-direction: row;
+  }
+  
+  .sub-nav {
+    flex-direction: column;
+  }
+  
+  .sub-nav-item {
+    border-right: none;
+    border-bottom: 1px solid var(--admin-gray-200);
+    justify-content: center;
+  }
+  
+  .sub-nav-item:last-child {
+    border-bottom: none;
   }
   
   .editor-form {
     padding: 1.5rem;
   }
   
-  .form-textarea.editor-content {
-    min-height: 300px;
-  }
-}
-
-@media (max-width: 768px) {
-  .management-layout {
-    gap: 0;
-    margin-top: 0.5rem;
-  }
-  
   .panel-header {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: stretch;
-    padding: 1rem;
+    padding: 1rem 1.5rem;
   }
   
-  .panel-actions,
-  .panel-filters {
-    justify-content: center;
+  .panel-actions {
     flex-wrap: wrap;
+    gap: 0.5rem;
   }
   
-  .editor-form {
-    padding: 1rem;
+  .btn {
+    font-size: 0.8125rem;
+    padding: 0.625rem 1.25rem;
   }
   
-  .form-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
+  .editor-toolbar {
+    flex-wrap: wrap;
   }
   
   .form-textarea.editor-content {
     min-height: 250px;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
   }
   
-  .news-item {
-    padding: 1rem;
+  .action-btn.compact {
+    padding: 0.625rem;
   }
   
-  .news-item-header {
+  .action-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+  
+  .action-title {
+    font-size: 0.8rem;
+  }
+  
+  .action-desc {
+    font-size: 0.65rem;
+  }
+
+  /* 最近の記事のレスポンシブ対応 */
+  .recent-article-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.75rem;
-  }
-  
-  .news-item-actions {
-    align-self: flex-start;
-  }
-  
-  .news-item-meta {
     gap: 0.5rem;
+  }
+
+  .recent-article-actions {
+    opacity: 1;
+    justify-content: flex-end;
+  }
+
+  .recent-article-meta {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .meta-item {
+    justify-content: flex-start;
+  }
+
+  .recent-article-stats {
+    flex-direction: column;
+    gap: 0.25rem;
   }
 }
 
 @media (max-width: 480px) {
-  .panel-header h2 {
-    font-size: 1rem;
+  .status-selector-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
   
-  .panel-actions .btn {
-    font-size: 0.8125rem;
-    padding: 0.5rem 0.75rem;
+  .option-card {
+    padding: 1.25rem 1rem;
+    min-height: 80px;
+    flex-direction: row;
+    text-align: left;
+    gap: 1rem;
+  }
+  
+  .option-icon {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+  
+  .option-content {
+    flex: 1;
   }
   
   .editor-form {
-    padding: 0.75rem;
+    padding: 1rem;
+  }
+  
+  .panel-header {
+    padding: 1rem;
+  }
+  
+  .panel-header h2 {
+    font-size: 1.125rem;
   }
   
   .form-group {
     margin-bottom: 1rem;
   }
   
-  .list-content {
-    padding: 0.75rem;
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
   }
   
   .form-textarea.editor-content {
     min-height: 200px;
   }
+  
+  .action-btn.compact {
+    padding: 0.5rem;
+    gap: 0.75rem;
+  }
+  
+  .action-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 0.9rem;
+  }
 }
 
-/* アニメーション */
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+/* アニメーション統一 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeInUp {
@@ -1364,6 +1291,16 @@ input[type="checkbox"] {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 /* 設定 */
@@ -1986,7 +1923,7 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   font-weight: 400;
 }
 
-/* ウィザードコンテナ */
+/* レッスン状況ウィザード - 簡略化版 */
 .lesson-status-wizard {
   background: var(--admin-white);
   border-radius: 16px;
@@ -1995,24 +1932,13 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   margin-bottom: 2rem;
 }
 
-/* ステップナビゲーション */
+/* ステップナビゲーション - 簡略化 */
 .wizard-steps {
   display: flex;
   background: #4a90e2;
   padding: 1.5rem 2rem;
   position: relative;
   overflow: hidden;
-}
-
-.wizard-steps::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.15)"/><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
-  opacity: 0.3;
 }
 
 .step {
@@ -2026,33 +1952,15 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   position: relative;
   z-index: 1;
   cursor: pointer;
-}
-
-.step:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  right: -1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0;
-  height: 0;
-  border-left: 10px solid rgba(255, 255, 255, 0.3);
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  z-index: 2;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  font-size: 0.875rem;
 }
 
 .step.active {
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
-}
-
-.step.active::after {
-  border-left-color: rgba(255, 255, 255, 0.4);
-}
-
-.step.completed {
-  background: rgba(255, 255, 255, 0.15);
+  color: white;
 }
 
 .step-number {
@@ -2073,21 +1981,6 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   background: white;
   color: #4a90e2;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.step.completed .step-number {
-  background: #27ae60;
-  color: white;
-}
-
-.step span {
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 600;
-  font-size: 0.875rem;
-}
-
-.step.active span {
-  color: white;
 }
 
 /* ウィザードコンテンツ */
@@ -2133,7 +2026,7 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   margin: 0 auto;
 }
 
-/* ステップ1: ステータス選択グリッド */
+/* ステータス選択グリッド */
 .status-selector-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -2164,17 +2057,6 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   flex-direction: column;
   align-items: center;
   text-align: center;
-}
-
-.option-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--admin-gray-300);
-  transition: all 0.3s ease;
 }
 
 .option-card:hover {
@@ -2215,34 +2097,10 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   line-height: 1.3;
 }
 
-.option-check {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--admin-gray-200);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: all 0.3s ease;
-}
-
-.option-check i {
-  font-size: 0.625rem;
-  color: white;
-}
-
 /* 選択状態のスタイル */
 .status-option.scheduled input:checked ~ .option-card {
   border-color: var(--status-scheduled);
   background: linear-gradient(135deg, rgba(39, 174, 96, 0.05), rgba(46, 204, 113, 0.1));
-}
-
-.status-option.scheduled input:checked ~ .option-card::before {
-  background: var(--status-scheduled);
 }
 
 .status-option.scheduled input:checked ~ .option-card .option-icon {
@@ -2253,18 +2111,9 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   color: white;
 }
 
-.status-option.scheduled input:checked ~ .option-card .option-check {
-  background: var(--status-scheduled);
-  opacity: 1;
-}
-
 .status-option.cancelled input:checked ~ .option-card {
   border-color: var(--status-cancelled);
   background: linear-gradient(135deg, rgba(231, 76, 60, 0.05), rgba(236, 85, 105, 0.1));
-}
-
-.status-option.cancelled input:checked ~ .option-card::before {
-  background: var(--status-cancelled);
 }
 
 .status-option.cancelled input:checked ~ .option-card .option-icon {
@@ -2275,18 +2124,9 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   color: white;
 }
 
-.status-option.cancelled input:checked ~ .option-card .option-check {
-  background: var(--status-cancelled);
-  opacity: 1;
-}
-
 .status-option.indoor input:checked ~ .option-card {
   border-color: var(--status-indoor);
   background: linear-gradient(135deg, rgba(243, 156, 18, 0.05), rgba(245, 166, 35, 0.1));
-}
-
-.status-option.indoor input:checked ~ .option-card::before {
-  background: var(--status-indoor);
 }
 
 .status-option.indoor input:checked ~ .option-card .option-icon {
@@ -2297,18 +2137,9 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   color: white;
 }
 
-.status-option.indoor input:checked ~ .option-card .option-check {
-  background: var(--status-indoor);
-  opacity: 1;
-}
-
 .status-option.postponed input:checked ~ .option-card {
   border-color: var(--status-postponed);
   background: linear-gradient(135deg, rgba(52, 152, 219, 0.05), rgba(93, 173, 226, 0.1));
-}
-
-.status-option.postponed input:checked ~ .option-card::before {
-  background: var(--status-postponed);
 }
 
 .status-option.postponed input:checked ~ .option-card .option-icon {
@@ -2319,227 +2150,7 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   color: white;
 }
 
-.status-option.postponed input:checked ~ .option-card .option-check {
-  background: var(--status-postponed);
-  opacity: 1;
-}
-
-/* ステップ2: 詳細設定グリッド */
-.detail-settings-grid {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 1.5rem;
-  margin-top: 2rem;
-}
-
-.setting-card {
-  background: var(--admin-gray-50);
-  border: 1px solid var(--admin-gray-200);
-  border-radius: 12px;
-  padding: 1.5rem;
-  transition: all 0.2s ease;
-}
-
-.setting-card:hover {
-  border-color: var(--admin-primary);
-  background: var(--admin-white);
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.1);
-}
-
-.setting-card.full-width {
-  grid-column: 1 / -1;
-}
-
-.setting-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.setting-header i {
-  color: var(--admin-primary);
-  font-size: 1.125rem;
-}
-
-.setting-header h4 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--admin-gray-900);
-  margin: 0;
-}
-
-.date-input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 2px solid var(--admin-gray-200);
-  border-radius: 8px;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-  background: var(--admin-white);
-}
-
-.date-input:focus {
-  outline: none;
-  border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-}
-
-.message-textarea {
-  width: 100%;
-  padding: 1rem;
-  border: 2px solid var(--admin-gray-200);
-  border-radius: 8px;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-  background: var(--admin-white);
-  resize: vertical;
-  min-height: 100px;
-  font-family: inherit;
-}
-
-.message-textarea:focus {
-  outline: none;
-  border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-}
-
-.textarea-help {
-  margin-top: 0.75rem;
-}
-
-.textarea-help small {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--admin-gray-500);
-  font-size: 0.75rem;
-}
-
-.textarea-help i {
-  color: var(--admin-info);
-}
-
-/* ステップ3: コース設定 */
-.courses-settings {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-top: 2rem;
-}
-
-.course-setting-card {
-  background: var(--admin-white);
-  border: 1px solid var(--admin-gray-200);
-  border-radius: 12px;
-  padding: 1.5rem;
-  transition: all 0.2s ease;
-}
-
-.course-setting-card:hover {
-  border-color: var(--admin-primary);
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.08);
-}
-
-.course-setting-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--admin-gray-100);
-}
-
-.course-info h4 {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--admin-gray-900);
-  margin: 0 0 0.25rem 0;
-}
-
-.course-detail {
-  font-size: 0.8125rem;
-  color: var(--admin-gray-600);
-  font-weight: 500;
-}
-
-.course-status-indicator .status-badge {
-  padding: 0.375rem 0.875rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.status-badge.scheduled {
-  background: rgba(39, 174, 96, 0.1);
-  color: var(--status-scheduled);
-  border: 1px solid rgba(39, 174, 96, 0.2);
-}
-
-.status-badge.cancelled {
-  background: rgba(231, 76, 60, 0.1);
-  color: var(--status-cancelled);
-  border: 1px solid rgba(231, 76, 60, 0.2);
-}
-
-.status-badge.indoor {
-  background: rgba(243, 156, 18, 0.1);
-  color: var(--status-indoor);
-  border: 1px solid rgba(243, 156, 18, 0.2);
-}
-
-.status-badge.postponed {
-  background: rgba(52, 152, 219, 0.1);
-  color: var(--status-postponed);
-  border: 1px solid rgba(52, 152, 219, 0.2);
-}
-
-.course-status-options {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.75rem;
-}
-
-.mini-status-option {
-  cursor: pointer;
-  display: block;
-}
-
-.mini-status-option input[type="radio"] {
-  display: none;
-}
-
-.option-text {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 0.5rem;
-  border: 1px solid var(--admin-gray-300);
-  border-radius: 8px;
-  background: var(--admin-white);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--admin-gray-700);
-  transition: all 0.2s ease;
-  text-align: center;
-}
-
-.option-text:hover {
-  border-color: var(--admin-primary);
-  background: rgba(74, 144, 226, 0.05);
-}
-
-.mini-status-option input:checked + .option-text {
-  border-color: var(--admin-primary);
-  background: var(--admin-primary);
-  color: white;
-  font-weight: 600;
-}
-
-/* ウィザードナビゲーション */
+/* ウィザードアクション */
 .wizard-actions {
   display: flex;
   justify-content: space-between;
@@ -2567,287 +2178,12 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   font-weight: 600;
   font-size: 0.875rem;
   transition: var(--admin-transition);
-}
-
-.action-buttons {
-  display: flex;
-  flex-direction: row;
-  gap: 1rem;
-  align-items: center;
-}
-
-/* プレビューパネル */
-.status-preview-panel {
-  background: var(--admin-white);
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-}
-
-.preview-header {
-  padding: 1.5rem 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  text-align: center;
-}
-
-.preview-header h3 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-}
-
-.preview-header p {
-  font-size: 0.875rem;
-  opacity: 0.9;
-  margin: 0;
-}
-
-.preview-content {
-  padding: 2rem;
-}
-
-.preview-status-display {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  background: var(--admin-gray-50);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.preview-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: var(--status-scheduled);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.5rem;
-}
-
-.preview-text h4 {
-  font-size: 1.375rem;
-  font-weight: 700;
-  color: var(--admin-gray-900);
-  margin: 0 0 0.25rem 0;
-}
-
-.preview-date {
-  font-size: 0.875rem;
-  color: var(--admin-gray-600);
-  margin: 0 0 0.5rem 0;
-}
-
-.preview-message {
-  font-size: 0.875rem;
-  color: var(--admin-gray-700);
-  margin: 0;
-  font-style: italic;
-}
-
-.preview-courses {
-  display: flex;
-  gap: 1rem;
-}
-
-.preview-course {
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--admin-white);
-  border: 1px solid var(--admin-gray-200);
-  border-radius: 8px;
-  padding: 1rem;
-}
-
-.course-name {
-  font-weight: 600;
-  color: var(--admin-gray-900);
-}
-
-.course-status {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.course-status.scheduled {
-  background: rgba(39, 174, 96, 0.1);
-  color: var(--status-scheduled);
-}
-
-/* レスポンシブ対応 */
-@media (max-width: 1200px) {
-  .status-selector-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.75rem;
-  }
-  
-  .option-card {
-    padding: 1rem 0.75rem;
-    min-height: 90px;
-  }
-  
-  .option-content h4 {
-    font-size: 0.875rem;
-  }
-  
-  .option-content p {
-    font-size: 0.7rem;
-  }
-  
-  .detail-settings-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .course-status-options {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .wizard-steps {
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 1rem;
-  }
-  
-  .step {
-    justify-content: center;
-  }
-  
-  .step:not(:last-child)::after {
-    display: none;
-  }
-  
-  .status-selector-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-  }
-  
-  .option-card {
-    padding: 1rem 0.75rem;
-    min-height: 85px;
-  }
-  
-  .option-icon {
-    width: 32px;
-    height: 32px;
-    margin-bottom: 0.5rem;
-  }
-  
-  .option-icon i {
-    font-size: 1rem;
-  }
-  
-  .option-content h4 {
-    font-size: 0.8125rem;
-  }
-  
-  .option-content p {
-    font-size: 0.6875rem;
-  }
-  
-  .step-panel {
-    padding: 1.5rem;
-  }
-  
-  .wizard-actions {
-    flex-direction: column;
-    gap: 1.5rem;
-    padding: 1.5rem;
-    align-items: stretch;
-  }
-  
-  .nav-buttons {
-    order: 2;
-    justify-content: space-between;
-    width: 100%;
-  }
-  
-  .wizard-prev,
-  .wizard-next {
-    flex: 1;
-    min-width: auto;
-    max-width: calc(50% - 0.5rem);
-  }
-  
-  .action-buttons {
-    order: 1;
-    width: 100%;
-    justify-content: center;
-    flex-direction: row;
-  }
-  
-  .course-status-options {
-    grid-template-columns: 1fr;
-  }
-  
-  .preview-content {
-    padding: 1rem;
-  }
-  
-  .preview-status-display {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .preview-courses {
-    flex-direction: column;
-  }
-}
-
-@media (max-width: 480px) {
-  .status-selector-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-  
-  .option-card {
-    padding: 1.25rem 1rem;
-    min-height: 80px;
-    flex-direction: row;
-    text-align: left;
-    gap: 1rem;
-  }
-  
-  .option-icon {
-    margin-bottom: 0;
-    flex-shrink: 0;
-  }
-  
-  .option-content {
-    flex: 1;
-  }
-}
-
-/* コース別設定アクション */
-.course-preview-actions {
-  text-align: center;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--admin-gray-200);
-}
-
-.course-preview-actions .btn {
-  min-width: 200px;
+  border: 2px solid transparent;
 }
 
 .wizard-prev {
   background: var(--admin-gray-100);
-  border: 2px solid var(--admin-gray-300);
+  border-color: var(--admin-gray-300);
   color: var(--admin-gray-700);
 }
 
@@ -2864,7 +2200,7 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
 
 .wizard-next {
   background: linear-gradient(135deg, var(--admin-primary), var(--admin-primary-dark));
-  border: 2px solid var(--admin-primary);
+  border-color: var(--admin-primary);
   color: white;
   box-shadow: 0 2px 4px rgba(74, 144, 226, 0.2);
 }
@@ -2875,11 +2211,14 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3);
 }
 
-/* =============================================================================
- * 記事管理 UI
- * ============================================================================= */
+.action-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: center;
+}
 
-/* サブナビゲーション */
+/* サブナビゲーション（記事管理専用） */
 .sub-nav {
   display: flex;
   background: var(--admin-white);
@@ -2944,12 +2283,17 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   animation: fadeIn 0.3s ease-in-out;
 }
 
-/* エディターパネル */
-.editor-panel {
+/* パネル統一スタイル */
+.editor-panel,
+.list-panel {
   background: var(--admin-white);
   border-radius: var(--admin-border-radius);
   box-shadow: var(--admin-shadow);
   overflow: hidden;
+}
+
+.list-panel.full-width {
+  width: 100%;
 }
 
 .panel-header {
@@ -2976,13 +2320,14 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   font-size: 1.125rem;
 }
 
-.panel-actions {
+.panel-actions,
+.panel-filters {
   display: flex;
   gap: 0.75rem;
   align-items: center;
 }
 
-/* エディターフォーム */
+/* フォーム統一スタイル */
 .editor-form {
   padding: 2rem;
 }
@@ -3181,6 +2526,52 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   transform: translateY(-1px);
 }
 
+.btn-info {
+  background: linear-gradient(135deg, var(--admin-secondary), #36a2a2);
+  border-color: var(--admin-secondary);
+  color: white;
+  box-shadow: 0 2px 4px rgba(80, 200, 163, 0.2);
+}
+
+.btn-info:hover {
+  background: #36a2a2;
+  border-color: #36a2a2;
+  transform: translateY(-1px);
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, var(--admin-warning), #d69e2e);
+  border-color: var(--admin-warning);
+  color: white;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+}
+
+.btn-warning:hover {
+  background: #d69e2e;
+  border-color: #d69e2e;
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--admin-gray-600);
+  border: 1px solid var(--admin-gray-300);
+  transition: var(--admin-transition);
+}
+
+.btn-ghost:hover {
+  background: var(--admin-gray-100);
+  color: var(--admin-gray-700);
+  border-color: var(--admin-gray-400);
+  transform: translateY(-1px);
+}
+
+.btn-sm {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 6px;
+}
+
 /* チェックボックススタイル */
 .form-group input[type="checkbox"] {
   margin-right: 0.75rem;
@@ -3188,112 +2579,60 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   accent-color: var(--admin-primary);
 }
 
-/* レスポンシブ対応 */
-@media (max-width: 1024px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .panel-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-  }
-  
-  .panel-actions {
-    justify-content: center;
-  }
+/* 設定パネル */
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-@media (max-width: 768px) {
-  .sub-nav {
-    flex-direction: column;
-  }
-  
-  .sub-nav-item {
-    border-right: none;
-    border-bottom: 1px solid var(--admin-gray-200);
-    justify-content: center;
-  }
-  
-  .sub-nav-item:last-child {
-    border-bottom: none;
-  }
-  
-  .editor-form {
-    padding: 1.5rem;
-  }
-  
-  .panel-header {
-    padding: 1rem 1.5rem;
-  }
-  
-  .panel-actions {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  
-  .btn {
-    font-size: 0.8125rem;
-    padding: 0.625rem 1.25rem;
-  }
-  
-  .editor-toolbar {
-    flex-wrap: wrap;
-  }
-  
-  .form-textarea.editor-content {
-    min-height: 250px;
-    font-size: 0.75rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .editor-form {
-    padding: 1rem;
-  }
-  
-  .panel-header {
-    padding: 1rem;
-  }
-  
-  .panel-header h2 {
-    font-size: 1.125rem;
-  }
-  
-  .form-group {
-    margin-bottom: 1rem;
-  }
-  
-  .btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.75rem;
-  }
-  
-  .form-textarea.editor-content {
-    min-height: 200px;
-  }
-}
-
-/* 記事一覧パネル */
-.list-panel {
+.setting-group {
   background: var(--admin-white);
+  padding: 1.5rem;
   border-radius: var(--admin-border-radius);
   box-shadow: var(--admin-shadow);
-  overflow: hidden;
 }
 
-.list-panel.full-width {
-  width: 100%;
+.setting-group h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.panel-filters {
+.setting-group h3 i {
+  color: var(--admin-primary);
+}
+
+.setting-group p {
+  margin: 0 0 1rem 0;
+  color: var(--admin-gray-600);
+  font-size: 0.875rem;
+}
+
+.setting-actions {
   display: flex;
   gap: 0.75rem;
-  align-items: center;
+  flex-wrap: wrap;
 }
 
+.setting-note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--admin-gray-500);
+  font-size: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.setting-note i {
+  color: var(--admin-info);
+}
+
+/* リストコンテンツ */
 .list-content {
   padding: 2rem;
   min-height: 400px;
@@ -3400,9 +2739,6 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   transition: all 0.2s ease;
   border: 2px solid transparent;
   white-space: nowrap;
-  text-align: center;
-  min-width: 120px;
-  justify-content: center;
 }
 
 .action-btn.primary {
@@ -3449,274 +2785,22 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   box-shadow: 0 6px 16px rgba(80, 200, 163, 0.3);
 }
 
-/* クイックアクション */
-.quick-actions .widget-content {
-  padding: 1.5rem;
-}
-
-.quick-actions .action-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.quick-actions .action-btn {
-  width: 100%;
-  justify-content: flex-start;
-}
-
-/* レスポンシブ対応 - 記事管理専用 */
-@media (max-width: 1024px) {
-  .news-item-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
-  }
-  
-  .news-item-actions {
-    opacity: 1;
-    align-self: flex-start;
-  }
-  
-  .quick-actions .action-buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .news-item {
-    padding: 1rem;
-  }
-  
-  .news-item-title {
-    font-size: 1rem;
-  }
-  
-  .news-item-summary {
-    font-size: 0.8125rem;
-  }
-  
-  .news-item-meta {
-    gap: 0.5rem;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .list-content {
-    padding: 1rem;
-  }
-  
-  .quick-actions .action-buttons {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .news-item-actions {
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-  
-  .action-btn {
-    min-width: auto;
-    padding: 0.5rem 1rem;
-    font-size: 0.75rem;
-  }
-}
-
-/* =========================================================================
- * 新規記事作成 - ヒーローアクション UI（削除済み機能のため無効化）
- * ========================================================================= */
-
-/*
-ヒーローアクション全体
-.hero-action {
-  margin-bottom: 2rem;
-}
-
-.hero-action-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 20px;
-  padding: 2rem;
-  color: white;
-  box-shadow: 0 20px 40px rgba(102, 126, 234, 0.2);
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  transition: all 0.3s ease;
-}
-
-.hero-action-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.hero-action-card:hover::before {
-  opacity: 1;
-}
-
-.hero-action-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 25px 50px rgba(102, 126, 234, 0.3);
-}
-
-アイコン部分
-.hero-action-icon {
-  width: 80px;
-  height: 80px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(10px);
-  flex-shrink: 0;
-}
-
-.hero-action-icon i {
-  font-size: 2rem;
-  color: white;
-}
-
-コンテンツ部分
-.hero-action-content {
-  flex: 1;
-}
-
-.hero-action-content h3 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: white;
-}
-
-.hero-action-content p {
-  font-size: 1rem;
-  opacity: 0.9;
-  margin-bottom: 1rem;
-  line-height: 1.5;
-}
-
-機能タグ
-.hero-action-features {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.feature-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  padding: 0.5rem 1rem;
-  border-radius: 25px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.feature-tag i {
-  font-size: 0.75rem;
-}
-
-ヒーローボタン
-.hero-action-button {
-  flex-shrink: 0;
-}
-
-.btn-hero {
-  position: relative;
-  padding: 1rem 2rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 15px;
-  background: white;
-  color: #667eea;
-  cursor: pointer;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.btn-hero:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.btn-hero i {
-  font-size: 1rem;
-}
-
-ボタンシャイン効果
-.btn-shine {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.5s ease;
-}
-
-.btn-hero:hover .btn-shine {
-  left: 100%;
-}
-*/
-
-/* セカンダリアクション */
-.secondary-actions {
-  margin-top: 1.5rem;
-}
-
-.secondary-actions h4 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--admin-gray-700);
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.secondary-actions h4 i {
-  color: var(--admin-primary);
-}
-
-/* アクションボタングリッド */
+/* クイックアクション統一 */
 .action-buttons-grid {
   display: flex;
-  flex-direction: column; /* グリッドから縦並びフレックスに変更 */
-  gap: 0.75rem; /* 1remから縮小 */
+  flex-direction: column;
+  gap: 0.75rem;
   margin-top: 0;
 }
 
-/* コンパクトアクションボタン */
 .action-btn.compact {
   background: white;
   border: 1px solid var(--admin-gray-200);
   border-radius: 12px;
-  padding: 0.75rem; /* 1remから縮小 */
+  padding: 0.75rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem; /* 1remから縮小 */
+  gap: 0.75rem;
   transition: all 0.2s ease;
   cursor: pointer;
   text-align: left;
@@ -3777,64 +2861,53 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   background: var(--admin-warning);
 }
 
-/* レスポンシブ対応 */
-@media (max-width: 768px) {
-  .action-buttons-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .action-btn.compact {
-    padding: 0.625rem; /* 0.75remからさらに縮小 */
-  }
-  
-  .action-icon {
-    width: 32px; /* 35pxから縮小 */
-    height: 32px; /* 35pxから縮小 */
-    font-size: 0.9rem; /* 1remから縮小 */
-  }
-  
-  .action-title {
-    font-size: 0.8rem; /* 0.85remから縮小 */
-  }
-  
-  .action-desc {
-    font-size: 0.65rem; /* 0.7remから縮小 */
-  }
-  
-  .widget {
-    min-height: 250px; /* モバイルでは高さをさらに調整 */
-  }
+/* 空状態・ローディング状態 */
+.loading-state,
+.error-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  min-height: 120px;
+  color: var(--admin-gray-500);
 }
 
-@media (max-width: 480px) {
-  .action-btn.compact {
-    padding: 0.5rem;
-    gap: 0.75rem;
-  }
-  
-  .action-icon {
-    width: 30px;
-    height: 30px;
-    font-size: 0.9rem;
-  }
+.loading-state i {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--admin-primary);
 }
 
-.btn-ghost {
-  background: transparent;
-  color: var(--admin-gray-600);
-  border: 1px solid var(--admin-gray-300);
-  transition: var(--admin-transition);
+.error-state {
+  color: var(--admin-error);
 }
 
-.btn-ghost:hover {
-  background: var(--admin-gray-100);
-  color: var(--admin-gray-700);
-  border-color: var(--admin-gray-400);
-  transform: translateY(-1px);
+.error-state i {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  color: var(--admin-error);
 }
 
-.btn-sm {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  border-radius: 6px;
+.empty-state {
+  color: var(--admin-gray-400);
+}
+
+/* スクロール可能である事を示すフェードエフェクト */
+.recent-articles-widget {
+  position: relative;
+}
+
+.recent-articles-widget::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: linear-gradient(transparent, rgba(255, 255, 255, 0.9));
+  pointer-events: none;
+  border-radius: 0 0 var(--admin-border-radius) var(--admin-border-radius);
 }

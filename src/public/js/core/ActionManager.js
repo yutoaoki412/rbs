@@ -51,8 +51,32 @@ export class ActionManager {
    * 初期化状態を取得
    * @returns {boolean}
    */
-  get isInitialized() {
+  get initialized() {
     return this.#initialized;
+  }
+
+  /**
+   * 登録済みアクション一覧を取得（デバッグ用）
+   * @returns {Map<string, Function>}
+   */
+  get _actions() {
+    return this.#actions;
+  }
+
+  /**
+   * 登録済みアクション数を取得
+   * @returns {number}
+   */
+  get actionCount() {
+    return this.#actions.size;
+  }
+
+  /**
+   * 登録済みアクション名一覧を取得
+   * @returns {string[]}
+   */
+  getRegisteredActionNames() {
+    return Array.from(this.#actions.keys());
   }
 
   /**
@@ -97,7 +121,7 @@ export class ActionManager {
     }
 
     // デバッグログは重要なアクションのみ
-    if (this.#isDebugMode() && ['toggle-faq', 'toggle-status', 'switch-tab'].includes(actionName)) {
+    if (this.#isDebugMode() && ['toggle-faq', 'toggle-status', 'switch-tab', 'switch-admin-tab'].includes(actionName)) {
       console.log(`🔧 アクション処理開始: "${actionName}"`);
     }
     
@@ -109,7 +133,7 @@ export class ActionManager {
         await handler(element, params, event);
         
         // 成功ログは重要なアクションのみ
-        if (this.#isDebugMode() && ['toggle-faq', 'toggle-status', 'switch-tab'].includes(actionName)) {
+        if (this.#isDebugMode() && ['toggle-faq', 'toggle-status', 'switch-tab', 'switch-admin-tab'].includes(actionName)) {
           console.log(`✅ アクション処理完了: "${actionName}"`);
         }
       } else {

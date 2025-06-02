@@ -52,7 +52,7 @@
     <aside class="admin-sidebar">
       <nav class="sidebar-nav">
         <div class="nav-item active" data-tab="dashboard" data-action="switch-admin-tab">
-          <i class="fas fa-chart-bar"></i>
+          <i class="fas fa-chart-line"></i>
           <span>ダッシュボード</span>
         </div>
         <div class="nav-item" data-tab="news-management" data-action="switch-admin-tab">
@@ -75,7 +75,7 @@
       <!-- ダッシュボードタブ -->
       <div class="admin-section active" id="dashboard">
         <div class="section-header">
-          <h1><i class="fas fa-tachometer-alt"></i> ダッシュボード</h1>
+          <h1><i class="fas fa-chart-line"></i> ダッシュボード</h1>
         </div>
 
         <!-- 統計カード -->
@@ -186,8 +186,8 @@
         </div>
       </div>
 
-      <!-- 記事管理 -->
-      <section id="news-management" class="admin-section">
+      <!-- 記事管理タブ -->
+      <div class="admin-section" id="news-management">
         <div class="section-header">
           <h1><i class="fas fa-newspaper"></i> 記事管理</h1>
         </div>
@@ -338,12 +338,12 @@
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      <!-- レッスン状況 -->
-      <section id="lesson-status" class="admin-section">
+      <!-- レッスン状況タブ -->
+      <div class="admin-section" id="lesson-status">
         <div class="section-header">
-          <h1><i class="fas fa-calendar-check"></i> レッスン開催状況</h1>
+          <h1><i class="fas fa-calendar-check"></i> レッスン状況</h1>
           <p class="section-description">本日のレッスン開催状況を設定・管理できます</p>
         </div>
         
@@ -381,7 +381,7 @@
                     </div>
                     <div class="option-content">
                       <h4>通常開催</h4>
-                      <p>予定通り屋外で実施</p>
+                      <p>予定通り開催</p>
                     </div>
                     <div class="option-check">
                       <i class="fas fa-check"></i>
@@ -397,7 +397,7 @@
                     </div>
                     <div class="option-content">
                       <h4>中止</h4>
-                      <p>本日は開催中止</p>
+                      <p>本日のレッスンは中止</p>
                     </div>
                     <div class="option-check">
                       <i class="fas fa-check"></i>
@@ -413,7 +413,7 @@
                     </div>
                     <div class="option-content">
                       <h4>室内開催</h4>
-                      <p>室内で実施します</p>
+                      <p>体育館で実施</p>
                     </div>
                     <div class="option-check">
                       <i class="fas fa-check"></i>
@@ -429,7 +429,7 @@
                     </div>
                     <div class="option-content">
                       <h4>延期</h4>
-                      <p>別日程に変更</p>
+                      <p>後日開催予定</p>
                     </div>
                     <div class="option-check">
                       <i class="fas fa-check"></i>
@@ -440,155 +440,14 @@
             </div>
           </div>
           
-          <!-- ステップ2: 詳細設定 -->
-          <div class="wizard-content step-2">
-            <div class="step-panel">
-              <div class="step-header">
-                <h3><i class="fas fa-cog"></i> 詳細設定</h3>
-                <p>開催日とメッセージを設定してください</p>
-              </div>
-              
-              <div class="detail-settings-grid">
-                <div class="setting-card">
-                  <div class="setting-header">
-                    <i class="fas fa-calendar-alt"></i>
-                    <h4>対象日</h4>
-                  </div>
-                  <div class="setting-content">
-                    <input type="date" id="lesson-date" class="date-input" value="">
-                  </div>
-                </div>
-                
-                <div class="setting-card full-width">
-                  <div class="setting-header">
-                    <i class="fas fa-comment-alt"></i>
-                    <h4>メッセージ（任意）</h4>
-                  </div>
-                  <div class="setting-content">
-                    <textarea id="global-message" class="message-textarea" rows="3" placeholder="例：雨天のため室内で実施いたします。体育館シューズをお持ちください。"></textarea>
-                    <div class="textarea-help">
-                      <small><i class="fas fa-info-circle"></i> このメッセージはトップページに表示されます</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- ステップ3: コース別設定 -->
-          <div class="wizard-content step-3">
-            <div class="step-panel">
-              <div class="step-header">
-                <h3><i class="fas fa-users"></i> コース別設定</h3>
-                <p>各コースの個別設定（必要に応じて全体設定から変更）</p>
-              </div>
-              
-              <div class="courses-settings">
-                <div class="course-setting-card">
-                  <div class="course-setting-header">
-                    <div class="course-info">
-                      <h4>ベーシックコース</h4>
-                      <span class="course-detail">年長〜小3対象 / 17:00-17:50</span>
-                    </div>
-                    <div class="course-status-indicator">
-                      <span class="status-badge scheduled">通常開催</span>
-                    </div>
-                  </div>
-                  
-                  <div class="course-status-options">
-                    <label class="mini-status-option">
-                      <input type="radio" name="basic-lesson" value="通常開催" checked>
-                      <span class="option-text">
-                        <i class="fas fa-check-circle"></i>
-                        通常開催
-                      </span>
-                    </label>
-                    <label class="mini-status-option">
-                      <input type="radio" name="basic-lesson" value="中止">
-                      <span class="option-text">
-                        <i class="fas fa-times-circle"></i>
-                        中止
-                      </span>
-                    </label>
-                    <label class="mini-status-option">
-                      <input type="radio" name="basic-lesson" value="室内開催">
-                      <span class="option-text">
-                        <i class="fas fa-home"></i>
-                        室内開催
-                      </span>
-                    </label>
-                    <label class="mini-status-option">
-                      <input type="radio" name="basic-lesson" value="延期">
-                      <span class="option-text">
-                        <i class="fas fa-clock"></i>
-                        延期
-                      </span>
-                    </label>
-                  </div>
-                </div>
-                
-                <div class="course-setting-card">
-                  <div class="course-setting-header">
-                    <div class="course-info">
-                      <h4>アドバンスコース</h4>
-                      <span class="course-detail">小4〜小6対象 / 18:00-18:50</span>
-                    </div>
-                    <div class="course-status-indicator">
-                      <span class="status-badge scheduled">通常開催</span>
-                    </div>
-                  </div>
-                  
-                  <div class="course-status-options">
-                    <label class="mini-status-option">
-                      <input type="radio" name="advance-lesson" value="通常開催" checked>
-                      <span class="option-text">
-                        <i class="fas fa-check-circle"></i>
-                        通常開催
-                      </span>
-                    </label>
-                    <label class="mini-status-option">
-                      <input type="radio" name="advance-lesson" value="中止">
-                      <span class="option-text">
-                        <i class="fas fa-times-circle"></i>
-                        中止
-                      </span>
-                    </label>
-                    <label class="mini-status-option">
-                      <input type="radio" name="advance-lesson" value="室内開催">
-                      <span class="option-text">
-                        <i class="fas fa-home"></i>
-                        室内開催
-                      </span>
-                    </label>
-                    <label class="mini-status-option">
-                      <input type="radio" name="advance-lesson" value="延期">
-                      <span class="option-text">
-                        <i class="fas fa-clock"></i>
-                        延期
-                      </span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- プレビューボタン -->
-              <div class="course-preview-actions">
-                <button class="btn btn-outline" id="show-preview-btn">
-                  <i class="fas fa-eye"></i>
-                  プレビューを表示
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <!-- ナビゲーションとアクション -->
+          <!-- ウィザードアクション -->
           <div class="wizard-actions">
             <div class="nav-buttons">
-              <button class="btn btn-outline wizard-prev" disabled>
+              <button class="wizard-prev" disabled>
                 <i class="fas fa-chevron-left"></i>
                 前へ
               </button>
-              <button class="btn btn-primary wizard-next">
+              <button class="wizard-next">
                 次へ
                 <i class="fas fa-chevron-right"></i>
               </button>
@@ -606,10 +465,10 @@
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      <!-- 設定 -->
-      <section id="settings" class="admin-section">
+      <!-- 設定タブ -->
+      <div class="admin-section" id="settings">
         <div class="section-header">
           <h1><i class="fas fa-cog"></i> 設定</h1>
         </div>
@@ -662,7 +521,7 @@
             </div>
           </div>
         </div>
-      </section>
+      </div>
     </main>
   </div>
 
@@ -787,9 +646,61 @@
     window.listActions = function() {
       if (window.app && window.app.actionManager) {
         console.log('📋 登録済みアクション:', Array.from(window.app.actionManager._actions.keys()));
+      } else if (window.actionManager) {
+        console.log('📋 登録済みアクション:', Array.from(window.actionManager._actions.keys()));
       } else {
         console.warn('⚠️ ActionManagerが利用できません');
       }
+    };
+
+    // デバッグ用: タブ機能テスト
+    window.testTabFunction = function(tabName = 'dashboard') {
+      console.log(`🧪 タブ機能テスト開始: ${tabName}`);
+      
+      if (window.adminActionService) {
+        console.log('✅ AdminActionServiceが利用可能');
+        window.adminActionService.switchAdminTab(tabName);
+      } else {
+        console.error('❌ AdminActionServiceが利用できません');
+      }
+    };
+
+    // デバッグ用: アクション実行テスト
+    window.testAction = function(actionName, params = {}) {
+      console.log(`🧪 アクション実行テスト: ${actionName}`, params);
+      
+      if (window.actionManager) {
+        const element = document.createElement('div');
+        element.setAttribute('data-action', actionName);
+        
+        // パラメータをdata属性として設定
+        Object.keys(params).forEach(key => {
+          element.setAttribute(`data-${key}`, params[key]);
+        });
+        
+        window.actionManager.handleAction(element, new Event('click'));
+      } else {
+        console.error('❌ ActionManagerが利用できません');
+      }
+    };
+
+    // デバッグ用: DOM要素確認
+    window.checkTabElements = function() {
+      console.log('🔍 タブ関連DOM要素確認');
+      
+      const navItems = document.querySelectorAll('.nav-item[data-tab]');
+      const sections = document.querySelectorAll('.admin-section');
+      
+      console.log('📋 ナビゲーション要素:', Array.from(navItems).map(item => ({
+        tab: item.dataset.tab,
+        action: item.dataset.action,
+        active: item.classList.contains('active')
+      })));
+      
+      console.log('📋 セクション要素:', Array.from(sections).map(section => ({
+        id: section.id,
+        active: section.classList.contains('active')
+      })));
     };
   </script>
 </body>

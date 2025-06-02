@@ -57,39 +57,17 @@ export class AdminActionService {
       authLastAttempt: CONFIG.storage.keys.authLastAttempt
     };
     
-    // アクション定義
-    this.actions = {
-      // ナビゲーション
-      'switch-tab': (element, params) => this.switchAdminTab(params?.tab || element.dataset.tab),
-      'switch-news-tab': (element, params) => this.switchNewsTab(params?.tab || element.dataset.tab),
-      'clear-news-editor': () => this.clearNewsEditor(),
-      'new-news-article': () => this.startNewArticle(),
-      'preview-news': () => this.previewNews(),
-      'save-news': () => this.saveNews(),
-      'publish-news': () => this.publishNews(),
-      'test-article-service': () => this.testArticleService(),
-      'filter-news-list': (element, params) => this.filterNewsList(element, params),
-      'refresh-news-list': () => this.refreshNewsList(),
-      'refresh-recent-articles': () => this.refreshRecentArticles(),
-      'insert-markdown': (element, params) => this.insertMarkdown(element, params),
-      'show-writing-guide': () => this.#showWritingGuide(),
-      'edit-article': (element, params) => this.editArticle(params?.articleId || element.dataset.articleId),
-      'delete-article': (element, params) => this.deleteArticle(params?.articleId || element.dataset.articleId),
-      'preview-article': (element, params) => this.previewArticleById(params?.articleId || element.dataset.articleId),
-      'duplicate-article': (element, params) => this.duplicateArticle(params?.articleId || element.dataset.articleId),
-      'load-lesson-status': () => this.loadLessonStatus(),
-      'update-lesson-status': () => this.updateLessonStatus(),
-      'toggle-notification-mode': () => this.toggleNotificationMode(),
-      'export-data': () => this.exportData(),
-      'clear-all-data': () => this.clearAllData(),
-      'test-site-connection': () => this.testSiteConnection(),
-      'reset-local-storage': () => this.resetLocalStorage(),
-      'show-debug-info': () => this.showDebugInfo(),
-      'show-news-debug': () => this.showNewsDebug(),
-      'close-modal': () => this.closeModal(),
-      'open-external': (element, params) => this.openExternalUrl(params?.url),
-      'toggle-mobile-menu': (element) => this.toggleMobileMenu(element)
-    };
+    // アクション定義（プロパティ用・デバッグ用）
+    this.actionsList = [
+      'switch-admin-tab', 'switch-news-tab', 'clear-news-editor', 'new-news-article',
+      'preview-news', 'save-news', 'publish-news', 'test-article-service',
+      'filter-news-list', 'refresh-news-list', 'refresh-recent-articles',
+      'insert-markdown', 'show-writing-guide', 'edit-article', 'delete-article',
+      'preview-article', 'duplicate-article', 'load-lesson-status', 'update-lesson-status',
+      'toggle-notification-mode', 'export-data', 'clear-all-data', 'test-site-connection',
+      'reset-local-storage', 'show-debug-info', 'show-news-debug', 'close-modal',
+      'open-external', 'toggle-mobile-menu', 'logout'
+    ];
   }
 
   /**
@@ -248,9 +226,9 @@ export class AdminActionService {
     const adminActions = {
       // 認証関連はAuthServiceで処理（責任の分離）
       
-      // タブ切り替え（優先度高）
-      'switch-tab': async (element, params) => {
-        console.log('🎯 switch-tabアクション実行:', { element, params });
+      // タブ切り替え（優先度高） - HTMLのdata-action="switch-admin-tab"に対応
+      'switch-admin-tab': async (element, params) => {
+        console.log('🎯 switch-admin-tabアクション実行:', { element, params });
         
         const tabName = params?.tab || element?.dataset?.tab;
         console.log('🔍 取得したタブ名:', tabName);
@@ -352,6 +330,9 @@ export class AdminActionService {
       'show-news-debug': () => this.showNewsDebug(),
       'close-modal': () => this.closeModal(),
       'open-external': (element, params) => this.openExternalUrl(params.url),
+
+      // 認証関連
+      'logout': () => this.handleAuthLogout(),
 
       // UIイベント
       'toggle-mobile-menu': (element) => this.toggleMobileMenu(element)
