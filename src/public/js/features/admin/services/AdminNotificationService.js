@@ -1,3 +1,5 @@
+import { CONFIG } from '../../../shared/constants/config.js';
+
 /**
  * RBS管理画面 - 通知・ログ・モーダルサービス
  * 管理画面専用のモダン通知システム
@@ -6,6 +8,15 @@
 
 class AdminNotificationService {
   constructor() {
+    this.componentName = 'AdminNotificationService';
+    
+    // 統一ストレージキー（CONFIG.storage.keysから取得）
+    this.storageKeys = {
+      adminLogs: CONFIG.storage.keys.adminLogs,
+      debugMode: CONFIG.storage.keys.adminDebugMode,
+      sessionStart: CONFIG.storage.keys.adminStartTime
+    };
+    
     this.notifications = new Map();
     this.logs = [];
     this.modals = new Map();
@@ -17,7 +28,12 @@ class AdminNotificationService {
     };
     
     this.initialized = false;
-    this.containers = {};
+    this.containers = {
+      notifications: null,
+      modals: null,
+      logViewer: null,
+      debugPanel: null
+    };
   }
 
   /**
@@ -402,7 +418,7 @@ class AdminNotificationService {
   }
 
   isDebugMode() {
-    return localStorage.getItem('admin_debug_mode') === 'true' || 
+    return localStorage.getItem(this.storageKeys.debugMode) === 'true' || 
            window.location.search.includes('debug=true');
   }
 
@@ -462,7 +478,7 @@ class AdminNotificationService {
   persistLogs() {
     try {
       const recentLogs = this.logs.slice(0, 50);
-      localStorage.setItem('admin_logs', JSON.stringify(recentLogs));
+      localStorage.setItem(this.storageKeys.adminLogs, JSON.stringify(recentLogs));
     } catch (error) {
       console.warn('ログの保存に失敗しました:', error);
     }
@@ -470,7 +486,7 @@ class AdminNotificationService {
 
   loadPersistedLogs() {
     try {
-      const stored = localStorage.getItem('admin_logs');
+      const stored = localStorage.getItem(this.storageKeys.adminLogs);
       if (stored) {
         const logs = JSON.parse(stored);
         this.logs = logs.map(log => ({
@@ -529,8 +545,8 @@ class AdminNotificationService {
 
   setupEventListeners() {
     // アプリケーション開始時間を記録
-    if (!sessionStorage.getItem('admin_start_time')) {
-      sessionStorage.setItem('admin_start_time', Date.now().toString());
+    if (!sessionStorage.getItem(this.storageKeys.sessionStart)) {
+      sessionStorage.setItem(this.storageKeys.sessionStart, Date.now().toString());
     }
 
     // キーボードショートカット
@@ -829,7 +845,7 @@ class AdminNotificationService {
   clearLogs() {
     this.logs = [];
     this.updateLogViewer();
-    localStorage.removeItem('admin_logs');
+    localStorage.removeItem(this.storageKeys.adminLogs);
     
     this.log({
       level: 'info',

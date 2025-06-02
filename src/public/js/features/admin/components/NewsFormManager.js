@@ -11,19 +11,36 @@ import { querySelector, show, hide, setValue, getValue } from '../../../shared/u
 import { escapeHtml, truncate } from '../../../shared/utils/stringUtils.js';
 import { createErrorMessage, createSuccessMessage } from '../../../shared/utils/htmlUtils.js';
 
+/**
+ * 記事作成・編集フォーム管理クラス
+ * 管理画面の記事作成・編集フォームの操作とバリデーションを担当
+ * @version 3.0.0 - 統合記事管理システム対応
+ */
 export class NewsFormManager {
   constructor() {
+    this.componentName = 'NewsFormManager';
     this.initialized = false;
-    this.currentArticle = null;
+    
+    // 統一ストレージキー（CONFIG.storage.keysから取得）
+    this.storageKeys = {
+      newsDraft: CONFIG.storage.keys.newsDraft
+    };
+    
+    // フォーム要素のキャッシュ
     this.formElements = {};
-    this.autoSaveTimer = null;
+    this.currentArticle = null;
     this.isEditing = false;
     
-    // フォーム設定
-    this.autoSaveInterval = 30000; // 30秒
+    // バリデーション設定
+    this.validationRules = {};
     this.maxTitleLength = 100;
-    this.maxContentLength = 10000;
-    this.maxSummaryLength = 200;
+    this.maxContentLength = 50000;
+    this.maxSummaryLength = 500;
+    
+    // 自動保存設定
+    this.autoSaveEnabled = true;
+    this.autoSaveInterval = CONFIG.articles.autoSaveInterval; // 30秒
+    this.autoSaveTimer = null;
   }
 
   /**
@@ -200,7 +217,7 @@ export class NewsFormManager {
     // 何かしらの入力がある場合のみ自動保存
     if (formData.title.trim() || formData.content.trim()) {
       try {
-        localStorage.setItem('rbs_news_draft', JSON.stringify({
+        localStorage.setItem(this.storageKeys.newsDraft, JSON.stringify({
           ...formData,
           autoSavedAt: new Date().toISOString()
         }));
@@ -379,8 +396,8 @@ export class NewsFormManager {
         this.isEditing = true;
         setValue(this.formElements.id, result.id);
         
-        // 自動保存データをクリア
-        localStorage.removeItem('rbs_news_draft');
+        // 自動保存データをクリア（統一ストレージキーを使用）
+        localStorage.removeItem(this.storageKeys.newsDraft);
       } else {
         this.showMessage(result.message, 'error');
       }
@@ -527,7 +544,7 @@ export class NewsFormManager {
    */
   restoreAutoSavedData() {
     try {
-      const saved = localStorage.getItem('rbs_news_draft');
+      const saved = localStorage.getItem(this.storageKeys.newsDraft);
       if (saved) {
         const data = JSON.parse(saved);
         const autoSavedAt = new Date(data.autoSavedAt);
@@ -542,12 +559,12 @@ export class NewsFormManager {
             'info'
           );
         } else {
-          localStorage.removeItem('rbs_news_draft');
+          localStorage.removeItem(this.storageKeys.newsDraft);
         }
       }
     } catch (error) {
       console.error('❌ 自動保存データの復元に失敗:', error);
-      localStorage.removeItem('rbs_news_draft');
+      localStorage.removeItem(this.storageKeys.newsDraft);
     }
   }
 

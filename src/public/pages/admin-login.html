@@ -114,38 +114,33 @@
     document.addEventListener('DOMContentLoaded', function() {
       console.log('ログインページ初期化開始');
       
-      // 既存の認証をチェック
-      if (checkExistingAuth()) {
-        console.log('既存の認証が見つかりました。管理画面にリダイレクト');
-        window.location.href = 'admin.html';
-        return;
-      }
+      // 既存のセッションチェック
+      checkExistingSession();
       
       setupEventListeners();
       document.getElementById('password').focus();
       console.log('ログインページ初期化完了');
     });
 
-    function checkExistingAuth() {
+    function checkExistingSession() {
       try {
         const authData = localStorage.getItem('rbs_admin_auth');
-        if (!authData) return false;
-        
-        const parsed = JSON.parse(authData);
-        const now = Date.now();
-        
-        // セッションが有効か確認
-        if (parsed.expires && now < parsed.expires) {
-          return true;
+        if (authData) {
+          const parsed = JSON.parse(authData);
+          const now = Date.now();
+          
+          if (parsed.expires && now < parsed.expires) {
+            console.log('🔐 有効なセッションが見つかりました。管理画面にリダイレクトします。');
+            window.location.href = 'admin.html';
+            return;
+          } else {
+            console.log('🔐 期限切れのセッションを削除します。');
+            localStorage.removeItem('rbs_admin_auth');
+          }
         }
-        
-        // 期限切れの場合は削除
-        localStorage.removeItem('rbs_admin_auth');
-        return false;
       } catch (error) {
-        console.error('認証チェックエラー:', error);
+        console.error('❌ セッションチェックエラー:', error);
         localStorage.removeItem('rbs_admin_auth');
-        return false;
       }
     }
 
@@ -192,23 +187,8 @@
         if (password === ADMIN_PASSWORD) {
           console.log('パスワード認証成功');
           
-          // セッションを作成（設定ファイルの値を使用）
-          const authData = {
-            token: generateSessionToken(),
-            created: Date.now(),
-            expires: Date.now() + CONFIG.security.admin.sessionDuration, // 24時間
-            lastActivity: Date.now(),
-            version: '3.0.0'
-          };
-          
-          localStorage.setItem('rbs_admin_auth', JSON.stringify(authData));
-          
-          console.log('セッション作成完了:', {
-            duration: CONFIG.security.admin.sessionDuration / (60 * 60 * 1000) + '時間',
-            expires: new Date(authData.expires).toLocaleString('ja-JP')
-          });
-          
-          showSuccessAndRedirect();
+          // 認証成功時の処理
+          handleLoginSuccess();
         } else {
           console.log('パスワード認証失敗');
           showError('パスワードが正しくありません');
@@ -221,6 +201,24 @@
       } finally {
         setLoadingState(false);
       }
+    }
+
+    function handleLoginSuccess() {
+      const authData = {
+        token: generateSessionToken(),
+        loginTime: Date.now(),
+        expires: Date.now() + (24 * 60 * 60 * 1000), // 24時間
+        lastActivity: Date.now()
+      };
+      
+      // 統一ストレージキーを使用
+      localStorage.setItem('rbs_admin_auth', JSON.stringify(authData));
+      
+      showMessage('ログインしました。管理画面に移動します...', 'success');
+      
+      setTimeout(() => {
+        window.location.href = 'admin.html';
+      }, 1000);
     }
 
     function generateSessionToken() {
@@ -273,13 +271,12 @@
         successElement.style.display = 'none';
     }
 
-    function showSuccessAndRedirect() {
-      console.log('ログイン成功、リダイレクト準備');
-      showSuccess();
-      setTimeout(() => {
-        console.log('管理画面にリダイレクト');
-        window.location.href = 'admin.html';
-      }, 1500);
+    function showMessage(message, type) {
+      if (type === 'success') {
+        showSuccess();
+      } else {
+        showError(message);
+      }
     }
 
     function togglePasswordVisibility() {

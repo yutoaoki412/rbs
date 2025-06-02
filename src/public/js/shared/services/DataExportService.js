@@ -6,17 +6,15 @@
 
 import { BaseService } from '../base/BaseService.js';
 import { EventBus } from './EventBus.js';
+import { CONFIG } from '../constants/config.js';
 
 export class DataExportService extends BaseService {
   constructor() {
     super('DataExportService');
     
-    // エクスポート設定
-    this.exportConfig = {
-      version: '3.0.0',
-      compression: false,
-      includeMetadata: true,
-      dateFormat: 'ISO'
+    // 統一ストレージキー（CONFIG.storage.keysから取得）
+    this.storageKeys = {
+      exportHistory: CONFIG.storage.keys.exportHistory
     };
     
     // データサービス参照
@@ -24,7 +22,16 @@ export class DataExportService extends BaseService {
     
     // エクスポート履歴
     this.exportHistory = [];
-    this.maxHistorySize = 10;
+    this.maxHistorySize = 20;
+    
+    // エクスポート設定
+    this.defaultConfig = {
+      format: 'json',
+      includeMetadata: true,
+      compress: false,
+      dateRange: null,
+      services: 'all'
+    };
   }
 
   /**
@@ -68,7 +75,7 @@ export class DataExportService extends BaseService {
       this.log('全データエクスポート開始');
       
       // エクスポート設定の準備
-      const config = { ...this.exportConfig, ...options };
+      const config = { ...this.defaultConfig, ...options };
       const exportData = await this.collectAllData(config);
       
       // ファイル名生成
@@ -237,7 +244,7 @@ export class DataExportService extends BaseService {
       exportedAt: new Date().toISOString(),
       exportType: type,
       serviceName,
-      version: config.version || this.exportConfig.version,
+      version: config.version || this.defaultConfig.version,
       userAgent: navigator.userAgent,
       url: window.location.href,
       settings: {
@@ -371,7 +378,7 @@ export class DataExportService extends BaseService {
    */
   async saveExportHistory() {
     try {
-      localStorage.setItem('rbs-export-history', JSON.stringify(this.exportHistory));
+      localStorage.setItem(this.storageKeys.exportHistory, JSON.stringify(this.exportHistory));
     } catch (error) {
       this.warn('エクスポート履歴保存エラー:', error);
     }
@@ -383,7 +390,7 @@ export class DataExportService extends BaseService {
    */
   async loadExportHistory() {
     try {
-      const saved = localStorage.getItem('rbs-export-history');
+      const saved = localStorage.getItem(this.storageKeys.exportHistory);
       if (saved) {
         this.exportHistory = JSON.parse(saved);
       }

@@ -24,12 +24,33 @@ const config = {
     prefix: 'rbs_',
     version: '3.0.0',
     keys: {
+      // 共通データ（LP + 管理画面）
       articles: 'rbs_articles',
       content: 'articles_content',
       config: 'articles_config',
       auth: 'auth_token',
       lessonStatus: 'rbs_lesson_status',
-      settings: 'rbs_settings'
+      settings: 'rbs_settings',
+      
+      // 管理画面機能
+      adminAuth: 'rbs_admin_auth',
+      adminActiveTab: 'rbs_admin_active_tab',
+      adminLogs: 'rbs_admin_logs',
+      adminDebugMode: 'rbs_admin_debug_mode',
+      adminStartTime: 'rbs_admin_start_time',
+      
+      // 記事管理
+      newsDraft: 'rbs_news_draft',
+      
+      // データ管理
+      exportHistory: 'rbs_export_history',
+      
+      // Instagram連携
+      instagram: 'rbs_instagram_data',
+      
+      // 認証関連
+      authAttempts: 'rbs_auth_attempts',
+      authLastAttempt: 'rbs_auth_last_attempt'
     },
     autoSaveInterval: 3000,
     cleanupInterval: 30 * 60 * 1000,

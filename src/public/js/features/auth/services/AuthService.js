@@ -9,6 +9,7 @@ import { CONFIG } from '../../../shared/constants/config.js';
 
 export class AuthService {
   constructor() {
+    this.serviceName = 'AuthService';
     this.initialized = false;
     this.isAuthenticatedCache = null;
     this.config = null;
@@ -16,9 +17,9 @@ export class AuthService {
     this.sessionMonitorInterval = null;
     this.sessionInfoUpdateInterval = null;
     this.storageKeys = {
-      auth: 'rbs_admin_auth',
-      attempts: 'rbs_login_attempts',
-      lastAttempt: 'rbs_last_attempt'
+      auth: CONFIG.storage.keys.adminAuth,
+      attempts: CONFIG.storage.keys.authAttempts,
+      lastAttempt: CONFIG.storage.keys.authLastAttempt
     };
 
     // セッション情報更新コールバック

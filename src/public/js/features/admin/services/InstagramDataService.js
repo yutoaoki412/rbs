@@ -11,11 +11,12 @@ import { isValidDate } from '../../../shared/utils/dateUtils.js';
 
 export class InstagramDataService {
   constructor() {
+    this.serviceName = 'InstagramDataService';
     this.initialized = false;
     
-    // ストレージキー
+    // ストレージキー（CONFIG統一）
     this.storageKeys = {
-      instagram: 'rbs_instagram_posts'
+      instagram: CONFIG.storage.keys.instagram
     };
     
     // データ格納

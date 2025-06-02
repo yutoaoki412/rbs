@@ -11,11 +11,16 @@ import { getLessonStatusStorageService } from '../../../shared/services/LessonSt
 import { uiManagerService } from './UIManagerService.js';
 import { newsFormManager } from '../components/NewsFormManager.js';
 import { authService } from '../../auth/services/AuthService.js';
+import { CONFIG } from '../../../shared/constants/config.js';
 
 export class AdminSystemService {
   constructor() {
-    this.initialized = false;
-    this.isAuthenticated = false;
+    this.componentName = 'AdminSystemService';
+    
+    // 統一ストレージキー（CONFIG.storage.keysから取得）
+    this.storageKeys = {
+      auth: CONFIG.storage.keys.auth
+    };
     
     // システム状態
     this.systemStatus = {
@@ -346,8 +351,8 @@ export class AdminSystemService {
     try {
       console.log('🔄 フォールバック ログアウト処理開始');
       
-      // 手動で認証データをクリア
-      localStorage.removeItem('rbs_admin_auth');
+      // 手動で認証データをクリア（統一ストレージキーを使用）
+      localStorage.removeItem(this.storageKeys.auth);
       sessionStorage.clear();
       
       // システムクリーンアップ

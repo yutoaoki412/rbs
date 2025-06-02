@@ -1,7 +1,7 @@
 /**
  * 管理画面アクションサービス
- * 管理画面固有のアクションを管理
- * @version 3.0.0 - 完全実装版
+ * ボタンクリックやフォーム送信などのユーザーアクションを処理
+ * @version 3.0.0 - 統合アクション管理システム
  */
 
 import { actionManager } from '../../../core/ActionManager.js';
@@ -14,15 +14,82 @@ import { uiManagerService } from './UIManagerService.js';
 
 export class AdminActionService {
   constructor() {
-    this.currentTab = 'dashboard';
-    this.initialized = false;
+    this.componentName = 'AdminActionService';
+    this.actionEventPrefix = 'admin-action';
+    
+    // サービス参照
     this.articleDataService = null;
+    this.articleStorageService = null;
     this.lessonStatusService = null;
     this.instagramDataService = null;
-    this.uiManagerService = null;
-    this.newsFormManager = null;
     this.authService = null;
-    this.sessionUpdateInterval = null;
+    this.uiManagerService = null;
+    this.dataExportService = null;
+    
+    // 統一ストレージキー（CONFIG.storage.keysから完全統一）
+    this.storageKeys = {
+      // 共通データキー（LP側と同じ）
+      articles: CONFIG.storage.keys.articles,
+      content: CONFIG.storage.keys.content,
+      config: CONFIG.storage.keys.config,
+      auth: CONFIG.storage.keys.auth,
+      lessonStatus: CONFIG.storage.keys.lessonStatus,
+      settings: CONFIG.storage.keys.settings,
+      
+      // 管理画面固有キー（CONFIG統一）
+      adminAuth: CONFIG.storage.keys.adminAuth,
+      adminTab: CONFIG.storage.keys.adminActiveTab,
+      adminLogs: CONFIG.storage.keys.adminLogs,
+      debugMode: CONFIG.storage.keys.adminDebugMode,
+      sessionStart: CONFIG.storage.keys.adminStartTime,
+      
+      // 記事管理
+      newsDraft: CONFIG.storage.keys.newsDraft,
+      
+      // データ管理
+      exportHistory: CONFIG.storage.keys.exportHistory,
+      
+      // Instagram連携
+      instagram: CONFIG.storage.keys.instagram,
+      
+      // 認証関連
+      authAttempts: CONFIG.storage.keys.authAttempts,
+      authLastAttempt: CONFIG.storage.keys.authLastAttempt
+    };
+    
+    // アクション定義
+    this.actions = {
+      // ナビゲーション
+      'switch-tab': (element, params) => this.switchAdminTab(params?.tab || element.dataset.tab),
+      'switch-news-tab': (element, params) => this.switchNewsTab(params?.tab || element.dataset.tab),
+      'clear-news-editor': () => this.clearNewsEditor(),
+      'new-news-article': () => this.startNewArticle(),
+      'preview-news': () => this.previewNews(),
+      'save-news': () => this.saveNews(),
+      'publish-news': () => this.publishNews(),
+      'test-article-service': () => this.testArticleService(),
+      'filter-news-list': (element, params) => this.filterNewsList(element, params),
+      'refresh-news-list': () => this.refreshNewsList(),
+      'refresh-recent-articles': () => this.refreshRecentArticles(),
+      'insert-markdown': (element, params) => this.insertMarkdown(element, params),
+      'show-writing-guide': () => this.#showWritingGuide(),
+      'edit-article': (element, params) => this.editArticle(params?.articleId || element.dataset.articleId),
+      'delete-article': (element, params) => this.deleteArticle(params?.articleId || element.dataset.articleId),
+      'preview-article': (element, params) => this.previewArticleById(params?.articleId || element.dataset.articleId),
+      'duplicate-article': (element, params) => this.duplicateArticle(params?.articleId || element.dataset.articleId),
+      'load-lesson-status': () => this.loadLessonStatus(),
+      'update-lesson-status': () => this.updateLessonStatus(),
+      'toggle-notification-mode': () => this.toggleNotificationMode(),
+      'export-data': () => this.exportData(),
+      'clear-all-data': () => this.clearAllData(),
+      'test-site-connection': () => this.testSiteConnection(),
+      'reset-local-storage': () => this.resetLocalStorage(),
+      'show-debug-info': () => this.showDebugInfo(),
+      'show-news-debug': () => this.showNewsDebug(),
+      'close-modal': () => this.closeModal(),
+      'open-external': (element, params) => this.openExternalUrl(params?.url),
+      'toggle-mobile-menu': (element) => this.toggleMobileMenu(element)
+    };
   }
 
   /**
@@ -31,6 +98,12 @@ export class AdminActionService {
   async init() {
     try {
       console.log('👨‍💼 AdminActionService 初期化開始');
+      
+      // ActionManagerの確実な初期化を待機
+      if (!actionManager.initialized) {
+        actionManager.init();
+        console.log('🔧 ActionManager を初期化しました');
+      }
       
       // 認証サービスの初期化
       if (!this.authService) {
@@ -159,19 +232,41 @@ export class AdminActionService {
    * @private
    */
   #registerAdminActions() {
+    console.log('🔧 管理画面アクション登録開始');
+    
     if (!this.actionManager) {
       this.error('ActionManagerが初期化されていません');
       return;
     }
 
+    // ActionManagerの状態確認
+    console.log('🔍 ActionManager状態:', {
+      initialized: this.actionManager.initialized,
+      actionsCount: this.actionManager._actions?.size || 0
+    });
+
     const adminActions = {
       // 認証関連はAuthServiceで処理（責任の分離）
       
-      // タブ切り替え
+      // タブ切り替え（優先度高）
       'switch-tab': async (element, params) => {
-        const tabName = params.tab;
+        console.log('🎯 switch-tabアクション実行:', { element, params });
+        
+        const tabName = params?.tab || element?.dataset?.tab;
+        console.log('🔍 取得したタブ名:', tabName);
+        
+        if (!tabName) {
+          console.error('❌ タブ名が取得できません:', { params, dataset: element?.dataset });
+          this.#showFeedback('タブ名が指定されていません', 'error');
+          return;
+        }
+        
         if (this.#isValidTabName(tabName)) {
+          console.log(`🚀 タブ切り替え実行: ${tabName}`);
           await this.switchAdminTab(tabName);
+        } else {
+          console.error(`❌ 無効なタブ名: ${tabName}`);
+          this.#showFeedback(`無効なタブ名: ${tabName}`, 'error');
         }
       },
 
@@ -262,8 +357,20 @@ export class AdminActionService {
       'toggle-mobile-menu': (element) => this.toggleMobileMenu(element)
     };
 
-    this.actionManager.registerMultiple(adminActions);
-    this.log('管理画面アクション登録完了');
+    // アクションを登録
+    try {
+      this.actionManager.registerMultiple(adminActions);
+      console.log('✅ 管理画面アクション登録完了');
+      console.log('🔍 登録されたアクション数:', Object.keys(adminActions).length);
+      
+      // 登録確認
+      const registeredActions = Array.from(this.actionManager._actions?.keys() || []);
+      console.log('🔍 ActionManagerに登録済みのアクション:', registeredActions);
+      
+    } catch (error) {
+      console.error('❌ 管理画面アクション登録エラー:', error);
+      this.error('管理画面アクション登録に失敗しました:', error);
+    }
   }
 
   /**
@@ -355,36 +462,83 @@ export class AdminActionService {
    * @param {string} tabName - タブ名
    */
   async switchAdminTab(tabName) {
-    console.log(`🔄 管理画面タブ切り替え: ${tabName}`);
+    console.log(`🔄 管理画面タブ切り替え開始: ${tabName}`);
     
-    // 現在のアクティブタブを非アクティブに
-    const currentActiveTab = document.querySelector('.admin-section.active');
-    const currentActiveNavItem = document.querySelector('.nav-item.active');
-    
-    if (currentActiveTab) {
-      currentActiveTab.classList.remove('active');
+    // バリデーション
+    if (!this.#isValidTabName(tabName)) {
+      console.error(`❌ 無効なタブ名: ${tabName}`);
+      this.#showFeedback(`無効なタブ名: ${tabName}`, 'error');
+      return;
     }
-    if (currentActiveNavItem) {
-      currentActiveNavItem.classList.remove('active');
-    }
-    
-    // 新しいタブをアクティブに
-    const newActiveTab = document.getElementById(tabName);
-    const newActiveNavItem = document.querySelector(`[data-tab="${tabName}"]`);
-    
-    if (newActiveTab) {
+
+    try {
+      // 現在のアクティブタブを取得
+      const currentActiveTab = document.querySelector('.admin-section.active');
+      const currentActiveNavItem = document.querySelector('.nav-item.active');
+      
+      console.log('🔍 現在のアクティブ要素:', {
+        tab: currentActiveTab?.id,
+        nav: currentActiveNavItem?.dataset?.tab
+      });
+      
+      // アクティブ状態をクリア
+      if (currentActiveTab) {
+        currentActiveTab.classList.remove('active');
+        console.log(`📤 旧タブ非アクティブ: ${currentActiveTab.id}`);
+      }
+      if (currentActiveNavItem) {
+        currentActiveNavItem.classList.remove('active');
+        console.log(`📤 旧ナビ非アクティブ: ${currentActiveNavItem.dataset.tab}`);
+      }
+      
+      // 新しいタブとナビアイテムを取得
+      const newActiveTab = document.getElementById(tabName);
+      const newActiveNavItem = document.querySelector(`[data-tab="${tabName}"]`);
+      
+      console.log('🔍 新しいアクティブ要素:', {
+        tab: newActiveTab?.id,
+        nav: newActiveNavItem?.dataset?.tab,
+        tabExists: !!newActiveTab,
+        navExists: !!newActiveNavItem
+      });
+      
+      // 要素の存在確認
+      if (!newActiveTab) {
+        console.error(`❌ タブセクションが見つかりません: #${tabName}`);
+        this.#showFeedback(`タブセクション "${tabName}" が見つかりません`, 'error');
+        return;
+      }
+      
+      if (!newActiveNavItem) {
+        console.error(`❌ ナビゲーションアイテムが見つかりません: [data-tab="${tabName}"]`);
+        this.#showFeedback(`ナビゲーションアイテム "${tabName}" が見つかりません`, 'error');
+        return;
+      }
+      
+      // アクティブ状態を設定
       newActiveTab.classList.add('active');
-    }
-    if (newActiveNavItem) {
       newActiveNavItem.classList.add('active');
+      
+      console.log(`📥 新タブアクティブ: ${newActiveTab.id}`);
+      console.log(`📥 新ナビアクティブ: ${newActiveNavItem.dataset.tab}`);
+      
+      // タブ状態を統一ストレージキーで保存
+      localStorage.setItem(this.storageKeys.adminTab, tabName);
+      console.log(`💾 タブ状態保存: ${tabName}`);
+      
+      // タブ固有の初期化処理（非同期）
+      await this.initializeTabContent(tabName);
+      this.currentTab = tabName;
+      
+      // 成功通知
+      const tabDisplayName = this.#getTabDisplayName(tabName);
+      console.log(`✅ ${tabDisplayName}に切り替え完了`);
+      this.#showFeedback(`${tabDisplayName}に切り替えました`, 'info', 2000);
+      
+    } catch (error) {
+      console.error(`❌ タブ切り替えエラー (${tabName}):`, error);
+      this.#showFeedback(`タブの切り替えに失敗しました: ${error.message}`, 'error');
     }
-    
-    // タブ固有の初期化処理（非同期）
-    await this.initializeTabContent(tabName);
-    this.currentTab = tabName;
-    
-    // タブ切り替えの通知は表示しない（コンソールログのみ）
-    console.log(`✅ ${this.#getTabDisplayName(tabName)}に切り替え完了`);
   }
 
   /**
@@ -2397,9 +2551,60 @@ export class AdminActionService {
    * @private
    */
   setupTabNavigation() {
-    // 現在のタブ状態を保存・復元
-    const activeTab = localStorage.getItem('admin-active-tab') || 'dashboard';
-    this.switchAdminTab(activeTab);
+    console.log('🧭 タブナビゲーション設定開始');
+    
+    try {
+      // 保存されたタブ状態を復元（統一ストレージキーを使用）
+      const savedTab = localStorage.getItem(this.storageKeys.adminTab);
+      const defaultTab = 'dashboard';
+      const activeTab = (savedTab && this.#isValidTabName(savedTab)) ? savedTab : defaultTab;
+      
+      console.log('🔍 タブ状態:', {
+        saved: savedTab,
+        default: defaultTab,
+        active: activeTab,
+        isValid: this.#isValidTabName(activeTab)
+      });
+      
+      // DOM要素の存在確認
+      const navItems = document.querySelectorAll('.nav-item[data-tab]');
+      const sections = document.querySelectorAll('.admin-section');
+      
+      console.log('🔍 DOM要素数:', {
+        navItems: navItems.length,
+        sections: sections.length
+      });
+      
+      if (navItems.length === 0) {
+        console.warn('⚠️ ナビゲーションアイテムが見つかりません');
+      }
+      
+      if (sections.length === 0) {
+        console.warn('⚠️ 管理画面セクションが見つかりません');
+      }
+      
+      // 初期タブを設定
+      this.switchAdminTab(activeTab);
+      console.log(`✅ 初期タブ設定完了: ${activeTab}`);
+      
+      // デバッグ情報
+      if (CONFIG.debug?.enabled || window.DEBUG) {
+        console.log('🔍 利用可能なタブ:', Array.from(navItems).map(item => item.dataset.tab));
+        console.log('🔍 利用可能なセクション:', Array.from(sections).map(section => section.id));
+      }
+      
+    } catch (error) {
+      console.error('❌ タブナビゲーション設定エラー:', error);
+      
+      // フォールバック: デフォルトタブを強制設定
+      try {
+        console.log('🔄 フォールバック: デフォルトタブを設定');
+        this.switchAdminTab('dashboard');
+      } catch (fallbackError) {
+        console.error('❌ フォールバック失敗:', fallbackError);
+        this.#showFeedback('タブナビゲーションの初期化に失敗しました', 'error');
+      }
+    }
   }
 
   // === ログメソッド ===
@@ -2910,6 +3115,256 @@ export class AdminActionService {
         if (text) text.textContent = '通知OFF';
       }
     }
+  }
+
+  /**
+   * デバッグ用：タブナビゲーション状態を確認
+   * @public
+   */
+  debugTabNavigation() {
+    console.group('🐛 タブナビゲーション デバッグ情報');
+    
+    // ActionManagerの状態
+    console.log('ActionManager:', {
+      initialized: this.actionManager?.initialized,
+      actionsCount: this.actionManager?._actions?.size || 0,
+      hasSwitchTab: this.actionManager?._actions?.has('switch-tab') || false
+    });
+    
+    // DOM要素の状態
+    const navItems = document.querySelectorAll('.nav-item[data-tab]');
+    const sections = document.querySelectorAll('.admin-section');
+    const activeNavItem = document.querySelector('.nav-item.active');
+    const activeSection = document.querySelector('.admin-section.active');
+    
+    console.log('DOM要素:', {
+      navItems: navItems.length,
+      sections: sections.length,
+      activeNavItem: activeNavItem?.dataset?.tab,
+      activeSection: activeSection?.id
+    });
+    
+    // 利用可能なタブ
+    const availableNavTabs = Array.from(navItems).map(item => ({
+      tab: item.dataset.tab,
+      active: item.classList.contains('active'),
+      hasAction: item.hasAttribute('data-action')
+    }));
+    
+    const availableSections = Array.from(sections).map(section => ({
+      id: section.id,
+      active: section.classList.contains('active')
+    }));
+    
+    console.log('利用可能なナビタブ:', availableNavTabs);
+    console.log('利用可能なセクション:', availableSections);
+    
+    // LocalStorage状態
+    console.log('LocalStorage:', {
+      adminTab: localStorage.getItem(this.storageKeys.adminTab),
+      allRbsKeys: Object.keys(localStorage).filter(key => key.startsWith('rbs_'))
+    });
+    
+    // サービス状態
+    console.log('サービス状態:', {
+      initialized: this.initialized,
+      currentTab: this.currentTab,
+      uiManagerService: !!this.uiManagerService,
+      authService: !!this.authService
+    });
+    
+    console.groupEnd();
+  }
+
+  /**
+   * デバッグ用：タブを強制切り替え
+   * @public
+   * @param {string} tabName - タブ名
+   */
+  forceTabSwitch(tabName) {
+    console.log(`🔧 タブ強制切り替え: ${tabName}`);
+    
+    if (!this.#isValidTabName(tabName)) {
+      console.error(`❌ 無効なタブ名: ${tabName}`);
+      return;
+    }
+    
+    this.switchAdminTab(tabName);
+  }
+  
+  /**
+   * デバッグ用：アクション手動実行
+   * @public
+   * @param {string} actionName - アクション名
+   * @param {Object} params - パラメータ
+   */
+  executeAction(actionName, params = {}) {
+    console.log(`🎯 アクション手動実行: ${actionName}`, params);
+    
+    if (!this.actionManager || !this.actionManager._actions) {
+      console.error('❌ ActionManagerが利用できません');
+      return;
+    }
+    
+    const action = this.actionManager._actions.get(actionName);
+    if (!action) {
+      console.error(`❌ アクション "${actionName}" が見つかりません`);
+      return;
+    }
+    
+    try {
+      action(null, params);
+      console.log(`✅ アクション "${actionName}" 実行完了`);
+    } catch (error) {
+      console.error(`❌ アクション "${actionName}" 実行エラー:`, error);
+    }
+  }
+
+  /**
+   * デバッグ用：Local Storage統合状況確認
+   * @public
+   */
+  debugStorageIntegration() {
+    console.group('🔍 Local Storage統合状況確認');
+    
+    console.log('📋 CONFIG.storage.keys設定:');
+    Object.entries(CONFIG.storage.keys).forEach(([key, value]) => {
+      console.log(`  ${key}: ${value}`);
+    });
+    
+    console.log('\n🗄️ 実際のLocal Storage使用状況:');
+    
+    // AdminActionServiceのキー
+    console.log('AdminActionService:');
+    Object.entries(this.storageKeys).forEach(([key, value]) => {
+      const hasData = !!localStorage.getItem(value);
+      console.log(`  ${key}: ${value} ${hasData ? '✅ データあり' : '❌ データなし'}`);
+    });
+    
+    // 全LocalStorageのRBS関連キーを表示
+    console.log('\n📦 全RBS関連Local Storageキー:');
+    const allKeys = Object.keys(localStorage);
+    const rbsKeys = allKeys.filter(key => key.startsWith('rbs_') || key.includes('article') || key.includes('auth'));
+    
+    rbsKeys.forEach(key => {
+      const value = localStorage.getItem(key);
+      const size = value ? value.length : 0;
+      const type = (() => {
+        try {
+          const parsed = JSON.parse(value);
+          if (Array.isArray(parsed)) return `Array(${parsed.length})`;
+          if (typeof parsed === 'object') return 'Object';
+          return typeof parsed;
+        } catch {
+          return 'String';
+        }
+      })();
+      
+      console.log(`  ${key}: ${size}bytes (${type})`);
+    });
+    
+    // 統合前後の比較
+    console.log('\n🔄 統合状況サマリー:');
+    const expectedKeys = Object.values(CONFIG.storage.keys);
+    const actualKeys = allKeys.filter(key => key.startsWith('rbs_'));
+    const unmatchedKeys = actualKeys.filter(key => !expectedKeys.includes(key));
+    
+    console.log(`  CONFIGで定義済みキー数: ${expectedKeys.length}`);
+    console.log(`  実際のRBSキー数: ${actualKeys.length}`);
+    console.log(`  未統合キー数: ${unmatchedKeys.length}`);
+    
+    if (unmatchedKeys.length > 0) {
+      console.warn('  未統合キー:', unmatchedKeys);
+    } else {
+      console.log('  ✅ 全キーが統合されています');
+    }
+    
+    console.groupEnd();
+    
+    return {
+      configKeys: CONFIG.storage.keys,
+      serviceKeys: this.storageKeys,
+      actualKeys: rbsKeys,
+      unmatchedKeys,
+      isFullyIntegrated: unmatchedKeys.length === 0
+    };
+  }
+
+  /**
+   * デバッグ用：LP側との互換性確認
+   * @public
+   */
+  debugLPCompatibility() {
+    console.group('🌐 LP側との互換性確認');
+    
+    // 記事データの確認
+    const articlesKey = CONFIG.storage.keys.articles;
+    const articlesData = localStorage.getItem(articlesKey);
+    
+    console.log('📰 記事データ互換性:');
+    console.log(`  キー: ${articlesKey}`);
+    
+    if (articlesData) {
+      try {
+        const articles = JSON.parse(articlesData);
+        console.log(`  データ型: ${Array.isArray(articles) ? 'Array' : typeof articles}`);
+        console.log(`  記事数: ${Array.isArray(articles) ? articles.length : 'N/A'}`);
+        
+        if (Array.isArray(articles) && articles.length > 0) {
+          const sampleArticle = articles[0];
+          console.log('  サンプル記事構造:', {
+            id: !!sampleArticle.id,
+            title: !!sampleArticle.title,
+            status: sampleArticle.status,
+            category: sampleArticle.category,
+            createdAt: !!sampleArticle.createdAt
+          });
+        }
+        
+        console.log('  ✅ LP側で読み込み可能');
+      } catch (error) {
+        console.error('  ❌ JSON解析エラー:', error);
+      }
+    } else {
+      console.log('  ⚠️ 記事データなし');
+    }
+    
+    // レッスン状況データの確認
+    const lessonKey = CONFIG.storage.keys.lessonStatus;
+    const lessonData = localStorage.getItem(lessonKey);
+    
+    console.log('\n📅 レッスン状況データ互換性:');
+    console.log(`  キー: ${lessonKey}`);
+    
+    if (lessonData) {
+      try {
+        const lessons = JSON.parse(lessonData);
+        console.log(`  データ型: ${typeof lessons}`);
+        console.log(`  今日のデータ: ${!!lessons[new Date().toISOString().split('T')[0]]}`);
+        console.log('  ✅ LP側で読み込み可能');
+      } catch (error) {
+        console.error('  ❌ JSON解析エラー:', error);
+      }
+    } else {
+      console.log('  ⚠️ レッスンデータなし');
+    }
+    
+    // 設定データの確認
+    const settingsKey = CONFIG.storage.keys.settings;
+    const settingsData = localStorage.getItem(settingsKey);
+    
+    console.log('\n⚙️ 設定データ互換性:');
+    console.log(`  キー: ${settingsKey}`);
+    console.log(`  データ: ${settingsData ? '✅ あり' : '⚠️ なし'}`);
+    
+    console.groupEnd();
+    
+    return {
+      articles: !!articlesData,
+      lessons: !!lessonData,
+      settings: !!settingsData,
+      compatible: !!articlesData && !!lessonData
+    };
   }
 }
 
