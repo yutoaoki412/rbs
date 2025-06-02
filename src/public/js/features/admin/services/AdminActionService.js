@@ -595,25 +595,27 @@ export class AdminActionService {
   }
 
   /**
-   * ダッシュボード初期化
+   * ダッシュボードの初期化
    * @private
    */
   async #initializeDashboard() {
     try {
-      this.debug('📊 ダッシュボード初期化開始');
+      this.debug('🏠 ダッシュボード初期化開始');
       
-      // 記事データが利用可能になるまで待機
+      // 記事データサービスの初期化を確認
       await this.#ensureArticleDataReady();
       
-      // 統計情報を更新
-      this.updateDashboardStats();
+      // 最近の記事と統計情報の読み込み
+      await Promise.all([
+        this.#loadRecentArticlesWithRetry(),
+        this.#updateStats()
+      ]);
       
-      // 最近の記事を読み込み（リトライ付き）
-      await this.#loadRecentArticlesWithRetry();
+      this.debug('✅ ダッシュボード初期化完了');
       
-      this.debug('📊 ダッシュボード初期化完了');
     } catch (error) {
-      this.error('ダッシュボード初期化エラー:', error);
+      this.error('❌ ダッシュボード初期化エラー:', error);
+      // エラーが発生してもアプリケーション全体は停止させない
     }
   }
 
@@ -1810,7 +1812,7 @@ export class AdminActionService {
       const articles = this.articleDataService.loadArticles();
       const recentArticles = articles
         .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
-        .slice(0, 5);
+        .slice(0, 10); // より多くの記事を取得（スクロール用）
       
       const recentContainer = document.getElementById('recent-articles');
       if (recentContainer) {
@@ -1821,7 +1823,7 @@ export class AdminActionService {
         this.#initializeDropdownMenus(recentContainer);
       }
       
-      this.debug(`最近の記事を${recentArticles.length}件表示`);
+      this.debug(`最近の記事を${recentArticles.length}件表示（最初の3件がメイン表示）`);
       
     } catch (error) {
       console.error('❌ 最近の記事レンダリングエラー:', error);
@@ -3365,6 +3367,37 @@ export class AdminActionService {
       settings: !!settingsData,
       compatible: !!articlesData && !!lessonData
     };
+  }
+
+  /**
+   * 統計情報の更新
+   * @private
+   */
+  async #updateStats() {
+    try {
+      if (!this.articleDataService?.initialized) {
+        this.warn('ArticleDataServiceが初期化されていません - 統計情報をスキップ');
+        return;
+      }
+      
+      const stats = this.articleDataService.getStats();
+      
+      // 新しいID名に合わせて更新
+      const elements = {
+        published: document.getElementById('stat-published'),
+        drafts: document.getElementById('stat-drafts'),
+        currentMonth: document.getElementById('stat-current-month')
+      };
+      
+      if (elements.published) elements.published.textContent = stats.published || 0;
+      if (elements.drafts) elements.drafts.textContent = stats.drafts || 0;
+      if (elements.currentMonth) elements.currentMonth.textContent = stats.currentMonth || 0;
+      
+      this.debug('統計情報更新完了:', stats);
+      
+    } catch (error) {
+      this.error('統計情報更新エラー:', error);
+    }
   }
 }
 

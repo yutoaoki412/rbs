@@ -51,19 +51,19 @@
     <!-- サイドバー -->
     <aside class="admin-sidebar">
       <nav class="sidebar-nav">
-        <div class="nav-item active" data-tab="dashboard" data-action="switch-tab">
+        <div class="nav-item active" data-tab="dashboard" data-action="switch-admin-tab">
           <i class="fas fa-chart-bar"></i>
           <span>ダッシュボード</span>
         </div>
-        <div class="nav-item" data-tab="news-management" data-action="switch-tab">
+        <div class="nav-item" data-tab="news-management" data-action="switch-admin-tab">
           <i class="fas fa-newspaper"></i>
           <span>記事管理</span>
         </div>
-        <div class="nav-item" data-tab="lesson-status" data-action="switch-tab">
+        <div class="nav-item" data-tab="lesson-status" data-action="switch-admin-tab">
           <i class="fas fa-calendar-check"></i>
           <span>レッスン状況</span>
         </div>
-        <div class="nav-item" data-tab="settings" data-action="switch-tab">
+        <div class="nav-item" data-tab="settings" data-action="switch-admin-tab">
           <i class="fas fa-cog"></i>
           <span>設定</span>
         </div>
@@ -71,59 +71,47 @@
     </aside>
 
     <!-- メインエリア -->
-    <main class="admin-main">
-      <!-- ダッシュボード -->
-      <section id="dashboard" class="admin-section active">
+    <main class="admin-main dashboard-optimized" id="admin-main">
+      <!-- ダッシュボードタブ -->
+      <div class="admin-section active" id="dashboard">
         <div class="section-header">
-          <h1><i class="fas fa-chart-bar"></i> ダッシュボード</h1>
+          <h1><i class="fas fa-tachometer-alt"></i> ダッシュボード</h1>
         </div>
-        
+
         <!-- 統計カード -->
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-icon">
+            <div class="stat-icon published">
               <i class="fas fa-newspaper"></i>
             </div>
             <div class="stat-content">
-              <div class="stat-number" id="total-articles">0</div>
-              <div class="stat-label">総記事数</div>
+              <div class="stat-number" id="stat-published">0</div>
+              <div class="stat-label">公開記事</div>
             </div>
           </div>
-          
-          <div class="stat-card">
-            <div class="stat-icon published">
-              <i class="fas fa-check-circle"></i>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number" id="published-articles">0</div>
-              <div class="stat-label">公開済み</div>
-            </div>
-          </div>
-          
           <div class="stat-card">
             <div class="stat-icon draft">
               <i class="fas fa-edit"></i>
             </div>
             <div class="stat-content">
-              <div class="stat-number" id="draft-articles">0</div>
+              <div class="stat-number" id="stat-drafts">0</div>
               <div class="stat-label">下書き</div>
             </div>
           </div>
-          
           <div class="stat-card">
             <div class="stat-icon current-month">
-              <i class="fas fa-calendar"></i>
+              <i class="fas fa-calendar-alt"></i>
             </div>
             <div class="stat-content">
-              <div class="stat-number" id="current-month-articles">0</div>
+              <div class="stat-number" id="stat-current-month">0</div>
               <div class="stat-label">今月の記事</div>
             </div>
           </div>
         </div>
 
-        <!-- 最近の記事 -->
+        <!-- ダッシュボードウィジェット -->
         <div class="dashboard-widgets">
-          <div class="widget">
+          <div class="widget recent-articles-widget">
             <div class="widget-header">
               <h2><i class="fas fa-newspaper"></i> 最近の記事</h2>
               <div class="widget-header-actions">
@@ -148,89 +136,55 @@
               <h2><i class="fas fa-bolt"></i> クイックアクション</h2>
             </div>
             <div class="widget-content">
-              <!-- 注目アクション - 新規記事作成 -->
-              <div class="hero-action">
-                <div class="hero-action-card">
-                  <div class="hero-action-icon">
-                    <i class="fas fa-plus-circle"></i>
+              <div class="action-buttons-grid">
+                <!-- 新規記事作成 -->
+                <button class="action-btn compact success" data-action="new-news-article">
+                  <div class="action-icon">
+                    <i class="fas fa-plus"></i>
                   </div>
-                  <div class="hero-action-content">
-                    <h3>新しい記事を作成</h3>
-                    <p>お知らせ、体験会情報、メディア掲載などの記事を簡単作成</p>
-                    <div class="hero-action-features">
-                      <span class="feature-tag">
-                        <i class="fas fa-magic"></i>
-                        直感的エディター
-                      </span>
-                      <span class="feature-tag">
-                        <i class="fas fa-eye"></i>
-                        リアルタイムプレビュー
-                      </span>
-                      <span class="feature-tag">
-                        <i class="fas fa-save"></i>
-                        自動保存対応
-                      </span>
-                    </div>
+                  <div class="action-content">
+                    <span class="action-title">新規記事作成</span>
+                    <span class="action-desc">新しいニュース記事を作成</span>
                   </div>
-                  <div class="hero-action-button">
-                    <button class="btn-hero primary" data-action="new-news-article">
-                      <i class="fas fa-plus"></i>
-                      記事を作成
-                      <div class="btn-shine"></div>
-                    </button>
+                </button>
+
+                <!-- データエクスポート -->
+                <button class="action-btn compact info" data-action="export-data">
+                  <div class="action-icon">
+                    <i class="fas fa-download"></i>
                   </div>
-                </div>
-              </div>
-              
-              <!-- その他のアクション -->
-              <div class="secondary-actions">
-                <h4><i class="fas fa-tasks"></i> その他の操作</h4>
-                <div class="action-buttons-grid">
-                  <button class="action-btn compact success" data-action="switch-tab" data-tab="lesson-status">
-                    <div class="action-icon">
-                      <i class="fas fa-calendar-check"></i>
-                    </div>
-                    <div class="action-content">
-                      <span class="action-title">レッスン状況更新</span>
-                      <span class="action-desc">今日の開催状況を設定</span>
-                    </div>
-                  </button>
-                  
-                  <button class="action-btn compact info" data-action="open-external" data-url="news.html">
-                    <div class="action-icon">
-                      <i class="fas fa-newspaper"></i>
-                    </div>
-                    <div class="action-content">
-                      <span class="action-title">ニュース一覧確認</span>
-                      <span class="action-desc">公開中の記事を確認</span>
-                    </div>
-                  </button>
-                  
-                  <button class="action-btn compact secondary" data-action="open-external" data-url="index.html">
-                    <div class="action-icon">
-                      <i class="fas fa-external-link-alt"></i>
-                    </div>
-                    <div class="action-content">
-                      <span class="action-title">サイト確認</span>
-                      <span class="action-desc">メインサイトを表示</span>
-                    </div>
-                  </button>
-                  
-                  <button class="action-btn compact warning" data-action="switch-tab" data-tab="settings">
-                    <div class="action-icon">
-                      <i class="fas fa-cog"></i>
-                    </div>
-                    <div class="action-content">
-                      <span class="action-title">設定・データ管理</span>
-                      <span class="action-desc">システム設定とデータ</span>
-                    </div>
-                  </button>
-                </div>
+                  <div class="action-content">
+                    <span class="action-title">データエクスポート</span>
+                    <span class="action-desc">記事データをダウンロード</span>
+                  </div>
+                </button>
+
+                <!-- Instagram連携 -->
+                <button class="action-btn compact secondary" data-action="sync-instagram">
+                  <div class="action-icon">
+                    <i class="fab fa-instagram"></i>
+                  </div>
+                  <div class="action-content">
+                    <span class="action-title">Instagram連携</span>
+                    <span class="action-desc">投稿データを同期</span>
+                  </div>
+                </button>
+
+                <!-- レッスン状況更新 -->
+                <button class="action-btn compact warning" data-action="update-lesson-status">
+                  <div class="action-icon">
+                    <i class="fas fa-calendar-check"></i>
+                  </div>
+                  <div class="action-content">
+                    <span class="action-title">レッスン状況</span>
+                    <span class="action-desc">練習状況を更新</span>
+                  </div>
+                </button>
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
       <!-- 記事管理 -->
       <section id="news-management" class="admin-section">
@@ -837,268 +791,6 @@
         console.warn('⚠️ ActionManagerが利用できません');
       }
     };
-    
-    // console.logを通知でも表示するオーバーライド（デバッグモード時のみ）
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      const originalLog = console.log;
-      const originalWarn = console.warn;
-      const originalError = console.error;
-      
-      // 管理画面での重要なログのみ通知として表示
-      console.log = function(...args) {
-        originalLog.apply(console, args);
-        
-        const message = args.join(' ');
-        if (message.includes('✅') && message.length < 100 && !message.includes('ActionManager')) {
-          window.showSuccess(message.replace(/✅|🎯|📱|🔧/g, '').trim(), 2000);
-        }
-      };
-      
-      console.warn = function(...args) {
-        originalWarn.apply(console, args);
-        
-        const message = args.join(' ');
-        if (message.includes('⚠️') && message.length < 100 && !message.includes('未登録')) {
-          window.showWarning(message.replace(/⚠️/g, '').trim(), 4000);
-        }
-      };
-      
-      console.error = function(...args) {
-        originalError.apply(console, args);
-        
-        const message = args.join(' ');
-        if (message.includes('❌') && message.length < 100) {
-          window.showError(message.replace(/❌/g, '').trim(), 6000);
-        }
-      };
-    }
-  </script>
-
-  <!-- レッスン状況フォーム用デフォルト日付設定 -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // デフォルト日付設定
-      const lessonDateField = document.getElementById('lesson-date');
-      if (lessonDateField && !lessonDateField.value) {
-        lessonDateField.value = new Date().toISOString().slice(0, 10);
-      }
-      
-      // ウィザードナビゲーション
-      let currentStep = 1;
-      const maxSteps = 3;
-      
-      const steps = document.querySelectorAll('.step');
-      const wizardContents = document.querySelectorAll('.wizard-content');
-      const prevBtn = document.querySelector('.wizard-prev');
-      const nextBtn = document.querySelector('.wizard-next');
-      
-      function updateStep(stepNumber) {
-        // ステップインジケーターの更新
-        steps.forEach((step, index) => {
-          const stepNum = index + 1;
-          step.classList.toggle('active', stepNum === stepNumber);
-          step.classList.toggle('completed', stepNum < stepNumber);
-        });
-        
-        // コンテンツの更新
-        wizardContents.forEach((content, index) => {
-          content.classList.toggle('active', index + 1 === stepNumber);
-        });
-        
-        // ボタンの状態更新
-        prevBtn.disabled = stepNumber === 1;
-        if (stepNumber === maxSteps) {
-          nextBtn.style.display = 'none';
-        } else {
-          nextBtn.style.display = 'flex';
-        }
-        
-        currentStep = stepNumber;
-      }
-      
-      // ナビゲーションボタンのイベントリスナー
-      if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
-          if (currentStep > 1) {
-            updateStep(currentStep - 1);
-          }
-        });
-      }
-      
-      if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-          if (currentStep < maxSteps) {
-            updateStep(currentStep + 1);
-          }
-        });
-      }
-      
-      // ステップクリックでのナビゲーション
-      steps.forEach((step, index) => {
-        step.addEventListener('click', () => {
-          updateStep(index + 1);
-        });
-      });
-    });
-    
-    // プレビュー機能（グローバルスコープ）
-    function showPreviewModal() {
-      console.log('🎯 プレビューモーダルを表示');
-      
-      const modal = document.getElementById('modal');
-      const modalTitle = document.getElementById('modal-title');
-      const modalBody = document.getElementById('modal-body');
-      
-      if (!modal || !modalTitle || !modalBody) {
-        console.error('❌ モーダル要素が見つかりません');
-        return;
-      }
-      
-      // 入力値を取得
-      const selectedStatus = document.querySelector('input[name="global-status"]:checked');
-      const dateInput = document.getElementById('lesson-date');
-      const messageInput = document.getElementById('global-message');
-      const basicStatus = document.querySelector('input[name="basic-lesson"]:checked');
-      const advanceStatus = document.querySelector('input[name="advance-lesson"]:checked');
-      
-      if (!selectedStatus) {
-        alert('全体ステータスを選択してください');
-        return;
-      }
-      
-      // ステータスに応じた設定を取得
-      const statusConfig = getStatusConfig(selectedStatus.value);
-      
-      // 日付をフォーマット
-      let dateText = '日付未設定';
-      if (dateInput && dateInput.value) {
-        const date = new Date(dateInput.value);
-        dateText = date.toLocaleDateString('ja-JP', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          weekday: 'short'
-        });
-      }
-      
-      // プレビューHTMLを生成
-      const previewHTML = generatePreviewHTML({
-        status: statusConfig,
-        dateText: dateText,
-        message: messageInput ? messageInput.value : '',
-        basicStatus: basicStatus ? basicStatus.value : '通常開催',
-        advanceStatus: advanceStatus ? advanceStatus.value : '通常開催'
-      });
-      
-      // モーダルに内容を設定
-      modalTitle.innerHTML = '<i class="fas fa-eye"></i> レッスン状況プレビュー';
-      modalBody.innerHTML = previewHTML;
-      
-      // モーダルを表示
-      modal.style.display = 'flex';
-      modal.classList.add('show');
-      
-      console.log('✅ プレビューモーダル表示完了');
-    }
-    
-    function getStatusConfig(statusValue) {
-      const configs = {
-        '通常開催': {
-          text: '通常開催',
-          icon: 'fas fa-check-circle',
-          color: '#27ae60'
-        },
-        '中止': {
-          text: '中止',
-          icon: 'fas fa-times-circle',
-          color: '#e74c3c'
-        },
-        '室内開催': {
-          text: '室内開催',
-          icon: 'fas fa-home',
-          color: '#f39c12'
-        },
-        '延期': {
-          text: '延期',
-          icon: 'fas fa-clock',
-          color: '#9b59b6'
-        }
-      };
-      
-      return configs[statusValue] || configs['通常開催'];
-    }
-    
-    function generatePreviewHTML(data) {
-      return `
-        <div class="lesson-status-preview">
-          <div class="preview-status-display">
-            <div class="preview-icon" style="background: ${data.status.color};">
-              <i class="${data.status.icon}"></i>
-            </div>
-            <div class="preview-text">
-              <h4>${data.status.text}</h4>
-              <p class="preview-date">${data.dateText}</p>
-              ${data.message ? `<div class="preview-message">${data.message}</div>` : ''}
-            </div>
-          </div>
-          
-          <div class="preview-courses">
-            <div class="preview-course">
-              <span class="preview-course-name">ベーシック</span>
-              <span class="preview-course-status">${data.basicStatus}</span>
-            </div>
-            <div class="preview-course">
-              <span class="preview-course-name">アドバンス</span>
-              <span class="preview-course-status">${data.advanceStatus}</span>
-            </div>
-          </div>
-          
-          <div class="preview-info">
-            <p>
-              <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
-              この内容がトップページに表示されます
-            </p>
-          </div>
-        </div>
-      `;
-    }
-    
-    // モーダル制御
-    function closeModal() {
-      const modal = document.getElementById('modal');
-      if (modal) {
-        modal.style.display = 'none';
-        modal.classList.remove('show');
-      }
-    }
-    
-    // イベントリスナーの設定
-    document.addEventListener('DOMContentLoaded', function() {
-      // プレビューボタン
-      const showPreviewBtn = document.getElementById('show-preview-btn');
-      if (showPreviewBtn) {
-        showPreviewBtn.addEventListener('click', showPreviewModal);
-        console.log('✅ プレビューボタンのイベントリスナー設定完了');
-      } else {
-        console.warn('⚠️ プレビューボタンが見つかりません');
-      }
-      
-      // モーダル閉じるボタン
-      const modalClose = document.querySelector('.modal-close');
-      if (modalClose) {
-        modalClose.addEventListener('click', closeModal);
-      }
-      
-      // モーダル背景クリックで閉じる
-      const modal = document.getElementById('modal');
-      if (modal) {
-        modal.addEventListener('click', function(e) {
-          if (e.target === modal) {
-            closeModal();
-          }
-        });
-      }
-    });
   </script>
 </body>
 </html>

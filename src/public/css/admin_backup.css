@@ -664,7 +664,6 @@
   gap: 1.5rem;
   flex: 1;
   min-height: 0;
-  height: 100%;
 }
 
 .widget {
@@ -674,8 +673,8 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 350px; /* 枠を少し広げる */
-  max-height: 100%;
+  min-height: 320px; /* 最小高度を設定して枠を広げる */
+  max-height: calc(100vh - var(--admin-header-height) - 240px); /* 1画面に収める */
 }
 
 .widget-header {
@@ -704,48 +703,10 @@
 }
 
 .widget-content {
+  padding: 1rem 1.25rem; /* パディングを調整 */
+  overflow-y: auto;
   flex: 1;
-  overflow-y: auto;
-  padding: 1rem;
   min-height: 0;
-}
-
-/* 最近の記事: 3つ縦並び + スクロール */
-.recent-articles-widget .widget-content {
-  padding: 0.75rem;
-}
-
-/* クイックアクション: 4つ縦並び */
-.quick-actions .widget-content {
-  max-height: none;
-  overflow-y: auto;
-  padding: 1rem;
-}
-
-/* アクションボタングリッド: 確実に4つ縦並び */
-.action-buttons-grid {
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 0.75rem;
-  margin-top: 0;
-}
-
-/* レスポンシブ対応 */
-@media (max-width: 1400px) {
-  .dashboard-widgets {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .admin-main.dashboard-optimized {
-    padding: 0.75rem;
-  }
-  
-  .widget {
-    min-height: 280px;
-  }
 }
 
 /* 最近の記事：3つ縦並び制限 */
@@ -783,26 +744,14 @@
   animation: fadeInUp 0.3s ease forwards;
 }
 
-/* 最初の3つのみ完全表示、4つ目以降はスクロールエリア */
+/* 最初の3つのみ表示するための制限 */
+.recent-article-item:nth-child(n+4) {
+  display: none; /* 4番目以降は非表示 */
+}
+
 .recent-article-item:nth-child(1) { animation-delay: 0.1s; }
 .recent-article-item:nth-child(2) { animation-delay: 0.2s; }
 .recent-article-item:nth-child(3) { animation-delay: 0.3s; }
-
-/* 4つ目以降は少し薄く表示 */
-.recent-article-item:nth-child(n+4) {
-  opacity: 0.9;
-  padding: 0.75rem; /* より小さく */
-  margin-bottom: 0.5rem;
-}
-
-.recent-article-item:nth-child(n+4) .recent-article-title {
-  font-size: 0.85rem; /* さらに小さく */
-}
-
-.recent-article-item:nth-child(n+4) .recent-article-summary {
-  font-size: 0.75rem; /* さらに小さく */
-  -webkit-line-clamp: 1; /* 1行のみ */
-}
 
 .recent-article-item:hover {
   border-color: var(--admin-primary);
@@ -3837,4 +3786,100 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
   border-radius: 6px;
+}
+
+/* クイックアクション専用：高さ制限を解除 */
+.quick-actions .widget-content {
+  max-height: none;
+  overflow-y: auto; /* スクロール可能にする */
+  padding: 1rem; /* パディングを調整 */
+}
+
+/* レスポンシブ対応 */
+
+@media (max-width: 1400px) {
+  .dashboard-widgets {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .admin-main {
+    padding: 1rem;
+  }
+  
+  .section-header {
+    margin-bottom: 1rem;
+  }
+  
+  .section-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .stats-grid {
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .stat-card {
+    padding: 1rem;
+  }
+  
+  .dashboard-widgets {
+    gap: 1rem;
+  }
+  
+  .widget {
+    min-height: 280px; /* モバイルでは高さを調整 */
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-main {
+    margin-left: 0;
+    padding: 0.75rem;
+  }
+  
+  .admin-sidebar {
+    display: none; /* モバイルではサイドバーを非表示 */
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  
+  .stat-card {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+  
+  .stat-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+  }
+  
+  .stat-number {
+    font-size: 1.5rem;
+  }
+  
+  .widget-header {
+    padding: 1rem;
+  }
+  
+  .widget-content {
+    padding: 1rem;
+  }
+  
+  .recent-article-item {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
 }
