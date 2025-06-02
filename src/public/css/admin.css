@@ -773,7 +773,21 @@
   animation: fadeInUp 0.3s ease forwards;
 }
 
-/* 最初の3つのみ表示するための制限 */
+/* 記事管理タブの一覧モード */
+.recent-article-item.list-mode {
+  opacity: 1;
+  transform: translateY(0);
+  animation: none;
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+}
+
+/* 記事管理タブでは全ての記事を表示 */
+.admin-main.news-management-active .recent-article-item:nth-child(n+4) {
+  display: block;
+}
+
+/* 最初の3つのみ表示するための制限（ダッシュボードのみ） */
 .recent-article-item:nth-child(n+4) {
   display: none;
 }
@@ -2934,4 +2948,31 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
 .admin-main.news-management-active .list-content {
   min-height: auto;
   max-height: none;
+}
+
+/* 記事管理タブの記事一覧コンテナスタイル */
+#news-list {
+  background: var(--admin-white);
+  border-radius: var(--admin-border-radius);
+  padding: 1rem;
+}
+
+/* 記事管理タブで統一されたスクロールバー */
+.admin-main.news-management-active #news-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-main.news-management-active #news-list::-webkit-scrollbar-track {
+  background: var(--admin-gray-100);
+  border-radius: 3px;
+}
+
+.admin-main.news-management-active #news-list::-webkit-scrollbar-thumb {
+  background: var(--admin-gray-300);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.admin-main.news-management-active #news-list::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-primary);
 }

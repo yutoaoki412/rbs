@@ -1749,6 +1749,130 @@ export class AdminActionService {
   }
 
   /**
+   * 統合された記事一覧HTMLの生成
+   * @private
+   * @param {Array} articles - 記事配列
+   * @param {Object} options - 表示オプション
+   * @returns {string}
+   */
+  #generateArticleListHTML(articles, options = {}) {
+    const {
+      mode = 'list', // 'recent' | 'list'
+      showActions = true,
+      showStats = false,
+      showMeta = true,
+      limit = null,
+      emptyMessage = '記事がありません',
+      emptyAction = null
+    } = options;
+
+    if (articles.length === 0) {
+      let emptyHTML = `
+        <div class="empty-state">
+          <i class="fas fa-newspaper"></i>
+          <p>${emptyMessage}</p>
+      `;
+      
+      if (emptyAction) {
+        emptyHTML += `
+          <button class="btn btn-sm btn-primary" data-action="${emptyAction.action}">
+            <i class="fas ${emptyAction.icon}"></i> ${emptyAction.text}
+          </button>
+        `;
+      }
+      
+      emptyHTML += '</div>';
+      return emptyHTML;
+    }
+
+    const displayArticles = limit ? articles.slice(0, limit) : articles;
+    
+    return displayArticles.map((article, index) => {
+      const createdDate = new Date(article.createdAt);
+      const updatedDate = new Date(article.updatedAt || article.createdAt);
+      const isRecent = (Date.now() - updatedDate.getTime()) < (24 * 60 * 60 * 1000); // 24時間以内
+      const categoryName = this.#getCategoryName(article.category);
+      const summary = article.summary ? 
+        (article.summary.length > 80 ? article.summary.substring(0, 80) + '...' : article.summary) : 
+        '概要なし';
+
+      // スタイル調整用のクラス
+      const containerClass = mode === 'recent' ? 'recent-article-item' : 'recent-article-item list-mode';
+      const animationDelay = mode === 'recent' ? `style="animation-delay: ${index * 0.1}s"` : '';
+
+      return `
+        <div class="${containerClass}" data-id="${article.id}" ${animationDelay}>
+          <div class="recent-article-header">
+            <div class="recent-article-main">
+              <h3 class="recent-article-title" title="${this.escapeHtml(article.title)}">
+                ${this.escapeHtml(article.title)}
+                ${isRecent ? '<span class="new-badge">NEW</span>' : ''}
+              </h3>
+              <div class="recent-article-summary">${this.escapeHtml(summary)}</div>
+            </div>
+            ${showActions ? `
+            <div class="recent-article-actions">
+              <button class="btn-icon" data-action="edit-article" data-article-id="${article.id}" title="編集">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-icon" data-action="preview-article" data-article-id="${article.id}" title="プレビュー">
+                <i class="fas fa-eye"></i>
+              </button>
+              <div class="dropdown">
+                <button class="btn-icon dropdown-toggle" title="その他">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="dropdown-menu">
+                  <button class="dropdown-item" data-action="duplicate-article" data-article-id="${article.id}">
+                    <i class="fas fa-copy"></i> 複製
+                  </button>
+                  <button class="dropdown-item danger" data-action="delete-article" data-article-id="${article.id}">
+                    <i class="fas fa-trash"></i> 削除
+                  </button>
+                </div>
+              </div>
+            </div>
+            ` : ''}
+          </div>
+          
+          ${showMeta ? `
+          <div class="recent-article-meta">
+            <div class="meta-item">
+              <i class="fas fa-tag"></i>
+              <span class="category-badge ${article.category}">${categoryName}</span>
+            </div>
+            <div class="meta-item">
+              <i class="fas fa-circle ${article.status === 'published' ? 'published' : 'draft'}"></i>
+              <span class="status-text">${article.status === 'published' ? '公開中' : '下書き'}</span>
+            </div>
+            <div class="meta-item">
+              <i class="fas fa-clock"></i>
+              <span class="date-text" title="更新: ${updatedDate.toLocaleString('ja-JP')}">
+                ${this.#formatRelativeTime(updatedDate)}
+              </span>
+            </div>
+            ${article.featured ? '<div class="meta-item"><i class="fas fa-star featured"></i><span>注目記事</span></div>' : ''}
+          </div>
+          ` : ''}
+          
+          ${showStats ? `
+          <div class="recent-article-stats">
+            <div class="stat-item">
+              <i class="fas fa-calendar-plus"></i>
+              <span>作成: ${createdDate.toLocaleDateString('ja-JP')}</span>
+            </div>
+            <div class="stat-item">
+              <i class="fas fa-align-left"></i>
+              <span>${this.#getWordCount(article)} 文字</span>
+            </div>
+          </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  /**
    * ニュース一覧のレンダリング
    * @private
    * @param {string} filter - フィルター
@@ -1765,7 +1889,24 @@ export class AdminActionService {
       
       const listContainer = document.getElementById('news-list');
       if (listContainer) {
-        listContainer.innerHTML = this.#generateNewsListHTML(filteredArticles);
+        // 統合されたメソッドを使用
+        const html = this.#generateArticleListHTML(filteredArticles, {
+          mode: 'list',
+          showActions: true,
+          showStats: true,
+          showMeta: true,
+          emptyMessage: '記事がありません',
+          emptyAction: {
+            action: 'new-news-article',
+            icon: 'fa-plus',
+            text: '新規記事を作成'
+          }
+        });
+        
+        listContainer.innerHTML = html;
+        
+        // ドロップダウンメニューの初期化
+        this.#initializeDropdownMenus(listContainer);
       } else {
         console.warn('news-list要素が見つかりません');
       }
@@ -1809,7 +1950,20 @@ export class AdminActionService {
       
       const recentContainer = document.getElementById('recent-articles');
       if (recentContainer) {
-        const html = this.#generateRecentArticlesHTML(recentArticles);
+        // 統合されたメソッドを使用
+        const html = this.#generateArticleListHTML(recentArticles, {
+          mode: 'recent',
+          showActions: true,
+          showStats: true,
+          showMeta: true,
+          emptyMessage: '最近の記事がありません',
+          emptyAction: {
+            action: 'new-news-article',
+            icon: 'fa-plus',
+            text: '新規記事を作成'
+          }
+        });
+        
         recentContainer.innerHTML = html;
         
         // ドロップダウンメニューの初期化
@@ -1829,32 +1983,37 @@ export class AdminActionService {
    * @private
    */
   #initializeDropdownMenus(container) {
-    const dropdownToggles = container.querySelectorAll('.dropdown-toggle');
-    
-    dropdownToggles.forEach(toggle => {
-      toggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        
-        // 他のドロップダウンを閉じる
-        const allDropdowns = container.querySelectorAll('.dropdown');
-        allDropdowns.forEach(dropdown => {
-          if (dropdown !== toggle.closest('.dropdown')) {
-            dropdown.classList.remove('open');
-          }
+    const dropdowns = container.querySelectorAll('.dropdown');
+    dropdowns.forEach(dropdown => {
+      const toggle = dropdown.querySelector('.dropdown-toggle');
+      const menu = dropdown.querySelector('.dropdown-menu');
+      
+      if (toggle && menu) {
+        // ドロップダウントグルクリック
+        toggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          
+          // 他のドロップダウンを閉じる
+          dropdowns.forEach(otherDropdown => {
+            if (otherDropdown !== dropdown) {
+              otherDropdown.classList.remove('open');
+            }
+          });
+          
+          // 現在のドロップダウンをトグル
+          dropdown.classList.toggle('open');
         });
         
-        // 現在のドロップダウンを切り替え
-        const dropdown = toggle.closest('.dropdown');
-        dropdown.classList.toggle('open');
-      });
-    });
-    
-    // クリック外しでドロップダウンを閉じる
-    document.addEventListener('click', () => {
-      const allDropdowns = container.querySelectorAll('.dropdown');
-      allDropdowns.forEach(dropdown => {
-        dropdown.classList.remove('open');
-      });
+        // ドキュメントクリックで閉じる
+        document.addEventListener('click', () => {
+          dropdown.classList.remove('open');
+        });
+        
+        // メニュー項目クリック時に閉じる
+        menu.addEventListener('click', () => {
+          dropdown.classList.remove('open');
+        });
+      }
     });
   }
 
@@ -2934,24 +3093,27 @@ export class AdminActionService {
   }
 
   /**
-   * 相対時間の表示
+   * 相対時間フォーマット
    * @private
    * @param {Date} date - 日付
    * @returns {string}
    */
   #formatRelativeTime(date) {
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
+    const diffMs = now - date;
     const diffMinutes = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffMinutes < 1) return '今';
-    if (diffMinutes < 60) return `${diffMinutes}分前`;
-    if (diffHours < 24) return `${diffHours}時間前`;
-    if (diffDays < 7) return `${diffDays}日前`;
-    
-    return date.toLocaleDateString('ja-JP');
+    if (diffMinutes < 60) {
+      return diffMinutes <= 0 ? '今' : `${diffMinutes}分前`;
+    } else if (diffHours < 24) {
+      return `${diffHours}時間前`;
+    } else if (diffDays < 7) {
+      return `${diffDays}日前`;
+    } else {
+      return date.toLocaleDateString('ja-JP');
+    }
   }
 
   /**
@@ -2961,35 +3123,10 @@ export class AdminActionService {
    * @returns {number}
    */
   #getWordCount(article) {
-    if (!article) return 0;
-    
-    // タイトル + 概要 + 本文の合計文字数
-    let content = (article.title || '') + (article.summary || '');
-    
-    // 本文が取得できる場合は追加
-    try {
-      const articleContent = this.articleDataService.getArticleContent(article.id);
-      if (articleContent) {
-        content += articleContent;
-      }
-    } catch (error) {
-      // エラーの場合は本文なしで計算
-    }
-    
-    // Markdownマークアップを除去して文字数カウント
-    return content
-      .replace(/#{1,6}\s+/g, '') // ヘッダー
-      .replace(/\*\*(.*?)\*\*/g, '$1') // 太字
-      .replace(/\*(.*?)\*/g, '$1') // イタリック
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // リンク
-      .replace(/```[\s\S]*?```/g, '') // コードブロック
-      .replace(/`([^`]+)`/g, '$1') // インラインコード
-      .replace(/^[-*+]\s+/gm, '') // リスト
-      .replace(/^\d+\.\s+/gm, '') // 数字リスト
-      .replace(/^\s*>\s+/gm, '') // 引用
-      .replace(/\s+/g, ' ') // 空白を単一に
-      .trim()
-      .length;
+    if (!article.content) return 0;
+    // HTMLタグを除去して文字数をカウント
+    const textContent = article.content.replace(/<[^>]*>/g, '');
+    return textContent.length;
   }
 
   /**
