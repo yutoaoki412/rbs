@@ -13,8 +13,8 @@ class AdminNotificationService {
     // 統一ストレージキー（CONFIG.storage.keysから取得）
     this.storageKeys = {
       adminLogs: CONFIG.storage.keys.adminLogs,
-      debugMode: CONFIG.storage.keys.adminDebugMode,
-      sessionStart: CONFIG.storage.keys.adminStartTime
+      debugMode: CONFIG.storage.keys.debugMode,
+      sessionStart: CONFIG.storage.keys.sessionStart
     };
     
     this.notifications = new Map();

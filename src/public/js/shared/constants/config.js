@@ -24,20 +24,20 @@ const config = {
     prefix: 'rbs_',
     version: '3.0.0',
     keys: {
-      // 共通データ（LP + 管理画面）
+      // 共通データ（LP + 管理画面）- LP側の実際の使用に合わせて統一
       articles: 'rbs_articles',
       content: 'articles_content',
       config: 'articles_config',
-      auth: 'auth_token',
+      auth: 'rbs_auth_token',  // LP側で使用されている実際のキー
       lessonStatus: 'rbs_lesson_status',
       settings: 'rbs_settings',
       
       // 管理画面機能
       adminAuth: 'rbs_admin_auth',
-      adminActiveTab: 'rbs_admin_active_tab',
+      adminTab: 'rbs_admin_tab',  // 'active_tab'ではなく'tab'で統一
       adminLogs: 'rbs_admin_logs',
-      adminDebugMode: 'rbs_admin_debug_mode',
-      adminStartTime: 'rbs_admin_start_time',
+      debugMode: 'rbs_debug_mode',  // 'adminDebugMode'ではなく短縮形
+      sessionStart: 'rbs_session_start',  // 'adminStartTime'ではなく明確な名前
       
       // 記事管理
       newsDraft: 'rbs_news_draft',

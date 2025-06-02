@@ -148,23 +148,84 @@
               <h2><i class="fas fa-bolt"></i> クイックアクション</h2>
             </div>
             <div class="widget-content">
-              <div class="action-buttons">
-                <button class="action-btn primary" data-action="new-news-article">
-                  <i class="fas fa-plus"></i>
-                  新しい記事を作成
-                </button>
-                <button class="action-btn success" data-action="switch-tab" data-tab="lesson-status">
-                  <i class="fas fa-calendar-check"></i>
-                  レッスン状況を更新
-                </button>
-                <button class="action-btn secondary" data-action="open-external" data-url="index.html">
-                  <i class="fas fa-external-link-alt"></i>
-                  サイトを確認
-                </button>
-                <button class="action-btn info" data-action="open-external" data-url="news.html">
-                  <i class="fas fa-newspaper"></i>
-                  ニュース一覧を確認
-                </button>
+              <!-- 注目アクション - 新規記事作成 -->
+              <div class="hero-action">
+                <div class="hero-action-card">
+                  <div class="hero-action-icon">
+                    <i class="fas fa-plus-circle"></i>
+                  </div>
+                  <div class="hero-action-content">
+                    <h3>新しい記事を作成</h3>
+                    <p>お知らせ、体験会情報、メディア掲載などの記事を簡単作成</p>
+                    <div class="hero-action-features">
+                      <span class="feature-tag">
+                        <i class="fas fa-magic"></i>
+                        直感的エディター
+                      </span>
+                      <span class="feature-tag">
+                        <i class="fas fa-eye"></i>
+                        リアルタイムプレビュー
+                      </span>
+                      <span class="feature-tag">
+                        <i class="fas fa-save"></i>
+                        自動保存対応
+                      </span>
+                    </div>
+                  </div>
+                  <div class="hero-action-button">
+                    <button class="btn-hero primary" data-action="new-news-article">
+                      <i class="fas fa-plus"></i>
+                      記事を作成
+                      <div class="btn-shine"></div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- その他のアクション -->
+              <div class="secondary-actions">
+                <h4><i class="fas fa-tasks"></i> その他の操作</h4>
+                <div class="action-buttons-grid">
+                  <button class="action-btn compact success" data-action="switch-tab" data-tab="lesson-status">
+                    <div class="action-icon">
+                      <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="action-content">
+                      <span class="action-title">レッスン状況更新</span>
+                      <span class="action-desc">今日の開催状況を設定</span>
+                    </div>
+                  </button>
+                  
+                  <button class="action-btn compact info" data-action="open-external" data-url="news.html">
+                    <div class="action-icon">
+                      <i class="fas fa-newspaper"></i>
+                    </div>
+                    <div class="action-content">
+                      <span class="action-title">ニュース一覧確認</span>
+                      <span class="action-desc">公開中の記事を確認</span>
+                    </div>
+                  </button>
+                  
+                  <button class="action-btn compact secondary" data-action="open-external" data-url="index.html">
+                    <div class="action-icon">
+                      <i class="fas fa-external-link-alt"></i>
+                    </div>
+                    <div class="action-content">
+                      <span class="action-title">サイト確認</span>
+                      <span class="action-desc">メインサイトを表示</span>
+                    </div>
+                  </button>
+                  
+                  <button class="action-btn compact warning" data-action="switch-tab" data-tab="settings">
+                    <div class="action-icon">
+                      <i class="fas fa-cog"></i>
+                    </div>
+                    <div class="action-content">
+                      <span class="action-title">設定・データ管理</span>
+                      <span class="action-desc">システム設定とデータ</span>
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1040,4 +1101,4 @@
     });
   </script>
 </body>
-</html> 
+</html>

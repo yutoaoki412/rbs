@@ -28,7 +28,7 @@ export class AdminActionService {
     
     // 統一ストレージキー（CONFIG.storage.keysから完全統一）
     this.storageKeys = {
-      // 共通データキー（LP側と同じ）
+      // LP側と共有
       articles: CONFIG.storage.keys.articles,
       content: CONFIG.storage.keys.content,
       config: CONFIG.storage.keys.config,
@@ -36,14 +36,14 @@ export class AdminActionService {
       lessonStatus: CONFIG.storage.keys.lessonStatus,
       settings: CONFIG.storage.keys.settings,
       
-      // 管理画面固有キー（CONFIG統一）
+      // 管理画面専用（修正済み）
       adminAuth: CONFIG.storage.keys.adminAuth,
-      adminTab: CONFIG.storage.keys.adminActiveTab,
+      adminTab: CONFIG.storage.keys.adminTab,
       adminLogs: CONFIG.storage.keys.adminLogs,
-      debugMode: CONFIG.storage.keys.adminDebugMode,
-      sessionStart: CONFIG.storage.keys.adminStartTime,
+      debugMode: CONFIG.storage.keys.debugMode,
+      sessionStart: CONFIG.storage.keys.sessionStart,
       
-      // 記事管理
+      // 機能別
       newsDraft: CONFIG.storage.keys.newsDraft,
       
       // データ管理
