@@ -356,10 +356,6 @@
             </div>
             <div class="step" data-step="2">
               <div class="step-number">2</div>
-              <span>詳細設定</span>
-            </div>
-            <div class="step" data-step="3">
-              <div class="step-number">3</div>
               <span>コース別設定</span>
             </div>
           </div>
@@ -381,10 +377,6 @@
                     </div>
                     <div class="option-content">
                       <h4>通常開催</h4>
-                      <p>予定通り開催</p>
-                    </div>
-                    <div class="option-check">
-                      <i class="fas fa-check"></i>
                     </div>
                   </div>
                 </label>
@@ -397,10 +389,6 @@
                     </div>
                     <div class="option-content">
                       <h4>中止</h4>
-                      <p>本日のレッスンは中止</p>
-                    </div>
-                    <div class="option-check">
-                      <i class="fas fa-check"></i>
                     </div>
                   </div>
                 </label>
@@ -413,10 +401,6 @@
                     </div>
                     <div class="option-content">
                       <h4>室内開催</h4>
-                      <p>体育館で実施</p>
-                    </div>
-                    <div class="option-check">
-                      <i class="fas fa-check"></i>
                     </div>
                   </div>
                 </label>
@@ -429,55 +413,24 @@
                     </div>
                     <div class="option-content">
                       <h4>延期</h4>
-                      <p>後日開催予定</p>
-                    </div>
-                    <div class="option-check">
-                      <i class="fas fa-check"></i>
                     </div>
                   </div>
                 </label>
               </div>
-            </div>
-          </div>
-          
-          <!-- ステップ2: 詳細設定 -->
-          <div class="wizard-content step-2">
-            <div class="step-panel">
-              <div class="step-header">
-                <h3><i class="fas fa-cogs"></i> 詳細設定</h3>
-                <p>開催時間、場所、その他の詳細情報を設定してください</p>
-              </div>
               
-              <div class="form-grid">
-                <div class="form-group">
-                  <label for="lesson-time">開催時間</label>
-                  <input type="time" id="lesson-time" class="form-input" value="10:00">
-                </div>
-                <div class="form-group">
-                  <label for="lesson-location">開催場所</label>
-                  <select id="lesson-location" class="form-select">
-                    <option value="outdoor">屋外（通常）</option>
-                    <option value="gymnasium">体育館</option>
-                    <option value="other">その他</option>
-                  </select>
-                </div>
-              </div>
-              
+              <!-- 保護者向けメッセージ -->
               <div class="form-group">
                 <label for="lesson-message">保護者向けメッセージ</label>
                 <textarea id="lesson-message" class="form-textarea" rows="3" placeholder="保護者向けの連絡事項やメッセージがあれば入力してください"></textarea>
-              </div>
-              
-              <div class="form-group">
-                <label>
-                  <input type="checkbox" id="weather-dependent"> 天候により変更の可能性あり
-                </label>
+                <div class="form-help">
+                  <small>このメッセージは保護者の方に表示されます。天候による変更、持参物、注意事項などをお知らせできます。</small>
+                </div>
               </div>
             </div>
           </div>
           
-          <!-- ステップ3: コース別設定 -->
-          <div class="wizard-content step-3">
+          <!-- ステップ2: コース別設定 -->
+          <div class="wizard-content step-2">
             <div class="step-panel">
               <div class="step-header">
                 <h3><i class="fas fa-users"></i> コース別設定</h3>
@@ -485,42 +438,103 @@
               </div>
               
               <div class="course-settings">
+                <!-- ベーシックコース -->
                 <div class="course-item">
                   <div class="course-header">
-                    <h4>小学生コース</h4>
-                    <label class="status-toggle">
-                      <input type="checkbox" checked>
-                      <span>開催</span>
-                    </label>
+                    <h4>ベーシックコース（年長〜小3）</h4>
+                    <div class="course-time">17:00-17:50</div>
                   </div>
-                  <div class="course-details">
-                    <input type="text" class="form-input" placeholder="特別な連絡事項があれば入力">
+                  
+                  <div class="course-status-selector">
+                    <label class="course-status-option scheduled" for="basic-scheduled">
+                      <input type="radio" id="basic-scheduled" name="basic-lesson" value="通常開催" checked>
+                      <div class="course-option-card">
+                        <div class="course-option-icon">
+                          <i class="fas fa-check-circle"></i>
+                        </div>
+                        <span>通常開催</span>
+                      </div>
+                    </label>
+                    
+                    <label class="course-status-option cancelled" for="basic-cancelled">
+                      <input type="radio" id="basic-cancelled" name="basic-lesson" value="中止">
+                      <div class="course-option-card">
+                        <div class="course-option-icon">
+                          <i class="fas fa-times-circle"></i>
+                        </div>
+                        <span>中止</span>
+                      </div>
+                    </label>
+                    
+                    <label class="course-status-option indoor" for="basic-indoor">
+                      <input type="radio" id="basic-indoor" name="basic-lesson" value="室内開催">
+                      <div class="course-option-card">
+                        <div class="course-option-icon">
+                          <i class="fas fa-home"></i>
+                        </div>
+                        <span>室内開催</span>
+                      </div>
+                    </label>
+                    
+                    <label class="course-status-option postponed" for="basic-postponed">
+                      <input type="radio" id="basic-postponed" name="basic-lesson" value="延期">
+                      <div class="course-option-card">
+                        <div class="course-option-icon">
+                          <i class="fas fa-clock"></i>
+                        </div>
+                        <span>延期</span>
+                      </div>
+                    </label>
                   </div>
                 </div>
                 
+                <!-- アドバンスコース -->
                 <div class="course-item">
                   <div class="course-header">
-                    <h4>中学生コース</h4>
-                    <label class="status-toggle">
-                      <input type="checkbox" checked>
-                      <span>開催</span>
+                    <h4>アドバンスコース（小4〜小6）</h4>
+                    <div class="course-time">18:00-18:50</div>
+                  </div>
+                  
+                  <div class="course-status-selector">
+                    <label class="course-status-option scheduled" for="advance-scheduled">
+                      <input type="radio" id="advance-scheduled" name="advance-lesson" value="通常開催" checked>
+                      <div class="course-option-card">
+                        <div class="course-option-icon">
+                          <i class="fas fa-check-circle"></i>
+                        </div>
+                        <span>通常開催</span>
+                      </div>
                     </label>
-                  </div>
-                  <div class="course-details">
-                    <input type="text" class="form-input" placeholder="特別な連絡事項があれば入力">
-                  </div>
-                </div>
-                
-                <div class="course-item">
-                  <div class="course-header">
-                    <h4>高校生・一般コース</h4>
-                    <label class="status-toggle">
-                      <input type="checkbox" checked>
-                      <span>開催</span>
+                    
+                    <label class="course-status-option cancelled" for="advance-cancelled">
+                      <input type="radio" id="advance-cancelled" name="advance-lesson" value="中止">
+                      <div class="course-option-card">
+                        <div class="course-option-icon">
+                          <i class="fas fa-times-circle"></i>
+                        </div>
+                        <span>中止</span>
+                      </div>
                     </label>
-                  </div>
-                  <div class="course-details">
-                    <input type="text" class="form-input" placeholder="特別な連絡事項があれば入力">
+                    
+                    <label class="course-status-option indoor" for="advance-indoor">
+                      <input type="radio" id="advance-indoor" name="advance-lesson" value="室内開催">
+                      <div class="course-option-card">
+                        <div class="course-option-icon">
+                          <i class="fas fa-home"></i>
+                        </div>
+                        <span>室内開催</span>
+                      </div>
+                    </label>
+                    
+                    <label class="course-status-option postponed" for="advance-postponed">
+                      <input type="radio" id="advance-postponed" name="advance-lesson" value="延期">
+                      <div class="course-option-card">
+                        <div class="course-option-icon">
+                          <i class="fas fa-clock"></i>
+                        </div>
+                        <span>延期</span>
+                      </div>
+                    </label>
                   </div>
                 </div>
               </div>
