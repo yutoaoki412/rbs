@@ -241,19 +241,18 @@ class Component {
   }
 
   /**
-   * コンポーネントの状態を取得
-   * @returns {Object} 状態情報
+   * ステータス情報を取得
+   * @returns {Object} ステータス情報
    */
   getStatus() {
     return {
       id: this.id,
-      componentName: this.constructor.name,
-      isInitialized: this.isInitialized,
-      isDestroyed: this.isDestroyed,
-      isVisible: this.isVisible(),
-      childComponentsCount: this.childComponents.size,
-      eventListenersCount: this.eventListeners.length,
-      config: { ...this.config }
+      initialized: this.isInitialized,
+      destroyed: this.isDestroyed,
+      visible: this.isVisible(),
+      ready: this.isReady(),
+      childCount: this.childComponents.size,
+      eventCount: this.eventListeners.length
     };
   }
 
@@ -304,6 +303,56 @@ class Component {
     } catch (error) {
       console.error(`${this.constructor.name}: 破棄エラー:`, error);
     }
+  }
+
+  // ===== ログ関連メソッド =====
+
+  /**
+   * ログ出力
+   * @param {...any} args - ログ引数
+   */
+  log(...args) {
+    console.log(`[${this.constructor.name}]`, ...args);
+  }
+
+  /**
+   * デバッグログ出力
+   * @param {...any} args - ログ引数
+   */
+  debug(...args) {
+    console.log(`[${this.constructor.name}] 🔍`, ...args);
+  }
+
+  /**
+   * 警告ログ出力
+   * @param {...any} args - ログ引数
+   */
+  warn(...args) {
+    console.warn(`[${this.constructor.name}] ⚠️`, ...args);
+  }
+
+  /**
+   * エラーログ出力
+   * @param {...any} args - ログ引数
+   */
+  error(...args) {
+    console.error(`[${this.constructor.name}] ❌`, ...args);
+  }
+
+  /**
+   * 情報ログ出力
+   * @param {...any} args - ログ引数
+   */
+  info(...args) {
+    console.info(`[${this.constructor.name}] ℹ️`, ...args);
+  }
+
+  /**
+   * 成功ログ出力
+   * @param {...any} args - ログ引数
+   */
+  success(...args) {
+    console.log(`[${this.constructor.name}] ✅`, ...args);
   }
 }
 

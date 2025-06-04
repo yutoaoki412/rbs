@@ -553,8 +553,9 @@
   margin-left: var(--admin-sidebar-width);
   padding: 1.5rem; /* パディングを縮小 */
   background: var(--admin-gray-50);
-  height: calc(100vh - var(--admin-header-height));
-  overflow-y: auto;
+  /* height: calc(100vh - var(--admin-header-height)); 削除 - スクロール問題の原因 */
+  min-height: calc(100vh - var(--admin-header-height)); /* 最小高度を設定 */
+  overflow-y: auto; /* スクロールを許可 */
   display: flex;
   flex-direction: column;
 }
@@ -563,7 +564,8 @@
 .admin-section {
   display: none;
   flex: 1;
-  overflow: hidden;
+  /* overflow: hidden; 削除 - スクロール問題の原因 */
+  min-height: 0; /* フレックスボックス内でのスクロールを可能にする */
 }
 
 .admin-section.active {
@@ -4841,4 +4843,128 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
  * 最近の記事スタイルは components/recent-articles.css に移行済み
  * 以下の重複スタイルを削除（v2.1.0にて components 化完了）
  * ========================================================================== */
+
+/* ===== 管理画面共通ユーティリティクラス ===== */
+/* インラインCSSからの移行 */
+
+/* 表示制御 */
+.hidden {
+  display: none !important;
+}
+
+.visible {
+  display: block !important;
+}
+
+.flex-visible {
+  display: flex !important;
+}
+
+/* ローディング状態 */
+.loading-spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.loading-spinner i {
+  animation: spin 1s linear infinite;
+}
+
+/* モーダル表示制御 */
+.modal-hidden {
+  display: none;
+}
+
+.modal-visible {
+  display: flex;
+}
+
+/* プレビュー表示制御 */
+.preview-hidden {
+  display: none;
+}
+
+.preview-visible {
+  display: block;
+}
+
+/* 通知メッセージ */
+.notification-error {
+  background: var(--admin-error);
+  color: var(--admin-white);
+  padding: 1rem;
+  border-radius: var(--admin-border-radius-sm);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.notification-success {
+  background: var(--admin-success);
+  color: var(--admin-white);
+  padding: 1rem;
+  border-radius: var(--admin-border-radius-sm);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* テスト結果表示 */
+.test-results {
+  margin-top: 10px;
+  padding: 1rem;
+  background: var(--admin-gray-50);
+  border-radius: var(--admin-border-radius-sm);
+  border: 1px solid var(--admin-gray-200);
+  color: var(--admin-gray-900);
+}
+
+/* ボタンローディング状態 */
+.btn-loading {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.btn-loading.show {
+  display: inline-flex;
+}
+
+.btn-loading i {
+  animation: spin 1s linear infinite;
+}
+
+/* アニメーション */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes countUp {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* フェードアニメーション */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.fade-out {
+  animation: fadeOut 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-10px); }
+}
 

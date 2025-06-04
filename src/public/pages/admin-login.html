@@ -48,19 +48,15 @@
           </div>
 
           <!-- エラーメッセージ -->
-          <div id="error-message" class="admin-notification error" style="display: none; margin-bottom: 1.5rem;">
-            <div class="notification-content">
-              <i class="fas fa-exclamation-triangle"></i>
-              <span class="error-text"></span>
-            </div>
+          <div id="error-message" class="admin-notification error notification-error hidden">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="error-text">エラーメッセージ</span>
           </div>
 
           <!-- 成功メッセージ -->
-          <div id="success-message" class="admin-notification success" style="display: none; margin-bottom: 1.5rem;">
-            <div class="notification-content">
-              <i class="fas fa-check-circle"></i>
-              <span>ログインしました。管理画面に移動します...</span>
-            </div>
+          <div id="success-message" class="admin-notification success notification-success hidden">
+            <i class="fas fa-check-circle"></i>
+            <span id="success-text">成功メッセージ</span>
           </div>
 
           <!-- ログインフォーム -->
@@ -90,9 +86,9 @@
                   <i class="fas fa-sign-in-alt"></i>
                   ログイン
                 </span>
-                <span class="btn-loading" id="btn-loading" style="display: none;">
+                <span class="btn-loading" id="btn-loading">
                   <i class="fas fa-spinner fa-spin"></i>
-                  認証中...
+                  ログイン中...
                 </span>
               </button>
             </div>
@@ -249,26 +245,26 @@
     function showError(message) {
       console.log('エラー表示:', message);
       const errorElement = document.getElementById('error-message');
-      const errorText = errorElement.querySelector('.error-text');
+      const errorText = errorElement.querySelector('#error-text');
       errorText.textContent = message;
-      errorElement.style.display = 'block';
+      errorElement.classList.remove('hidden');
       hideSuccess();
     }
 
     function hideError() {
       const errorElement = document.getElementById('error-message');
-      errorElement.style.display = 'none';
+      errorElement.classList.add('hidden');
     }
 
     function showSuccess() {
         const successElement = document.getElementById('success-message');
-        successElement.style.display = 'block';
+        successElement.classList.remove('hidden');
         hideError();
     }
 
     function hideSuccess() {
         const successElement = document.getElementById('success-message');
-        successElement.style.display = 'none';
+        successElement.classList.add('hidden');
     }
 
     function showMessage(message, type) {

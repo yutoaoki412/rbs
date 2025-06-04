@@ -426,7 +426,7 @@ export class AdminActionService {
    */
   async setupAdminUI() {
     try {
-      this.log('管理画面UI設定開始');
+      this.debug('🎯 管理画面UI設定開始');
       
       // アクション登録
       this.#registerAdminActions();
@@ -436,7 +436,16 @@ export class AdminActionService {
       
       // タブナビゲーション設定
       this.setupTabNavigation();
-
+      
+      // 旧ウィザード初期化（互換性のため）
+      this.initializeWizard();
+      
+      // レッスン状況モダンサービス初期化
+      await this.initializeLessonStatusModern();
+      
+      // ニュース管理初期化
+      await this.initializeNewsManagement();
+      
       // 初期タブを強制的にダッシュボードに設定
       await this.forceTabSwitch('dashboard');
 
@@ -444,10 +453,84 @@ export class AdminActionService {
       this.updateDashboardStats();
       this.updateAdminStats();
       
-      this.log('管理画面UI設定完了');
+      // 初期データ読み込み
+      await this.loadInitialData();
+      
+      this.debug('🎯 管理画面UI設定完了');
     } catch (error) {
       this.error('管理画面UI設定エラー:', error);
-      throw error;
+    }
+  }
+
+  /**
+   * レッスン状況モダンサービス初期化
+   * @private
+   */
+  async initializeLessonStatusModern() {
+    try {
+      this.debug('📅 レッスン状況モダンサービス初期化開始');
+      
+      // モダンサービスのインポートと初期化
+      const { LessonStatusModernService } = await import('./LessonStatusModernService.js');
+      this.lessonStatusModernService = new LessonStatusModernService();
+      
+      // 初期化実行（エラーが発生した場合は適切にハンドリング）
+      await this.lessonStatusModernService.init();
+      
+      // グローバル参照設定
+      window.lessonStatusModernService = this.lessonStatusModernService;
+      
+      this.debug('📅 レッスン状況モダンサービス初期化完了');
+      
+      // 初期化成功の通知
+      if (this.uiManagerService) {
+        this.uiManagerService.showNotification('success', 'レッスン状況管理機能が利用可能です', 3000);
+      }
+      
+    } catch (error) {
+      this.error('レッスン状況モダンサービス初期化エラー:', error);
+      
+      // ユーザーに分かりやすいエラー通知
+      if (this.uiManagerService) {
+        this.uiManagerService.showNotification('error', 'レッスン状況管理機能の初期化に失敗しました。ページを再読み込みしてください。', 5000);
+      }
+      
+      // fallback として旧システムを使用
+      this.warn('レッスン状況機能はレガシーモードで動作します');
+    }
+  }
+
+  /**
+   * ニュース管理初期化
+   * @private
+   */
+  async initializeNewsManagement() {
+    try {
+      this.debug('📰 ニュース管理初期化開始');
+      
+      // 最近の記事を読み込み
+      await this.refreshRecentArticles();
+      
+      this.debug('📰 ニュース管理初期化完了');
+    } catch (error) {
+      this.error('ニュース管理初期化エラー:', error);
+    }
+  }
+
+  /**
+   * 初期データ読み込み
+   * @private
+   */
+  async loadInitialData() {
+    try {
+      this.debug('💾 初期データ読み込み開始');
+      
+      // レッスン状況の初期読み込み（旧システム互換性のため）
+      await this.loadLessonStatus();
+      
+      this.debug('💾 初期データ読み込み完了');
+    } catch (error) {
+      this.error('初期データ読み込みエラー:', error);
     }
   }
 
@@ -739,26 +822,6 @@ export class AdminActionService {
           </button>
         </div>
       `;
-    }
-  }
-
-  /**
-   * ニュース管理初期化
-   * @private
-   */
-  async #initializeNewsManagement() {
-    try {
-      this.debug('📝 ニュース管理初期化開始');
-      
-      // フォームをクリアして新規記事作成状態にする
-      this.clearNewsEditor();
-      
-      // 記事一覧を更新
-      this.refreshNewsList();
-      
-      this.debug('📝 ニュース管理初期化完了');
-    } catch (error) {
-      this.error('ニュース管理初期化エラー:', error);
     }
   }
 
@@ -2080,7 +2143,8 @@ export class AdminActionService {
       // 標準のモーダルを閉じる
       const modal = document.getElementById('modal');
       if (modal) {
-        modal.style.display = 'none';
+        modal.classList.remove('modal-visible');
+        modal.classList.add('modal-hidden');
         modal.classList.remove('active', 'show');
         
         // モーダル内容をクリア
@@ -2102,10 +2166,6 @@ export class AdminActionService {
       // bodyのmodal-openクラスを削除してスクロールを復旧
       document.body.classList.remove('modal-open');
       
-      // bodyのスタイルを確実にリセット
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
-      
       this.debug('モーダルを閉じてスクロールを復旧しました');
       
     } catch (error) {
@@ -2113,8 +2173,6 @@ export class AdminActionService {
       
       // エラー時でもスクロールを復旧
       document.body.classList.remove('modal-open');
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
     }
   }
 
@@ -4404,7 +4462,8 @@ export class AdminActionService {
       // モーダルを表示
       const modal = document.getElementById('instagram-modal');
       if (modal) {
-        modal.classList.add('show');
+        modal.classList.add('modal-visible');
+        modal.classList.remove('modal-hidden');
         modal.style.display = 'flex';
         
         // フォーカスをURLフィールドに移動
@@ -4484,10 +4543,17 @@ export class AdminActionService {
     
     const modal = document.getElementById('instagram-modal');
     if (modal) {
-      modal.classList.remove('show');
-      setTimeout(() => {
-        modal.style.display = 'none';
-      }, 300);
+      modal.classList.remove('modal-visible');
+      modal.classList.add('modal-hidden');
+      modal.classList.remove('active', 'show');
+      
+      // モーダル内容をクリア
+      const modalBody = modal.querySelector('#modal-body, .modal-body');
+      if (modalBody) {
+        modalBody.innerHTML = '';
+      }
+      
+      this.debug('標準モーダルを閉じました');
     }
   }
 
@@ -4546,7 +4612,8 @@ export class AdminActionService {
       // モーダルを表示
       const modal = document.getElementById('instagram-modal');
       if (modal) {
-        modal.classList.add('show');
+        modal.classList.add('modal-visible');
+        modal.classList.remove('modal-hidden');
         modal.style.display = 'flex';
       }
       
