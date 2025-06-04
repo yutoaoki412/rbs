@@ -2525,7 +2525,7 @@ export class AdminActionService {
                           data-action="edit-article" 
                           data-article-id="${article.id}" 
                           title="記事を編集"
-                          aria-label="記事「${this.escapeHtml(article.title)}」を編集">
+                          aria-label="記事「${title}」を編集">
                     <i class="fas fa-edit"></i>
                     <span class="action-text">編集</span>
                   </button>
@@ -2533,7 +2533,7 @@ export class AdminActionService {
                           data-action="preview-article" 
                           data-article-id="${article.id}" 
                           title="記事をプレビュー"
-                          aria-label="記事「${this.escapeHtml(article.title)}」をプレビュー">
+                          aria-label="記事「${title}」をプレビュー">
                     <i class="fas fa-eye"></i>
                     <span class="action-text">プレビュー</span>
                   </button>
@@ -3010,7 +3010,7 @@ export class AdminActionService {
   }
 
   /**
-   * プレビューモーダルの表示
+   * プレビューモーダルの表示（news-detail.html完全再現版）
    * @private
    * @param {Object} articleData - 記事データ
    */
@@ -3034,35 +3034,163 @@ export class AdminActionService {
       new Date(articleData.date).toLocaleDateString('ja-JP') : 
       new Date().toLocaleDateString('ja-JP');
     
-    // モーダルHTMLを作成
+    // news-detail.html完全再現モーダルHTMLを作成
     const modalHTML = `
-      <div id="news-preview-modal" class="modal">
-        <div class="modal-content article-preview">
-          <div class="modal-header">
-            <h2><i class="fas fa-eye"></i> 記事プレビュー</h2>
-            <button class="modal-close" onclick="this.closest('.modal').remove()">
-              <i class="fas fa-times"></i>
-            </button>
+      <div id="news-preview-modal" class="modal news-detail-preview-modal">
+        <div class="modal-content news-detail-preview-content">
+          <!-- モーダルヘッダー -->
+          <div class="modal-header news-detail-modal-header">
+            <div class="modal-title-section">
+              <h2><i class="fas fa-eye"></i> 記事プレビュー</h2>
+              <p class="preview-note">実際の記事詳細ページと同じ表示です</p>
+            </div>
+            <div class="modal-controls">
+              <button class="modal-action-btn responsive-toggle" title="レスポンシブ表示切替">
+                <i class="fas fa-mobile-alt"></i>
+              </button>
+              <button class="modal-action-btn fullscreen-toggle" title="フルスクリーン">
+                <i class="fas fa-expand"></i>
+              </button>
+              <button class="modal-close" onclick="this.closest('.modal').remove()">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
           </div>
-          <div class="modal-body">
-            <div class="preview-article">
-              <div class="article-header">
-                <div class="article-meta">
-                  <span class="article-date">${formattedDate}</span>
-                  <span class="article-category ${articleData.category}">${categoryName}</span>
+          
+          <!-- プレビューコンテンツ（news-detail.html再現） -->
+          <div class="modal-body news-detail-preview-body">
+            <div class="preview-viewport" id="preview-viewport">
+              <!-- news-detail.htmlの構造を完全再現 -->
+              <div class="preview-container">
+                <!-- パンくずナビ -->
+                <nav class="breadcrumb preview-breadcrumb">
+                  <ul class="breadcrumb-list">
+                    <li>
+                      <a href="../pages/index.html">ホーム</a>
+                    </li>
+                    <li>
+                      <span class="breadcrumb-separator">></span>
+                    </li>
+                    <li>
+                      <a href="news.html">ニュース</a>
+                    </li>
+                    <li>
+                      <span class="breadcrumb-separator">></span>
+                    </li>
+                    <li>
+                      <span id="breadcrumb-title">記事詳細</span>
+                    </li>
+                  </ul>
+                </nav>
+
+                <!-- 記事ヘッダー -->
+                <header class="article-header preview-article-header">
+                  <div class="article-meta preview-article-meta">
+                    <span class="article-date preview-article-date">${formattedDate}</span>
+                    <span class="article-category preview-article-category ${articleData.category}">${categoryName}</span>
+                  </div>
+                  <h1 class="article-title preview-article-title">${this.escapeHtml(articleData.title)}</h1>
+                  ${articleData.summary ? `
+                    <div class="article-summary preview-article-summary">
+                      ${this.escapeHtml(articleData.summary)}
+                    </div>
+                  ` : ''}
+                </header>
+
+                <!-- 記事本文 -->
+                <article class="article-content preview-article-content">
+                  ${this._convertMarkdownToHtml(articleData.content)}
+                </article>
+
+                <!-- シェアセクション -->
+                <section class="share-section preview-share-section">
+                  <h3 class="share-title">この記事をシェア</h3>
+                  <div class="share-buttons preview-share-buttons">
+                    <button class="share-btn twitter" disabled>
+                      <i class="fab fa-twitter"></i> X
+                    </button>
+                    <button class="share-btn facebook" disabled>
+                      <i class="fab fa-facebook"></i> Facebook
+                    </button>
+                    <button class="share-btn line" disabled>
+                      <i class="fab fa-line"></i> LINE
+                    </button>
+                    <button class="share-btn copy" disabled>
+                      <i class="fas fa-link"></i> URL をコピー
+                    </button>
+                  </div>
+                  <p class="preview-note-small">※ プレビューではシェア機能は無効です</p>
+                </section>
+
+                <!-- 関連記事 -->
+                <section class="related-articles preview-related-articles">
+                  <h3 class="related-title">関連記事</h3>
+                  <div class="related-grid">
+                    <div class="related-card preview-related-card">
+                      <div class="related-card-header">
+                        <div class="related-meta">
+                          <span class="related-date">2024.03.20</span>
+                          <span class="related-category event">体験会</span>
+                        </div>
+                      </div>
+                      <div class="related-card-body">
+                        <h4 class="related-title-link">
+                          春の体験会のお知らせ（サンプル）
+                        </h4>
+                        <p class="related-excerpt">
+                          関連記事のサンプル表示です。実際のプレビューでは最新の関連記事が表示されます。
+                        </p>
+                      </div>
+                    </div>
+                    <div class="related-card preview-related-card">
+                      <div class="related-card-header">
+                        <div class="related-meta">
+                          <span class="related-date">2024.03.15</span>
+                          <span class="related-category announcement">お知らせ</span>
+                        </div>
+                      </div>
+                      <div class="related-card-body">
+                        <h4 class="related-title-link">
+                          レッスンスケジュール更新（サンプル）
+                        </h4>
+                        <p class="related-excerpt">
+                          関連記事のサンプル表示です。実際のページでは動的に関連記事が表示されます。
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="preview-note-small">※ プレビューでは関連記事はサンプル表示です</p>
+                </section>
+
+                <!-- 一覧に戻る -->
+                <div class="article-nav preview-article-nav">
+                  <a href="#" class="nav-btn" onclick="return false;">
+                    <i class="fas fa-arrow-left"></i> ニュース一覧に戻る
+                  </a>
+                  <p class="preview-note-small">※ プレビューでは機能しません</p>
                 </div>
-                <h1 class="article-title">${this.escapeHtml(articleData.title)}</h1>
-                ${articleData.summary ? `<div class="article-summary">${this.escapeHtml(articleData.summary)}</div>` : ''}
-              </div>
-              <div class="article-content">
-                ${this._convertMarkdownToHtml(articleData.content)}
               </div>
             </div>
           </div>
-          <div class="modal-footer">
-            <button class="btn btn-outline" onclick="this.closest('.modal').remove()">
-              閉じる
-            </button>
+          
+          <!-- モーダルフッター -->
+          <div class="modal-footer news-detail-modal-footer">
+            <div class="modal-footer-left">
+              <button class="btn btn-info" onclick="this.parentElement.parentElement.parentElement.querySelector('.preview-viewport').classList.toggle('mobile-view')">
+                <i class="fas fa-mobile-alt"></i> モバイル表示
+              </button>
+              <button class="btn btn-secondary" onclick="this.parentElement.parentElement.parentElement.querySelector('.preview-viewport').classList.toggle('tablet-view')">
+                <i class="fas fa-tablet-alt"></i> タブレット表示
+              </button>
+            </div>
+            <div class="modal-footer-right">
+              <button class="btn btn-outline" onclick="this.closest('.modal').remove()">
+                <i class="fas fa-times"></i> 閉じる
+              </button>
+              <button class="btn btn-primary" onclick="window.open('news-detail.html?preview=true', '_blank')">
+                <i class="fas fa-external-link-alt"></i> 新しいタブで開く
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -3074,6 +3202,12 @@ export class AdminActionService {
     // モーダルを表示
     const modal = document.getElementById('news-preview-modal');
     modal.style.display = 'flex';
+    
+    // news-detail.cssのスタイルを動的に適用
+    this._injectNewsDetailStyles();
+    
+    // モーダル機能を初期化
+    this._initializePreviewModal(modal);
     
     // ESCキーでモーダルを閉じる
     const handleEscape = (e) => {
@@ -3091,1055 +3225,796 @@ export class AdminActionService {
         document.removeEventListener('keydown', handleEscape);
       }
     });
+    
+    console.log('👁️ 記事プレビュー表示完了（news-detail.html再現版）');
   }
 
   /**
-   * 簡易Markdown→HTML変換
+   * news-detail.cssのスタイルを動的に注入
    * @private
-   * @param {string} markdown - Markdownテキスト
-   * @returns {string} HTMLテキスト
    */
-  _convertMarkdownToHtml(markdown) {
-    return markdown
-      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-      .replace(/^- (.*)$/gim, '<li>$1</li>')
-      .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/^(.*)$/gim, '<p>$1</p>')
-      .replace(/<p><\/p>/g, '')
-      .replace(/<p>(<h[1-6]>.*<\/h[1-6]>)<\/p>/g, '$1')
-      .replace(/<p>(<ul>.*<\/ul>)<\/p>/g, '$1');
-  }
-
-  /**
-   * HTMLエスケープ
-   * @private
-   * @param {string} text - エスケープするテキスト
-   * @returns {string}
-   */
-  escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  /**
-   * 記事管理のサブタブを切り替え
-   * @param {string} tabName - タブ名 (editor|list)
-   */
-  switchNewsTab(tabName) {
-    try {
-      console.log(`🔄 記事管理サブタブ切り替え: ${tabName}`);
-      
-      // 現在のアクティブタブを非アクティブに
-      const currentActiveNavItem = document.querySelector('.sub-nav-item.active');
-      const currentActiveTabContent = document.querySelector('.news-tab-content.active');
-      
-      if (currentActiveNavItem) {
-        currentActiveNavItem.classList.remove('active');
-      }
-      if (currentActiveTabContent) {
-        currentActiveTabContent.classList.remove('active');
-      }
-      
-      // 新しいタブをアクティブに
-      const newActiveNavItem = document.querySelector(`[data-tab="${tabName}"]`);
-      let newActiveTabContent;
-      
-      if (tabName === 'editor') {
-        newActiveTabContent = document.getElementById('news-editor-tab');
-      } else if (tabName === 'list') {
-        newActiveTabContent = document.getElementById('news-list-tab');
-        // 記事一覧タブに切り替えたときは記事一覧を更新
-        this.refreshNewsList();
-      }
-      
-      if (newActiveNavItem) {
-        newActiveNavItem.classList.add('active');
-      }
-      if (newActiveTabContent) {
-        newActiveTabContent.classList.add('active');
-      }
-      
-      const tabDisplayName = tabName === 'editor' ? '記事作成' : '記事一覧';
-      this._showFeedback(`${tabDisplayName}タブに切り替えました`);
-      
-    } catch (error) {
-      console.error('❌ 記事管理サブタブ切り替えエラー:', error);
-      this._showFeedback('タブの切り替えに失敗しました', 'error');
+  _injectNewsDetailStyles() {
+    // 既存のプレビュースタイルがあれば削除
+    const existingStyle = document.getElementById('news-detail-preview-styles');
+    if (existingStyle) {
+      existingStyle.remove();
     }
-  }
-
-  /**
-   * フォームからニュースフォームデータを取得
-   * @private
-   * @returns {Object}
-   */
-  _getNewsFormData() {
-    return {
-      title: document.getElementById('news-title')?.value || '',
-      category: document.getElementById('news-category')?.value || 'announcement',
-      date: document.getElementById('news-date')?.value || '',
-      status: document.getElementById('news-status')?.value || 'draft',
-      summary: document.getElementById('news-summary')?.value || '',
-      content: document.getElementById('news-content')?.value || '',
-      featured: document.getElementById('news-featured')?.checked || false
-    };
-  }
-
-  /**
-   * レッスン状況のプレビュー表示
-   * @private
-   * @param {Object} statusData - レッスン状況データ
-   */
-
-  /**
-
-  /**
-   * フォームからレッスン状況データを取得
-   * @private
-   * @returns {Object}
-   */
-  _getLessonStatusFromForm() {
-    // 今日の日付をデフォルトとして取得
-    const today = new Date().toISOString().slice(0, 10);
     
-    // フォームからの生の値を取得
-    const globalStatusRaw = document.querySelector('input[name="global-status"]:checked')?.value || '通常開催';
-    const basicLessonRaw = document.querySelector('input[name="basic-lesson"]:checked')?.value || '通常開催';
-    const advanceLessonRaw = document.querySelector('input[name="advance-lesson"]:checked')?.value || '通常開催';
-    
-    // 日本語の値を英語キーにマッピング
-    const globalStatus = this._mapJapaneseStatusToKey(globalStatusRaw);
-    const basicLessonStatus = this._mapJapaneseStatusToKey(basicLessonRaw);
-    const advanceLessonStatus = this._mapJapaneseStatusToKey(advanceLessonRaw);
-    
-    return {
-      date: document.getElementById('lesson-date')?.value || today,
-      globalStatus: globalStatus,
-      globalMessage: document.getElementById('global-message')?.value || '',
-      courses: {
-        basic: {
-          name: 'ベーシックコース（年長〜小3）',
-          time: '17:00-17:50',
-          status: basicLessonStatus,
-          message: document.getElementById('basic-lesson-note')?.value || ''
-        },
-        advance: {
-          name: 'アドバンスコース（小4〜小6）',
-          time: '18:00-18:50',
-          status: advanceLessonStatus,
-          message: document.getElementById('advance-lesson-note')?.value || ''
+    // news-detail.cssのスタイルをプレビュー用に調整して注入
+    const styleElement = document.createElement('style');
+    styleElement.id = 'news-detail-preview-styles';
+    styleElement.textContent = `
+      /* プレビューモーダル基本スタイル */
+      .news-detail-preview-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: fadeIn 0.3s ease;
+      }
+      
+      .news-detail-preview-content {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        width: 95%;
+        max-width: 1200px;
+        height: 90vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        animation: slideInUp 0.4s ease;
+      }
+      
+      .news-detail-modal-header {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 20px 30px;
+        border-bottom: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      
+      .modal-title-section h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      
+      .preview-note {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin: 4px 0 0 0;
+        font-weight: 400;
+      }
+      
+      .modal-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      
+      .modal-action-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+      }
+      
+      .modal-action-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+      }
+      
+      .news-detail-preview-body {
+        flex: 1;
+        overflow: hidden;
+        padding: 0;
+        background: #f8f9fa;
+      }
+      
+      .preview-viewport {
+        height: 100%;
+        overflow: auto;
+        background: white;
+        transition: all 0.3s ease;
+      }
+      
+      .preview-viewport.mobile-view {
+        max-width: 375px;
+        margin: 0 auto;
+        border-left: 2px solid #ddd;
+        border-right: 2px solid #ddd;
+      }
+      
+      .preview-viewport.tablet-view {
+        max-width: 768px;
+        margin: 0 auto;
+        border-left: 2px solid #ddd;
+        border-right: 2px solid #ddd;
+      }
+      
+      .preview-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px 40px;
+        min-height: 100%;
+        background: white;
+      }
+      
+      /* news-detail.cssのスタイルを再現 */
+      .preview-breadcrumb {
+        background: white;
+        padding: 15px 16px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 2px solid #e9ecef;
+      }
+      
+      .preview-breadcrumb .breadcrumb-list {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px;
+        list-style: none;
+        font-size: 12px;
+        font-weight: 600;
+        margin: 0;
+        padding: 0;
+      }
+      
+      .preview-breadcrumb .breadcrumb-list li {
+        display: flex;
+        align-items: center;
+      }
+      
+      .preview-breadcrumb .breadcrumb-list a {
+        color: #4a90e2;
+        text-decoration: none;
+        transition: color 0.3s ease;
+        font-weight: 600;
+        padding: 4px 2px;
+      }
+      
+      .preview-breadcrumb .breadcrumb-list a:hover {
+        color: #357abd;
+        text-decoration: underline;
+      }
+      
+      .preview-breadcrumb .breadcrumb-separator {
+        color: #6c757d;
+        margin: 0 8px;
+        font-weight: 400;
+      }
+      
+      .preview-article-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 40px 30px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+      
+      .preview-article-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #4a90e2, #50c8a3, #9b59b6, #e74c3c);
+      }
+      
+      .preview-article-meta {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+      
+      .preview-article-date {
+        background: #4a90e2;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      
+      .preview-article-date::before {
+        content: '📅';
+        font-size: 12px;
+      }
+      
+      .preview-article-category {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 700;
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .preview-article-category.announcement {
+        background: #4a90e2;
+      }
+      
+      .preview-article-category.event {
+        background: #50c8a3;
+      }
+      
+      .preview-article-category.media {
+        background: #9b59b6;
+      }
+      
+      .preview-article-category.important {
+        background: #e74c3c;
+      }
+      
+      .preview-article-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #2c3e50;
+        line-height: 1.2;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      
+      .preview-article-summary {
+        font-size: 1.1rem;
+        color: #5a6c7d;
+        line-height: 1.6;
+        margin: 20px 0 0 0;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 12px;
+        border-left: 4px solid #4a90e2;
+      }
+      
+      .preview-article-content {
+        background: white;
+        padding: 40px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        line-height: 1.8;
+        font-size: 16px;
+      }
+      
+      .preview-article-content h2 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin: 40px 0 20px 0;
+        padding-bottom: 16px;
+        border-bottom: 3px solid #4a90e2;
+        position: relative;
+        text-align: center;
+      }
+      
+      .preview-article-content h2::before {
+        content: '◆';
+        color: #4a90e2;
+        margin-right: 12px;
+      }
+      
+      .preview-article-content h2::after {
+        content: '◆';
+        color: #4a90e2;
+        margin-left: 12px;
+      }
+      
+      .preview-article-content h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #34495e;
+        margin: 30px 0 16px 0;
+        padding-left: 16px;
+        border-left: 4px solid #4a90e2;
+        position: relative;
+      }
+      
+      .preview-article-content h3::after {
+        content: '';
+        position: absolute;
+        bottom: -4px;
+        left: 0;
+        width: 60px;
+        height: 2px;
+        background: #4a90e2;
+      }
+      
+      .preview-article-content h4 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #34495e;
+        margin: 24px 0 12px 0;
+        position: relative;
+        padding-left: 24px;
+      }
+      
+      .preview-article-content h4::before {
+        content: '■';
+        position: absolute;
+        left: 0;
+        color: #4a90e2;
+        font-size: 14px;
+      }
+      
+      .preview-article-content h5 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #34495e;
+        margin: 20px 0 10px 0;
+        position: relative;
+        padding-left: 20px;
+      }
+      
+      .preview-article-content h5::before {
+        content: '▶';
+        position: absolute;
+        left: 0;
+        color: #4a90e2;
+        font-size: 12px;
+      }
+      
+      .preview-article-content p {
+        margin: 16px 0;
+        line-height: 1.8;
+      }
+      
+      .preview-article-content ul,
+      .preview-article-content ol {
+        margin: 16px 0;
+        padding-left: 24px;
+      }
+      
+      .preview-article-content li {
+        margin: 8px 0;
+        line-height: 1.7;
+      }
+      
+      .preview-article-content strong {
+        color: #2c3e50;
+        font-weight: 700;
+      }
+      
+      .preview-article-content em {
+        color: #5a6c7d;
+        font-style: italic;
+      }
+      
+      .preview-article-content code {
+        background: #f8f9fa;
+        color: #e83e8c;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Fira Code', monospace;
+        font-size: 0.9em;
+      }
+      
+      .preview-article-content blockquote {
+        background: #f8f9fa;
+        border-left: 4px solid #4a90e2;
+        padding: 20px 24px;
+        margin: 24px 0;
+        border-radius: 8px;
+        font-style: italic;
+        color: #5a6c7d;
+      }
+      
+      .preview-article-content hr {
+        border: none;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #4a90e2, transparent);
+        margin: 32px 0;
+      }
+      
+      .preview-share-section {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 30px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      }
+      
+      .share-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        position: relative;
+      }
+      
+      .share-title::before {
+        content: '📤';
+        margin-right: 8px;
+      }
+      
+      .preview-share-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+      
+      .share-btn {
+        background: white;
+        border: 2px solid #ddd;
+        padding: 12px 20px;
+        border-radius: 25px;
+        cursor: not-allowed;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        opacity: 0.7;
+      }
+      
+      .share-btn.twitter {
+        border-color: #1da1f2;
+        color: #1da1f2;
+      }
+      
+      .share-btn.facebook {
+        border-color: #4267b2;
+        color: #4267b2;
+      }
+      
+      .share-btn.line {
+        border-color: #00c300;
+        color: #00c300;
+      }
+      
+      .share-btn.copy {
+        border-color: #6c757d;
+        color: #6c757d;
+      }
+      
+      .preview-related-articles {
+        background: white;
+        padding: 40px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      }
+      
+      .related-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        text-align: center;
+        position: relative;
+      }
+      
+      .related-title::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background: linear-gradient(90deg, #4a90e2, #50c8a3);
+        border-radius: 2px;
+      }
+      
+      .related-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 20px;
+      }
+      
+      .preview-related-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+      }
+      
+      .preview-related-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      }
+      
+      .related-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      
+      .related-date {
+        background: #6c757d;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      
+      .related-category {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        color: white;
+      }
+      
+      .related-category.announcement {
+        background: #4a90e2;
+      }
+      
+      .related-category.event {
+        background: #50c8a3;
+      }
+      
+      .related-category.media {
+        background: #9b59b6;
+      }
+      
+      .related-category.important {
+        background: #e74c3c;
+      }
+      
+      .related-title-link {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 12px 0;
+        line-height: 1.4;
+      }
+      
+      .related-excerpt {
+        color: #6c757d;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin: 0;
+      }
+      
+      .preview-article-nav {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      
+      .nav-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #4a90e2;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+      
+      .preview-note-small {
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-align: center;
+        margin: 12px 0 0 0;
+        font-style: italic;
+      }
+      
+      .news-detail-modal-footer {
+        background: #f8f9fa;
+        padding: 20px 30px;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      
+      .modal-footer-left,
+      .modal-footer-right {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      
+      /* レスポンシブ対応 */
+      @media (max-width: 768px) {
+        .news-detail-preview-content {
+          width: 98%;
+          height: 95vh;
+          margin: 10px;
+        }
+        
+        .news-detail-modal-header {
+          padding: 16px 20px;
+        }
+        
+        .modal-title-section h2 {
+          font-size: 1.3rem;
+        }
+        
+        .preview-container {
+          padding: 16px 20px;
+        }
+        
+        .preview-article-header {
+          padding: 24px 20px;
+        }
+        
+        .preview-article-title {
+          font-size: 1.5rem;
+        }
+        
+        .preview-article-content {
+          padding: 24px 20px;
+        }
+        
+        .related-grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .news-detail-modal-footer {
+          flex-direction: column;
+          gap: 12px;
+        }
+        
+        .modal-footer-left,
+        .modal-footer-right {
+          width: 100%;
+          justify-content: center;
+        }
+        
+        .preview-share-buttons {
+          flex-direction: column;
+          align-items: center;
         }
       }
-    };
-  }
-
-  /**
-   * レッスン状況をフォームに読み込み
-   * @private
-   * @param {Object} status - レッスン状況
-   */
-  _loadLessonStatusToForm(status) {
-    try {
-      if (status.date) {
-        const dateField = document.getElementById('lesson-date');
-        if (dateField) dateField.value = status.date;
-      }
       
-      if (status.globalMessage) {
-        const messageField = document.getElementById('global-message');
-        if (messageField) messageField.value = status.globalMessage;
-      }
-      
-      // ラジオボタンの設定（英語キーから日本語値にマッピング）
-      if (status.globalStatus) {
-        const globalJapanese = this._mapStatusKeyToJapanese(status.globalStatus);
-        const globalRadio = document.querySelector(`input[name="global-status"][value="${globalJapanese}"]`);
-        if (globalRadio) globalRadio.checked = true;
-      }
-      
-      // コースデータの処理
-      if (status.courses?.basic?.status) {
-        const basicJapanese = this._mapStatusKeyToJapanese(status.courses.basic.status);
-        const basicRadio = document.querySelector(`input[name="basic-lesson"][value="${basicJapanese}"]`);
-        if (basicRadio) basicRadio.checked = true;
-      }
-      
-      if (status.courses?.basic?.message) {
-        const basicMessageField = document.getElementById('basic-lesson-note');
-        if (basicMessageField) basicMessageField.value = status.courses.basic.message;
-      }
-      
-      if (status.courses?.advance?.status) {
-        const advanceJapanese = this._mapStatusKeyToJapanese(status.courses.advance.status);
-        const advanceRadio = document.querySelector(`input[name="advance-lesson"][value="${advanceJapanese}"]`);
-        if (advanceRadio) advanceRadio.checked = true;
-      }
-      
-      if (status.courses?.advance?.message) {
-        const advanceMessageField = document.getElementById('advance-lesson-note');
-        if (advanceMessageField) advanceMessageField.value = status.courses.advance.message;
-      }
-    } catch (error) {
-      console.error('❌ レッスン状況フォーム読み込みエラー:', error);
-      this._showFeedback('データの読み込み中にエラーが発生しました', 'error');
-    }
-  }
-
-  /**
-   * フィードバックメッセージを表示
-   * @private
-   */
-
-  /**
-   * ダッシュボード統計更新
-   */
-  updateDashboardStats() {
-    try {
-      console.log('📊 ダッシュボード統計更新開始');
-      
-      // CONFIG.jsで定義されたキーを使用して記事データを取得
-      const articlesKey = CONFIG.storage.keys.articles;
-      const articlesData = localStorage.getItem(articlesKey);
-      
-      let publishedCount = 0;
-      let draftCount = 0;
-      let currentMonthCount = 0;
-      
-      if (articlesData) {
-        try {
-          const articles = JSON.parse(articlesData);
-          if (Array.isArray(articles)) {
-            // 有効な記事のみフィルタリング（Instagram管理コンテンツを除外）
-            const validArticles = articles.filter(article => 
-              article && 
-              article.id && 
-              article.title &&
-              !article.title.includes('Instagram') &&
-              !article.title.includes('instagram')
-            );
-            
-            // 公開記事数をカウント
-            publishedCount = validArticles.filter(article => 
-              article.status === 'published'
-            ).length;
-            
-            // 下書き記事数をカウント
-            draftCount = validArticles.filter(article => 
-              article.status === 'draft'
-            ).length;
-            
-            // 今月の記事数をカウント
-            const currentMonth = new Date().getMonth();
-            const currentYear = new Date().getFullYear();
-            
-            currentMonthCount = validArticles.filter(article => {
-              const articleDate = new Date(article.createdAt || article.date);
-              return articleDate.getMonth() === currentMonth && 
-                     articleDate.getFullYear() === currentYear;
-            }).length;
-            
-            console.log(`📈 統計データ: 公開=${publishedCount}, 下書き=${draftCount}, 今月=${currentMonthCount}`);
-          }
-        } catch (parseError) {
-          console.error('記事データの解析エラー:', parseError);
-          // データが破損している場合はクリア
-          localStorage.removeItem(articlesKey);
+      @media (max-width: 480px) {
+        .preview-article-meta {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+        }
+        
+        .preview-article-title {
+          font-size: 1.3rem;
+        }
+        
+        .preview-article-content h2 {
+          font-size: 1.4rem;
+        }
+        
+        .preview-article-content h3 {
+          font-size: 1.2rem;
+        }
+        
+        .modal-controls {
+          flex-direction: column;
+          gap: 6px;
         }
       }
       
-      // DOM要素に値を設定
-      const publishedElement = document.getElementById('stat-published');
-      const draftsElement = document.getElementById('stat-drafts');
-      const currentMonthElement = document.getElementById('stat-current-month');
-      
-      if (publishedElement) {
-        publishedElement.textContent = publishedCount;
-        publishedElement.style.animation = 'none';
-        publishedElement.offsetHeight; // reflow
-        publishedElement.style.animation = 'countUp 0.5s ease-out';
+      /* アニメーション */
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
       }
       
-      if (draftsElement) {
-        draftsElement.textContent = draftCount;
-        draftsElement.style.animation = 'none';
-        draftsElement.offsetHeight; // reflow
-        draftsElement.style.animation = 'countUp 0.5s ease-out';
-      }
-      
-      if (currentMonthElement) {
-        currentMonthElement.textContent = currentMonthCount;
-        currentMonthElement.style.animation = 'none';
-        currentMonthElement.offsetHeight; // reflow
-        currentMonthElement.style.animation = 'countUp 0.5s ease-out';
-      }
-      
-      console.log('✅ ダッシュボード統計更新完了');
-      
-    } catch (error) {
-      console.error('❌ ダッシュボード統計更新エラー:', error);
-      
-      // エラー時は0を表示
-      ['stat-published', 'stat-drafts', 'stat-current-month'].forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.textContent = '0';
+      @keyframes slideInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px) scale(0.95);
         }
-      });
-    }
-  }
-
-  /**
-   * 統計要素の更新
-   * @private
-   * @param {string} elementId - 統計要素のID
-   * @param {number} value - 更新する値
-   */
-  _updateStatsElement(elementId, value) {
-    const element = document.getElementById(elementId);
-    if (element) {
-      element.textContent = value;
-    }
-  }
-
-  /**
-   * 管理画面統計情報の更新
-   * @private
-   */
-  updateAdminStats() {
-    try {
-      const articleStats = this.articleDataService.getStats();
-      
-      // レッスンステータスの取得 - 適切なメソッドを使用
-      let lessonCount = 0;
-      try {
-        if (this.lessonStatusService && typeof this.lessonStatusService.getStatus === 'function') {
-          const lessonStatus = this.lessonStatusService.getStatus();
-          lessonCount = lessonStatus.statusCount || 0; // statusData.sizeの値を使用
-        } else if (this.lessonStatusService && typeof this.lessonStatusService.getCurrentStatus === 'function') {
-          const lessonStatus = this.lessonStatusService.getCurrentStatus();
-          lessonCount = lessonStatus ? 1 : 0;
-        }
-      } catch (lessonError) {
-        this.warn('レッスン統計取得エラー:', lessonError);
-        lessonCount = 0;
-      }
-      
-      // Instagram統計の取得
-      let instagramCount = 0;
-      try {
-        if (this.instagramDataService && Array.isArray(this.instagramDataService.posts)) {
-          instagramCount = this.instagramDataService.posts.length;
-        }
-      } catch (instagramError) {
-        this.warn('Instagram統計取得エラー:', instagramError);
-        instagramCount = 0;
-      }
-      
-      // UIManagerServiceを使って統計を更新
-      if (this.uiManagerService && typeof this.uiManagerService.updateStats === 'function') {
-        this.uiManagerService.updateStats({
-          articles: articleStats,
-          lessons: { total: lessonCount },
-          instagram: { total: instagramCount }
-        });
-      }
-      
-    } catch (error) {
-      this.warn('統計情報更新エラー:', error);
-    }
-  }
-
-  /**
-   * タブナビゲーションの設定
-   * @private
-   */
-  setupTabNavigation() {
-    console.log('🧭 タブナビゲーション設定開始');
-    
-    try {
-      // 保存されたタブ状態を復元（統一ストレージキーを使用）
-      const savedTab = localStorage.getItem(this.storageKeys.adminTab);
-      const defaultTab = 'dashboard';
-      const activeTab = (savedTab && this._isValidTabName(savedTab)) ? savedTab : defaultTab;
-      
-      console.log('🔍 タブ状態:', {
-        saved: savedTab,
-        default: defaultTab,
-        active: activeTab,
-        isValid: this._isValidTabName(activeTab)
-      });
-      
-      // DOM要素の存在確認
-      const navItems = document.querySelectorAll('.nav-item[data-tab]');
-      const sections = document.querySelectorAll('.admin-section');
-      
-      console.log('🔍 DOM要素数:', {
-        navItems: navItems.length,
-        sections: sections.length
-      });
-      
-      if (navItems.length === 0) {
-        console.warn('⚠️ ナビゲーションアイテムが見つかりません');
-      }
-      
-      if (sections.length === 0) {
-        console.warn('⚠️ 管理画面セクションが見つかりません');
-      }
-      
-      // 初期タブを設定
-      this.switchAdminTab(activeTab);
-      console.log(`✅ 初期タブ設定完了: ${activeTab}`);
-      
-      // ページロード時の記事管理タブのクラス状態を確認・修正
-      const adminMain = document.querySelector('.admin-main');
-      if (adminMain) {
-        if (activeTab === 'news-management') {
-          adminMain.classList.add('news-management-active');
-          console.log('📄 初期化: 記事管理タブのため全体スクロールモード有効');
-        } else {
-          adminMain.classList.remove('news-management-active');
-          console.log('📱 初期化: 他のタブのため固定高さモード');
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
         }
       }
-      
-      // デバッグ情報
-      if (CONFIG.debug?.enabled || window.DEBUG) {
-        console.log('🔍 利用可能なタブ:', Array.from(navItems).map(item => item.dataset.tab));
-        console.log('🔍 利用可能なセクション:', Array.from(sections).map(section => section.id));
-      }
-      
-    } catch (error) {
-      console.error('❌ タブナビゲーション設定エラー:', error);
-      
-      // フォールバック: デフォルトタブを強制設定
-      try {
-        console.log('🔄 フォールバック: デフォルトタブを設定');
-        this.switchAdminTab('dashboard');
-      } catch (fallbackError) {
-        console.error('❌ フォールバック失敗:', fallbackError);
-        this._showFeedback('タブナビゲーションの初期化に失敗しました', 'error');
-      }
-    }
-  }
-
-  // === ログメソッド ===
-
-  /**
-   * ログ出力（新通知システム統合版）
-   * @private
-   */
-  log(...args) {
-    const message = args.join(' ');
-    
-    // 新通知システムにログ記録
-    if (window.adminLog) {
-      window.adminLog(message, 'info', 'admin-action');
-    } else {
-      // フォールバック: コンソール出力
-      console.log('🔧 AdminActionService:', ...args);
-    }
-  }
-
-  /**
-   * デバッグログ出力（新通知システム統合版）
-   * @private
-   */
-  debug(...args) {
-    const message = args.join(' ');
-    
-    // 新通知システムにデバッグログ記録
-    if (window.adminLog) {
-      window.adminLog(message, 'debug', 'admin-action');
-    } else if (CONFIG.debug?.enabled || window.DEBUG) {
-      console.debug('🔍 AdminActionService:', ...args);
-    }
-  }
-
-  /**
-   * 警告ログ出力（新通知システム統合版）
-   * @private
-   */
-  warn(...args) {
-    const message = args.join(' ');
-    
-    // 新通知システムに警告ログ記録
-    if (window.adminLog) {
-      window.adminLog(message, 'warning', 'admin-action');
-    } else {
-      console.warn('⚠️ AdminActionService:', ...args);
-    }
-    
-    // 重要な警告は通知も表示
-    if (window.adminNotify && message.includes('エラー') || message.includes('失敗')) {
-      window.adminNotify({
-        type: 'warning',
-        title: '警告',
-        message: message,
-        duration: 5000
-      });
-    }
-  }
-
-  /**
-   * エラーログ出力（新通知システム統合版）
-   * @private
-   */
-  error(...args) {
-    const message = args.join(' ');
-    
-    // 新通知システムにエラーログ記録
-    if (window.adminLog) {
-      window.adminLog(message, 'error', 'admin-action');
-    } else {
-      console.error('❌ AdminActionService:', ...args);
-    }
-    
-    // エラー通知を表示
-    if (window.adminNotify) {
-      window.adminNotify({
-        type: 'error',
-        title: 'エラー',
-        message: message,
-        duration: 7000
-      });
-    }
-  }
-
-  /**
-   * 成功メッセージの表示（新通知システム統合版）
-   * @private
-   */
-  success(...args) {
-    const message = args.join(' ');
-    
-    // 新通知システムにログ記録
-    if (window.adminLog) {
-      window.adminLog(message, 'info', 'admin-action');
-    } else if (CONFIG.debug?.enabled || window.DEBUG) {
-      console.log('✅ AdminActionService:', ...args);
-    }
-    
-    // 成功通知を表示
-    if (window.adminNotify) {
-      window.adminNotify({
-        type: 'success',
-        title: '成功',
-        message: message,
-        duration: 4000
-      });
-    }
-  }
-
-  /**
-   * 情報メッセージの表示（新通知システム統合版）
-   * @private
-   */
-  info(...args) {
-    const message = args.join(' ');
-    
-    // 新通知システムにログ記録
-    if (window.adminLog) {
-      window.adminLog(message, 'info', 'admin-action');
-    } else if (CONFIG.debug?.enabled || window.DEBUG) {
-      console.log('ℹ️ AdminActionService:', ...args);
-    }
-    
-    // 情報通知を表示（控えめに）
-    if (window.adminToast) {
-      window.adminToast(message, 'info');
-    }
-  }
-
-  /**
-   * 新規記事作成を開始
-   */
-  startNewArticle() {
-    try {
-      console.log('📝 新規記事作成開始');
-      
-      // 記事管理タブに切り替え
-      this.switchAdminTab('news-management').then(() => {
-        // エディタータブに切り替え
-        setTimeout(() => {
-          this.switchNewsTab('editor');
-          
-          // フォームをクリア
-          setTimeout(() => {
-            this.clearNewsEditor();
-            
-            // タイトルフィールドにフォーカス
-            const titleField = document.getElementById('news-title');
-            if (titleField) {
-              titleField.focus();
-            }
-          }, 100);
-        }, 100);
-      }).catch(error => {
-        console.error('❌ 新規記事作成開始エラー:', error);
-        this._showFeedback('新規記事作成の開始に失敗しました', 'error');
-      });
-      
-    } catch (error) {
-      console.error('❌ 新規記事作成開始エラー:', error);
-      this._showFeedback('新規記事作成の開始に失敗しました', 'error');
-    }
-  }
-
-  /**
-   * 記事作成ガイドを表示
-   * @private
-   */
-  _showWritingGuide() {
-    const guideContent = `
-      <div class="writing-guide">
-        <div class="guide-intro">
-          <div class="guide-hero">
-            <div class="guide-hero-icon">
-              <i class="fas fa-lightbulb"></i>
-            </div>
-            <div class="guide-hero-content">
-              <h3>📝 RBS陸上教室 記事作成ガイド</h3>
-              <p>魅力的で読みやすい記事を作成するための完全ガイド</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="guide-sections">
-          <!-- 記事の基本構成 -->
-          <div class="guide-section">
-            <div class="section-header">
-              <div class="section-icon">
-                <i class="fas fa-file-alt"></i>
-              </div>
-              <h4>📋 記事の基本構成</h4>
-            </div>
-            <div class="section-content">
-              <div class="guide-tips">
-                <div class="tip-item">
-                  <div class="tip-icon success">
-                    <i class="fas fa-heading"></i>
-                  </div>
-                  <div class="tip-content">
-                    <strong>タイトル（30文字以内推奨）</strong>
-                    <p>簡潔で分かりやすく、検索しやすいキーワードを含める。読者が一目で内容を理解できるように工夫しましょう。</p>
-                  </div>
-                </div>
-                <div class="tip-item">
-                  <div class="tip-icon info">
-                    <i class="fas fa-tags"></i>
-                  </div>
-                  <div class="tip-content">
-                    <strong>カテゴリー選択</strong>
-                    <p><span class="category-example announcement">お知らせ</span> 一般的なお知らせ | <span class="category-example event">体験会</span> 体験会・イベント情報<br>
-                    <span class="category-example media">メディア</span> メディア掲載・取材情報 | <span class="category-example important">重要</span> 緊急性の高い重要なお知らせ</p>
-                  </div>
-                </div>
-                <div class="tip-item">
-                  <div class="tip-icon warning">
-                    <i class="fas fa-align-left"></i>
-                  </div>
-                  <div class="tip-content">
-                    <strong>概要（100文字以内推奨）</strong>
-                    <p>記事の要点を2-3行で簡潔に。ニュース一覧ページで表示されるため、読者の興味を引く内容にしましょう。</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 詳細なマークダウン記法 -->
-          <div class="guide-section">
-            <div class="section-header">
-              <div class="section-icon">
-                <i class="fab fa-markdown"></i>
-              </div>
-              <h4>🎨 Markdown記法ガイド</h4>
-            </div>
-            <div class="section-content">
-              <div class="markdown-guide">
-                <div class="markdown-category">
-                  <h5><i class="fas fa-heading"></i> 見出し（階層を守って使用）</h5>
-                  <div class="markdown-examples">
-                    <div class="example-item">
-                      <code># 大見出し（H1）</code>
-                      <div class="example-preview">
-                        <h1 style="font-size: 1.8rem; font-weight: 700; margin: 0.5rem 0;">最も大きく、記事のメインテーマ</h1>
-                      </div>
-                    </div>
-                    <div class="example-item">
-                      <code>## 中見出し（H2）</code>
-                      <div class="example-preview">
-                        <h2 style="font-size: 1.5rem; font-weight: 600; text-align: center; color: #4a90e2; margin: 0.5rem 0;">セクションの区切り、中央揃えで装飾</h2>
-                      </div>
-                    </div>
-                    <div class="example-item">
-                      <code>### 小見出し（H3）</code>
-                      <div class="example-preview">
-                        <h3 style="font-size: 1.3rem; font-weight: 600; border-left: 4px solid #4a90e2; padding-left: 0.5rem; margin: 0.5rem 0;">サブセクション、左に青いアクセント</h3>
-                      </div>
-                    </div>
-                    <div class="example-item">
-                      <code>#### 詳細見出し（H4）</code>
-                      <div class="example-preview">
-                        <h4 style="font-size: 1.1rem; font-weight: 600; margin: 0.5rem 0;"><span style="background: #4a90e2; color: white; padding: 2px 6px; margin-right: 0.5rem;">■</span>詳細項目、青い四角マーク付き</h4>
-                      </div>
-                    </div>
-                    <div class="example-item">
-                      <code>##### サブ見出し（H5）</code>
-                      <div class="example-preview">
-                        <h5 style="font-size: 1rem; font-weight: 600; margin: 0.5rem 0;"><span style="color: #4a90e2; margin-right: 0.5rem;">▶</span>補足項目、青い矢印付き</h5>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="markdown-note">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>重要：</strong> 見出しレベルを飛ばさず、H2 → H3 → H4の順で使用してください
-                  </div>
-                </div>
-
-                <div class="markdown-category">
-                  <h5><i class="fas fa-font"></i> 文字装飾</h5>
-                  <div class="markdown-examples">
-                    <div class="example-item">
-                      <code>**太字テキスト**</code>
-                      <div class="example-preview">
-                        <strong>重要な情報を強調</strong>
-                      </div>
-                    </div>
-                    <div class="example-item">
-                      <code>*斜体テキスト*</code>
-                      <div class="example-preview">
-                        <em>補足や引用に使用</em>
-                      </div>
-                    </div>
-                    <div class="example-item">
-                      <code>\`インラインコード\`</code>
-                      <div class="example-preview">
-                        <code style="background: #f5f5f5; padding: 2px 4px; border-radius: 3px;">特定の用語や数値</code>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="markdown-category">
-                  <h5><i class="fas fa-list"></i> リスト（情報の整理に効果的）</h5>
-                  <div class="markdown-examples">
-                    <div class="example-item">
-                      <code>- 項目1<br>- 項目2<br>  - サブ項目<br>- 項目3</code>
-                      <div class="example-preview">
-                        <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
-                          <li>項目1</li>
-                          <li>項目2
-                            <ul style="margin: 0.25rem 0;">
-                              <li>サブ項目</li>
-                            </ul>
-                          </li>
-                          <li>項目3</li>
-                        </ul>
-                      </div>
-                    </div>
-                    <div class="example-item">
-                      <code>1. 第一項目<br>2. 第二項目<br>3. 第三項目</code>
-                      <div class="example-preview">
-                        <ol style="margin: 0.5rem 0; padding-left: 1.5rem;">
-                          <li>第一項目</li>
-                          <li>第二項目</li>
-                          <li>第三項目</li>
-                        </ol>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="markdown-category">
-                  <h5><i class="fas fa-link"></i> リンクと引用</h5>
-                  <div class="markdown-examples">
-                    <div class="example-item">
-                      <code>[リンクテキスト](URL)</code>
-                      <div class="example-preview">
-                        <a href="#" style="color: #4a90e2; text-decoration: none;">説明的なリンクテキストを使用</a>
-                      </div>
-                    </div>
-                    <div class="example-item">
-                      <code>> 重要な引用文や<br>> 誰かの発言を記載</code>
-                      <div class="example-preview">
-                        <blockquote style="border-left: 4px solid #ddd; padding-left: 1rem; margin: 0.5rem 0; font-style: italic;">
-                          重要な引用文や<br>誰かの発言を記載
-                        </blockquote>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="markdown-category">
-                  <h5><i class="fas fa-minus"></i> 区切り線</h5>
-                  <div class="markdown-examples">
-                    <div class="example-item">
-                      <code>---</code>
-                      <div class="example-preview">
-                        <hr style="border: none; border-top: 2px solid #eee; margin: 1rem 0;">
-                        <small>セクションの区切りに使用</small>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 実践的な記事例 -->
-          <div class="guide-section">
-            <div class="section-header">
-              <div class="section-icon">
-                <i class="fas fa-newspaper"></i>
-              </div>
-              <h4>📝 実践的な記事例</h4>
-            </div>
-            <div class="section-content">
-              <div class="article-example">
-                <div class="example-header">
-                  <h5><i class="fas fa-calendar-alt"></i> 体験会記事の例</h5>
-                </div>
-                <div class="example-code">
-                  <pre><code># 春の陸上体験会開催のお知らせ
-
-## 開催概要
-
-**日時:** 2024年4月15日（土）10:00-12:00
-**場所:** RBS陸上教室 メイングラウンド
-**対象:** 小学1年生〜6年生
-
-## プログラム内容
-
-### 基礎運動
-- かけっこの基本フォーム
-- スタートダッシュの練習
-- リレーゲーム
-
-### 専門種目体験
-1. 短距離走（50m、100m）
-2. 走り幅跳び
-3. ハードル走
-
-## 参加申し込み
-
-> 参加費は無料です！
-> お気軽にご参加ください。
-
-**申し込み方法:**
-[こちらのフォーム](https://example.com/form)からお申し込みください。
-
----
-
-皆様のご参加をお待ちしております！</code></pre>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ベストプラクティス -->
-          <div class="guide-section">
-            <div class="section-header">
-              <div class="section-icon">
-                <i class="fas fa-star"></i>
-              </div>
-              <h4>⭐ ベストプラクティス</h4>
-            </div>
-            <div class="section-content">
-              <div class="best-practices">
-                <div class="practice-category good">
-                  <h5><i class="fas fa-check-circle"></i> 推奨事項</h5>
-                  <ul class="practice-list">
-                    <li><strong>適切な見出し階層：</strong> H1 → H2 → H3の順で使用し、レベルを飛ばさない</li>
-                    <li><strong>箇条書きの活用：</strong> 複数の項目は箇条書きで整理して読みやすく</li>
-                    <li><strong>重要情報の強調：</strong> **太字**で重要な日程や締切を強調</li>
-                    <li><strong>適度な改行：</strong> 長い文章は適度に改行して読みやすさを向上</li>
-                    <li><strong>説明的なリンク：</strong> 「こちら」ではなく内容がわかるテキストを使用</li>
-                  </ul>
-                </div>
-                <div class="practice-category bad">
-                  <h5><i class="fas fa-times-circle"></i> 避けるべき記法</h5>
-                  <ul class="practice-list">
-                    <li><strong>HTMLタグの直接記述：</strong> 自動変換されるMarkdownを使用</li>
-                    <li><strong>極端に長い段落：</strong> 適度に改行を入れて読みやすく</li>
-                    <li><strong>見出しレベルの飛ばし：</strong> H2の次にH4などは避ける</li>
-                    <li><strong>曖昧なリンクテキスト：</strong> 「こちら」「ここ」は避ける</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- チェックリスト -->
-          <div class="guide-section">
-            <div class="section-header">
-              <div class="section-icon">
-                <i class="fas fa-tasks"></i>
-              </div>
-              <h4>✅ 公開前チェックリスト</h4>
-            </div>
-            <div class="section-content">
-              <div class="checklist">
-                <div class="checklist-category">
-                  <h5><i class="fas fa-spell-check"></i> 内容チェック</h5>
-                  <div class="checklist-items">
-                    <label class="checklist-item">
-                      <input type="checkbox" disabled>
-                      <span class="checkmark"></span>
-                      <span class="check-text">タイトルが内容を適切に表現している（30文字以内）</span>
-                    </label>
-                    <label class="checklist-item">
-                      <input type="checkbox" disabled>
-                      <span class="checkmark"></span>
-                      <span class="check-text">概要が記事の要点を簡潔に表現している（100文字以内）</span>
-                    </label>
-                    <label class="checklist-item">
-                      <input type="checkbox" disabled>
-                      <span class="checkmark"></span>
-                      <span class="check-text">適切なカテゴリーが選択されている</span>
-                    </label>
-                    <label class="checklist-item">
-                      <input type="checkbox" disabled>
-                      <span class="checkmark"></span>
-                      <span class="check-text">誤字脱字がない</span>
-                    </label>
-                    <label class="checklist-item">
-                      <input type="checkbox" disabled>
-                      <span class="checkmark"></span>
-                      <span class="check-text">重要な情報（日時、場所、持ち物など）が漏れなく記載されている</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div class="checklist-category">
-                  <h5><i class="fas fa-eye"></i> 表示・構造チェック</h5>
-                  <div class="checklist-items">
-                    <label class="checklist-item">
-                      <input type="checkbox" disabled>
-                      <span class="checkmark"></span>
-                      <span class="check-text">プレビューで見た目を確認済み</span>
-                    </label>
-                    <label class="checklist-item">
-                      <input type="checkbox" disabled>
-                      <span class="checkmark"></span>
-                      <span class="check-text">見出しが適切な階層で設定されている</span>
-                    </label>
-                    <label class="checklist-item">
-                      <input type="checkbox" disabled>
-                      <span class="checkmark"></span>
-                      <span class="check-text">リンクが正しく動作し、説明的なテキストになっている</span>
-                    </label>
-                    <label class="checklist-item">
-                      <input type="checkbox" disabled>
-                      <span class="checkmark"></span>
-                      <span class="check-text">箇条書きや番号付きリストで情報が整理されている</span>
-                    </label>
-                    <label class="checklist-item">
-                      <input type="checkbox" disabled>
-                      <span class="checkmark"></span>
-                      <span class="check-text">適度な改行で読みやすくなっている</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div class="checklist-category">
-                  <h5><i class="fas fa-users"></i> 読者視点チェック</h5>
-                  <div class="checklist-items">
-                    <label class="checklist-item">
-                      <input type="checkbox" disabled>
-                      <span class="checkmark"></span>
-                      <span class="check-text">読者にとって有益な情報が含まれている</span>
-                    </label>
-                    <label class="checklist-item">
-                      <input type="checkbox" disabled>
-                      <span class="checkmark"></span>
-                      <span class="check-text">必要なアクション（申し込み等）が明確に記載されている</span>
-                    </label>
-                    <label class="checklist-item">
-                      <input type="checkbox" disabled>
-                      <span class="checkmark"></span>
-                      <span class="check-text">専門用語に適切な説明がある</span>
-                    </label>
-                    <label class="checklist-item">
-                      <input type="checkbox" disabled>
-                      <span class="checkmark"></span>
-                      <span class="check-text">画像が含まれる場合は事前に管理者に相談済み</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- SEOとアクセシビリティ -->
-          <div class="guide-section">
-            <div class="section-header">
-              <div class="section-icon">
-                <i class="fas fa-search"></i>
-              </div>
-              <h4>🔍 SEO・アクセシビリティのポイント</h4>
-            </div>
-            <div class="section-content">
-              <div class="seo-tips">
-                <div class="seo-tip-item">
-                  <div class="seo-icon">
-                    <i class="fas fa-heading"></i>
-                  </div>
-                  <div class="seo-content">
-                    <h6>論理的な見出し構造</h6>
-                    <p>H1（記事タイトル）→ H2（大項目）→ H3（中項目）→ H4（小項目）の順序で使用し、検索エンジンと読み上げソフトが内容を正しく理解できるようにしましょう</p>
-                  </div>
-                </div>
-                <div class="seo-tip-item">
-                  <div class="seo-icon">
-                    <i class="fas fa-search"></i>
-                  </div>
-                  <div class="seo-content">
-                    <h6>検索キーワードの配慮</h6>
-                    <p>タイトルと本文に、保護者が検索しそうなキーワード（「陸上教室」「体験会」「子ども」など）を自然に含めましょう</p>
-                  </div>
-                </div>
-                <div class="seo-tip-item">
-                  <div class="seo-icon">
-                    <i class="fas fa-external-link-alt"></i>
-                  </div>
-                  <div class="seo-content">
-                    <h6>わかりやすいリンクテキスト</h6>
-                    <p>「こちら」「ここをクリック」ではなく、「体験会申し込みフォーム」「詳細スケジュール」など、リンク先の内容がわかるテキストを使用しましょう</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="guide-footer">
-          <div class="footer-tips">
-            <div class="footer-tip">
-              <i class="fas fa-lightbulb"></i>
-              <span>記事作成で困ったときは、過去の人気記事を参考にしてみましょう</span>
-            </div>
-            <div class="footer-tip">
-              <i class="fas fa-heart"></i>
-              <span>読者（保護者・子どもたち）の立場に立って、どんな情報があれば嬉しいかを考えながら執筆しましょう</span>
-            </div>
-            <div class="footer-tip">
-              <i class="fas fa-question-circle"></i>
-              <span>不明な点がございましたら、管理者までお気軽にお問い合わせください</span>
-            </div>
-          </div>
-        </div>
-      </div>
     `;
     
-    this._createModal('📝 記事執筆ガイド', guideContent, 'writing-guide-modal large');
+    document.head.appendChild(styleElement);
+  }
+
+  /**
+   * プレビューモーダルの機能を初期化
+   * @private
+   */
+  _initializePreviewModal(modal) {
+    const viewport = modal.querySelector('.preview-viewport');
+    
+    // フルスクリーン切替
+    const fullscreenBtn = modal.querySelector('.fullscreen-toggle');
+    if (fullscreenBtn) {
+      fullscreenBtn.addEventListener('click', () => {
+        const content = modal.querySelector('.news-detail-preview-content');
+        content.classList.toggle('fullscreen-mode');
+        
+        if (content.classList.contains('fullscreen-mode')) {
+          content.style.width = '100%';
+          content.style.height = '100vh';
+          content.style.maxWidth = 'none';
+          fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+        } else {
+          content.style.width = '95%';
+          content.style.height = '90vh';
+          content.style.maxWidth = '1200px';
+          fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+        }
+      });
+    }
+    
+    // レスポンシブ切替
+    const responsiveBtn = modal.querySelector('.responsive-toggle');
+    if (responsiveBtn) {
+      let currentView = 'desktop';
+      responsiveBtn.addEventListener('click', () => {
+        viewport.classList.remove('mobile-view', 'tablet-view');
+        
+        switch (currentView) {
+          case 'desktop':
+            viewport.classList.add('mobile-view');
+            currentView = 'mobile';
+            responsiveBtn.innerHTML = '<i class="fas fa-tablet-alt"></i>';
+            break;
+          case 'mobile':
+            viewport.classList.add('tablet-view');
+            currentView = 'tablet';
+            responsiveBtn.innerHTML = '<i class="fas fa-desktop"></i>';
+            break;
+          case 'tablet':
+            currentView = 'desktop';
+            responsiveBtn.innerHTML = '<i class="fas fa-mobile-alt"></i>';
+            break;
+        }
+      });
+    }
+    
+    // スムーズスクロール
+    const links = modal.querySelectorAll('a[href^="#"]');
+    links.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = modal.querySelector(link.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    });
+    
+    console.log('⚙️ プレビューモーダル機能初期化完了');
   }
 
   /**
