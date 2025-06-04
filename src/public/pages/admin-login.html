@@ -14,12 +14,27 @@
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/admin.css">
   <link rel="stylesheet" href="../css/login.css">
+  <link rel="stylesheet" href="../css/admin-login.css">
   
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="../assets/images/rds-logo.png">
   
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <!-- フリッカー防止のためのインラインスクリプト -->
+  <script>
+    // ページ読み込み完了時にフリッカー防止クラスを追加
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.classList.add('loaded');
+    });
+    
+    // CSSが読み込まれる前にページが表示されることを防ぐ
+    document.documentElement.style.visibility = 'hidden';
+    window.addEventListener('load', function() {
+      document.documentElement.style.visibility = 'visible';
+    });
+  </script>
 </head>
 <body class="admin-layout">
   <!-- ヘッダー -->
@@ -100,18 +115,27 @@
 
   <!-- JavaScript -->
   <script type="module">
-    // 設定読み込み
+    // 設定とユーティリティの読み込み
     import { CONFIG } from '../js/shared/constants/config.js';
+    import { redirect, PathHelper, redirectHistory } from '../js/shared/constants/paths.js';
+    import { autoFixLinks } from '../js/shared/utils/linkUtils.js';
     
     const ADMIN_PASSWORD = CONFIG.security.admin.password;
     
     let isLoading = false;
+    let sessionCheckExecuted = false; // セッションチェック実行済みフラグ
 
     document.addEventListener('DOMContentLoaded', function() {
       console.log('ログインページ初期化開始');
       
-      // 既存のセッションチェック
-      checkExistingSession();
+      // リンクパスの自動修正
+      autoFixLinks();
+      
+      // 既存のセッションチェック（一度だけ実行）
+      if (!sessionCheckExecuted) {
+        checkExistingSession();
+        sessionCheckExecuted = true;
+      }
       
       setupEventListeners();
       document.getElementById('password').focus();
@@ -120,6 +144,15 @@
 
     function checkExistingSession() {
       try {
+        console.log('🔐 セッションチェック開始');
+        
+        // リダイレクトループを防ぐため、履歴をチェック
+        const redirectDebugInfo = redirectHistory.getDebugInfo();
+        if (redirectDebugInfo.isLoopDetected) {
+          console.log('🚨 リダイレクトループが検出されているため、セッションチェックをスキップ');
+          return;
+        }
+        
         const authData = localStorage.getItem('rbs_admin_auth');
         if (authData) {
           const parsed = JSON.parse(authData);
@@ -127,12 +160,20 @@
           
           if (parsed.expires && now < parsed.expires) {
             console.log('🔐 有効なセッションが見つかりました。管理画面にリダイレクトします。');
-            window.location.href = 'admin.html';
+            
+            // 少し待機してからリダイレクト（複数回実行を防ぐ）
+            setTimeout(() => {
+              if (!sessionCheckExecuted || document.readyState === 'complete') {
+                redirect.toAdmin();
+              }
+            }, 500);
             return;
           } else {
             console.log('🔐 期限切れのセッションを削除します。');
             localStorage.removeItem('rbs_admin_auth');
           }
+        } else {
+          console.log('🔐 認証データがありません。ログインフォームを表示します。');
         }
       } catch (error) {
         console.error('❌ セッションチェックエラー:', error);
@@ -212,8 +253,11 @@
       
       showMessage('ログインしました。管理画面に移動します...', 'success');
       
+      // リダイレクト履歴をクリア（成功時は新しいセッション）
+      redirectHistory.clear();
+      
       setTimeout(() => {
-        window.location.href = 'admin.html';
+        redirect.toAdmin();
       }, 1000);
     }
 
@@ -231,13 +275,9 @@
       
       if (loading) {
         loginBtn.disabled = true;
-        btnText.style.display = 'none';
-        btnLoading.style.display = 'flex';
-        loginBtn.classList.add('loading'); 
+        loginBtn.classList.add('loading');
       } else {
         loginBtn.disabled = false;
-        btnText.style.display = 'flex'; 
-        btnLoading.style.display = 'none';
         loginBtn.classList.remove('loading');
       }
     }
@@ -258,6 +298,8 @@
 
     function showSuccess() {
         const successElement = document.getElementById('success-message');
+        const successText = successElement.querySelector('#success-text');
+        successText.textContent = 'ログインに成功しました';
         successElement.classList.remove('hidden');
         hideError();
     }
@@ -269,7 +311,11 @@
 
     function showMessage(message, type) {
       if (type === 'success') {
-        showSuccess();
+        const successElement = document.getElementById('success-message');
+        const successText = successElement.querySelector('#success-text');
+        successText.textContent = message;
+        successElement.classList.remove('hidden');
+        hideError();
       } else {
         showError(message);
       }
@@ -302,115 +348,21 @@
         hideSuccess();
       }
     });
+
+    // Visibility APIを使用してページが非表示になった時の処理
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        console.log('ページが非表示になりました');
+      } else {
+        console.log('ページが表示されました');
+        
+        // ページが再表示された時は、セッションチェックフラグをリセット
+        // （ただし、既にリダイレクト処理中の場合は除く）
+        if (!isLoading) {
+          sessionCheckExecuted = false;
+        }
+      }
+    });
   </script>
-
-  <style>
-    /* 管理画面ログイン用の最小限の調整 */
-    body.admin-layout {
-      background: var(--admin-gray-50);
-    }
-
-    .login-main {
-      margin-left: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: calc(100vh - var(--admin-header-height));
-      padding: 2rem;
-    }
-
-    .login-card {
-      max-width: 420px;
-      width: 100%;
-      margin: 2rem auto;
-      padding: 2.5rem 2rem;
-      background: var(--admin-white);
-      border: 1px solid var(--admin-gray-200);
-      border-radius: var(--admin-border-radius);
-      box-shadow: var(--admin-shadow-lg);
-      position: relative;
-    }
-
-    .login-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: var(--admin-primary);
-      border-radius: var(--admin-border-radius) var(--admin-border-radius) 0 0;
-    }
-
-    .section-header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    .section-header h1 {
-      color: var(--admin-gray-900);
-      font-size: 1.625rem;
-      font-weight: 700;
-      margin: 0;
-    }
-
-    .section-header h1 i {
-      color: var(--admin-primary);
-      margin-right: 0.5rem;
-    }
-
-    /* ヘッダーの「サイトに戻る」ボタンのスタイル */
-    .admin-header .back-link {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      background: var(--admin-gray-100);
-      color: var(--admin-gray-700);
-      border: 1px solid var(--admin-gray-300);
-      border-radius: var(--admin-border-radius-sm);
-      font-weight: 600;
-      font-size: 0.875rem;
-      cursor: pointer;
-      text-decoration: none;
-      transition: var(--admin-transition);
-      box-shadow: var(--admin-shadow);
-    }
-    
-    .admin-header .back-link:hover {
-      background: var(--admin-gray-200);
-      border-color: var(--admin-gray-500);
-      color: var(--admin-primary);
-      transform: translateY(-1px);
-      box-shadow: var(--admin-shadow-lg);
-    }
-
-    /* レスポンシブデザイン */
-    @media (max-width: 768px) {
-      .login-main {
-        padding: 1rem;
-      }
-      
-      .login-card {
-        padding: 2rem 1.5rem;
-        margin: 1rem;
-      }
-      
-      .section-header h1 {
-        font-size: 1.5rem;
-      }
-      
-      .admin-logo-text {
-        display: none;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .login-card {
-        margin: 0.5rem;
-        padding: 1.5rem 1rem;
-      }
-    }
-  </style>
 </body>
 </html> 

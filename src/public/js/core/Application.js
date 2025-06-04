@@ -1,7 +1,7 @@
 /**
  * RBS陸上教室 メインアプリケーション
  * 新しいアーキテクチャでの統合管理クラス
- * @version 2.1.0 - エラーハンドリング強化版
+ * @version 2.2.0 - 統一パス設定対応版
  */
 
 import { actionManager } from './ActionManager.js';
@@ -10,6 +10,7 @@ import { initAuthFeature } from '../features/auth/index.js';
 import { getCurrentPageType } from '../shared/utils/urlUtils.js';
 import { initializeLayout, LayoutInitializer } from '../shared/components/layout/index.js';
 import { EventBus } from '../shared/services/EventBus.js';
+import { redirect } from '../shared/constants/paths.js';
 
 export default class Application {
   constructor() {
@@ -288,7 +289,7 @@ export default class Application {
       // 管理画面でエラーが発生した場合は、ログインページにリダイレクト
       if (this.currentPage === 'admin') {
         console.log('🔄 管理画面初期化失敗: ログインページにリダイレクト');
-        window.location.href = '/admin-login.html';
+        redirect.toAdminLogin();
       }
       return null;
     }
@@ -389,6 +390,14 @@ export default class Application {
     console.log('👨‍💼 管理画面機能を初期化中...');
     
     try {
+      // 開発環境チェック
+      const isDevelopment = window.location.hostname === 'localhost' || 
+                           window.location.hostname === '127.0.0.1';
+      
+      if (isDevelopment) {
+        console.log('🚧 開発環境のため、認証チェックをスキップして管理画面を初期化');
+      }
+      
       // admin/index.jsのinitAdminFeature()を使用
       // 認証チェック、ログアウトハンドラー設定、全サービス初期化が含まれる
       const { initAdminFeature } = await import('../features/admin/index.js');
@@ -401,15 +410,91 @@ export default class Application {
       console.error('❌ 管理画面機能初期化エラー:', error);
       this.initializationErrors.adminFeature = error;
       
-      // エラーの場合は認証失敗として処理
-      if (error.message?.includes('認証') || error.message?.includes('auth')) {
-        console.log('🔄 認証エラー: ログインページにリダイレクト');
-        window.location.href = '/admin-login.html';
+      // 開発環境では詳細エラーを表示
+      const isDevelopment = window.location.hostname === 'localhost' || 
+                           window.location.hostname === '127.0.0.1';
+      
+      if (isDevelopment) {
+        console.error('🚧 開発環境: 管理画面初期化エラーの詳細:', {
+          error: error,
+          stack: error.stack,
+          message: error.message
+        });
+        
+        // 開発環境では警告のみ表示してリダイレクトしない
+        this.showDevelopmentWarning(error);
       } else {
-        // その他のエラーはコンソールにログ出力のみ
-        this.showInitializationError('管理画面の初期化に失敗しました。ページを再読み込みしてください。');
+        // 本番環境のみリダイレクト処理
+        if (error.message?.includes('認証') || error.message?.includes('auth')) {
+          console.log('🔄 認証エラー: ログインページにリダイレクト');
+          
+          // 少し待機してからリダイレクト
+          setTimeout(() => {
+            redirect.toAdminLogin();
+          }, 1000);
+        } else {
+          // その他のエラーはコンソールにログ出力のみ
+          this.showInitializationError('管理画面の初期化に失敗しました。ページを再読み込みしてください。');
+        }
       }
     }
+  }
+
+  /**
+   * 開発環境用の警告表示
+   * @private
+   * @param {Error} error - エラーオブジェクト
+   */
+  showDevelopmentWarning(error) {
+    const warningHtml = `
+      <div id="dev-warning" style="
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 400px;
+        background: #fef3c7;
+        border: 2px solid #f59e0b;
+        border-radius: 8px;
+        padding: 1rem;
+        font-family: monospace;
+        font-size: 0.85rem;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      ">
+        <h4 style="margin: 0 0 0.5rem 0; color: #92400e; font-size: 1rem;">
+          🚧 開発環境: 管理画面初期化エラー
+        </h4>
+        <p style="margin: 0 0 0.5rem 0; color: #78350f; line-height: 1.4;">
+          管理画面の初期化でエラーが発生しましたが、開発環境のため続行します。
+        </p>
+        <details style="color: #78350f;">
+          <summary style="cursor: pointer; font-weight: bold;">エラー詳細</summary>
+          <pre style="margin: 0.5rem 0 0 0; font-size: 0.75rem; white-space: pre-wrap;">${error.message}</pre>
+        </details>
+        <button onclick="document.getElementById('dev-warning').remove()" style="
+          margin-top: 0.5rem;
+          background: #92400e;
+          color: white;
+          border: none;
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 0.8rem;
+        ">
+          閉じる
+        </button>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', warningHtml);
+    
+    // 15秒後に自動で閉じる
+    setTimeout(() => {
+      const warningElement = document.getElementById('dev-warning');
+      if (warningElement) {
+        warningElement.remove();
+      }
+    }, 15000);
   }
 
   /**

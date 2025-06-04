@@ -1,7 +1,7 @@
 /**
  * 認証アクションサービス
  * ログインフォームや認証関連のアクションを管理
- * @version 2.0.0
+ * @version 2.1.0 - 統一パス設定対応
  */
 
 import { actionManager } from '../../../core/ActionManager.js';
@@ -9,6 +9,7 @@ import { authService } from './AuthService.js';
 import { EventBus } from '../../../shared/services/EventBus.js';
 import { querySelector, show, hide, setValue, getValue } from '../../../shared/utils/domUtils.js';
 import { createErrorHtml, createSuccessHtml } from '../../../shared/utils/htmlUtils.js';
+import { redirect, PathHelper } from '../../../shared/constants/paths.js';
 
 export class AuthActionService {
   constructor() {
@@ -200,9 +201,9 @@ export class AuthActionService {
       setValue(this.passwordField, '');
     }
 
-    // 管理画面にリダイレクト
+    // 統一されたリダイレクト処理を使用
     setTimeout(() => {
-      const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || 'admin.html';
+      const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || PathHelper.getSafeRedirectPath('admin');
       window.location.href = redirectUrl;
     }, 1000);
   }
@@ -212,9 +213,9 @@ export class AuthActionService {
    * @private
    */
   #handleLogoutSuccess() {
-    // ログインページにリダイレクト
+    // 統一されたリダイレクト処理を使用
     setTimeout(() => {
-      window.location.href = 'admin-login.html';
+      redirect.toAdminLogin();
     }, 1000);
   }
 

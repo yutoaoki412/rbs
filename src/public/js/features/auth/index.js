@@ -1,12 +1,18 @@
 /**
  * 認証機能メインエントリーポイント
  * 認証関連のサービスとコンポーネントを統合管理
- * @version 2.0.0
+ * @version 2.2.0 - リダイレクトループ防止機能追加
  */
 
 import { authService } from './services/AuthService.js';
 import { authActionService } from './services/AuthActionService.js';
 import { getCurrentPageType } from '../../shared/utils/urlUtils.js';
+import { redirect, PathHelper } from '../../shared/constants/paths.js';
+
+// 認証チェック実行状態管理
+let authCheckInProgress = false;
+let lastAuthCheck = 0;
+const AUTH_CHECK_COOLDOWN = 2000; // 2秒のクールダウン
 
 /**
  * 認証機能を初期化
@@ -26,12 +32,15 @@ export async function initAuthFeature() {
       case 'admin-login':
         // ログインページでは認証アクションサービスを初期化
         authActionService.init();
+        
+        // 認証済みチェック（ログインページでのみ実行）
+        await performSafeAuthCheck();
         console.log('🔐 ログインページ機能を初期化');
         break;
         
       case 'admin':
         // 管理画面では認証状態チェックのみ
-        checkAuthenticationStatus();
+        await performSafeAuthCheck();
         console.log('🔐 管理画面認証チェック完了');
         break;
         
@@ -53,9 +62,35 @@ export async function initAuthFeature() {
 }
 
 /**
- * 認証状態をチェックして適切な処理を実行
+ * 安全な認証チェック（重複実行防止機能付き）
+ * @private
  */
-function checkAuthenticationStatus() {
+async function performSafeAuthCheck() {
+  const now = Date.now();
+  
+  // クールダウン期間中は実行しない
+  if (authCheckInProgress || (now - lastAuthCheck < AUTH_CHECK_COOLDOWN)) {
+    console.log('🔐 認証チェック: クールダウン期間中のためスキップ');
+    return;
+  }
+  
+  authCheckInProgress = true;
+  lastAuthCheck = now;
+  
+  try {
+    await checkAuthenticationStatus();
+  } catch (error) {
+    console.error('❌ 認証チェック中にエラーが発生:', error);
+  } finally {
+    authCheckInProgress = false;
+  }
+}
+
+/**
+ * 認証状態をチェックして適切な処理を実行
+ * @private
+ */
+async function checkAuthenticationStatus() {
   const isAuthenticated = authService.isAuthenticated();
   const currentPage = getCurrentPageType();
   
@@ -64,18 +99,28 @@ function checkAuthenticationStatus() {
   // 管理画面で未認証の場合はログインページにリダイレクト
   if (currentPage === 'admin' && !isAuthenticated) {
     console.log('🚪 未認証のため、ログインページにリダイレクト');
-    const currentUrl = encodeURIComponent(window.location.href);
-    window.location.href = `admin-login.html?redirect=${currentUrl}`;
+    
+    // 少し待機してからリダイレクト（他の初期化処理との競合を防ぐ）
+    setTimeout(() => {
+      const currentUrl = encodeURIComponent(window.location.href);
+      redirect.toAdminLogin(currentUrl);
+    }, 100);
     return;
   }
   
   // ログインページで認証済みの場合は管理画面にリダイレクト
   if (currentPage === 'admin-login' && isAuthenticated) {
     console.log('✅ 認証済みのため、管理画面にリダイレクト');
-    const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || 'admin.html';
-    window.location.href = redirectUrl;
+    
+    // 少し待機してからリダイレクト
+    setTimeout(() => {
+      const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || PathHelper.getSafeRedirectPath('admin');
+      window.location.href = redirectUrl;
+    }, 100);
     return;
   }
+  
+  console.log('🔐 認証状態は適切です。リダイレクトは不要。');
 }
 
 /**
@@ -86,7 +131,9 @@ export function getAuthStatus() {
   return {
     isAuthenticated: authService.isAuthenticated(),
     sessionInfo: authService.getSessionInfo(),
-    securityInfo: authService.getSecurityInfo()
+    securityInfo: authService.getSecurityInfo(),
+    authCheckInProgress,
+    lastAuthCheck: new Date(lastAuthCheck)
   };
 }
 
@@ -98,6 +145,10 @@ export function destroyAuthFeature() {
   
   try {
     authService.destroy();
+    
+    // 状態リセット
+    authCheckInProgress = false;
+    lastAuthCheck = 0;
     
     console.log('✅ 認証機能破棄完了');
   } catch (error) {

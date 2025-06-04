@@ -1,7 +1,7 @@
 /**
  * 管理システム統合サービス
  * AdminCore.jsの後継として、管理画面の統合管理とシステム連携を担当
- * @version 2.0.0
+ * @version 2.1.0 - 統一パス設定対応
  */
 
 import { EventBus } from '../../../shared/services/EventBus.js';
@@ -12,6 +12,7 @@ import { uiManagerService } from './UIManagerService.js';
 import { newsFormManager } from '../components/NewsFormManager.js';
 import { authService } from '../../auth/services/AuthService.js';
 import { CONFIG } from '../../../shared/constants/config.js';
+import { redirect } from '../../../shared/constants/paths.js';
 
 export class AdminSystemService {
   constructor() {
@@ -384,7 +385,8 @@ export class AdminSystemService {
    * @private
    */
   redirectToLogin() {
-    window.location.href = 'admin-login.html';
+    // 統一されたリダイレクト処理を使用
+    redirect.toAdminLogin();
   }
 
   /**

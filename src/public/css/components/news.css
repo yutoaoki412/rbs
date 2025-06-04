@@ -51,4 +51,129 @@
 
 .visible-section {
   display: block;
+}
+
+/**
+ * ニュース表示コンポーネント用スタイル
+ * NewsDisplayComponentのインラインCSSを整理・最適化
+ * @version 1.1.0 - インラインCSS統合版
+ */
+
+/* インラインCSSの統合 */
+
+/* 管理画面作成ボタン */
+.admin-create-link {
+  display: inline-block;
+  padding: 12px 24px;
+  background: var(--primary-blue);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.admin-create-link:hover {
+  background: var(--primary-blue-dark);
+  transform: translateY(-1px);
+}
+
+/* 再読み込みボタン */
+.reload-btn {
+  display: inline-block;
+  padding: 12px 24px;
+  background: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.reload-btn:hover {
+  background: #3182ce;
+  transform: translateY(-1px);
+}
+
+/* ニュース項目の表示状態管理 */
+.news-list-container.hidden {
+  display: none;
+}
+
+.news-loading-element.hidden {
+  display: none;
+}
+
+/* エラーメッセージと空の記事表示 */
+.no-articles,
+.news-error {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.no-articles {
+  color: #666;
+}
+
+.news-error {
+  color: #e53e3e;
+}
+
+.no-articles div:first-child,
+.news-error div:first-child {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.no-articles h3,
+.news-error h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.no-articles h3 {
+  color: #333;
+}
+
+.no-articles p,
+.news-error p {
+  font-size: 16px;
+  margin-bottom: 25px;
+  line-height: 1.6;
+}
+
+/* 無限スクロール用のローディング表示 */
+.news-loading-element {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.news-loading-element .spinner {
+  width: 20px;
+  height: 20px;
+  margin-right: 0.5rem;
+  border: 2px solid var(--border-light);
+  border-top: 2px solid var(--primary-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .admin-create-link,
+  .reload-btn {
+    padding: 10px 20px;
+    font-size: 0.875rem;
+  }
 } 

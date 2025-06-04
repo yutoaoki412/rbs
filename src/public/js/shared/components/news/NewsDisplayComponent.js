@@ -328,7 +328,7 @@ export class NewsDisplayComponent extends Component {
     
     // 記事リストの非表示
     if (this.newsListContainer && this.newsListContainer !== this.container) {
-      this.newsListContainer.style.display = 'none';
+      this.#toggleNewsListVisibility(false);
       this.debug('記事リストを非表示');
     }
   }
@@ -342,13 +342,13 @@ export class NewsDisplayComponent extends Component {
     
     // ローディング要素の非表示
     if (this.loadingElement) {
-      this.loadingElement.style.display = 'none';
+      this.#toggleLoadingVisibility(false);
       this.debug('ローディング要素を非表示');
     }
     
     // 記事リストの表示
     if (this.newsListContainer && this.newsListContainer !== this.container) {
-      this.newsListContainer.style.display = '';
+      this.#toggleNewsListVisibility(true);
       this.debug('記事リストを表示');
     }
   }
@@ -371,16 +371,16 @@ export class NewsDisplayComponent extends Component {
       : '該当するカテゴリーの記事が見つかりませんでした。';
     
     this.newsListContainer.innerHTML = `
-      <div class="empty-message" style="text-align: center; padding: 60px 20px; color: #666;">
-        <div style="font-size: 48px; margin-bottom: 20px;">📝</div>
-        <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 15px; color: #333;">記事がありません</h3>
-        <p style="font-size: 16px; margin-bottom: 25px; line-height: 1.6;">${message}</p>
-        <a href="admin.html" class="btn btn-primary" style="display: inline-block; padding: 12px 24px; background: var(--primary-blue); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;">管理画面で記事を作成</a>
+      <div class="no-articles">
+        <div>📝</div>
+        <h3>記事がありません</h3>
+        <p>${message}</p>
+        <a href="admin.html" class="admin-create-link">管理画面で記事を作成</a>
       </div>
     `;
     
     // 記事リストコンテナを確実に表示状態にする
-    this.newsListContainer.style.display = '';
+    this.#toggleNewsListVisibility(true);
   }
 
   /**
@@ -398,16 +398,16 @@ export class NewsDisplayComponent extends Component {
     }
     
     this.newsListContainer.innerHTML = `
-      <div class="error-message" style="text-align: center; padding: 60px 20px; color: #e53e3e;">
-        <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
-        <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 15px;">エラー</h3>
-        <p style="font-size: 16px; margin-bottom: 25px; line-height: 1.6;">${escapeHtml(message)}</p>
-        <button class="btn btn-primary" onclick="location.reload()" style="display: inline-block; padding: 12px 24px; background: #4299e1; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">ページを再読み込み</button>
+      <div class="news-error">
+        <div>⚠️</div>
+        <h3>エラー</h3>
+        <p>${escapeHtml(message)}</p>
+        <button class="reload-btn" onclick="location.reload()">ページを再読み込み</button>
       </div>
     `;
     
     // 記事リストコンテナを確実に表示状態にする
-    this.newsListContainer.style.display = '';
+    this.#toggleNewsListVisibility(true);
   }
 
   /**
@@ -619,6 +619,114 @@ export class NewsDisplayComponent extends Component {
     } catch (error) {
       this.error('管理画面リンク設定エラー:', error);
     }
+  }
+
+  /**
+   * ニュースリストの表示状態を切り替え
+   * @private
+   * @param {boolean} visible - 表示するかどうか
+   */
+  #toggleNewsListVisibility(visible) {
+    if (this.newsListContainer) {
+      if (visible) {
+        this.newsListContainer.classList.remove('hidden');
+      } else {
+        this.newsListContainer.classList.add('hidden');
+      }
+    }
+  }
+
+  /**
+   * ローディング要素の表示状態を切り替え
+   * @private
+   * @param {boolean} visible - 表示するかどうか
+   */
+  #toggleLoadingVisibility(visible) {
+    if (this.loadingElement) {
+      if (visible) {
+        this.loadingElement.classList.remove('hidden');
+      } else {
+        this.loadingElement.classList.add('hidden');
+      }
+    }
+  }
+
+  /**
+   * 記事なし状態の表示を生成
+   * @private
+   * @returns {string} HTML文字列
+   */
+  #createNoArticlesDisplay() {
+    if (this.isDevelopment) {
+      return `
+        <div class="no-articles-dev">
+          <div class="dev-message">
+            <h3>📝 記事がありません（開発モード）</h3>
+            <p>管理画面から記事を作成してください。</p>
+            <a href="admin.html" class="admin-create-link">管理画面で記事を作成</a>
+          </div>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="no-articles">
+          <p>現在、表示できる記事がありません。</p>
+        </div>
+      `;
+    }
+  }
+
+  /**
+   * エラー表示を生成
+   * @private
+   * @param {Error} error - エラーオブジェクト
+   * @returns {string} HTML文字列
+   */
+  #createErrorDisplay(error) {
+    return `
+      <div class="news-error">
+        <h3>⚠️ ニュースの読み込みでエラーが発生しました</h3>
+        <p class="error-detail">${error.message}</p>
+        <button class="reload-btn" onclick="location.reload()">ページを再読み込み</button>
+      </div>
+    `;
+  }
+
+  /**
+   * ニュースリストの表示
+   * @private
+   */
+  async #displayNewsList() {
+    try {
+      if (!this.newsListContainer) return;
+      
+      // 既存の記事が隠れている場合は表示
+      this.#toggleNewsListVisibility(true);
+      
+      // ローディング表示
+      this.showLoadingMessage('記事を読み込み中...');
+      
+      // ... existing code ...
+      
+    } catch (error) {
+      this.showErrorMessage(`記事の読み込みでエラーが発生しました: ${error.message}`);
+    }
+  }
+
+  /**
+   * ニュースリストを隠す
+   * @private
+   */
+  #hideNewsList() {
+    this.#toggleNewsListVisibility(false);
+  }
+
+  /**
+   * ローディング表示を隠す
+   * @private
+   */
+  #hideLoading() {
+    this.#toggleLoadingVisibility(false);
   }
 }
 

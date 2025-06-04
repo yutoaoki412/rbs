@@ -1,46 +1,49 @@
 /**
- * メインアプリケーション起動スクリプト
- * 統合記事管理システム対応版
- * @version 3.0.0
+ * RBS陸上教室 メインエントリーポイント
+ * アプリケーション全体の初期化とコーディネート
+ * @version 2.1.0 - パス修正機能統合版
  */
 
 import Application from './core/Application.js';
+import { autoFixLinks } from './shared/utils/linkUtils.js';
+import { debugPaths } from './shared/constants/paths.js';
 import { CONFIG } from './shared/constants/config.js';
 
-/**
- * DOM読み込み完了時の初期化
- */
-document.addEventListener('DOMContentLoaded', async () => {
+console.log('🏃‍♂️ RBS陸上教室 アプリケーション起動中...');
+
+// パス設定のデバッグ（開発環境のみ）
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+  debugPaths();
+}
+
+// リンクパスの自動修正
+autoFixLinks();
+
+// メインアプリケーションの初期化
+const app = new Application();
+
+// アプリケーション初期化
+async function initializeApp() {
   try {
-    console.log('🚀 アプリケーション起動開始');
-    
-    // ステータスバナーの事前初期化（CSSクラス調整）
-    preInitializeStatusBanner();
-    
-    // グローバルエラーハンドラーの設定
-    setupGlobalErrorHandlers();
-    
-    // デバッグ環境の設定
-    setupDebugEnvironment();
-    
-    // アプリケーション初期化（リトライ機能付き）
-    const app = await initializeApplicationWithRetry();
-    
-    // グローバルアクセス用
-    window.app = app;
-    
-    console.log('✅ アプリケーション起動完了');
-    
-    // 開発環境での便利機能
-    if (CONFIG.debug.enabled) {
-      setupDevelopmentTools(app);
-    }
-    
+    await app.init();
+    console.log('✅ RBS陸上教室 アプリケーション起動完了');
   } catch (error) {
-    console.error('❌ アプリケーション起動エラー:', error);
-    showInitializationError(error);
+    console.error('❌ アプリケーション初期化エラー:', error);
   }
-});
+}
+
+// DOM準備完了時に初期化
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+  initializeApp();
+}
+
+// 開発環境用グローバル公開
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+  window.RBSApp = app;
+  window.debugPaths = debugPaths;
+}
 
 /**
  * ステータスバナーの事前初期化
@@ -158,37 +161,6 @@ function checkStatusBannerVisibility() {
   } catch (error) {
     console.error('デバッグチェックエラー:', error);
   }
-}
-
-/**
- * リトライ機能付きアプリケーション初期化
- * @returns {Promise<Application>}
- */
-async function initializeApplicationWithRetry() {
-  let lastError = null;
-  
-  for (let attempt = 1; attempt <= CONFIG.performance.initRetries; attempt++) {
-    try {
-      console.log(`📱 初期化試行 ${attempt}/${CONFIG.performance.initRetries}`);
-      
-      // Applicationクラスをインスタンス化して初期化
-      const app = new Application();
-      await app.init();
-      return app;
-      
-    } catch (error) {
-      lastError = error;
-      console.warn(`⚠️ 初期化試行 ${attempt} 失敗:`, error.message);
-      
-      if (attempt < CONFIG.performance.initRetries) {
-        const delay = 1000 * attempt; // 段階的に遅延を増加
-        console.log(`🔄 ${delay}ms後に再試行します...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
-    }
-  }
-  
-  throw lastError;
 }
 
 /**
