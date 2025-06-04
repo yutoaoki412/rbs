@@ -1387,22 +1387,36 @@ export class AdminActionService {
           
           return `
             <div class="recent-article-item" data-id="${article.id}">
-              <div class="article-header">
-                <h3 class="article-title">${title}</h3>
-                <div class="article-actions">
-                  <button class="btn-icon" data-action="edit-article" data-article-id="${article.id}" title="編集">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button class="btn-icon" data-action="preview-article" data-article-id="${article.id}" title="プレビュー">
-                    <i class="fas fa-eye"></i>
-                  </button>
+              <div class="recent-article-content">
+                <div class="recent-article-header">
+                  <div class="recent-article-main">
+                    <h3 class="recent-article-title">${title}</h3>
+                    <div class="recent-article-summary">${summary}</div>
+                  </div>
+                  <div class="recent-article-actions">
+                    <button class="action-btn-modern edit-btn" 
+                            data-action="edit-article" 
+                            data-article-id="${article.id}" 
+                            title="記事を編集"
+                            aria-label="記事「${title}」を編集">
+                      <i class="fas fa-edit"></i>
+                      <span class="action-text">編集</span>
+                    </button>
+                    <button class="action-btn-modern preview-btn" 
+                            data-action="preview-article" 
+                            data-article-id="${article.id}" 
+                            title="記事をプレビュー"
+                            aria-label="記事「${title}」をプレビュー">
+                      <i class="fas fa-eye"></i>
+                      <span class="action-text">プレビュー</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div class="article-summary">${summary}</div>
-              <div class="article-meta">
-                <span class="category-badge ${article.category || 'announcement'}">${categoryName}</span>
-                <span class="status-badge ${article.status || 'draft'}">${statusText}</span>
-                <span class="date">${formattedDate}</span>
+                <div class="recent-article-meta">
+                  <span class="category-badge ${article.category || 'announcement'}">${categoryName}</span>
+                  <span class="status-badge ${article.status || 'draft'}">${statusText}</span>
+                  <span class="date-info">${formattedDate}</span>
+                </div>
               </div>
             </div>
           `;
@@ -2255,71 +2269,44 @@ export class AdminActionService {
 
       return `
         <div class="${containerClass}" data-id="${article.id}" ${animationDelay}>
-          <div class="recent-article-header">
-            <div class="recent-article-main">
-              <h3 class="recent-article-title" title="${this.escapeHtml(article.title)}">
-                ${this.escapeHtml(article.title)}
-                ${isRecent ? '<span class="new-badge">NEW</span>' : ''}
-              </h3>
-              <div class="recent-article-summary">${this.escapeHtml(summary)}</div>
-            </div>
-            ${showActions ? `
-            <div class="recent-article-actions">
-              <button class="btn-icon" data-action="edit-article" data-article-id="${article.id}" title="編集">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button class="btn-icon" data-action="preview-article" data-article-id="${article.id}" title="プレビュー">
-                <i class="fas fa-eye"></i>
-              </button>
-              <div class="dropdown">
-                <button class="btn-icon dropdown-toggle" title="その他">
-                  <i class="fas fa-ellipsis-v"></i>
-                </button>
-                <div class="dropdown-menu">
-                  <button class="dropdown-item" data-action="duplicate-article" data-article-id="${article.id}">
-                    <i class="fas fa-copy"></i> 複製
+          <div class="recent-article-content">
+            <div class="recent-article-header">
+              <div class="recent-article-main">
+                <h3 class="recent-article-title" title="${this.escapeHtml(article.title)}">
+                  ${this.escapeHtml(article.title)}
+                  ${isRecent ? '<span class="new-badge">NEW</span>' : ''}
+                </h3>
+                <div class="recent-article-summary">${this.escapeHtml(summary)}</div>
+              </div>
+              ${mode === 'recent' && showActions ? `
+                <div class="recent-article-actions">
+                  <button class="action-btn-modern edit-btn" 
+                          data-action="edit-article" 
+                          data-article-id="${article.id}" 
+                          title="記事を編集"
+                          aria-label="記事「${this.escapeHtml(article.title)}」を編集">
+                    <i class="fas fa-edit"></i>
+                    <span class="action-text">編集</span>
                   </button>
-                  <button class="dropdown-item danger" data-action="delete-article" data-article-id="${article.id}">
-                    <i class="fas fa-trash"></i> 削除
+                  <button class="action-btn-modern preview-btn" 
+                          data-action="preview-article" 
+                          data-article-id="${article.id}" 
+                          title="記事をプレビュー"
+                          aria-label="記事「${this.escapeHtml(article.title)}」をプレビュー">
+                    <i class="fas fa-eye"></i>
+                    <span class="action-text">プレビュー</span>
                   </button>
                 </div>
-              </div>
+              ` : ''}
             </div>
+            ${showMeta ? `
+              <div class="recent-article-meta">
+                <span class="category-badge ${article.category}">${categoryName}</span>
+                <span class="status-badge ${article.status}">${article.status === 'published' ? '公開中' : '下書き'}</span>
+                <span class="date-info">${createdDate.toLocaleDateString('ja-JP')}</span>
+              </div>
             ` : ''}
           </div>
-          
-          ${showMeta ? `
-          <div class="recent-article-meta">
-            <div class="meta-item">
-              <i class="fas fa-tag"></i>
-              <span class="category-badge ${article.category}">${categoryName}</span>
-            </div>
-            <div class="meta-item">
-              <i class="fas fa-circle ${article.status === 'published' ? 'published' : 'draft'}"></i>
-              <span class="status-text">${article.status === 'published' ? '公開中' : '下書き'}</span>
-            </div>
-            <div class="meta-item">
-              <i class="fas fa-clock"></i>
-              <span class="date-text" title="更新: ${updatedDate.toLocaleString('ja-JP')}">
-                ${this.#formatRelativeTime(updatedDate)}
-              </span>
-            </div>
-            ${article.featured ? '<div class="meta-item"><i class="fas fa-star featured"></i><span>注目記事</span></div>' : ''}
-          </div>
-          ` : ''}
-          
-          ${showStats ? `
-          <div class="recent-article-stats">
-            <div class="stat-item">
-              <i class="fas fa-calendar-plus"></i>
-              <span>作成: ${createdDate.toLocaleDateString('ja-JP')}</span>
-            </div>
-            <div class="stat-item">
-              <i class="fas fa-align-left"></i>
-              <span>${this.#getWordCount(article)} 文字</span>
-            </div>
-          </div>
-          ` : ''}
         </div>
       `;
     }).join('');
