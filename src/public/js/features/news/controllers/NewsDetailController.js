@@ -4,12 +4,20 @@
  */
 
 import { getUrlParameter } from '../../../shared/utils/urlUtils.js';
-import { querySelector, setText } from '../../../shared/utils/domUtils.js';
+import { querySelector, setText, createElement, show, hide } from '../../../shared/utils/domUtils.js';
+import { scrollToTop, addClass, removeClass, toggleClass } from '../../../shared/utils/domUtils.js';
+import { formatDate, escapeHtml } from '../../../shared/utils/stringUtils.js';
+import { debounce } from '../../../shared/utils/FunctionUtils.js';
+import { isValidDate, isEmptyString } from '../../../shared/utils/validationUtils.js';
+import { StyleUtils } from '../../../shared/utils/StyleUtils.js';
+import { createErrorHtml } from '../../../shared/utils/htmlUtils.js';
 import { ERROR_MESSAGES } from '../../../shared/constants/newsConstants.js';
+import { EventBus } from '../../../shared/services/EventBus.js';
+import { actionManager } from '../../../core/ActionManager.js';
+import { CONFIG } from '../../../shared/constants/config.js';
 import ArticleDisplay from '../components/ArticleDisplay.js';
 import RelatedArticles from '../components/RelatedArticles.js';
 import ShareButtons from '../components/ShareButtons.js';
-import { createErrorMessage } from '../../../shared/utils/htmlUtils.js';
 
 export default class NewsDetailController {
   constructor() {
@@ -220,7 +228,12 @@ export default class NewsDetailController {
   showError(errorConfig) {
     const articleContent = querySelector('#article-content');
     if (articleContent) {
-      articleContent.innerHTML = createErrorMessage(errorConfig);
+      articleContent.innerHTML = createErrorHtml(
+        errorConfig.title, 
+        errorConfig.message, 
+        errorConfig.icon, 
+        errorConfig.actions
+      );
     }
   }
 

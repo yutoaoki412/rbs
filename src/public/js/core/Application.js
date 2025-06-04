@@ -1,17 +1,15 @@
 /**
  * RBS陸上教室 メインアプリケーション
  * 新しいアーキテクチャでの統合管理クラス
- * @version 2.0.0
+ * @version 2.1.0 - エラーハンドリング強化版
  */
 
 import { actionManager } from './ActionManager.js';
-import { adminActionService } from '../features/admin/services/AdminActionService.js';
-import { newsActionService } from '../features/news/services/NewsActionService.js';
-import { authActionService } from '../features/auth/services/AuthActionService.js';
 import { initNewsFeature } from '../features/news/index.js';
 import { initAuthFeature } from '../features/auth/index.js';
 import { getCurrentPageType } from '../shared/utils/urlUtils.js';
 import { initializeLayout, LayoutInitializer } from '../shared/components/layout/index.js';
+import { EventBus } from '../shared/services/EventBus.js';
 
 export default class Application {
   constructor() {
@@ -25,6 +23,9 @@ export default class Application {
     
     /** @type {boolean} テンプレート読み込み完了フラグ */
     this.templatesLoaded = false;
+    
+    /** @type {Object} 初期化エラーのログ */
+    this.initializationErrors = {};
   }
 
   /**
@@ -36,7 +37,7 @@ export default class Application {
       return;
     }
 
-    console.log('🚀 RBS陸上教室 アプリケーション v2.0 初期化開始');
+    console.log('🚀 RBS陸上教室 アプリケーション v2.1 初期化開始');
 
     try {
       // 1. 現在のページタイプを取得
@@ -61,7 +62,8 @@ export default class Application {
       // 初期化完了イベントを発火
       this.emit('app:initialized', { 
         page: this.currentPage,
-        templatesLoaded: this.templatesLoaded 
+        templatesLoaded: this.templatesLoaded,
+        errors: this.initializationErrors
       });
 
     } catch (error) {
@@ -202,14 +204,7 @@ export default class Application {
     if (!headerContainer) {
       headerContainer = document.createElement('div');
       headerContainer.id = 'header-container';
-      headerContainer.innerHTML = `
-        <header class="site-header fallback">
-          <div class="container">
-            <h1><a href="/">RBS陸上教室</a></h1>
-            <nav><a href="#main-content">メインコンテンツ</a></nav>
-          </div>
-        </header>
-      `;
+      headerContainer.innerHTML = '<header><h1>RBS陸上教室</h1></header>';
       document.body.insertBefore(headerContainer, document.body.firstChild);
     }
     
@@ -218,23 +213,8 @@ export default class Application {
     if (!footerContainer) {
       footerContainer = document.createElement('div');
       footerContainer.id = 'footer-container';
-      footerContainer.innerHTML = `
-        <footer class="site-footer fallback">
-          <div class="container">
-            <p>&copy; ${new Date().getFullYear()} RBS陸上教室</p>
-          </div>
-        </footer>
-      `;
+      footerContainer.innerHTML = '<footer><p>&copy; 2024 RBS陸上教室</p></footer>';
       document.body.appendChild(footerContainer);
-    }
-    
-    // メインコンテンツの確保
-    let mainContent = document.getElementById('main-content');
-    if (!mainContent) {
-      mainContent = document.querySelector('main');
-      if (mainContent) {
-        mainContent.id = 'main-content';
-      }
     }
     
     console.log('✅ 最低限のレイアウト構造を確保完了');
@@ -247,29 +227,96 @@ export default class Application {
   async initializeCoreServices() {
     console.log('🔧 コアサービス初期化中...');
 
-    // ActionManager の初期化
-    actionManager.init();
-    this.services.set('actionManager', actionManager);
+    try {
+      // ActionManager の初期化
+      actionManager.init();
+      this.services.set('actionManager', actionManager);
+      console.log('✅ ActionManager初期化完了');
+    } catch (error) {
+      console.error('❌ ActionManager初期化エラー:', error);
+      this.initializationErrors.actionManager = error;
+    }
 
-    // ページ固有のアクションサービス初期化
-    switch (this.currentPage) {
-      case 'admin':
-        adminActionService.init();
-        this.services.set('adminActions', adminActionService);
-        break;
-      
-      case 'news-detail':
-      case 'news-list':
-        newsActionService.init();
-        this.services.set('newsActions', newsActionService);
-        break;
+    // ページ固有のアクションサービス初期化（安全な動的インポート）
+    try {
+      switch (this.currentPage) {
+        case 'admin':
+          await this.initializeAdminActionService();
+          break;
         
-      case 'admin-login':
-        // 認証アクションサービスはinitAuthFeatureで初期化される
-        break;
+        case 'news-detail':
+        case 'news-list':
+          await this.initializeNewsActionService();
+          break;
+          
+        case 'admin-login':
+          // 認証アクションサービスはinitAuthFeatureで初期化される
+          console.log('🔐 認証ページ: サービス初期化をinitAuthFeatureに委譲');
+          break;
+          
+        default:
+          console.log('📝 汎用ページ: 特別なアクションサービスは不要');
+          break;
+      }
+    } catch (error) {
+      console.error('❌ ページ固有サービス初期化エラー:', error);
+      this.initializationErrors.pageServices = error;
     }
 
     console.log('✅ コアサービス初期化完了');
+  }
+
+  /**
+   * AdminActionServiceの安全な初期化
+   * @private
+   */
+  async initializeAdminActionService() {
+    try {
+      const { AdminActionService } = await import('../features/admin/services/AdminActionService.js');
+      const adminActionService = new AdminActionService();
+      
+      await adminActionService.init();
+      this.services.set('adminActions', adminActionService);
+      
+      console.log('✅ AdminActionService初期化完了');
+      return adminActionService;
+      
+    } catch (error) {
+      console.error('❌ AdminActionService初期化エラー:', error);
+      this.initializationErrors.adminActionService = error;
+      
+      // 管理画面でエラーが発生した場合は、ログインページにリダイレクト
+      if (this.currentPage === 'admin') {
+        console.log('🔄 管理画面初期化失敗: ログインページにリダイレクト');
+        window.location.href = '/admin-login.html';
+      }
+      return null;
+    }
+  }
+
+  /**
+   * NewsActionServiceの安全な初期化
+   * @private
+   */
+  async initializeNewsActionService() {
+    try {
+      const { newsActionService } = await import('../features/news/services/NewsActionService.js');
+      
+      if (newsActionService && typeof newsActionService.init === 'function') {
+        await newsActionService.init();
+        this.services.set('newsActions', newsActionService);
+        console.log('✅ NewsActionService初期化完了');
+        return newsActionService;
+      } else {
+        console.warn('⚠️ NewsActionService: initメソッドが見つかりません');
+        return null;
+      }
+      
+    } catch (error) {
+      console.error('❌ NewsActionService初期化エラー:', error);
+      this.initializationErrors.newsActionService = error;
+      return null;
+    }
   }
 
   /**
@@ -352,7 +399,16 @@ export default class Application {
       
     } catch (error) {
       console.error('❌ 管理画面機能初期化エラー:', error);
-      // エラーの場合はadmin/index.js内でリダイレクト処理済み
+      this.initializationErrors.adminFeature = error;
+      
+      // エラーの場合は認証失敗として処理
+      if (error.message?.includes('認証') || error.message?.includes('auth')) {
+        console.log('🔄 認証エラー: ログインページにリダイレクト');
+        window.location.href = '/admin-login.html';
+      } else {
+        // その他のエラーはコンソールにログ出力のみ
+        this.showInitializationError('管理画面の初期化に失敗しました。ページを再読み込みしてください。');
+      }
     }
   }
 
@@ -361,14 +417,28 @@ export default class Application {
    * @private
    */
   async initializeAuthFeatures() {
-    await initAuthFeature();
-    
-    // AuthActionServiceがauthActionServiceで初期化された場合はサービスに登録
-    if (authActionService.initialized) {
-      this.services.set('authActions', authActionService);
+    try {
+      await initAuthFeature();
+      
+      // AuthActionServiceが初期化された場合はサービスに登録
+      try {
+        const { authActionService } = await import('../features/auth/services/AuthActionService.js');
+        if (authActionService && authActionService.initialized) {
+          this.services.set('authActions', authActionService);
+          console.log('✅ AuthActionService登録完了');
+        }
+      } catch (authServiceError) {
+        console.warn('⚠️ AuthActionService のインポートに失敗しましたが、続行します:', authServiceError.message);
+        this.initializationErrors.authActionService = authServiceError;
+      }
+      
+      this.features.set('auth', true);
+      console.log('✅ 認証機能初期化完了');
+      
+    } catch (error) {
+      console.error('❌ 認証機能初期化エラー:', error);
+      this.initializationErrors.authFeature = error;
     }
-    
-    this.features.set('auth', true);
   }
 
   /**
@@ -435,72 +505,121 @@ export default class Application {
    * @param {Error} error - エラー
    */
   async handleInitializationError(error) {
-    // フォールバック処理
-    console.error('💥 アプリケーション初期化失敗 - フォールバックモードで起動');
+    console.error('🚨 アプリケーション初期化で重大なエラーが発生しました:', error);
     
+    // 最低限のDOM構造を確保
+    this.ensureBasicDomStructure();
+    
+    // エラー情報をユーザーに表示
+    this.showInitializationError(error.message);
+    
+    // エラー報告
+    this.reportError(error, 'initialization');
+    
+    // EventBusでエラーイベントを発火
     try {
-      // 最低限のレイアウト構造確保
-      await this.ensureMinimalLayout();
-      
-      // 最低限のActionManager初期化
-      actionManager.init();
-      this.services.set('actionManager', actionManager);
-      console.log('✅ フォールバックモードでActionManagerを初期化');
-      
-      // エラー状態フラグ設定
-      this.initialized = true; // 最低限の初期化は完了
-      this.templatesLoaded = false;
-      
-      // フォールバック完了イベント発火
-      this.emit('app:fallback:initialized', { 
-        error: error.message,
-        page: this.currentPage 
+      EventBus.emit('app:initialization:error', {
+        error: error,
+        page: this.currentPage,
+        timestamp: new Date().toISOString()
       });
-      
-    } catch (fallbackError) {
-      console.error('❌ フォールバックモードも失敗:', fallbackError);
-      
-      // 最終フォールバック：基本的なDOM要素だけ確保
-      this.ensureBasicDomStructure();
+    } catch (eventBusError) {
+      console.error('❌ EventBusでのエラー通知に失敗:', eventBusError);
     }
   }
 
   /**
-   * 基本的なDOM構造確保（最終フォールバック）
+   * 初期化エラーをユーザーに表示
    * @private
+   * @param {string} message - エラーメッセージ
    */
-  ensureBasicDomStructure() {
-    console.log('🆘 基本的なDOM構造確保（最終フォールバック）');
-    
-    // 最低限のエラー表示
-    const errorDiv = document.createElement('div');
-    errorDiv.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #f8f9fa;
-      border: 1px solid #dee2e6;
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      z-index: 9999;
+  showInitializationError(message) {
+    // エラーメッセージを表示するためのHTML構造を作成
+    const errorContainer = document.createElement('div');
+    errorContainer.className = 'initialization-error';
+    errorContainer.innerHTML = `
+      <div class="error-content">
+        <h2>🚨 初期化エラー</h2>
+        <p>${message}</p>
+        <button onclick="window.location.reload()" class="retry-button">
+          ページを再読み込み
+        </button>
+      </div>
     `;
-    errorDiv.innerHTML = `
-      <h2>🏃 RBS陸上教室</h2>
-      <p>アプリケーションの初期化に問題が発生しました。</p>
-      <p>ページを再読み込みしてください。</p>
-      <button onclick="window.location.reload()" style="
+    
+    // エラー用のスタイルを追加
+    const style = document.createElement('style');
+    style.textContent = `
+      .initialization-error {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      
+      .error-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        text-align: center;
+        max-width: 400px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      }
+      
+      .error-content h2 {
+        color: #dc3545;
+        margin-bottom: 1rem;
+      }
+      
+      .retry-button {
         background: #007bff;
         color: white;
         border: none;
-        padding: 10px 20px;
+        padding: 0.5rem 1rem;
         border-radius: 4px;
         cursor: pointer;
-      ">再読み込み</button>
+        margin-top: 1rem;
+      }
+      
+      .retry-button:hover {
+        background: #0056b3;
+      }
     `;
     
-    document.body.appendChild(errorDiv);
+    document.head.appendChild(style);
+    document.body.appendChild(errorContainer);
+  }
+
+  /**
+   * 基本的なDOM構造を確保
+   * @private
+   */
+  ensureBasicDomStructure() {
+    // body要素が存在しない場合は作成
+    if (!document.body) {
+      document.documentElement.appendChild(document.createElement('body'));
+    }
+    
+    // 基本的なメタ要素を確保
+    if (!document.querySelector('meta[charset]')) {
+      const charset = document.createElement('meta');
+      charset.setAttribute('charset', 'UTF-8');
+      document.head.appendChild(charset);
+    }
+    
+    if (!document.querySelector('meta[name="viewport"]')) {
+      const viewport = document.createElement('meta');
+      viewport.setAttribute('name', 'viewport');
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
+      document.head.appendChild(viewport);
+    }
   }
 
   /**
@@ -510,71 +629,67 @@ export default class Application {
    * @param {string} context - コンテキスト
    */
   reportError(error, context) {
-    // エラー報告の実装（将来的にログサービスに送信など）
-    const errorInfo = {
-      message: error.message,
-      stack: error.stack,
-      context,
-      page: this.currentPage,
+    // 開発環境ではコンソールにログ出力
+    console.group(`🚨 エラー報告 [${context}]`);
+    console.error('エラー:', error);
+    console.error('スタック:', error.stack);
+    console.error('コンテキスト:', context);
+    console.error('ページ:', this.currentPage);
+    console.error('初期化状態:', {
+      initialized: this.initialized,
       templatesLoaded: this.templatesLoaded,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent
-    };
-    
-    console.warn('📊 エラー情報:', errorInfo);
+      servicesCount: this.services.size
+    });
+    console.groupEnd();
   }
 
   /**
-   * サービスを取得
+   * サービス取得
    * @param {string} name - サービス名
-   * @returns {*}
+   * @returns {*} サービスインスタンス
    */
   getService(name) {
     return this.services.get(name);
   }
 
   /**
-   * 機能が有効かチェック
+   * 機能の有無確認
    * @param {string} name - 機能名
-   * @returns {boolean}
+   * @returns {boolean} 機能が有効かどうか
    */
   hasFeature(name) {
     return this.features.has(name);
   }
 
   /**
-   * Layout機能が有効かチェック
-   * @returns {boolean}
+   * レイアウト機能の有無確認
+   * @returns {boolean} レイアウト機能が有効かどうか
    */
   hasLayoutFeature() {
-    return this.templatesLoaded && this.layoutInitializer?.isInitialized;
+    return this.services.has('layout') && this.templatesLoaded;
   }
 
   /**
-   * テンプレート再読み込み
-   * @param {string} [pageType] - 新しいページタイプ（省略時は現在のページ）
-   * @returns {Promise<boolean>} 成功フラグ
+   * テンプレートの再読み込み
+   * @param {string|null} pageType - ページタイプ（nullの場合は現在のページ）
    */
   async reloadTemplates(pageType = null) {
-    console.log('🔄 テンプレート再読み込み開始...');
+    const targetPageType = pageType || this.currentPage;
+    console.log(`🔄 テンプレート再読み込み: ${targetPageType}`);
     
     try {
-      // 既存のLayout機能をリセット
-      if (this.layoutInitializer) {
-        this.layoutInitializer.reset();
+      // レイアウト初期化を再実行
+      const layoutOptions = this.getLayoutOptionsForPage(targetPageType);
+      const layoutResult = await initializeLayout(layoutOptions);
+      
+      if (layoutResult.result.success) {
+        this.templatesLoaded = true;
+        console.log('✅ テンプレート再読み込み完了');
+        return true;
+      } else {
+        console.warn('⚠️ テンプレート再読み込み失敗');
+        return false;
       }
-      
-      // ページタイプ更新
-      if (pageType) {
-        this.currentPage = pageType;
-      }
-      
-      // テンプレート・レイアウト再初期化
-      await this.initializeTemplateAndLayout();
-      
-      console.log('✅ テンプレート再読み込み完了');
-      return this.templatesLoaded;
-      
     } catch (error) {
       console.error('❌ テンプレート再読み込みエラー:', error);
       return false;
@@ -583,110 +698,104 @@ export default class Application {
 
   /**
    * レイアウトパフォーマンス情報取得
-   * @returns {Object|null} パフォーマンス情報
+   * @returns {Object} パフォーマンス情報
    */
   getLayoutPerformanceInfo() {
-    if (!this.layoutInitializer) {
-      return null;
-    }
-    
-    return this.layoutInitializer.getPerformanceInfo();
+    return {
+      templatesLoaded: this.templatesLoaded,
+      hasLayoutService: this.services.has('layout'),
+      layoutInitializer: this.layoutInitializer ? 'loaded' : 'not_loaded',
+      currentPage: this.currentPage
+    };
   }
 
   /**
-   * イベントを発火（簡易実装）
+   * EventBusを通じたイベント発火
    * @param {string} eventName - イベント名
-   * @param {*} data - データ
+   * @param {any} data - イベントデータ
    */
   emit(eventName, data) {
-    const event = new CustomEvent(eventName, { detail: data });
-    window.dispatchEvent(event);
+    try {
+      EventBus.emit(eventName, data);
+    } catch (error) {
+      console.warn('⚠️ EventBusでのイベント発火に失敗:', eventName, error);
+    }
   }
 
   /**
-   * イベントリスナーを追加（簡易実装）
+   * EventBusを通じたイベントリスニング
    * @param {string} eventName - イベント名
-   * @param {Function} listener - リスナー
+   * @param {Function} listener - リスナー関数
    */
   on(eventName, listener) {
-    window.addEventListener(eventName, listener);
+    try {
+      EventBus.on(eventName, listener);
+    } catch (error) {
+      console.warn('⚠️ EventBusでのイベント登録に失敗:', eventName, error);
+    }
   }
 
   /**
-   * アプリケーション状態を取得
-   * @returns {Object}
+   * アプリケーションの現在状態を取得
+   * @returns {Object} 状態情報
    */
   getStatus() {
     return {
       initialized: this.initialized,
       currentPage: this.currentPage,
       templatesLoaded: this.templatesLoaded,
+      servicesCount: this.services.size,
+      featuresCount: this.features.size,
+      errors: this.initializationErrors,
       services: Array.from(this.services.keys()),
-      features: Array.from(this.features.keys()),
-      layoutPerformance: this.getLayoutPerformanceInfo()
+      features: Array.from(this.features.keys())
     };
   }
 
   /**
-   * 認証サービスを取得
-   * @returns {Promise<AuthService>}
+   * 認証サービス取得（非同期）
+   * @returns {Promise<*>} 認証サービス
    */
   async getAuthService() {
-    if (!this.services.has('auth')) {
-      const { initAuthFeature } = await import('../features/auth/index.js');
-      const authFeature = await initAuthFeature();
-      this.services.set('auth', authFeature);
+    let authService = this.services.get('authActions');
+    
+    if (!authService) {
+      // 動的に読み込み
+      try {
+        const { authActionService } = await import('../features/auth/services/AuthActionService.js');
+        authService = authActionService;
+      } catch (error) {
+        console.warn('認証サービスの動的読み込みに失敗:', error);
+      }
     }
-    return this.services.get('auth');
+    
+    return authService;
   }
 
   /**
-   * デバッグ情報を表示
+   * デバッグ情報の表示
    */
   debug() {
-    console.log('🐛 Application Debug Info:', this.getStatus());
-    
-    // Layout詳細情報
-    if (this.layoutInitializer) {
-      console.log('🎨 Layout Debug Info:', this.layoutInitializer.getPerformanceInfo());
-    }
+    console.group('🔍 Application Debug Info');
+    console.table(this.getStatus());
+    console.log('Services:', this.services);
+    console.log('Features:', this.features);
+    console.log('Initialization Errors:', this.initializationErrors);
+    console.groupEnd();
   }
 
   /**
-   * クリーンアップ処理
+   * アプリケーションの破棄
    */
   destroy() {
-    console.log('🗑️ アプリケーションをクリーンアップ中...');
-    
-    // Layout機能のクリーンアップ
-    if (this.layoutInitializer) {
-      try {
-        this.layoutInitializer.destroy();
-        console.log('✅ Layout機能をクリーンアップ');
-      } catch (error) {
-        console.warn('⚠️ Layout機能のクリーンアップに失敗:', error);
-      }
-      this.layoutInitializer = null;
-    }
-    
-    // サービスのクリーンアップ
-    for (const [name, service] of this.services) {
-      if (service && typeof service.destroy === 'function') {
-        try {
-          service.destroy();
-          console.log(`✅ ${name} サービスをクリーンアップ`);
-        } catch (error) {
-          console.warn(`⚠️ ${name} サービスのクリーンアップに失敗:`, error);
-        }
-      }
-    }
+    console.log('🗑️ Application: 破棄開始');
     
     this.services.clear();
     this.features.clear();
+    this.layoutInitializer = null;
     this.initialized = false;
-    this.templatesLoaded = false;
     
-    console.log('✅ アプリケーションクリーンアップ完了');
+    console.log('✅ Application: 破棄完了');
   }
 }
 

@@ -6,16 +6,13 @@
 
 import { actionManager } from '../../../core/ActionManager.js';
 import { EventBus } from '../../../shared/services/EventBus.js';
-import { getArticleDataService } from './ArticleDataService.js';
-import { getLessonStatusStorageService } from '../../../shared/services/LessonStatusStorageService.js';
 import { CONFIG } from '../../../shared/constants/config.js';
 import { dataExportService } from '../../../shared/services/DataExportService.js';
 import { uiManagerService } from './UIManagerService.js';
-import { getUnifiedNotificationService } from '../../../shared/services/UnifiedNotificationService.js';
 
 export class AdminActionService {
   // プライベートフィールド宣言
-  #validTabNames = ['dashboard', 'news', 'lesson-status', 'instagram', 'settings'];
+  #validTabNames = ['dashboard', 'news', 'news-management', 'lesson-status', 'instagram', 'settings'];
   
   constructor() {
     this.componentName = 'AdminActionService';
@@ -151,47 +148,56 @@ export class AdminActionService {
     // アクションマネージャーを設定（既にファイル冒頭でインポート済み）
     this.actionManager = actionManager;
     
-    // サービス依存関係の取得
-    const { getArticleDataService } = await import('./ArticleDataService.js');
-    const { getLessonStatusStorageService } = await import('../../../shared/services/LessonStatusStorageService.js');
-    
-    this.articleDataService = getArticleDataService();
-    this.lessonStatusService = getLessonStatusStorageService();
-     
-    // InstagramDataServiceのインポートと初期化
-    const { instagramDataService } = await import('./InstagramDataService.js');
-    this.instagramDataService = instagramDataService;
-    
-    // UIManagerServiceのインポートと初期化
-    const { uiManagerService } = await import('./UIManagerService.js');
-    this.uiManagerService = uiManagerService;
-    
-    // NewsFormManagerのインポートと初期化
-    const { newsFormManager } = await import('../components/NewsFormManager.js');
-    this.newsFormManager = newsFormManager;
-    
-    // サービスの初期化確認
-    if (!this.articleDataService.initialized) {
-      await this.articleDataService.init();
+    try {
+      // サービス依存関係の取得
+      const articleModule = await import('./ArticleDataService.js');
+      this.articleDataService = articleModule.getArticleDataService ? 
+        articleModule.getArticleDataService() : 
+        articleModule.articleDataService;
+      
+      const lessonModule = await import('../../../shared/services/LessonStatusStorageService.js');
+      this.lessonStatusService = lessonModule.getLessonStatusStorageService ? 
+        lessonModule.getLessonStatusStorageService() : 
+        lessonModule.lessonStatusStorageService;
+       
+      // InstagramDataServiceのインポートと初期化
+      const instagramModule = await import('./InstagramDataService.js');
+      this.instagramDataService = instagramModule.instagramDataService;
+      
+      // UIManagerServiceのインポートと初期化
+      this.uiManagerService = uiManagerService;
+      
+      // NewsFormManagerのインポートと初期化
+      const newsFormModule = await import('../components/NewsFormManager.js');
+      this.newsFormManager = newsFormModule.newsFormManager;
+      
+      // サービスの初期化確認
+      if (this.articleDataService && !this.articleDataService.initialized) {
+        await this.articleDataService.init();
+      }
+       
+      if (this.lessonStatusService && !this.lessonStatusService.initialized) {
+        await this.lessonStatusService.init();
+      }
+      
+      if (this.instagramDataService && !this.instagramDataService.initialized) {
+        this.instagramDataService.init();
+      }
+      
+      if (this.uiManagerService && !this.uiManagerService.initialized) {
+        this.uiManagerService.init();
+      }
+      
+      if (this.newsFormManager && !this.newsFormManager.initialized) {
+        this.newsFormManager.init();
+      }
+      
+      this.log('全サービス初期化完了');
+      
+    } catch (error) {
+      console.error('❌ サービス初期化エラー:', error);
+      // エラーがあっても継続する
     }
-     
-    if (!this.lessonStatusService.initialized) {
-      await this.lessonStatusService.init();
-    }
-    
-    if (!this.instagramDataService.initialized) {
-      this.instagramDataService.init();
-    }
-    
-    if (!this.uiManagerService.initialized) {
-      this.uiManagerService.init();
-    }
-    
-    if (!this.newsFormManager.initialized) {
-      this.newsFormManager.init();
-    }
-    
-    this.log('全サービス初期化完了');
   }
 
   /**
@@ -771,7 +777,7 @@ export class AdminActionService {
    * @returns {boolean}
    */
   _isValidTabName(tabName) {
-    return ['dashboard', 'news', 'lesson-status', 'instagram', 'settings'].includes(tabName);
+    return ['dashboard', 'news', 'news-management', 'lesson-status', 'instagram', 'settings'].includes(tabName);
   }
 
   /**
@@ -784,6 +790,7 @@ export class AdminActionService {
     const tabNames = {
       'dashboard': 'ダッシュボード',
       'news': '記事管理',
+      'news-management': '記事管理',
       'lesson-status': 'レッスン状況',
       'instagram': 'Instagram',
       'settings': '設定'
@@ -3667,41 +3674,381 @@ export class AdminActionService {
   _showWritingGuide() {
     const guideContent = `
       <div class="writing-guide">
-        <h3><i class="fas fa-lightbulb"></i> 記事執筆ガイド</h3>
-        
-        <div class="guide-section">
-          <h4>📝 基本的な書き方</h4>
-          <ul>
-            <li>タイトルは分かりやすく簡潔に</li>
-            <li>見出しを使って構造化する</li>
-            <li>短い段落で読みやすく</li>
-          </ul>
-        </div>
-
-        <div class="guide-section">
-          <h4>🎨 マークダウン記法</h4>
-          <div class="markdown-examples">
-            <code># 大見出し</code>
-            <code>## 中見出し</code>
-            <code>**太字**</code>
-            <code>*斜体*</code>
-            <code>[リンク](URL)</code>
-            <code>\`コード\`</code>
+        <div class="guide-intro">
+          <div class="guide-hero">
+            <div class="guide-hero-icon">
+              <i class="fas fa-lightbulb"></i>
+            </div>
+            <div class="guide-hero-content">
+              <h3>📝 記事執筆ガイド</h3>
+              <p>読者に愛される、魅力的な記事を作成するための完全ガイド</p>
+            </div>
           </div>
         </div>
 
-        <div class="guide-section">
-          <h4>✅ チェックポイント</h4>
-          <ul>
-            <li>誤字脱字がないか確認</li>
-            <li>プレビューで見た目を確認</li>
-            <li>読者の立場で分かりやすいか</li>
-          </ul>
+        <div class="guide-sections">
+          <!-- 基本的な書き方 -->
+          <div class="guide-section">
+            <div class="section-header">
+              <div class="section-icon">
+                <i class="fas fa-edit"></i>
+              </div>
+              <h4>✍️ 基本的な書き方のポイント</h4>
+            </div>
+            <div class="section-content">
+              <div class="guide-tips">
+                <div class="tip-item">
+                  <div class="tip-icon success">
+                    <i class="fas fa-check"></i>
+                  </div>
+                  <div class="tip-content">
+                    <strong>明確なタイトル</strong>
+                    <p>読者が一目で内容を理解できる、分かりやすく魅力的なタイトルを作成しましょう</p>
+                  </div>
+                </div>
+                <div class="tip-item">
+                  <div class="tip-icon info">
+                    <i class="fas fa-layer-group"></i>
+                  </div>
+                  <div class="tip-content">
+                    <strong>構造化された内容</strong>
+                    <p>見出し（## 大見出し、### 小見出し）を使って記事を構造化し、読みやすくしましょう</p>
+                  </div>
+                </div>
+                <div class="tip-item">
+                  <div class="tip-icon warning">
+                    <i class="fas fa-paragraph"></i>
+                  </div>
+                  <div class="tip-content">
+                    <strong>適切な段落分け</strong>
+                    <p>長い文章は避け、3-4行程度の短い段落に分けて読みやすさを向上させましょう</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- マークダウン記法 -->
+          <div class="guide-section">
+            <div class="section-header">
+              <div class="section-icon">
+                <i class="fab fa-markdown"></i>
+              </div>
+              <h4>🎨 マークダウン記法ガイド</h4>
+            </div>
+            <div class="section-content">
+              <div class="markdown-guide">
+                <div class="markdown-category">
+                  <h5><i class="fas fa-heading"></i> 見出し</h5>
+                  <div class="markdown-examples">
+                    <div class="example-item">
+                      <code># 大見出し（H1）</code>
+                      <div class="example-preview">
+                        <h1 style="font-size: 1.5rem; margin: 0.5rem 0;">大見出し（H1）</h1>
+                      </div>
+                    </div>
+                    <div class="example-item">
+                      <code>## 中見出し（H2）</code>
+                      <div class="example-preview">
+                        <h2 style="font-size: 1.3rem; margin: 0.5rem 0;">中見出し（H2）</h2>
+                      </div>
+                    </div>
+                    <div class="example-item">
+                      <code>### 小見出し（H3）</code>
+                      <div class="example-preview">
+                        <h3 style="font-size: 1.1rem; margin: 0.5rem 0;">小見出し（H3）</h3>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="markdown-category">
+                  <h5><i class="fas fa-font"></i> 文字装飾</h5>
+                  <div class="markdown-examples">
+                    <div class="example-item">
+                      <code>**太字テキスト**</code>
+                      <div class="example-preview">
+                        <strong>太字テキスト</strong>
+                      </div>
+                    </div>
+                    <div class="example-item">
+                      <code>*斜体テキスト*</code>
+                      <div class="example-preview">
+                        <em>斜体テキスト</em>
+                      </div>
+                    </div>
+                    <div class="example-item">
+                      <code>\`コードテキスト\`</code>
+                      <div class="example-preview">
+                        <code style="background: #f5f5f5; padding: 2px 4px; border-radius: 3px;">コードテキスト</code>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="markdown-category">
+                  <h5><i class="fas fa-link"></i> リンクと画像</h5>
+                  <div class="markdown-examples">
+                    <div class="example-item">
+                      <code>[リンクテキスト](URL)</code>
+                      <div class="example-preview">
+                        <a href="#" style="color: #4a90e2; text-decoration: none;">リンクテキスト</a>
+                      </div>
+                    </div>
+                    <div class="example-item">
+                      <code>![画像の説明](画像URL)</code>
+                      <div class="example-preview">
+                        <span style="color: #666;">📷 画像が表示されます</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="markdown-category">
+                  <h5><i class="fas fa-list"></i> リスト</h5>
+                  <div class="markdown-examples">
+                    <div class="example-item">
+                      <code>- 項目1<br>- 項目2<br>- 項目3</code>
+                      <div class="example-preview">
+                        <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                          <li>項目1</li>
+                          <li>項目2</li>
+                          <li>項目3</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="example-item">
+                      <code>1. 項目1<br>2. 項目2<br>3. 項目3</code>
+                      <div class="example-preview">
+                        <ol style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                          <li>項目1</li>
+                          <li>項目2</li>
+                          <li>項目3</li>
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 記事の種類別ガイド -->
+          <div class="guide-section">
+            <div class="section-header">
+              <div class="section-icon">
+                <i class="fas fa-bookmark"></i>
+              </div>
+              <h4>📋 記事の種類別ガイド</h4>
+            </div>
+            <div class="section-content">
+              <div class="article-types">
+                <div class="article-type-card">
+                  <div class="type-header">
+                    <div class="type-icon announcement">
+                      <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <h5>お知らせ記事</h5>
+                  </div>
+                  <div class="type-content">
+                    <p><strong>構成例:</strong></p>
+                    <ul>
+                      <li>## 重要なお知らせ</li>
+                      <li>### 内容の詳細</li>
+                      <li>### 対象者・期間</li>
+                      <li>### お問い合わせ</li>
+                    </ul>
+                    <p class="type-tips">💡 <strong>ポイント:</strong> 重要度と緊急度を明確に表現し、必要な行動があれば具体的に記載しましょう</p>
+                  </div>
+                </div>
+
+                <div class="article-type-card">
+                  <div class="type-header">
+                    <div class="type-icon event">
+                      <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h5>体験会・イベント記事</h5>
+                  </div>
+                  <div class="type-content">
+                    <p><strong>構成例:</strong></p>
+                    <ul>
+                      <li>## イベント概要</li>
+                      <li>### 日時・場所</li>
+                      <li>### 対象・定員</li>
+                      <li>### 申し込み方法</li>
+                      <li>### 持ち物・注意事項</li>
+                    </ul>
+                    <p class="type-tips">💡 <strong>ポイント:</strong> 参加者が知りたい情報（日時、場所、持ち物）を分かりやすく整理しましょう</p>
+                  </div>
+                </div>
+
+                <div class="article-type-card">
+                  <div class="type-header">
+                    <div class="type-icon media">
+                      <i class="fas fa-camera"></i>
+                    </div>
+                    <h5>活動報告・メディア記事</h5>
+                  </div>
+                  <div class="type-content">
+                    <p><strong>構成例:</strong></p>
+                    <ul>
+                      <li>## 活動の概要</li>
+                      <li>### 参加者の様子</li>
+                      <li>### 成果・感想</li>
+                      <li>### 写真ギャラリー</li>
+                      <li>### 次回予告</li>
+                    </ul>
+                    <p class="type-tips">💡 <strong>ポイント:</strong> 読者が活動の雰囲気を感じられるよう、具体的な描写と写真を効果的に使いましょう</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- チェックリスト -->
+          <div class="guide-section">
+            <div class="section-header">
+              <div class="section-icon">
+                <i class="fas fa-tasks"></i>
+              </div>
+              <h4>✅ 公開前チェックリスト</h4>
+            </div>
+            <div class="section-content">
+              <div class="checklist">
+                <div class="checklist-category">
+                  <h5><i class="fas fa-spell-check"></i> 内容チェック</h5>
+                  <div class="checklist-items">
+                    <label class="checklist-item">
+                      <input type="checkbox" disabled>
+                      <span class="checkmark"></span>
+                      <span class="check-text">タイトルが内容を適切に表現している</span>
+                    </label>
+                    <label class="checklist-item">
+                      <input type="checkbox" disabled>
+                      <span class="checkmark"></span>
+                      <span class="check-text">誤字脱字がない</span>
+                    </label>
+                    <label class="checklist-item">
+                      <input type="checkbox" disabled>
+                      <span class="checkmark"></span>
+                      <span class="check-text">文章が分かりやすく、読みやすい</span>
+                    </label>
+                    <label class="checklist-item">
+                      <input type="checkbox" disabled>
+                      <span class="checkmark"></span>
+                      <span class="check-text">必要な情報が漏れなく記載されている</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="checklist-category">
+                  <h5><i class="fas fa-eye"></i> 表示チェック</h5>
+                  <div class="checklist-items">
+                    <label class="checklist-item">
+                      <input type="checkbox" disabled>
+                      <span class="checkmark"></span>
+                      <span class="check-text">プレビューで見た目を確認済み</span>
+                    </label>
+                    <label class="checklist-item">
+                      <input type="checkbox" disabled>
+                      <span class="checkmark"></span>
+                      <span class="check-text">見出しが適切に設定されている</span>
+                    </label>
+                    <label class="checklist-item">
+                      <input type="checkbox" disabled>
+                      <span class="checkmark"></span>
+                      <span class="check-text">リンクが正しく動作する</span>
+                    </label>
+                    <label class="checklist-item">
+                      <input type="checkbox" disabled>
+                      <span class="checkmark"></span>
+                      <span class="check-text">カテゴリが適切に設定されている</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="checklist-category">
+                  <h5><i class="fas fa-users"></i> 読者視点チェック</h5>
+                  <div class="checklist-items">
+                    <label class="checklist-item">
+                      <input type="checkbox" disabled>
+                      <span class="checkmark"></span>
+                      <span class="check-text">読者にとって有益な情報が含まれている</span>
+                    </label>
+                    <label class="checklist-item">
+                      <input type="checkbox" disabled>
+                      <span class="checkmark"></span>
+                      <span class="check-text">必要なアクション（申し込み等）が明確</span>
+                    </label>
+                    <label class="checklist-item">
+                      <input type="checkbox" disabled>
+                      <span class="checkmark"></span>
+                      <span class="check-text">専門用語に適切な説明がある</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEOとアクセシビリティ -->
+          <div class="guide-section">
+            <div class="section-header">
+              <div class="section-icon">
+                <i class="fas fa-search"></i>
+              </div>
+              <h4>🔍 SEO・アクセシビリティのポイント</h4>
+            </div>
+            <div class="section-content">
+              <div class="seo-tips">
+                <div class="seo-tip-item">
+                  <div class="seo-icon">
+                    <i class="fas fa-heading"></i>
+                  </div>
+                  <div class="seo-content">
+                    <h6>見出し構造</h6>
+                    <p>H2（##）、H3（###）を論理的な順序で使用し、記事の構造を明確にしましょう</p>
+                  </div>
+                </div>
+                <div class="seo-tip-item">
+                  <div class="seo-icon">
+                    <i class="fas fa-image"></i>
+                  </div>
+                  <div class="seo-content">
+                    <h6>画像の説明</h6>
+                    <p>画像には適切な説明文を付けて、視覚障害者の方にも内容が伝わるようにしましょう</p>
+                  </div>
+                </div>
+                <div class="seo-tip-item">
+                  <div class="seo-icon">
+                    <i class="fas fa-external-link-alt"></i>
+                  </div>
+                  <div class="seo-content">
+                    <h6>リンクテキスト</h6>
+                    <p>「こちら」ではなく、リンク先の内容が分かる説明的なテキストを使用しましょう</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-footer">
+          <div class="footer-tips">
+            <div class="footer-tip">
+              <i class="fas fa-lightbulb"></i>
+              <span>記事作成で困ったときは、過去の人気記事を参考にしてみましょう</span>
+            </div>
+            <div class="footer-tip">
+              <i class="fas fa-heart"></i>
+              <span>読者の立場に立って、どんな情報があれば嬉しいかを考えながら執筆しましょう</span>
+            </div>
+          </div>
         </div>
       </div>
     `;
     
-    this._createModal('記事執筆ガイド', guideContent);
+    this._createModal('📝 記事執筆ガイド', guideContent, 'writing-guide-modal large');
   }
 
   /**

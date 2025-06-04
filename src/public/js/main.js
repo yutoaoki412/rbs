@@ -4,7 +4,7 @@
  * @version 3.0.0
  */
 
-import { initializeApplication } from './Application.js';
+import Application from './core/Application.js';
 import { CONFIG } from './shared/constants/config.js';
 
 /**
@@ -170,7 +170,12 @@ async function initializeApplicationWithRetry() {
   for (let attempt = 1; attempt <= CONFIG.performance.initRetries; attempt++) {
     try {
       console.log(`📱 初期化試行 ${attempt}/${CONFIG.performance.initRetries}`);
-      return await initializeApplication();
+      
+      // Applicationクラスをインスタンス化して初期化
+      const app = new Application();
+      await app.init();
+      return app;
+      
     } catch (error) {
       lastError = error;
       console.warn(`⚠️ 初期化試行 ${attempt} 失敗:`, error.message);
@@ -282,55 +287,58 @@ function setupDevelopmentTools(app) {
  * @param {Error} error - エラーオブジェクト
  */
 function showInitializationError(error) {
-  // エラーメッセージを画面に表示
-  const errorContainer = document.createElement('div');
-  errorContainer.style.cssText = `
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    right: 20px;
-    background: #f8d7da;
-    color: #721c24;
-    padding: 20px;
-    border: 1px solid #f5c6cb;
-    border-radius: 8px;
-    z-index: 10000;
-    font-family: Arial, sans-serif;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  `;
-  
-  const isModuleError = error.message?.includes('import') || 
-                       error.message?.includes('module') || 
-                       error.message?.includes('404');
-  
-  errorContainer.innerHTML = `
-    <h3 style="margin: 0 0 10px 0; color: #721c24;">⚠️ アプリケーション初期化エラー</h3>
-    <p style="margin: 0 0 10px 0;">
-      ${isModuleError ? 
-        'モジュールの読み込みでエラーが発生しました。ファイルパスを確認してください。' : 
-        'アプリケーションの初期化中にエラーが発生しました。'}
-    </p>
-    ${CONFIG.debug.enabled ? `
-    <details style="margin: 10px 0 0 0;">
-      <summary style="cursor: pointer; font-weight: bold;">詳細情報</summary>
-      <pre style="margin: 10px 0 0 0; padding: 10px; background: #f8f9fa; border-radius: 3px; overflow-x: auto; font-size: 12px; max-height: 200px; overflow-y: auto;">${error.message}\n\n${error.stack || 'スタックトレースなし'}</pre>
-    </details>
-    ` : ''}
-    <div style="margin-top: 15px;">
-      <button onclick="location.reload()" style="margin-right: 10px; padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">ページを再読み込み</button>
-      ${CONFIG.debug.enabled ? `
-      <button onclick="console.error('アプリケーション初期化エラー:', '${error.message}'); console.error('${error.stack}')" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">コンソールに詳細出力</button>
-      ` : ''}
-    </div>
-  `;
-  
-  document.body.appendChild(errorContainer);
-  
-  // 自動で閉じる（開発環境では長めに表示）
-  const autoCloseDelay = CONFIG.debug.enabled ? 60000 : 30000;
-  setTimeout(() => {
-    if (errorContainer.parentNode) {
-      errorContainer.parentNode.removeChild(errorContainer);
-    }
-  }, autoCloseDelay);
+  // HTMLUtilsの初期化エラー専用関数を使用
+  import('./shared/utils/htmlUtils.js').then(({ createAppInitErrorHtml }) => {
+    const errorContainer = document.createElement('div');
+    errorContainer.innerHTML = createAppInitErrorHtml(error);
+    
+    // 固定位置に表示
+    errorContainer.style.cssText = `
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      z-index: 10000;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    `;
+    
+    document.body.appendChild(errorContainer);
+    
+    // 自動で閉じる（開発環境では長めに表示）
+    const autoCloseDelay = CONFIG.debug.enabled ? 60000 : 30000;
+    setTimeout(() => {
+      if (errorContainer.parentNode) {
+        errorContainer.parentNode.removeChild(errorContainer);
+      }
+    }, autoCloseDelay);
+    
+  }).catch(() => {
+    // HTMLUtilsのインポートに失敗した場合はフォールバック
+    const errorContainer = document.createElement('div');
+    errorContainer.className = 'app-init-error-container';
+    errorContainer.innerHTML = `
+      <h3 class="app-init-error-title">⚠️ アプリケーション初期化エラー</h3>
+      <p class="app-init-error-text">
+        アプリケーションの初期化中にエラーが発生しました。<br>
+        ページの再読み込みまたは管理者にお問い合わせください。
+      </p>
+      <div class="app-init-error-actions">
+        <button onclick="location.reload()" class="app-init-error-btn app-init-error-btn-primary">ページを再読み込み</button>
+      </div>
+    `;
+    
+    // 固定位置に表示
+    errorContainer.style.cssText = `
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      z-index: 10000;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    `;
+    
+    document.body.appendChild(errorContainer);
+  });
 } 

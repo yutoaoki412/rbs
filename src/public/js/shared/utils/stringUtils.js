@@ -292,11 +292,40 @@ export function formatBytes(bytes, decimals = 2) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
+/**
+ * 日付を指定形式でフォーマット
+ * @param {Date|string|number} date - 日付
+ * @param {string} format - フォーマット（'YYYY-MM-DD', 'YYYY/MM/DD', 'MM/DD/YYYY' など）
+ * @returns {string}
+ */
+export function formatDate(date, format = 'YYYY-MM-DD') {
+  if (!date) return '';
+  
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '';
+  
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const seconds = String(d.getSeconds()).padStart(2, '0');
+  
+  return format
+    .replace(/YYYY/g, year)
+    .replace(/MM/g, month)
+    .replace(/DD/g, day)
+    .replace(/HH/g, hours)
+    .replace(/mm/g, minutes)
+    .replace(/ss/g, seconds);
+}
+
 // レガシーサポート（後方互換性）
 export const Str = {
   kebabCase,
   camelCase,
   truncate,
   escapeHtml,
-  unescapeHtml
+  unescapeHtml,
+  formatDate
 }; 

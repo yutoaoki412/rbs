@@ -1,7 +1,7 @@
 /**
  * HTML操作ユーティリティ
  * HTML生成・テンプレート・エラー表示に関する汎用関数
- * @version 2.0.0
+ * @version 2.0.0 - インラインCSS統合リファクタリング版
  */
 
 import { escapeHtml } from './stringUtils.js';
@@ -10,16 +10,30 @@ import { escapeHtml } from './stringUtils.js';
 export { escapeHtml };
 
 /**
- * HTMLタグをアンエスケープ
- * @param {string} html - アンエスケープするHTML
- * @returns {string}
+ * DOM要素を作成
+ * @param {string} tagName - タグ名
+ * @param {Object} attributes - 属性
+ * @param {string|HTMLElement} content - 内容
+ * @returns {HTMLElement}
  */
-export function unescapeHtml(html) {
-  if (!html) return '';
+export function createElement(tagName, attributes = {}, content = '') {
+  const element = document.createElement(tagName);
   
-  const div = document.createElement('div');
-  div.innerHTML = html;
-  return div.textContent || div.innerText || '';
+  Object.entries(attributes).forEach(([key, value]) => {
+    if (key === 'className') {
+      element.className = value;
+    } else {
+      element.setAttribute(key, value);
+    }
+  });
+  
+  if (typeof content === 'string') {
+    element.innerHTML = content;
+  } else if (content instanceof HTMLElement) {
+    element.appendChild(content);
+  }
+  
+  return element;
 }
 
 /**
@@ -34,533 +48,419 @@ export function stripHtml(html) {
 }
 
 /**
- * HTMLを安全にサニタイズ
- * @param {string} html - サニタイズするHTML
- * @param {string[]} allowedTags - 許可するタグリスト
+ * エラー状態のHTMLを生成
+ * @param {string} title - エラータイトル
+ * @param {string} message - エラーメッセージ  
+ * @param {string} icon - アイコン（絵文字）
+ * @param {Array} actions - アクションボタン配列
  * @returns {string}
  */
-export function sanitizeHtml(html, allowedTags = ['p', 'br', 'strong', 'em', 'u']) {
-  if (!html) return '';
-  
-  // 許可されたタグ以外を除去
-  const tagPattern = new RegExp(`<(?!/?(?:${allowedTags.join('|')})\\b)[^>]*>`, 'gi');
-  return html.replace(tagPattern, '');
-}
+export function createErrorHtml(title = 'エラー', message = 'エラーが発生しました', icon = '⚠️', actions = []) {
+  // アクションボタンのHTML生成
+  const actionsHtml = actions.length > 0 ? 
+    actions.map(action => `<button class="btn btn-${action.type || 'primary'}" onclick="${action.onclick}">${escapeHtml(action.text)}</button>`).join('') : '';
 
-/**
- * テキストを指定文字数で切り詰め
- * @param {string} text - 切り詰めるテキスト
- * @param {number} maxLength - 最大文字数
- * @param {string} suffix - 切り詰め時の接尾辞
- * @returns {string}
- */
-export function truncateText(text, maxLength, suffix = '...') {
-  if (!text || text.length <= maxLength) return text || '';
-  
-  return text.substring(0, maxLength).trim() + suffix;
-}
-
-/**
- * HTMLテンプレートを作成
- * @param {string} template - テンプレート文字列
- * @param {Object} data - 置換データ
- * @returns {string}
- */
-export function renderTemplate(template, data = {}) {
-  if (!template) return '';
-  
-  return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-    return data[key] !== undefined ? escapeHtml(String(data[key])) : match;
-  });
-}
-
-/**
- * エラーメッセージのHTMLを生成
- * @param {Object} config - エラー設定
- * @param {string} config.icon - アイコン
- * @param {string} config.title - タイトル
- * @param {string} config.message - メッセージ
- * @param {Array} config.actions - アクションボタン
- * @returns {string}
- */
-export function createErrorMessage(config) {
-  const { icon = '❌', title = 'エラー', message = '', actions = [] } = config;
-  
-  const actionsHtml = actions.map(action => {
-    if (action.href) {
-      return `<a href="${escapeHtml(action.href)}" class="btn ${escapeHtml(action.class || 'btn-primary')}">${escapeHtml(action.text)}</a>`;
-    } else if (action.onclick) {
-      return `<button onclick="${escapeHtml(action.onclick)}" class="btn ${escapeHtml(action.class || 'btn-primary')}">${escapeHtml(action.text)}</button>`;
-    }
-    return '';
-  }).join(' ');
-  
   return `
-    <div class="error-container" style="text-align: center; padding: 40px; background: #f7fafc; border-radius: 8px; margin: 20px;">
-      <div class="error-icon" style="font-size: 48px; margin-bottom: 16px;">${icon}</div>
-      <h2 class="error-title" style="color: #2d3748; margin-bottom: 12px; font-size: 24px;">${escapeHtml(title)}</h2>
-      <p class="error-message" style="color: #4a5568; margin-bottom: 24px; line-height: 1.6;">${escapeHtml(message)}</p>
-      ${actionsHtml ? `<div class="error-actions" style="margin-top: 24px;">${actionsHtml}</div>` : ''}
-    </div>
+<div class="error-container">
+  <div class="error-icon">${icon}</div>
+  <h2 class="error-title">${escapeHtml(title)}</h2>
+  <p class="error-message">${escapeHtml(message)}</p>
+  ${actionsHtml ? `<div class="error-actions">${actionsHtml}</div>` : ''}
+</div>
   `;
 }
 
 /**
- * ローディングスピナーのHTMLを生成
- * @param {Object} options - オプション
- * @param {string} options.message - メッセージ
- * @param {string} options.size - サイズ (small, medium, large)
+ * ローディング状態のHTMLを生成
+ * @param {string} message - ローディングメッセージ
+ * @param {string} size - スピナーサイズ ('sm', 'md', 'lg')
  * @returns {string}
  */
-export function createLoadingSpinner(options = {}) {
-  const { message = '読み込み中...', size = 'medium' } = options;
-  
-  const sizeClasses = {
-    small: 'w-4 h-4',
-    medium: 'w-8 h-8', 
-    large: 'w-12 h-12'
-  };
-  
-  const sizeClass = sizeClasses[size] || sizeClasses.medium;
+export function createLoadingHtml(message = '読み込み中...', size = 'md') {
+  const sizeClass = `spinner-${size}`;
   
   return `
-    <div class="loading-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px;">
-      <div class="spinner ${sizeClass}" style="
-        border: 3px solid #e2e8f0;
-        border-top: 3px solid #4299e1;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin-bottom: 16px;
-      "></div>
-      <p class="loading-message" style="color: #4a5568; margin: 0;">${escapeHtml(message)}</p>
-    </div>
-    <style>
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    </style>
+<div class="loading-container">
+  <div class="spinner ${sizeClass}"></div>
+  ${message ? `<p class="loading-message">${escapeHtml(message)}</p>` : ''}
+</div>
   `;
 }
 
 /**
  * 成功メッセージのHTMLを生成
- * @param {string} message - メッセージ
- * @param {Object} options - オプション
+ * @param {string} message - 成功メッセージ
+ * @param {string} title - タイトル（オプション）
+ * @param {boolean} dismissible - 閉じるボタンを表示するか
  * @returns {string}
  */
-export function createSuccessMessage(message, options = {}) {
-  const { icon = '✅', dismissible = true } = options;
-  
-  const dismissButton = dismissible ? 
-    '<button type="button" class="close" onclick="this.parentElement.remove()" style="position: absolute; top: 8px; right: 12px; background: none; border: none; font-size: 18px; cursor: pointer; color: #276749;">&times;</button>' : '';
-  
+export function createSuccessHtml(message, title = '', dismissible = true) {
+  const icon = '✅';
+  const closeButton = dismissible ? 
+    '<button type="button" class="notification-close" onclick="this.parentElement.remove()">&times;</button>' : '';
+
   return `
-    <div class="success-message" style="
-      position: relative;
-      background-color: #f0fff4;
-      border: 1px solid #9ae6b4;
-      border-radius: 6px;
-      padding: 12px 16px;
-      margin: 12px 0;
-      color: #276749;
-    ">
-      ${dismissButton}
-      <div style="display: flex; align-items: center;">
-        <span style="margin-right: 8px; font-size: 16px;">${icon}</span>
-        <span>${escapeHtml(message)}</span>
-      </div>
+<div class="notification-message notification-success">
+  ${closeButton}
+  <div class="notification-content">
+    <span class="notification-icon">${icon}</span>
+    <div>
+      ${title ? `<strong>${escapeHtml(title)}</strong><br>` : ''}
+      ${escapeHtml(message)}
     </div>
+  </div>
+</div>
   `;
 }
 
 /**
  * 警告メッセージのHTMLを生成
- * @param {string} message - メッセージ
- * @param {Object} options - オプション
+ * @param {string} message - 警告メッセージ
+ * @param {string} title - タイトル（オプション）
+ * @param {boolean} dismissible - 閉じるボタンを表示するか
  * @returns {string}
  */
-export function createWarningMessage(message, options = {}) {
-  const { icon = '⚠️', dismissible = true } = options;
-  
-  const dismissButton = dismissible ? 
-    '<button type="button" class="close" onclick="this.parentElement.remove()" style="position: absolute; top: 8px; right: 12px; background: none; border: none; font-size: 18px; cursor: pointer; color: #975a16;">&times;</button>' : '';
-  
+export function createWarningHtml(message, title = '', dismissible = true) {
+  const icon = '⚠️';
+  const closeButton = dismissible ? 
+    '<button type="button" class="notification-close" onclick="this.parentElement.remove()">&times;</button>' : '';
+
   return `
-    <div class="warning-message" style="
-      position: relative;
-      background-color: #fffbeb;
-      border: 1px solid #fed7aa;
-      border-radius: 6px;
-      padding: 12px 16px;
-      margin: 12px 0;
-      color: #975a16;
-    ">
-      ${dismissButton}
-      <div style="display: flex; align-items: center;">
-        <span style="margin-right: 8px; font-size: 16px;">${icon}</span>
-        <span>${escapeHtml(message)}</span>
-      </div>
+<div class="notification-message notification-warning">
+  ${closeButton}
+  <div class="notification-content">
+    <span class="notification-icon">${icon}</span>
+    <div>
+      ${title ? `<strong>${escapeHtml(title)}</strong><br>` : ''}
+      ${escapeHtml(message)}
     </div>
+  </div>
+</div>
   `;
 }
 
 /**
  * 情報メッセージのHTMLを生成
- * @param {string} message - メッセージ
- * @param {Object} options - オプション
+ * @param {string} message - 情報メッセージ
+ * @param {string} title - タイトル（オプション）
+ * @param {boolean} dismissible - 閉じるボタンを表示するか
  * @returns {string}
  */
-export function createInfoMessage(message, options = {}) {
-  const { icon = 'ℹ️', dismissible = true } = options;
-  
-  const dismissButton = dismissible ? 
-    '<button type="button" class="close" onclick="this.parentElement.remove()" style="position: absolute; top: 8px; right: 12px; background: none; border: none; font-size: 18px; cursor: pointer; color: #2c5282;">&times;</button>' : '';
-  
+export function createInfoHtml(message, title = '', dismissible = true) {
+  const icon = 'ℹ️';
+  const closeButton = dismissible ? 
+    '<button type="button" class="notification-close" onclick="this.parentElement.remove()">&times;</button>' : '';
+
   return `
-    <div class="info-message" style="
-      position: relative;
-      background-color: #ebf8ff;
-      border: 1px solid #90cdf4;
-      border-radius: 6px;
-      padding: 12px 16px;
-      margin: 12px 0;
-      color: #2c5282;
-    ">
-      ${dismissButton}
-      <div style="display: flex; align-items: center;">
-        <span style="margin-right: 8px; font-size: 16px;">${icon}</span>
-        <span>${escapeHtml(message)}</span>
-      </div>
+<div class="notification-message notification-info">
+  ${closeButton}
+  <div class="notification-content">
+    <span class="notification-icon">${icon}</span>
+    <div>
+      ${title ? `<strong>${escapeHtml(title)}</strong><br>` : ''}
+      ${escapeHtml(message)}
     </div>
+  </div>
+</div>
   `;
 }
 
 /**
- * カードのHTMLを生成
- * @param {Object} config - カード設定
- * @param {string} config.title - タイトル
- * @param {string} config.content - 内容
- * @param {string} config.footer - フッター
- * @param {string} config.className - クラス名
+ * カードコンポーネントのHTMLを生成
+ * @param {string} title - カードタイトル
+ * @param {string} content - カード内容
+ * @param {string} footer - カードフッター（オプション）
+ * @param {string} className - 追加CSSクラス
  * @returns {string}
  */
-export function createCard(config) {
-  const { title = '', content = '', footer = '', className = '' } = config;
-  
+export function createCardHtml(title = '', content = '', footer = '', className = '') {
   return `
-    <div class="card ${escapeHtml(className)}" style="
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    ">
-      ${title ? `
-        <div class="card-header" style="
-          padding: 16px 20px;
-          border-bottom: 1px solid #e2e8f0;
-          background: #f7fafc;
-        ">
-          <h3 class="card-title" style="margin: 0; font-size: 18px; font-weight: 600; color: #2d3748;">
-            ${escapeHtml(title)}
-          </h3>
-        </div>
-      ` : ''}
-      <div class="card-body" style="padding: 20px;">
-        ${content}
-      </div>
-      ${footer ? `
-        <div class="card-footer" style="
-          padding: 16px 20px;
-          border-top: 1px solid #e2e8f0;
-          background: #f7fafc;
-        ">
-          ${footer}
-        </div>
-      ` : ''}
+<div class="card-default ${escapeHtml(className)}">
+  ${title ? `
+    <div class="card-header-default">
+      <h3 class="card-title">
+        ${escapeHtml(title)}
+      </h3>
     </div>
+  ` : ''}
+  <div class="card-body">
+    ${content}
+  </div>
+  ${footer ? `
+    <div class="card-footer-default">
+      ${footer}
+    </div>
+  ` : ''}
+</div>
   `;
 }
 
 /**
  * ボタンのHTMLを生成
- * @param {Object} config - ボタン設定
- * @param {string} config.text - ボタンテキスト
- * @param {string} config.type - ボタンタイプ
- * @param {string} config.variant - バリアント
- * @param {string} config.href - リンク先
- * @param {string} config.onclick - クリックイベント
- * @param {boolean} config.disabled - 無効フラグ
+ * @param {string} text - ボタンテキスト
+ * @param {string} variant - ボタンの種類
+ * @param {Object} attributes - 追加属性
  * @returns {string}
  */
-export function createButton(config) {
-  const { 
-    text = '', 
-    type = 'button', 
-    variant = 'primary', 
-    href = '', 
-    onclick = '', 
-    disabled = false,
-    className = ''
-  } = config;
+export function createButtonHtml(text, variant = 'primary', attributes = {}) {
+  const baseStyles = 'display: inline-block; padding: 8px 16px; border-radius: 6px; text-decoration: none; border: none; cursor: pointer; font-weight: 500; transition: all 0.2s ease;';
   
-  const baseStyles = `
-    display: inline-block;
-    padding: 8px 16px;
-    border-radius: 6px;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.2s;
-  `;
-  
-  const variants = {
+  const variantStyles = {
     primary: 'background: #4299e1; color: white;',
     secondary: 'background: #718096; color: white;',
-    success: 'background: #38a169; color: white;',
-    danger: 'background: #e53e3e; color: white;',
-    warning: 'background: #d69e2e; color: white;',
+    success: 'background: #48bb78; color: white;',
+    warning: 'background: #ed8936; color: white;',
+    danger: 'background: #f56565; color: white;',
     outline: 'background: transparent; color: #4299e1; border: 1px solid #4299e1;'
   };
   
-  const variantStyle = variants[variant] || variants.primary;
-  const disabledStyle = disabled ? 'opacity: 0.5; cursor: not-allowed;' : '';
+  const variantStyle = variantStyles[variant] || variantStyles.primary;
+  const disabledStyle = attributes.disabled ? 'opacity: 0.6; cursor: not-allowed;' : '';
   
-  if (href && !disabled) {
-    return `
-      <a href="${escapeHtml(href)}" 
-         class="btn btn-${variant} ${escapeHtml(className)}"
-         style="${baseStyles} ${variantStyle}">
-        ${escapeHtml(text)}
-      </a>
-    `;
+  // 属性を文字列に変換
+  const attrsStr = Object.entries(attributes)
+    .filter(([key]) => key !== 'disabled')
+    .map(([key, value]) => `${key}="${escapeHtml(value)}"`)
+    .join(' ');
+
+  const element = attributes.href ? 'a' : 'button';
+  
+  if (attributes.disabled) {
+    return `<${element} ${attrsStr} style="${baseStyles} ${variantStyle} ${disabledStyle}" disabled>${escapeHtml(text)}</${element}>`;
   } else {
-    return `
-      <button type="${escapeHtml(type)}"
-              class="btn btn-${variant} ${escapeHtml(className)}"
-              style="${baseStyles} ${variantStyle} ${disabledStyle}"
-              ${onclick ? `onclick="${escapeHtml(onclick)}"` : ''}
-              ${disabled ? 'disabled' : ''}>
-        ${escapeHtml(text)}
-      </button>
-    `;
+    return `<${element} ${attrsStr} style="${baseStyles} ${variantStyle}">${escapeHtml(text)}</${element}>`;
   }
 }
 
 /**
  * バッジのHTMLを生成
  * @param {string} text - バッジテキスト
- * @param {string} variant - バリアント
+ * @param {string} variant - バッジの種類
  * @returns {string}
  */
-export function createBadge(text, variant = 'primary') {
-  const variants = {
-    primary: 'background: #4299e1; color: white;',
-    secondary: 'background: #718096; color: white;',
-    success: 'background: #38a169; color: white;',
-    danger: 'background: #e53e3e; color: white;',
-    warning: 'background: #d69e2e; color: white;',
-    info: 'background: #3182ce; color: white;'
-  };
-  
-  const variantStyle = variants[variant] || variants.primary;
-  
+export function createBadgeHtml(text, variant = 'primary') {
   return `
-    <span class="badge badge-${variant}" style="
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      ${variantStyle}
-    ">
-      ${escapeHtml(text)}
-    </span>
+<span class="badge badge-${variant}">
+  ${escapeHtml(text)}
+</span>
   `;
 }
 
 /**
- * 空の状態を表すHTMLを生成
- * @param {Object} config - 設定
- * @param {string} config.icon - アイコン
- * @param {string} config.title - タイトル
- * @param {string} config.message - メッセージ
- * @param {Object} config.action - アクションボタン
+ * 空状態のHTMLを生成
+ * @param {string} title - タイトル
+ * @param {string} message - メッセージ
+ * @param {string} icon - アイコン
+ * @param {string} actionHtml - アクションボタンのHTML
  * @returns {string}
  */
-export function createEmptyState(config) {
-  const { 
-    icon = '📄', 
-    title = 'データがありません', 
-    message = '', 
-    action = null 
-  } = config;
-  
-  const actionHtml = action ? createButton(action) : '';
-  
+export function createEmptyStateHtml(title = '項目がありません', message = '', icon = '📝', actionHtml = '') {
   return `
-    <div class="empty-state" style="
-      text-align: center;
-      padding: 60px 20px;
-      color: #718096;
-    ">
-      <div class="empty-icon" style="font-size: 64px; margin-bottom: 20px;">
-        ${icon}
-      </div>
-      <h3 class="empty-title" style="
-        margin: 0 0 12px 0;
-        font-size: 20px;
-        font-weight: 600;
-        color: #4a5568;
-      ">
-        ${escapeHtml(title)}
-      </h3>
-      ${message ? `
-        <p class="empty-message" style="
-          margin: 0 0 24px 0;
-          line-height: 1.6;
-        ">
-          ${escapeHtml(message)}
-        </p>
-      ` : ''}
-      ${actionHtml ? `<div class="empty-action">${actionHtml}</div>` : ''}
-    </div>
+<div class="empty-state">
+  <div class="empty-icon">
+    ${icon}
+  </div>
+  <h3 class="empty-title">
+    ${escapeHtml(title)}
+  </h3>
+  ${message ? `
+    <p class="empty-message">
+      ${escapeHtml(message)}
+    </p>
+  ` : ''}
+  ${actionHtml}
+</div>
   `;
 }
 
 /**
  * プログレスバーのHTMLを生成
- * @param {number} progress - 進捗（0-100）
- * @param {Object} options - オプション
+ * @param {number} value - 現在値
+ * @param {number} max - 最大値
+ * @param {string} label - ラベル
+ * @param {string} className - 追加CSSクラス
  * @returns {string}
  */
-export function createProgressBar(progress, options = {}) {
-  const { 
-    showLabel = true, 
-    variant = 'primary', 
-    height = '8px',
-    className = ''
-  } = options;
-  
-  const clampedProgress = Math.max(0, Math.min(100, progress));
-  
-  const variants = {
-    primary: '#4299e1',
-    success: '#38a169',
-    warning: '#d69e2e',
-    danger: '#e53e3e'
-  };
-  
-  const color = variants[variant] || variants.primary;
+export function createProgressHtml(value = 0, max = 100, label = '', className = '') {
+  const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
   
   return `
-    <div class="progress-container ${escapeHtml(className)}" style="width: 100%;">
-      ${showLabel ? `
-        <div class="progress-label" style="
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 4px;
-          font-size: 14px;
-          color: #4a5568;
-        ">
-          <span>進捗</span>
-          <span>${clampedProgress}%</span>
-        </div>
-      ` : ''}
-      <div class="progress-track" style="
-        width: 100%;
-        height: ${height};
-        background-color: #e2e8f0;
-        border-radius: 4px;
-        overflow: hidden;
-      ">
-        <div class="progress-bar" style="
-          width: ${clampedProgress}%;
-          height: 100%;
-          background-color: ${color};
-          transition: width 0.3s ease;
-        "></div>
-      </div>
+<div class="progress-container ${escapeHtml(className)}">
+  ${label ? `
+    <div class="progress-label">
+      <span>${escapeHtml(label)}</span>
+      <span>${value}/${max}</span>
     </div>
+  ` : ''}
+  <div class="progress-track">
+    <div class="progress-bar" style="width: ${percentage}%"></div>
+  </div>
+</div>
   `;
 }
 
 /**
- * アラートダイアログのHTMLを生成
- * @param {Object} config - 設定
+ * アラートのHTMLを生成
+ * @param {string} message - メッセージ
+ * @param {string} type - アラートタイプ
+ * @param {string} title - タイトル（オプション）
+ * @param {boolean} dismissible - 閉じるボタンを表示するか
+ * @param {string} actions - アクションボタンのHTML
  * @returns {string}
  */
-export function createAlert(config) {
-  const { 
-    title = '', 
-    message = '', 
-    type = 'info', 
-    actions = [],
-    dismissible = true 
-  } = config;
-  
-  const typeConfig = {
-    success: { icon: '✅', bgColor: '#f0fff4', borderColor: '#9ae6b4', textColor: '#276749' },
-    error: { icon: '❌', bgColor: '#fed7d7', borderColor: '#feb2b2', textColor: '#742a2a' },
-    warning: { icon: '⚠️', bgColor: '#fffbeb', borderColor: '#fed7aa', textColor: '#975a16' },
-    info: { icon: 'ℹ️', bgColor: '#ebf8ff', borderColor: '#90cdf4', textColor: '#2c5282' }
+export function createAlertHtml(message, type = 'info', title = '', dismissible = true, actions = '') {
+  const icons = {
+    success: '✅',
+    warning: '⚠️',
+    error: '❌',
+    info: 'ℹ️'
   };
   
-  const config_type = typeConfig[type] || typeConfig.info;
+  const icon = icons[type] || icons.info;
+  const closeButton = dismissible ? 
+    `<button type="button" class="alert-close" onclick="this.closest('.alert').remove()">&times;</button>` : '';
   
-  const dismissButton = dismissible ? 
-    `<button type="button" class="alert-close" onclick="this.closest('.alert').remove()" style="
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: none;
-      border: none;
-      font-size: 18px;
-      cursor: pointer;
-      color: ${config_type.textColor};
-      opacity: 0.7;
-    ">&times;</button>` : '';
+  const actionSection = actions ? 
+    `<div class="alert-actions">${actions}</div>` : '';
+
+  return `
+<div class="alert alert-${type}">
+  ${closeButton}
+  <div class="alert-content">
+    <span class="alert-icon">
+      ${icon}
+    </span>
+    <div class="alert-body">
+      ${title ? `
+        <h4 class="alert-title">
+          ${escapeHtml(title)}
+        </h4>
+      ` : ''}
+      <p class="alert-message">
+        ${escapeHtml(message)}
+      </p>
+    </div>
+  </div>
+  ${actionSection}
+</div>
+  `;
+}
+
+/**
+ * テーブルのHTMLを生成
+ * @param {Array} headers - ヘッダー配列
+ * @param {Array} rows - 行データ配列
+ * @param {string} className - 追加CSSクラス
+ * @returns {string}
+ */
+export function createTableHtml(headers = [], rows = [], className = '') {
+  const headerHtml = headers.length > 0 ? 
+    `<thead><tr>${headers.map(header => `<th>${escapeHtml(header)}</th>`).join('')}</tr></thead>` : '';
   
-  const actionsHtml = actions.length > 0 ? 
-    `<div class="alert-actions" style="margin-top: 16px;">
-      ${actions.map(action => createButton(action)).join(' ')}
-    </div>` : '';
+  const rowsHtml = rows.length > 0 ?
+    `<tbody>${rows.map(row => 
+      `<tr>${row.map(cell => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`
+    ).join('')}</tbody>` : '';
   
   return `
-    <div class="alert alert-${type}" style="
-      position: relative;
-      background-color: ${config_type.bgColor};
-      border: 1px solid ${config_type.borderColor};
-      border-radius: 8px;
-      padding: 16px 20px;
-      margin: 16px 0;
-      color: ${config_type.textColor};
-    ">
-      ${dismissButton}
-      <div style="display: flex; align-items: flex-start;">
-        <span style="margin-right: 12px; font-size: 20px; flex-shrink: 0;">
-          ${config_type.icon}
-        </span>
-        <div style="flex: 1;">
-          ${title ? `
-            <h4 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">
-              ${escapeHtml(title)}
-            </h4>
-          ` : ''}
-          ${message ? `
-            <p style="margin: 0; line-height: 1.6;">
-              ${escapeHtml(message)}
-            </p>
-          ` : ''}
-          ${actionsHtml}
-        </div>
+<table class="table ${escapeHtml(className)}">
+  ${headerHtml}
+  ${rowsHtml}
+</table>
+  `;
+}
+
+/**
+ * リストのHTMLを生成
+ * @param {Array} items - アイテム配列
+ * @param {boolean} ordered - 順序付きリストかどうか
+ * @param {string} className - 追加CSSクラス
+ * @returns {string}
+ */
+export function createListHtml(items = [], ordered = false, className = '') {
+  const tag = ordered ? 'ol' : 'ul';
+  const itemsHtml = items.map(item => `<li>${escapeHtml(item)}</li>`).join('');
+  
+  return `<${tag} class="${escapeHtml(className)}">${itemsHtml}</${tag}>`;
+}
+
+/**
+ * モーダルのHTMLを生成
+ * @param {string} title - モーダルタイトル
+ * @param {string} content - モーダル内容
+ * @param {string} footer - モーダルフッター
+ * @param {string} className - 追加CSSクラス
+ * @returns {string}
+ */
+export function createModalHtml(title = '', content = '', footer = '', className = '') {
+  return `
+<div class="modal ${escapeHtml(className)}">
+  <div class="modal-content">
+    ${title ? `
+      <div class="modal-header">
+        <h2 class="modal-title">${escapeHtml(title)}</h2>
       </div>
+    ` : ''}
+    <div class="modal-body">
+      ${content}
     </div>
+    ${footer ? `
+      <div class="modal-footer">
+        ${footer}
+      </div>
+    ` : ''}
+  </div>
+</div>
+  `;
+}
+
+/**
+ * フォームフィールドのHTMLを生成
+ * @param {string} type - インプットタイプ
+ * @param {string} name - フィールド名
+ * @param {string} label - ラベル
+ * @param {Object} attributes - 追加属性
+ * @returns {string}
+ */
+export function createFormFieldHtml(type = 'text', name = '', label = '', attributes = {}) {
+  const id = attributes.id || `field-${name}`;
+  const required = attributes.required ? 'required' : '';
+  const placeholder = attributes.placeholder ? `placeholder="${escapeHtml(attributes.placeholder)}"` : '';
+  const value = attributes.value ? `value="${escapeHtml(attributes.value)}"` : '';
+  
+  return `
+<div class="form-field">
+  ${label ? `<label for="${id}" class="form-label">${escapeHtml(label)}</label>` : ''}
+  <input type="${type}" id="${id}" name="${name}" ${placeholder} ${value} ${required} class="form-input">
+</div>
+  `;
+}
+
+/**
+ * 初期化エラー専用HTMLを生成（main.js用）
+ * @param {Error} error - エラーオブジェクト
+ * @returns {string}
+ */
+export function createAppInitErrorHtml(error) {
+  return `
+<div class="app-init-error-container">
+  <h3 class="app-init-error-title">⚠️ アプリケーション初期化エラー</h3>
+  <p class="app-init-error-text">
+    アプリケーションの初期化中にエラーが発生しました。<br>
+    ページの再読み込みまたは管理者にお問い合わせください。
+  </p>
+  
+  <details class="app-init-error-details">
+    <summary>詳細情報</summary>
+    <pre>${error.message}
+
+${error.stack || 'スタックトレースが利用できません'}</pre>
+  </details>
+  
+  <div class="app-init-error-actions">
+    <button onclick="location.reload()" class="app-init-error-btn app-init-error-btn-primary">ページを再読み込み</button>
+    <button onclick="console.error('アプリケーション初期化エラー:', '${error.message}'); console.error('${error.stack}')" class="app-init-error-btn app-init-error-btn-secondary">コンソールに詳細出力</button>
+  </div>
+</div>
   `;
 } 

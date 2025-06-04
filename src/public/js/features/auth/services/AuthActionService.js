@@ -8,7 +8,7 @@ import { actionManager } from '../../../core/ActionManager.js';
 import { authService } from './AuthService.js';
 import { EventBus } from '../../../shared/services/EventBus.js';
 import { querySelector, show, hide, setValue, getValue } from '../../../shared/utils/domUtils.js';
-import { createErrorMessage, createSuccessMessage } from '../../../shared/utils/htmlUtils.js';
+import { createErrorHtml, createSuccessHtml } from '../../../shared/utils/htmlUtils.js';
 
 export class AuthActionService {
   constructor() {
@@ -342,13 +342,14 @@ export class AuthActionService {
     let html = '';
     switch (type) {
       case 'success':
-        html = createSuccessMessage(message);
+        html = createSuccessHtml(message);
         break;
       case 'error':
-        html = createErrorMessage({
-          title: 'エラー',
-          message: message
-        });
+        html = createErrorHtml(
+          'エラー',
+          message,
+          '❌'
+        );
         break;
       default:
         html = `<div class="message ${type}">${message}</div>`;

@@ -219,4 +219,16 @@ export class FunctionUtils {
       return defaultValue;
     }
   }
-} 
+}
+
+// 個別関数のエクスポート（後方互換性のため）
+export const debounce = FunctionUtils.debounce;
+export const throttle = FunctionUtils.throttle;
+export const once = FunctionUtils.once;
+export const delay = FunctionUtils.delay;
+export const retry = FunctionUtils.retry;
+export const waitFor = FunctionUtils.waitFor;
+export const measure = FunctionUtils.measure;
+export const memoize = FunctionUtils.memoize;
+export const parallelLimit = FunctionUtils.parallelLimit;
+export const safeTry = FunctionUtils.safeTry; 

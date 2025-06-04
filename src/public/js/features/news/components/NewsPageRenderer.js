@@ -7,6 +7,7 @@
 import { CONFIG } from '../../../shared/constants/config.js';
 import { EventBus } from '../../../shared/services/EventBus.js';
 import { NewsUtils } from '../utils/NewsUtils.js';
+import { createErrorHtml } from '../../../shared/utils/htmlUtils.js';
 
 export class NewsPageRenderer {
   constructor(newsService) {
@@ -111,7 +112,7 @@ export class NewsPageRenderer {
       console.error('🔍 エラー詳細:', error.stack);
       this.updateLoadingStatus('記事の読み込みに失敗しました', loadingStatus, statusText, 'error');
       if (container) {
-        container.innerHTML = this.createErrorMessage('記事の読み込みに失敗しました');
+        container.innerHTML = createErrorHtml('記事の読み込みに失敗しました');
       }
     }
   }
@@ -203,7 +204,7 @@ export class NewsPageRenderer {
       console.error('❌ ニュース一覧ページ初期化エラー:', error);
       console.error('🔍 エラー詳細:', error.stack);
       if (container) {
-        container.innerHTML = this.createErrorMessage('記事の読み込みに失敗しました');
+        container.innerHTML = createErrorHtml('記事の読み込みに失敗しました');
       }
     }
   }
@@ -414,13 +415,7 @@ export class NewsPageRenderer {
       document.getElementById('news-list')
     ].filter(Boolean);
     
-    const errorHTML = `
-      <div class="news-error">
-        <i class="fas fa-exclamation-triangle"></i>
-        <p>${NewsUtils.escapeHtml(message)}</p>
-        <button class="btn btn-outline" onclick="location.reload()">再読み込み</button>
-      </div>
-    `;
+    const errorHTML = createErrorHtml(message);
     
     containers.forEach(container => {
       container.innerHTML = errorHTML;
@@ -459,20 +454,6 @@ export class NewsPageRenderer {
     if (loadingElement) {
       loadingElement.style.display = 'none';
     }
-  }
-
-  /**
-   * エラーメッセージを作成
-   * @private
-   */
-  createErrorMessage(message) {
-    return `
-      <div class="news-error">
-        <i class="fas fa-exclamation-triangle"></i>
-        <p>${NewsUtils.escapeHtml(message)}</p>
-        <button class="btn btn-outline" onclick="location.reload()">再読み込み</button>
-      </div>
-    `;
   }
 
   /**

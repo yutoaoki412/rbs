@@ -1,15 +1,35 @@
 /**
  * ニュースフォーム管理コンポーネント
- * 記事編集フォームの管理とバリデーションを担当
+ * 記事作成・編集フォームの管理
  * @version 2.0.0
  */
 
 import { EventBus } from '../../../shared/services/EventBus.js';
-import { CONFIG } from '../../../shared/constants/config.js';
-import { articleDataService } from '../services/ArticleDataService.js';
+import { actionManager } from '../../../core/ActionManager.js';
 import { querySelector, show, hide, setValue, getValue } from '../../../shared/utils/domUtils.js';
-import { escapeHtml, truncate } from '../../../shared/utils/stringUtils.js';
-import { createErrorMessage, createSuccessMessage } from '../../../shared/utils/htmlUtils.js';
+import { formatDate, escapeHtml, truncate } from '../../../shared/utils/stringUtils.js';
+import { debounce } from '../../../shared/utils/FunctionUtils.js';
+import { createErrorHtml, createSuccessHtml } from '../../../shared/utils/htmlUtils.js';
+import { CONFIG } from '../../../shared/constants/config.js';
+
+/**
+ * 日付が有効かチェック
+ * @param {Date|string|number} date - 日付
+ * @returns {boolean}
+ */
+function isValidDate(date) {
+  const d = new Date(date);
+  return !isNaN(d.getTime());
+}
+
+/**
+ * 文字列が空かチェック
+ * @param {string} str - 文字列
+ * @returns {boolean}
+ */
+function isEmptyString(str) {
+  return !str || typeof str !== 'string' || str.trim().length === 0;
+}
 
 /**
  * 記事作成・編集フォーム管理クラス
@@ -294,7 +314,7 @@ export class NewsFormManager {
       { element: this.formElements.category, value: article.category || 'news', type: 'value' },
       { element: this.formElements.date, value: article.date || article.createdAt?.split('T')[0] || '', type: 'value' },
       { element: this.formElements.summary, value: article.excerpt || '', type: 'value' },
-      { element: this.formElements.content, value: articleDataService.getArticleContent(article.id) || '', type: 'value' },
+      { element: this.formElements.content, value: article.content || '', type: 'value' },
       { element: this.formElements.featured, value: article.featured || false, type: 'checked' },
       { element: this.formElements.status, value: article.status || 'draft', type: 'value' }
     ];
@@ -387,20 +407,15 @@ export class NewsFormManager {
         return;
       }
 
-      // ArticleDataServiceに保存を依頼
-      const result = await articleDataService.saveArticle(formData, false);
+      // EventBusを通じて記事保存を要求
+      EventBus.emit('article:save:request', {
+        articleData: formData,
+        isPublish: false,
+        source: 'NewsFormManager'
+      });
       
-      if (result.success) {
-        this.showMessage(result.message, 'success');
-        this.currentArticle = { ...formData, id: result.id };
-        this.isEditing = true;
-        setValue(this.formElements.id, result.id);
-        
-        // 自動保存データをクリア（統一ストレージキーを使用）
-        localStorage.removeItem(this.storageKeys.newsDraft);
-      } else {
-        this.showMessage(result.message, 'error');
-      }
+      this.showMessage('保存中...', 'info', 2000);
+      
     } catch (error) {
       console.error('❌ フォーム送信エラー:', error);
       this.showMessage('保存中にエラーが発生しました', 'error');
@@ -589,13 +604,14 @@ export class NewsFormManager {
     let html = '';
     switch (type) {
       case 'success':
-        html = createSuccessMessage(message);
+        html = createSuccessHtml(message);
         break;
       case 'error':
-        html = createErrorMessage({ 
-          title: 'エラー', 
-          message: escapeHtml(message) 
-        });
+        html = createErrorHtml(
+          'エラー',
+          escapeHtml(message),
+          '❌'
+        );
         break;
       default:
         html = `<div class="message ${type}">${escapeHtml(message)}</div>`;

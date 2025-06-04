@@ -6,7 +6,7 @@
 
 import { EventBus } from '../../../shared/services/EventBus.js';
 import { querySelector, show, hide, setText, getValue } from '../../../shared/utils/domUtils.js';
-import { createSuccessMessage, createErrorMessage } from '../../../shared/utils/htmlUtils.js';
+import { createSuccessHtml, createErrorHtml, createWarningHtml, createInfoHtml } from '../../../shared/utils/htmlUtils.js';
 import { CONFIG } from '../../../shared/constants/config.js';
 
 export class UIManagerService {
