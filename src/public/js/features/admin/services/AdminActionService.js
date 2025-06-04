@@ -3680,85 +3680,102 @@ export class AdminActionService {
               <i class="fas fa-lightbulb"></i>
             </div>
             <div class="guide-hero-content">
-              <h3>📝 記事執筆ガイド</h3>
-              <p>読者に愛される、魅力的な記事を作成するための完全ガイド</p>
+              <h3>📝 RBS陸上教室 記事作成ガイド</h3>
+              <p>魅力的で読みやすい記事を作成するための完全ガイド</p>
             </div>
           </div>
         </div>
 
         <div class="guide-sections">
-          <!-- 基本的な書き方 -->
+          <!-- 記事の基本構成 -->
           <div class="guide-section">
             <div class="section-header">
               <div class="section-icon">
-                <i class="fas fa-edit"></i>
+                <i class="fas fa-file-alt"></i>
               </div>
-              <h4>✍️ 基本的な書き方のポイント</h4>
+              <h4>📋 記事の基本構成</h4>
             </div>
             <div class="section-content">
               <div class="guide-tips">
                 <div class="tip-item">
                   <div class="tip-icon success">
-                    <i class="fas fa-check"></i>
+                    <i class="fas fa-heading"></i>
                   </div>
                   <div class="tip-content">
-                    <strong>明確なタイトル</strong>
-                    <p>読者が一目で内容を理解できる、分かりやすく魅力的なタイトルを作成しましょう</p>
+                    <strong>タイトル（30文字以内推奨）</strong>
+                    <p>簡潔で分かりやすく、検索しやすいキーワードを含める。読者が一目で内容を理解できるように工夫しましょう。</p>
                   </div>
                 </div>
                 <div class="tip-item">
                   <div class="tip-icon info">
-                    <i class="fas fa-layer-group"></i>
+                    <i class="fas fa-tags"></i>
                   </div>
                   <div class="tip-content">
-                    <strong>構造化された内容</strong>
-                    <p>見出し（## 大見出し、### 小見出し）を使って記事を構造化し、読みやすくしましょう</p>
+                    <strong>カテゴリー選択</strong>
+                    <p><span class="category-example announcement">お知らせ</span> 一般的なお知らせ | <span class="category-example event">体験会</span> 体験会・イベント情報<br>
+                    <span class="category-example media">メディア</span> メディア掲載・取材情報 | <span class="category-example important">重要</span> 緊急性の高い重要なお知らせ</p>
                   </div>
                 </div>
                 <div class="tip-item">
                   <div class="tip-icon warning">
-                    <i class="fas fa-paragraph"></i>
+                    <i class="fas fa-align-left"></i>
                   </div>
                   <div class="tip-content">
-                    <strong>適切な段落分け</strong>
-                    <p>長い文章は避け、3-4行程度の短い段落に分けて読みやすさを向上させましょう</p>
+                    <strong>概要（100文字以内推奨）</strong>
+                    <p>記事の要点を2-3行で簡潔に。ニュース一覧ページで表示されるため、読者の興味を引く内容にしましょう。</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- マークダウン記法 -->
+          <!-- 詳細なマークダウン記法 -->
           <div class="guide-section">
             <div class="section-header">
               <div class="section-icon">
                 <i class="fab fa-markdown"></i>
               </div>
-              <h4>🎨 マークダウン記法ガイド</h4>
+              <h4>🎨 Markdown記法ガイド</h4>
             </div>
             <div class="section-content">
               <div class="markdown-guide">
                 <div class="markdown-category">
-                  <h5><i class="fas fa-heading"></i> 見出し</h5>
+                  <h5><i class="fas fa-heading"></i> 見出し（階層を守って使用）</h5>
                   <div class="markdown-examples">
                     <div class="example-item">
                       <code># 大見出し（H1）</code>
                       <div class="example-preview">
-                        <h1 style="font-size: 1.5rem; margin: 0.5rem 0;">大見出し（H1）</h1>
+                        <h1 style="font-size: 1.8rem; font-weight: 700; margin: 0.5rem 0;">最も大きく、記事のメインテーマ</h1>
                       </div>
                     </div>
                     <div class="example-item">
                       <code>## 中見出し（H2）</code>
                       <div class="example-preview">
-                        <h2 style="font-size: 1.3rem; margin: 0.5rem 0;">中見出し（H2）</h2>
+                        <h2 style="font-size: 1.5rem; font-weight: 600; text-align: center; color: #4a90e2; margin: 0.5rem 0;">セクションの区切り、中央揃えで装飾</h2>
                       </div>
                     </div>
                     <div class="example-item">
                       <code>### 小見出し（H3）</code>
                       <div class="example-preview">
-                        <h3 style="font-size: 1.1rem; margin: 0.5rem 0;">小見出し（H3）</h3>
+                        <h3 style="font-size: 1.3rem; font-weight: 600; border-left: 4px solid #4a90e2; padding-left: 0.5rem; margin: 0.5rem 0;">サブセクション、左に青いアクセント</h3>
                       </div>
                     </div>
+                    <div class="example-item">
+                      <code>#### 詳細見出し（H4）</code>
+                      <div class="example-preview">
+                        <h4 style="font-size: 1.1rem; font-weight: 600; margin: 0.5rem 0;"><span style="background: #4a90e2; color: white; padding: 2px 6px; margin-right: 0.5rem;">■</span>詳細項目、青い四角マーク付き</h4>
+                      </div>
+                    </div>
+                    <div class="example-item">
+                      <code>##### サブ見出し（H5）</code>
+                      <div class="example-preview">
+                        <h5 style="font-size: 1rem; font-weight: 600; margin: 0.5rem 0;"><span style="color: #4a90e2; margin-right: 0.5rem;">▶</span>補足項目、青い矢印付き</h5>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="markdown-note">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>重要：</strong> 見出しレベルを飛ばさず、H2 → H3 → H4の順で使用してください
                   </div>
                 </div>
 
@@ -3768,63 +3785,82 @@ export class AdminActionService {
                     <div class="example-item">
                       <code>**太字テキスト**</code>
                       <div class="example-preview">
-                        <strong>太字テキスト</strong>
+                        <strong>重要な情報を強調</strong>
                       </div>
                     </div>
                     <div class="example-item">
                       <code>*斜体テキスト*</code>
                       <div class="example-preview">
-                        <em>斜体テキスト</em>
+                        <em>補足や引用に使用</em>
                       </div>
                     </div>
                     <div class="example-item">
-                      <code>\`コードテキスト\`</code>
+                      <code>\`インラインコード\`</code>
                       <div class="example-preview">
-                        <code style="background: #f5f5f5; padding: 2px 4px; border-radius: 3px;">コードテキスト</code>
+                        <code style="background: #f5f5f5; padding: 2px 4px; border-radius: 3px;">特定の用語や数値</code>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div class="markdown-category">
-                  <h5><i class="fas fa-link"></i> リンクと画像</h5>
+                  <h5><i class="fas fa-list"></i> リスト（情報の整理に効果的）</h5>
                   <div class="markdown-examples">
                     <div class="example-item">
-                      <code>[リンクテキスト](URL)</code>
-                      <div class="example-preview">
-                        <a href="#" style="color: #4a90e2; text-decoration: none;">リンクテキスト</a>
-                      </div>
-                    </div>
-                    <div class="example-item">
-                      <code>![画像の説明](画像URL)</code>
-                      <div class="example-preview">
-                        <span style="color: #666;">📷 画像が表示されます</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="markdown-category">
-                  <h5><i class="fas fa-list"></i> リスト</h5>
-                  <div class="markdown-examples">
-                    <div class="example-item">
-                      <code>- 項目1<br>- 項目2<br>- 項目3</code>
+                      <code>- 項目1<br>- 項目2<br>  - サブ項目<br>- 項目3</code>
                       <div class="example-preview">
                         <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
                           <li>項目1</li>
-                          <li>項目2</li>
+                          <li>項目2
+                            <ul style="margin: 0.25rem 0;">
+                              <li>サブ項目</li>
+                            </ul>
+                          </li>
                           <li>項目3</li>
                         </ul>
                       </div>
                     </div>
                     <div class="example-item">
-                      <code>1. 項目1<br>2. 項目2<br>3. 項目3</code>
+                      <code>1. 第一項目<br>2. 第二項目<br>3. 第三項目</code>
                       <div class="example-preview">
                         <ol style="margin: 0.5rem 0; padding-left: 1.5rem;">
-                          <li>項目1</li>
-                          <li>項目2</li>
-                          <li>項目3</li>
+                          <li>第一項目</li>
+                          <li>第二項目</li>
+                          <li>第三項目</li>
                         </ol>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="markdown-category">
+                  <h5><i class="fas fa-link"></i> リンクと引用</h5>
+                  <div class="markdown-examples">
+                    <div class="example-item">
+                      <code>[リンクテキスト](URL)</code>
+                      <div class="example-preview">
+                        <a href="#" style="color: #4a90e2; text-decoration: none;">説明的なリンクテキストを使用</a>
+                      </div>
+                    </div>
+                    <div class="example-item">
+                      <code>> 重要な引用文や<br>> 誰かの発言を記載</code>
+                      <div class="example-preview">
+                        <blockquote style="border-left: 4px solid #ddd; padding-left: 1rem; margin: 0.5rem 0; font-style: italic;">
+                          重要な引用文や<br>誰かの発言を記載
+                        </blockquote>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="markdown-category">
+                  <h5><i class="fas fa-minus"></i> 区切り線</h5>
+                  <div class="markdown-examples">
+                    <div class="example-item">
+                      <code>---</code>
+                      <div class="example-preview">
+                        <hr style="border: none; border-top: 2px solid #eee; margin: 1rem 0;">
+                        <small>セクションの区切りに使用</small>
                       </div>
                     </div>
                   </div>
@@ -3833,73 +3869,84 @@ export class AdminActionService {
             </div>
           </div>
 
-          <!-- 記事の種類別ガイド -->
+          <!-- 実践的な記事例 -->
           <div class="guide-section">
             <div class="section-header">
               <div class="section-icon">
-                <i class="fas fa-bookmark"></i>
+                <i class="fas fa-newspaper"></i>
               </div>
-              <h4>📋 記事の種類別ガイド</h4>
+              <h4>📝 実践的な記事例</h4>
             </div>
             <div class="section-content">
-              <div class="article-types">
-                <div class="article-type-card">
-                  <div class="type-header">
-                    <div class="type-icon announcement">
-                      <i class="fas fa-bullhorn"></i>
-                    </div>
-                    <h5>お知らせ記事</h5>
-                  </div>
-                  <div class="type-content">
-                    <p><strong>構成例:</strong></p>
-                    <ul>
-                      <li>## 重要なお知らせ</li>
-                      <li>### 内容の詳細</li>
-                      <li>### 対象者・期間</li>
-                      <li>### お問い合わせ</li>
-                    </ul>
-                    <p class="type-tips">💡 <strong>ポイント:</strong> 重要度と緊急度を明確に表現し、必要な行動があれば具体的に記載しましょう</p>
-                  </div>
+              <div class="article-example">
+                <div class="example-header">
+                  <h5><i class="fas fa-calendar-alt"></i> 体験会記事の例</h5>
                 </div>
+                <div class="example-code">
+                  <pre><code># 春の陸上体験会開催のお知らせ
 
-                <div class="article-type-card">
-                  <div class="type-header">
-                    <div class="type-icon event">
-                      <i class="fas fa-calendar-alt"></i>
-                    </div>
-                    <h5>体験会・イベント記事</h5>
-                  </div>
-                  <div class="type-content">
-                    <p><strong>構成例:</strong></p>
-                    <ul>
-                      <li>## イベント概要</li>
-                      <li>### 日時・場所</li>
-                      <li>### 対象・定員</li>
-                      <li>### 申し込み方法</li>
-                      <li>### 持ち物・注意事項</li>
-                    </ul>
-                    <p class="type-tips">💡 <strong>ポイント:</strong> 参加者が知りたい情報（日時、場所、持ち物）を分かりやすく整理しましょう</p>
-                  </div>
+## 開催概要
+
+**日時:** 2024年4月15日（土）10:00-12:00
+**場所:** RBS陸上教室 メイングラウンド
+**対象:** 小学1年生〜6年生
+
+## プログラム内容
+
+### 基礎運動
+- かけっこの基本フォーム
+- スタートダッシュの練習
+- リレーゲーム
+
+### 専門種目体験
+1. 短距離走（50m、100m）
+2. 走り幅跳び
+3. ハードル走
+
+## 参加申し込み
+
+> 参加費は無料です！
+> お気軽にご参加ください。
+
+**申し込み方法:**
+[こちらのフォーム](https://example.com/form)からお申し込みください。
+
+---
+
+皆様のご参加をお待ちしております！</code></pre>
                 </div>
+              </div>
+            </div>
+          </div>
 
-                <div class="article-type-card">
-                  <div class="type-header">
-                    <div class="type-icon media">
-                      <i class="fas fa-camera"></i>
-                    </div>
-                    <h5>活動報告・メディア記事</h5>
-                  </div>
-                  <div class="type-content">
-                    <p><strong>構成例:</strong></p>
-                    <ul>
-                      <li>## 活動の概要</li>
-                      <li>### 参加者の様子</li>
-                      <li>### 成果・感想</li>
-                      <li>### 写真ギャラリー</li>
-                      <li>### 次回予告</li>
-                    </ul>
-                    <p class="type-tips">💡 <strong>ポイント:</strong> 読者が活動の雰囲気を感じられるよう、具体的な描写と写真を効果的に使いましょう</p>
-                  </div>
+          <!-- ベストプラクティス -->
+          <div class="guide-section">
+            <div class="section-header">
+              <div class="section-icon">
+                <i class="fas fa-star"></i>
+              </div>
+              <h4>⭐ ベストプラクティス</h4>
+            </div>
+            <div class="section-content">
+              <div class="best-practices">
+                <div class="practice-category good">
+                  <h5><i class="fas fa-check-circle"></i> 推奨事項</h5>
+                  <ul class="practice-list">
+                    <li><strong>適切な見出し階層：</strong> H1 → H2 → H3の順で使用し、レベルを飛ばさない</li>
+                    <li><strong>箇条書きの活用：</strong> 複数の項目は箇条書きで整理して読みやすく</li>
+                    <li><strong>重要情報の強調：</strong> **太字**で重要な日程や締切を強調</li>
+                    <li><strong>適度な改行：</strong> 長い文章は適度に改行して読みやすさを向上</li>
+                    <li><strong>説明的なリンク：</strong> 「こちら」ではなく内容がわかるテキストを使用</li>
+                  </ul>
+                </div>
+                <div class="practice-category bad">
+                  <h5><i class="fas fa-times-circle"></i> 避けるべき記法</h5>
+                  <ul class="practice-list">
+                    <li><strong>HTMLタグの直接記述：</strong> 自動変換されるMarkdownを使用</li>
+                    <li><strong>極端に長い段落：</strong> 適度に改行を入れて読みやすく</li>
+                    <li><strong>見出しレベルの飛ばし：</strong> H2の次にH4などは避ける</li>
+                    <li><strong>曖昧なリンクテキスト：</strong> 「こちら」「ここ」は避ける</li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -3921,7 +3968,17 @@ export class AdminActionService {
                     <label class="checklist-item">
                       <input type="checkbox" disabled>
                       <span class="checkmark"></span>
-                      <span class="check-text">タイトルが内容を適切に表現している</span>
+                      <span class="check-text">タイトルが内容を適切に表現している（30文字以内）</span>
+                    </label>
+                    <label class="checklist-item">
+                      <input type="checkbox" disabled>
+                      <span class="checkmark"></span>
+                      <span class="check-text">概要が記事の要点を簡潔に表現している（100文字以内）</span>
+                    </label>
+                    <label class="checklist-item">
+                      <input type="checkbox" disabled>
+                      <span class="checkmark"></span>
+                      <span class="check-text">適切なカテゴリーが選択されている</span>
                     </label>
                     <label class="checklist-item">
                       <input type="checkbox" disabled>
@@ -3931,18 +3988,13 @@ export class AdminActionService {
                     <label class="checklist-item">
                       <input type="checkbox" disabled>
                       <span class="checkmark"></span>
-                      <span class="check-text">文章が分かりやすく、読みやすい</span>
-                    </label>
-                    <label class="checklist-item">
-                      <input type="checkbox" disabled>
-                      <span class="checkmark"></span>
-                      <span class="check-text">必要な情報が漏れなく記載されている</span>
+                      <span class="check-text">重要な情報（日時、場所、持ち物など）が漏れなく記載されている</span>
                     </label>
                   </div>
                 </div>
 
                 <div class="checklist-category">
-                  <h5><i class="fas fa-eye"></i> 表示チェック</h5>
+                  <h5><i class="fas fa-eye"></i> 表示・構造チェック</h5>
                   <div class="checklist-items">
                     <label class="checklist-item">
                       <input type="checkbox" disabled>
@@ -3952,17 +4004,22 @@ export class AdminActionService {
                     <label class="checklist-item">
                       <input type="checkbox" disabled>
                       <span class="checkmark"></span>
-                      <span class="check-text">見出しが適切に設定されている</span>
+                      <span class="check-text">見出しが適切な階層で設定されている</span>
                     </label>
                     <label class="checklist-item">
                       <input type="checkbox" disabled>
                       <span class="checkmark"></span>
-                      <span class="check-text">リンクが正しく動作する</span>
+                      <span class="check-text">リンクが正しく動作し、説明的なテキストになっている</span>
                     </label>
                     <label class="checklist-item">
                       <input type="checkbox" disabled>
                       <span class="checkmark"></span>
-                      <span class="check-text">カテゴリが適切に設定されている</span>
+                      <span class="check-text">箇条書きや番号付きリストで情報が整理されている</span>
+                    </label>
+                    <label class="checklist-item">
+                      <input type="checkbox" disabled>
+                      <span class="checkmark"></span>
+                      <span class="check-text">適度な改行で読みやすくなっている</span>
                     </label>
                   </div>
                 </div>
@@ -3978,12 +4035,17 @@ export class AdminActionService {
                     <label class="checklist-item">
                       <input type="checkbox" disabled>
                       <span class="checkmark"></span>
-                      <span class="check-text">必要なアクション（申し込み等）が明確</span>
+                      <span class="check-text">必要なアクション（申し込み等）が明確に記載されている</span>
                     </label>
                     <label class="checklist-item">
                       <input type="checkbox" disabled>
                       <span class="checkmark"></span>
                       <span class="check-text">専門用語に適切な説明がある</span>
+                    </label>
+                    <label class="checklist-item">
+                      <input type="checkbox" disabled>
+                      <span class="checkmark"></span>
+                      <span class="check-text">画像が含まれる場合は事前に管理者に相談済み</span>
                     </label>
                   </div>
                 </div>
@@ -4006,17 +4068,17 @@ export class AdminActionService {
                     <i class="fas fa-heading"></i>
                   </div>
                   <div class="seo-content">
-                    <h6>見出し構造</h6>
-                    <p>H2（##）、H3（###）を論理的な順序で使用し、記事の構造を明確にしましょう</p>
+                    <h6>論理的な見出し構造</h6>
+                    <p>H1（記事タイトル）→ H2（大項目）→ H3（中項目）→ H4（小項目）の順序で使用し、検索エンジンと読み上げソフトが内容を正しく理解できるようにしましょう</p>
                   </div>
                 </div>
                 <div class="seo-tip-item">
                   <div class="seo-icon">
-                    <i class="fas fa-image"></i>
+                    <i class="fas fa-search"></i>
                   </div>
                   <div class="seo-content">
-                    <h6>画像の説明</h6>
-                    <p>画像には適切な説明文を付けて、視覚障害者の方にも内容が伝わるようにしましょう</p>
+                    <h6>検索キーワードの配慮</h6>
+                    <p>タイトルと本文に、保護者が検索しそうなキーワード（「陸上教室」「体験会」「子ども」など）を自然に含めましょう</p>
                   </div>
                 </div>
                 <div class="seo-tip-item">
@@ -4024,8 +4086,8 @@ export class AdminActionService {
                     <i class="fas fa-external-link-alt"></i>
                   </div>
                   <div class="seo-content">
-                    <h6>リンクテキスト</h6>
-                    <p>「こちら」ではなく、リンク先の内容が分かる説明的なテキストを使用しましょう</p>
+                    <h6>わかりやすいリンクテキスト</h6>
+                    <p>「こちら」「ここをクリック」ではなく、「体験会申し込みフォーム」「詳細スケジュール」など、リンク先の内容がわかるテキストを使用しましょう</p>
                   </div>
                 </div>
               </div>
@@ -4041,7 +4103,11 @@ export class AdminActionService {
             </div>
             <div class="footer-tip">
               <i class="fas fa-heart"></i>
-              <span>読者の立場に立って、どんな情報があれば嬉しいかを考えながら執筆しましょう</span>
+              <span>読者（保護者・子どもたち）の立場に立って、どんな情報があれば嬉しいかを考えながら執筆しましょう</span>
+            </div>
+            <div class="footer-tip">
+              <i class="fas fa-question-circle"></i>
+              <span>不明な点がございましたら、管理者までお気軽にお問い合わせください</span>
             </div>
           </div>
         </div>

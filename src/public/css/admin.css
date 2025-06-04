@@ -5652,3 +5652,245 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   }
 }
 
+/* カテゴリー例のスタイル */
+.category-example {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 4px;
+}
+
+.category-example.announcement {
+  background: linear-gradient(135deg, #4a90e2, #357abd);
+}
+
+.category-example.event {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+}
+
+.category-example.media {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
+.category-example.important {
+  background: linear-gradient(135deg, #e67e22, #d35400);
+}
+
+/* Markdown注記のスタイル */
+.markdown-note {
+  background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+  border: 1px solid #ffeeba;
+  border-left: 4px solid #f39c12;
+  padding: 12px 16px;
+  margin: 16px 0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.markdown-note i {
+  color: #f39c12;
+  margin-right: 8px;
+}
+
+.markdown-note strong {
+  color: #856404;
+}
+
+/* 実践的な記事例のスタイル */
+.article-example {
+  background: #f8f9fa;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.example-header {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.example-header h5 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.example-header i {
+  margin-right: 8px;
+  opacity: 0.9;
+}
+
+.example-code {
+  background: #2c3e50;
+  color: #ecf0f1;
+  overflow-x: auto;
+}
+
+.example-code pre {
+  margin: 0;
+  padding: 20px;
+  font-family: 'Fira Code', 'Monaco', 'Menlo', monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.example-code code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* ベストプラクティスのスタイル */
+.best-practices {
+  display: grid;
+  gap: 20px;
+}
+
+.practice-category {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-left: 4px solid;
+}
+
+.practice-category.good {
+  border-left-color: #27ae60;
+  background: linear-gradient(135deg, #f8fff9, #e8f5e8);
+}
+
+.practice-category.bad {
+  border-left-color: #e74c3c;
+  background: linear-gradient(135deg, #fff8f8, #fdeaea);
+}
+
+.practice-category h5 {
+  margin: 0 0 16px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.practice-category.good h5 {
+  color: #27ae60;
+}
+
+.practice-category.bad h5 {
+  color: #e74c3c;
+}
+
+.practice-category h5 i {
+  margin-right: 8px;
+  font-size: 1.2rem;
+}
+
+.practice-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.practice-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  position: relative;
+  padding-left: 24px;
+}
+
+.practice-list li:last-child {
+  border-bottom: none;
+}
+
+.practice-category.good .practice-list li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #27ae60;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.practice-category.bad .practice-list li::before {
+  content: '✗';
+  position: absolute;
+  left: 0;
+  color: #e74c3c;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.practice-list li strong {
+  color: #2c3e50;
+}
+
+/* レスポンシブ対応の改善 */
+@media (max-width: 768px) {
+  .category-example {
+    display: block;
+    margin: 4px 0;
+    text-align: center;
+  }
+
+  .markdown-note {
+    margin: 12px 0;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .example-code pre {
+    padding: 15px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .best-practices {
+    gap: 16px;
+  }
+
+  .practice-category {
+    padding: 16px;
+  }
+
+  .practice-category h5 {
+    font-size: 1rem;
+  }
+
+  .practice-list li {
+    padding: 6px 0 6px 20px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .example-header {
+    padding: 12px 16px;
+  }
+
+  .example-header h5 {
+    font-size: 1rem;
+  }
+
+  .example-code pre {
+    padding: 12px;
+    font-size: 0.75rem;
+  }
+
+  .practice-category {
+    padding: 12px;
+  }
+
+  .practice-list li {
+    padding-left: 18px;
+    font-size: 0.85rem;
+  }
+}
+
