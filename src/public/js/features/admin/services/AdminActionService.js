@@ -777,7 +777,7 @@ export class AdminActionService {
    * @returns {boolean}
    */
   _isValidTabName(tabName) {
-    return ['dashboard', 'news', 'news-management', 'lesson-status', 'instagram', 'settings'].includes(tabName);
+    return ['dashboard', 'news-management', 'lesson-status', 'instagram', 'settings'].includes(tabName);
   }
 
   /**
@@ -789,7 +789,6 @@ export class AdminActionService {
   _getTabDisplayName(tabName) {
     const tabNames = {
       'dashboard': 'ダッシュボード',
-      'news': '記事管理',
       'news-management': '記事管理',
       'lesson-status': 'レッスン状況',
       'instagram': 'Instagram',
@@ -2666,36 +2665,33 @@ export class AdminActionService {
    */
   _initializeDropdownMenus(container) {
     const dropdowns = container.querySelectorAll('.dropdown');
+    
     dropdowns.forEach(dropdown => {
       const toggle = dropdown.querySelector('.dropdown-toggle');
       const menu = dropdown.querySelector('.dropdown-menu');
       
-      if (toggle && menu) {
-        // ドロップダウントグルクリック
-        toggle.addEventListener('click', (e) => {
-          e.stopPropagation();
-          
-          // 他のドロップダウンを閉じる
-          dropdowns.forEach(otherDropdown => {
-            if (otherDropdown !== dropdown) {
-              otherDropdown.classList.remove('open');
-            }
-          });
-          
-          // 現在のドロップダウンをトグル
-          dropdown.classList.toggle('open');
+      if (!toggle || !menu) return;
+      
+      toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        
+        // 他のドロップダウンを閉じる
+        dropdowns.forEach(otherDropdown => {
+          if (otherDropdown !== dropdown) {
+            otherDropdown.classList.remove('active');
+          }
         });
         
-        // ドキュメントクリックで閉じる
-        document.addEventListener('click', () => {
-          dropdown.classList.remove('open');
-        });
-        
-        // メニュー項目クリック時に閉じる
-        menu.addEventListener('click', () => {
-          dropdown.classList.remove('open');
-        });
-      }
+        // このドロップダウンをトグル
+        dropdown.classList.toggle('active');
+      });
+    });
+    
+    // 外部クリックで全てのドロップダウンを閉じる
+    document.addEventListener('click', () => {
+      dropdowns.forEach(dropdown => {
+        dropdown.classList.remove('active');
+      });
     });
   }
 
@@ -2864,26 +2860,40 @@ export class AdminActionService {
     try {
       console.log('🖊️ 記事編集開始:', articleId);
       
-      const article = this.articleDataService.getArticleById(articleId);
-      if (!article) {
-        this._showFeedback('記事が見つかりません', 'error');
+      // 記事IDの検証
+      if (!articleId) {
+        this._showFeedback('記事IDが指定されていません', 'error');
         return;
       }
       
-      console.log('📄 編集対象記事:', article);
+      const article = this.articleDataService.getArticleById(articleId);
+      if (!article) {
+        this._showFeedback('記事が見つかりません', 'error');
+        console.error('❌ 記事が見つかりません:', articleId);
+        return;
+      }
+      
+      console.log('📄 編集対象記事:', article.title);
       
       // 記事管理タブに切り替え
-      this.switchAdminTab('news-management');
-      
-      // エディタータブに切り替え（少し遅延させて確実にタブが切り替わるようにする）
-      setTimeout(() => {
-        this.switchNewsTab('editor');
+      console.log('🔄 記事管理タブに切り替え中...');
+      this.switchAdminTab('news-management').then(() => {
+        console.log('✅ タブ切り替え完了、エディタータブに切り替え中...');
         
-        // さらに少し遅延させてフォームにデータを読み込み
+        // エディタータブに切り替え（タブ切り替え完了後に実行）
         setTimeout(() => {
-          this._loadArticleToEditor(article, articleId);
+          this.switchNewsTab('editor');
+          
+          // フォームにデータを読み込み（DOM要素が確実に存在するよう少し遅延）
+          setTimeout(() => {
+            this._loadArticleToEditor(article, articleId);
+          }, 150);
         }, 100);
-      }, 100);
+        
+      }).catch(error => {
+        console.error('❌ タブ切り替えエラー:', error);
+        this._showFeedback('記事管理タブへの切り替えに失敗しました', 'error');
+      });
       
     } catch (error) {
       console.error('❌ 記事編集エラー:', error);
@@ -2899,7 +2909,7 @@ export class AdminActionService {
    */
   _loadArticleToEditor(article, articleId) {
     try {
-      console.log('📝 記事データをエディターに読み込み中...');
+      console.log('📝 記事データをエディターに読み込み中:', article.title);
       
       // フォーム要素を取得
       const elements = {
@@ -2917,10 +2927,15 @@ export class AdminActionService {
       const missingElements = Object.keys(elements).filter(key => !elements[key]);
       if (missingElements.length > 0) {
         console.warn('⚠️ 一部のフォーム要素が見つかりません:', missingElements);
+        
+        // 重要な要素（title, content）が見つからない場合はエラー
+        if (missingElements.includes('title') || missingElements.includes('content')) {
+          throw new Error(`必須フォーム要素が見つかりません: ${missingElements.join(', ')}`);
+        }
       }
       
       // フォームに記事データを設定
-      if (elements.id) elements.id.value = article.id || '';
+      if (elements.id) elements.id.value = articleId;
       if (elements.title) elements.title.value = article.title || '';
       if (elements.category) elements.category.value = article.category || 'announcement';
       if (elements.date) {
@@ -2940,7 +2955,7 @@ export class AdminActionService {
       // 記事本文を取得して設定
       if (elements.content) {
         const content = this.articleDataService.getArticleContent(articleId);
-        elements.content.value = content || '';
+        elements.content.value = content || article.content || '';
         console.log('📄 記事本文を読み込み:', content ? `${content.length}文字` : '本文なし');
       }
       
@@ -2953,6 +2968,7 @@ export class AdminActionService {
       // タイトルフィールドにフォーカス
       if (elements.title) {
         elements.title.focus();
+        elements.title.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
       
       this._showFeedback(`記事「${article.title}」をエディターに読み込みました`);
@@ -3646,20 +3662,29 @@ export class AdminActionService {
    */
   startNewArticle() {
     try {
-      // フォームをクリア
-      this.clearNewsEditor();
+      console.log('📝 新規記事作成開始');
       
       // 記事管理タブに切り替え
-      this.switchAdminTab('news-management');
-      
-      // タイトルフィールドにフォーカス
-      const titleField = document.getElementById('news-title');
-      if (titleField) {
-        titleField.focus();
-      }
-      
-      this._showFeedback('新規記事作成を開始しました');
-      console.log('📝 新規記事作成開始');
+      this.switchAdminTab('news-management').then(() => {
+        // エディタータブに切り替え
+        setTimeout(() => {
+          this.switchNewsTab('editor');
+          
+          // フォームをクリア
+          setTimeout(() => {
+            this.clearNewsEditor();
+            
+            // タイトルフィールドにフォーカス
+            const titleField = document.getElementById('news-title');
+            if (titleField) {
+              titleField.focus();
+            }
+          }, 100);
+        }, 100);
+      }).catch(error => {
+        console.error('❌ 新規記事作成開始エラー:', error);
+        this._showFeedback('新規記事作成の開始に失敗しました', 'error');
+      });
       
     } catch (error) {
       console.error('❌ 新規記事作成開始エラー:', error);
