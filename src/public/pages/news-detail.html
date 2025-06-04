@@ -63,7 +63,7 @@
         <h1 class="article-title" id="article-title">記事を読み込み中...</h1>
         
         <!-- 管理機能（開発時のみ表示） -->
-        <div class="admin-controls" style="display: none;" id="admin-controls">
+        <div class="admin-controls hidden-section" id="admin-controls">
           <a href="admin.html" class="btn btn-outline" target="_blank">
             <i class="fas fa-cog"></i> 管理画面
           </a>
@@ -79,7 +79,7 @@
       </article>
 
       <!-- シェアセクション -->
-      <section class="share-section" id="share-section" style="display: none;">
+      <section class="share-section hidden-section" id="share-section">
         <h3 class="share-title">この記事をシェア</h3>
         <div class="share-buttons">
           <button data-action="share-twitter" class="share-btn twitter">
@@ -102,7 +102,7 @@
       </section>
 
       <!-- 関連記事 -->
-      <section class="related-articles" id="related-articles" style="display: none;">
+      <section class="related-articles hidden-section" id="related-articles">
         <h3 class="related-title">関連記事</h3>
         <div class="related-grid" id="related-articles-container">
           <!-- 関連記事は動的に生成されます -->

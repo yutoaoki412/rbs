@@ -226,8 +226,20 @@ export class LessonStatusAdminComponent extends Component {
         this.currentFormData = statusData;
         this.hasUnsavedChanges = false;
         
-        this.log(`レッスン状況読み込み完了: ${date}`);
-        this.showNotification('success', 'レッスン状況を読み込みました');
+        // レッスン状況の読み込み成功
+        if (statusData) {
+          console.log('✅ レッスン状況データを取得しました:', statusData);
+          
+          // UIに反映
+          this.updateUIWithLessonStatus(statusData);
+          
+          // 通知はLessonStatusModernServiceが行うため、ここでは削除
+          console.debug('レッスン状況読み込み完了（通知はModernServiceで処理）');
+        } else {
+          // デフォルト状況を設定
+          await this.setDefaultForm(date);
+          this.showNotification('info', '新しいレッスン状況を作成中です');
+        }
       } else {
         // デフォルト状況を設定
         await this.setDefaultForm(date);

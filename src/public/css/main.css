@@ -19,6 +19,12 @@
 @import url('./responsive.css');
 
 /* =====================================
+   ユーティリティシステム - 統一スタイルユーティリティ
+   ===================================== */
+/* スタイルユーティリティ - インラインCSS代替クラス群 */
+@import url('./utilities/style-utils.css');
+
+/* =====================================
    ページ固有スタイル - レガシー互換性維持
    ===================================== */
 /* セクション別スタイル（元のUI維持） */
@@ -62,3 +68,10 @@
 @import url('./modules/location-modern.css');
 @import url('./modules/login-modern.css');
 @import url('./modules/admin-modern.css');
+
+/* 管理画面コンポーネント */
+@import url('./components/lesson-status-admin.css');
+@import url('./components/news.css');
+
+/* インスタグラム管理 */
+@import url('./modules/instagram-admin.css');

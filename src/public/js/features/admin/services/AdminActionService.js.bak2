@@ -215,7 +215,7 @@ export class AdminActionService {
    * 管理画面アクションを登録
    * @private
    */
-  _showFeedback(message, type = 'success', duration = 5000) {
+  #showFeedback(message, type = 'success', duration = 5000) {
     console.log(`${type === 'error' ? '❌' : type === 'warning' ? '⚠️' : '✅'} ${message}`);
     
     if (this.uiManagerService?.showNotification) {
@@ -227,7 +227,7 @@ export class AdminActionService {
       console.log(`Feedback: ${message} (${type})`);
     }
   }
-  _registerAdminActions() {
+  #registerAdminActions() {
     console.log('🔧 管理画面アクション登録開始');
     
     if (!this.actionManager) {
@@ -253,16 +253,16 @@ export class AdminActionService {
         
         if (!tabName) {
           console.error('❌ タブ名が取得できません:', { params, dataset: element?.dataset });
-          this._showFeedback('タブ名が指定されていません', 'error');
+          this.#showFeedback('タブ名が指定されていません', 'error');
           return;
         }
         
-        if (this._isValidTabName(tabName)) {
+        if (this.#isValidTabName(tabName)) {
           console.log(`🚀 タブ切り替え実行: ${tabName}`);
           await this.switchAdminTab(tabName);
         } else {
           console.error(`❌ 無効なタブ名: ${tabName}`);
-          this._showFeedback(`無効なタブ名: ${tabName}`, 'error');
+          this.#showFeedback(`無効なタブ名: ${tabName}`, 'error');
         }
       },
 
@@ -282,7 +282,7 @@ export class AdminActionService {
       'refresh-recent-articles': () => this.refreshRecentArticles(),
       'insert-markdown': (element, params) => this.insertMarkdown(element, params),
       'switch-news-tab': (element, params) => this.switchNewsTab(params.tab),
-      'show-writing-guide': () => this._showWritingGuide(),
+      'show-writing-guide': () => this.#showWritingGuide(),
       
       // 記事編集関連（新しく追加）
       'edit-article': (element, params) => {
@@ -290,7 +290,7 @@ export class AdminActionService {
         if (articleId) {
           this.editArticle(articleId);
         } else {
-          this._showFeedback('記事IDが見つかりません', 'error');
+          this.#showFeedback('記事IDが見つかりません', 'error');
         }
       },
       'delete-article': async (element, params) => {
@@ -298,7 +298,7 @@ export class AdminActionService {
         if (articleId) {
           await this.deleteArticle(articleId);
         } else {
-          this._showFeedback('記事IDが見つかりません', 'error');
+          this.#showFeedback('記事IDが見つかりません', 'error');
         }
       },
       'preview-article': (element, params) => {
@@ -306,7 +306,7 @@ export class AdminActionService {
         if (articleId) {
           this.previewArticleById(articleId);
         } else {
-          this._showFeedback('記事IDが見つかりません', 'error');
+          this.#showFeedback('記事IDが見つかりません', 'error');
         }
       },
       'duplicate-article': async (element, params) => {
@@ -314,7 +314,7 @@ export class AdminActionService {
         if (articleId) {
           await this.duplicateArticle(articleId);
         } else {
-          this._showFeedback('記事IDが見つかりません', 'error');
+          this.#showFeedback('記事IDが見つかりません', 'error');
         }
       },
 
@@ -421,7 +421,7 @@ export class AdminActionService {
         if (postId) {
           this.editInstagramPost(postId);
         } else {
-          this._showFeedback('投稿IDが見つかりません', 'error');
+          this.#showFeedback('投稿IDが見つかりません', 'error');
         }
       },
       'toggle-instagram-post': (element, params) => {
@@ -429,7 +429,7 @@ export class AdminActionService {
         if (postId) {
           this.toggleInstagramPostStatus(postId);
         } else {
-          this._showFeedback('投稿IDが見つかりません', 'error');
+          this.#showFeedback('投稿IDが見つかりません', 'error');
         }
       },
       'delete-instagram-post': async (element, params) => {
@@ -497,7 +497,7 @@ export class AdminActionService {
       this.debug('🎯 管理画面UI設定開始');
       
       // アクション登録
-      this._registerAdminActions();
+      this.#registerAdminActions();
       
       // UIイベント設定
       this.setupUIEvents();
@@ -630,9 +630,9 @@ export class AdminActionService {
     console.log(`🔄 管理画面タブ切り替え開始: ${tabName}`);
     
     // バリデーション
-    if (!this._isValidTabName(tabName)) {
+    if (!this.#isValidTabName(tabName)) {
       console.error(`❌ 無効なタブ名: ${tabName}`);
-      this._showFeedback(`無効なタブ名: ${tabName}`, 'error');
+      this.#showFeedback(`無効なタブ名: ${tabName}`, 'error');
       return;
     }
 
@@ -670,13 +670,13 @@ export class AdminActionService {
       // 要素の存在確認
       if (!newActiveTab) {
         console.error(`❌ タブセクションが見つかりません: #${tabName}`);
-        this._showFeedback(`タブセクション "${tabName}" が見つかりません`, 'error');
+        this.#showFeedback(`タブセクション "${tabName}" が見つかりません`, 'error');
         return;
       }
       
       if (!newActiveNavItem) {
         console.error(`❌ ナビゲーションアイテムが見つかりません: [data-tab="${tabName}"]`);
-        this._showFeedback(`ナビゲーションアイテム "${tabName}" が見つかりません`, 'error');
+        this.#showFeedback(`ナビゲーションアイテム "${tabName}" が見つかりません`, 'error');
         return;
       }
       
@@ -708,13 +708,13 @@ export class AdminActionService {
       this.currentTab = tabName;
       
       // 成功通知
-      const tabDisplayName = this._getTabDisplayName(tabName);
+      const tabDisplayName = this.#getTabDisplayName(tabName);
       console.log(`✅ ${tabDisplayName}に切り替え完了`);
-      this._showFeedback(`${tabDisplayName}に切り替えました`, 'info', 2000);
+      this.#showFeedback(`${tabDisplayName}に切り替えました`, 'info', 2000);
       
     } catch (error) {
       console.error(`❌ タブ切り替えエラー (${tabName}):`, error);
-      this._showFeedback(`タブの切り替えに失敗しました: ${error.message}`, 'error');
+      this.#showFeedback(`タブの切り替えに失敗しました: ${error.message}`, 'error');
     }
   }
 
@@ -760,7 +760,7 @@ export class AdminActionService {
       
     } catch (error) {
       console.error(`❌ タブコンテンツ初期化エラー [${tabName}]:`, error);
-      this._showFeedback(`${tabName}タブの初期化に失敗しました`, 'error');
+      this.#showFeedback(`${tabName}タブの初期化に失敗しました`, 'error');
     }
   }
 
@@ -770,8 +770,8 @@ export class AdminActionService {
    * @param {string} tabName - タブ名
    * @returns {boolean}
    */
-  _isValidTabName(tabName) {
-    return ['dashboard', 'news', 'lesson-status', 'instagram', 'settings'].includes(tabName);
+  #isValidTabName(tabName) {
+    return ['dashboard', 'news-management', 'lesson-status', 'settings'].includes(tabName);
   }
 
   /**
@@ -780,12 +780,11 @@ export class AdminActionService {
    * @param {string} tabName - タブ名
    * @returns {string}
    */
-  _getTabDisplayName(tabName) {
+  #getTabDisplayName(tabName) {
     const tabNames = {
       'dashboard': 'ダッシュボード',
-      'news': '記事管理',
+      'news-management': '記事管理',
       'lesson-status': 'レッスン状況',
-      'instagram': 'Instagram',
       'settings': '設定'
     };
     return tabNames[tabName] || tabName;
@@ -800,12 +799,12 @@ export class AdminActionService {
       this.debug('🏠 ダッシュボード初期化開始');
       
       // 記事データサービスの初期化を確認
-      await this._ensureArticleDataReady();
+      await this.#ensureArticleDataReady();
       
       // 最近の記事と統計情報の読み込み
       await Promise.all([
-        this._loadRecentArticlesWithRetry(),
-        this._updateStats()
+        this.#loadRecentArticlesWithRetry(),
+        this.#updateStats()
       ]);
       
       this.debug('✅ ダッシュボード初期化完了');
@@ -869,14 +868,14 @@ export class AdminActionService {
     }
     
     // 最終的に失敗した場合はエラー状態を表示
-    this._showRecentArticlesError();
+    this.#showRecentArticlesError();
   }
 
   /**
    * 最近の記事のエラー状態を表示
    * @private
    */
-  _showRecentArticlesError() {
+  #showRecentArticlesError() {
     const recentContainer = document.getElementById('recent-articles');
     if (recentContainer) {
       recentContainer.innerHTML = `
@@ -940,7 +939,7 @@ export class AdminActionService {
    * @private
    * @param {number} step ステップ番号
    */
-  _setWizardStep(step) {
+  #setWizardStep(step) {
     try {
       console.log(`🔮 ウィザードステップ設定: ${step}`);
       
@@ -1078,7 +1077,7 @@ export class AdminActionService {
       console.log('✅ Instagram管理セクションを確認しました');
       
       // Instagram管理タブの設定と表示を確実に行う
-      this._setupInstagramTabs();
+      this.#setupInstagramTabs();
       
       // DOM要素の存在確認後にタブ切り替えと投稿読み込みを実行
       setTimeout(() => {
@@ -1099,7 +1098,7 @@ export class AdminActionService {
    * Instagramタブの設定
    * @private
    */
-  _setupInstagramTabs() {
+  #setupInstagramTabs() {
     console.log('🔧 Instagramタブ設定開始');
     
     try {
@@ -1193,12 +1192,12 @@ export class AdminActionService {
       }
 
       // ユーザーアクションなので通知を表示
-      this._showFeedback('記事エディターをクリアしました');
+      this.#showFeedback('記事エディターをクリアしました');
       console.log('📝 記事エディターをクリア');
 
     } catch (error) {
       console.error('❌ 記事エディタークリアエラー:', error);
-      this._showFeedback('エディターのクリアに失敗しました', 'error');
+      this.#showFeedback('エディターのクリアに失敗しました', 'error');
     }
   }
 
@@ -1210,27 +1209,27 @@ export class AdminActionService {
       console.log('👁️ 記事プレビュー開始');
       
       // フォームデータを取得
-      const formData = this._getNewsFormData();
+      const formData = this.#getNewsFormData();
       
       if (!formData.title.trim()) {
-        this._showFeedback('タイトルが入力されていません', 'error');
+        this.#showFeedback('タイトルが入力されていません', 'error');
         return;
       }
       
       if (!formData.content.trim()) {
-        this._showFeedback('本文が入力されていません', 'error');
+        this.#showFeedback('本文が入力されていません', 'error');
         return;
       }
       
       // プレビューモーダルを作成・表示
-      this._showNewsPreviewModal(formData);
+      this.#showNewsPreviewModal(formData);
       
       // ユーザーアクションなので通知を表示
-      this._showFeedback('プレビューを表示しました');
+      this.#showFeedback('プレビューを表示しました');
       
     } catch (error) {
       console.error('❌ 記事プレビューエラー:', error);
-      this._showFeedback('プレビューの表示に失敗しました', 'error');
+      this.#showFeedback('プレビューの表示に失敗しました', 'error');
     }
   }
 
@@ -1239,9 +1238,9 @@ export class AdminActionService {
    */
   async saveNews() {
     try {
-      const articleData = this._getArticleDataFromForm();
+      const articleData = this.#getArticleDataFromForm();
       
-      if (!this._validateArticleData(articleData)) {
+      if (!this.#validateArticleData(articleData)) {
         return;
       }
 
@@ -1262,12 +1261,12 @@ export class AdminActionService {
         
         console.log('💾 記事を保存:', result);
       } else {
-        this._showFeedback(result.message || '保存に失敗しました', 'error');
+        this.#showFeedback(result.message || '保存に失敗しました', 'error');
       }
 
     } catch (error) {
       console.error('❌ 記事保存エラー:', error);
-      this._showFeedback('記事の保存中にエラーが発生しました', 'error');
+      this.#showFeedback('記事の保存中にエラーが発生しました', 'error');
     }
   }
 
@@ -1276,9 +1275,9 @@ export class AdminActionService {
    */
   async publishNews() {
     try {
-      const articleData = this._getArticleDataFromForm();
+      const articleData = this.#getArticleDataFromForm();
       
-      if (!this._validateArticleData(articleData)) {
+      if (!this.#validateArticleData(articleData)) {
         return;
       }
 
@@ -1305,12 +1304,12 @@ export class AdminActionService {
         
         console.log('📤 記事を公開:', result);
       } else {
-        this._showFeedback(result.message || '公開に失敗しました', 'error');
+        this.#showFeedback(result.message || '公開に失敗しました', 'error');
       }
 
     } catch (error) {
       console.error('❌ 記事公開エラー:', error);
-      this._showFeedback('記事の公開中にエラーが発生しました', 'error');
+      this.#showFeedback('記事の公開中にエラーが発生しました', 'error');
     }
   }
 
@@ -1333,11 +1332,11 @@ export class AdminActionService {
       const stats = this.articleDataService.getStats();
       console.log('📈 統計情報:', stats);
       
-      this._showFeedback(`連携テスト完了 - 記事数: ${articles.length}件`);
+      this.#showFeedback(`連携テスト完了 - 記事数: ${articles.length}件`);
       
     } catch (error) {
       console.error('❌ ArticleService テストエラー:', error);
-      this._showFeedback('連携テストに失敗しました', 'error');
+      this.#showFeedback('連携テストに失敗しました', 'error');
     }
   }
 
@@ -1390,7 +1389,7 @@ export class AdminActionService {
       const filterValue = element?.value || 'all';
       console.log('🔍 ニュース一覧フィルタリング:', filterValue);
       
-      this._renderNewsList(filterValue);
+      this.#renderNewsList(filterValue);
       
     } catch (error) {
       console.error('❌ ニュース一覧フィルタリングエラー:', error);
@@ -1403,13 +1402,13 @@ export class AdminActionService {
   refreshNewsList() {
     try {
       console.log('🔄 ニュース一覧更新');
-      this._renderNewsList();
+      this.#renderNewsList();
       // 内部処理なので通知は表示しない（コンソールログのみ）
       console.log('✅ ニュース一覧更新完了');
       
     } catch (error) {
       console.error('❌ ニュース一覧更新エラー:', error);
-      this._showFeedback('一覧の更新に失敗しました', 'error');
+      this.#showFeedback('一覧の更新に失敗しました', 'error');
     }
   }
 
@@ -1509,7 +1508,7 @@ export class AdminActionService {
             day: 'numeric'
           });
           const statusText = article.status === 'published' ? '公開中' : '下書き';
-          const categoryName = this._getCategoryName(article.category || 'announcement');
+          const categoryName = this.#getCategoryName(article.category || 'announcement');
           
           return `
             <div class="recent-article-item" data-id="${article.id}">
@@ -1591,7 +1590,7 @@ export class AdminActionService {
       }
       
       // フォールバック: レガシーシステム
-      const targetDate = document.getElementById('lesson-date')?.value || this._getTodayDateString();
+      const targetDate = document.getElementById('lesson-date')?.value || this.#getTodayDateString();
       
       // レガシーシステムによる読み込み（モダンサービス未利用時のフォールバック）
       const lessonStatusService = getLessonStatusStorageService();
@@ -1600,7 +1599,7 @@ export class AdminActionService {
       if (data) {
         // UIに反映（適切なメソッドが存在する場合）
         // UIに反映
-        this._populateLessonStatusForm(data);
+        this.#populateLessonStatusForm(data);
         
         // フォールバック通知（モダンサービスが無い場合のみ）
         console.log(`✅ ${targetDate} のレッスン状況を読み込みました（レガシーモード）`);
@@ -1610,7 +1609,7 @@ export class AdminActionService {
       
     } catch (error) {
       this.error('レッスン状況読み込みエラー:', error);
-      this._showFeedback('レッスン状況の読み込みに失敗しました', 'error');
+      this.#showFeedback('レッスン状況の読み込みに失敗しました', 'error');
     }
   }
 
@@ -1619,7 +1618,7 @@ export class AdminActionService {
    * @private
    * @param {Object} data - レッスン状況データ
    */
-  _populateLessonStatusForm(data) {
+  #populateLessonStatusForm(data) {
     try {
       // 日付設定
       if (data.date) {
@@ -1635,14 +1634,14 @@ export class AdminActionService {
       
       // グローバルステータス設定（英語キーから日本語値にマッピング）
       if (data.globalStatus) {
-        const globalJapanese = this._mapStatusKeyToJapanese(data.globalStatus);
+        const globalJapanese = this.#mapStatusKeyToJapanese(data.globalStatus);
         const globalRadio = document.querySelector(`input[name="global-status"][value="${globalJapanese}"]`);
         if (globalRadio) globalRadio.checked = true;
       }
       
       // ベーシックコース設定
       if (data.courses?.basic?.status) {
-        const basicJapanese = this._mapStatusKeyToJapanese(data.courses.basic.status);
+        const basicJapanese = this.#mapStatusKeyToJapanese(data.courses.basic.status);
         const basicRadio = document.querySelector(`input[name="basic-lesson"][value="${basicJapanese}"]`);
         if (basicRadio) basicRadio.checked = true;
       }
@@ -1654,7 +1653,7 @@ export class AdminActionService {
       
       // アドバンスコース設定
       if (data.courses?.advance?.status) {
-        const advanceJapanese = this._mapStatusKeyToJapanese(data.courses.advance.status);
+        const advanceJapanese = this.#mapStatusKeyToJapanese(data.courses.advance.status);
         const advanceRadio = document.querySelector(`input[name="advance-lesson"][value="${advanceJapanese}"]`);
         if (advanceRadio) advanceRadio.checked = true;
       }
@@ -1668,7 +1667,7 @@ export class AdminActionService {
       
     } catch (error) {
       this.error('レッスン状況フォーム設定エラー:', error);
-      this._showFeedback('データの反映中にエラーが発生しました', 'error');
+      this.#showFeedback('データの反映中にエラーが発生しました', 'error');
     }
   }
 
@@ -1678,7 +1677,7 @@ export class AdminActionService {
    * @param {string} statusKey - ステータスキー
    * @returns {string} 日本語ステータス
    */
-  _mapStatusKeyToJapanese(statusKey) {
+  #mapStatusKeyToJapanese(statusKey) {
     const mapping = {
       'scheduled': '通常開催',
       'cancelled': '中止',
@@ -1693,26 +1692,26 @@ export class AdminActionService {
    * @private
    * @returns {Object} レッスン状況データ
    */
-  _getLessonStatusFromForm() {
+  #getLessonStatusFromForm() {
     const dateField = document.getElementById('lesson-date');
     const globalMessageField = document.getElementById('global-message');
     
     // グローバルステータス取得
     const globalStatusRadio = document.querySelector('input[name="global-status"]:checked');
-    const globalStatus = globalStatusRadio ? this._mapJapaneseToStatusKey(globalStatusRadio.value) : 'scheduled';
+    const globalStatus = globalStatusRadio ? this.#mapJapaneseToStatusKey(globalStatusRadio.value) : 'scheduled';
     
     // ベーシックコース
     const basicStatusRadio = document.querySelector('input[name="basic-lesson"]:checked');
-    const basicStatus = basicStatusRadio ? this._mapJapaneseToStatusKey(basicStatusRadio.value) : 'scheduled';
+    const basicStatus = basicStatusRadio ? this.#mapJapaneseToStatusKey(basicStatusRadio.value) : 'scheduled';
     const basicMessageField = document.getElementById('basic-lesson-note');
     
     // アドバンスコース
     const advanceStatusRadio = document.querySelector('input[name="advance-lesson"]:checked');
-    const advanceStatus = advanceStatusRadio ? this._mapJapaneseToStatusKey(advanceStatusRadio.value) : 'scheduled';
+    const advanceStatus = advanceStatusRadio ? this.#mapJapaneseToStatusKey(advanceStatusRadio.value) : 'scheduled';
     const advanceMessageField = document.getElementById('advance-lesson-note');
     
     return {
-      date: dateField?.value || this._getTodayDateString(),
+      date: dateField?.value || this.#getTodayDateString(),
       globalStatus: globalStatus,
       globalMessage: globalMessageField?.value || '',
       courses: {
@@ -1738,7 +1737,7 @@ export class AdminActionService {
    * @param {string} japanese - 日本語ステータス
    * @returns {string} ステータスキー
    */
-  _mapJapaneseToStatusKey(japanese) {
+  #mapJapaneseToStatusKey(japanese) {
     const mapping = {
       '通常開催': 'scheduled',
       '中止': 'cancelled',
@@ -1753,7 +1752,7 @@ export class AdminActionService {
    * @private
    * @returns {string} YYYY-MM-DD形式の日付
    */
-  _getTodayDateString() {
+  #getTodayDateString() {
     return new Date().toISOString().slice(0, 10);
   }
 
@@ -1763,9 +1762,9 @@ export class AdminActionService {
   async updateLessonStatus() {
     try {
       // フォームデータの取得とバリデーション
-      const statusData = this._getLessonStatusFromForm();
+      const statusData = this.#getLessonStatusFromForm();
       
-      if (!this._validateLessonStatusData(statusData)) {
+      if (!this.#validateLessonStatusData(statusData)) {
         return; // バリデーションエラーのメッセージは#validateLessonStatusData内で表示
       }
       
@@ -1773,12 +1772,12 @@ export class AdminActionService {
       
       // 保存前の確認
       const confirmMessage = `${statusData.date} のレッスン状況を更新しますか？\n\n` +
-        `全体ステータス: ${this._mapStatusKeyToJapanese(statusData.globalStatus)}\n` +
-        `ベーシックコース: ${this._mapStatusKeyToJapanese(statusData.courses.basic.status)}\n` +
-        `アドバンスコース: ${this._mapStatusKeyToJapanese(statusData.courses.advance.status)}`;
+        `全体ステータス: ${this.#mapStatusKeyToJapanese(statusData.globalStatus)}\n` +
+        `ベーシックコース: ${this.#mapStatusKeyToJapanese(statusData.courses.basic.status)}\n` +
+        `アドバンスコース: ${this.#mapStatusKeyToJapanese(statusData.courses.advance.status)}`;
       
       if (!confirm(confirmMessage)) {
-        this._showFeedback('更新をキャンセルしました', 'info');
+        this.#showFeedback('更新をキャンセルしました', 'info');
         return;
       }
       
@@ -1797,12 +1796,12 @@ export class AdminActionService {
         }
         
       } else {
-        this._showFeedback(result.error || '更新に失敗しました', 'error');
+        this.#showFeedback(result.error || '更新に失敗しました', 'error');
       }
       
     } catch (error) {
       console.error('❌ レッスン状況更新エラー:', error);
-      this._showFeedback('レッスン状況の更新中にエラーが発生しました', 'error');
+      this.#showFeedback('レッスン状況の更新中にエラーが発生しました', 'error');
     }
   }
 
@@ -1812,43 +1811,43 @@ export class AdminActionService {
    * @param {Object} statusData - レッスン状況データ
    * @returns {boolean} バリデーション成功時true
    */
-  _validateLessonStatusData(statusData) {
+  #validateLessonStatusData(statusData) {
     // 日付チェック
     if (!statusData.date) {
-      this._showFeedback('対象日を選択してください', 'error');
+      this.#showFeedback('対象日を選択してください', 'error');
       return false;
     }
     
     // 日付形式チェック
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(statusData.date)) {
-      this._showFeedback('正しい日付形式で入力してください (YYYY-MM-DD)', 'error');
+      this.#showFeedback('正しい日付形式で入力してください (YYYY-MM-DD)', 'error');
       return false;
     }
     
     // グローバルメッセージ長チェック
     if (statusData.globalMessage && statusData.globalMessage.length > 500) {
-      this._showFeedback('全体メッセージは500文字以内で入力してください', 'error');
+      this.#showFeedback('全体メッセージは500文字以内で入力してください', 'error');
       return false;
     }
     
     // ステータス値チェック
     const validStatuses = ['scheduled', 'cancelled', 'indoor', 'postponed'];
     if (!validStatuses.includes(statusData.globalStatus)) {
-      this._showFeedback('無効な全体ステータスが選択されています', 'error');
+      this.#showFeedback('無効な全体ステータスが選択されています', 'error');
       return false;
     }
     
     // コースステータスチェック
     for (const [courseKey, courseData] of Object.entries(statusData.courses)) {
       if (!validStatuses.includes(courseData.status)) {
-        this._showFeedback(`無効な${courseKey}コースステータスが選択されています`, 'error');
+        this.#showFeedback(`無効な${courseKey}コースステータスが選択されています`, 'error');
         return false;
       }
       
       // コースメッセージ長チェックを追加
       if (courseData.message && courseData.message.length > 500) {
-        this._showFeedback(`${courseKey}コースのメッセージは500文字以内で入力してください`, 'error');
+        this.#showFeedback(`${courseKey}コースのメッセージは500文字以内で入力してください`, 'error');
         return false;
       }
     }
@@ -1998,15 +1997,15 @@ export class AdminActionService {
       // 結果表示
       const resultContainer = document.getElementById('site-connection-test-results');
       if (resultContainer) {
-        resultContainer.innerHTML = this._generateConnectionTestResults(testResults);
+        resultContainer.innerHTML = this.#generateConnectionTestResults(testResults);
       }
       
       const successCount = Object.values(testResults).filter(Boolean).length;
-      this._showFeedback(`接続テスト完了: ${successCount}/3 ページが正常`);
+      this.#showFeedback(`接続テスト完了: ${successCount}/3 ページが正常`);
       
     } catch (error) {
       console.error('❌ サイト接続テストエラー:', error);
-      this._showFeedback('接続テストに失敗しました', 'error');
+      this.#showFeedback('接続テストに失敗しました', 'error');
     }
   }
 
@@ -2033,11 +2032,11 @@ export class AdminActionService {
       this.refreshRecentArticles();
       this.clearNewsEditor();
       
-      this._showFeedback(`LocalStorageをリセットしました (${keysToRemove.length}件削除)`);
+      this.#showFeedback(`LocalStorageをリセットしました (${keysToRemove.length}件削除)`);
       
     } catch (error) {
       console.error('❌ LocalStorageリセットエラー:', error);
-      this._showFeedback('LocalStorageのリセットに失敗しました', 'error');
+      this.#showFeedback('LocalStorageのリセットに失敗しました', 'error');
     }
   }
 
@@ -2231,11 +2230,11 @@ export class AdminActionService {
         </div>
       `;
       
-      this._createDebugModal('システムデバッグ情報', debugContent);
+      this.#createDebugModal('システムデバッグ情報', debugContent);
       
     } catch (error) {
       console.error('❌ デバッグ情報表示エラー:', error);
-      this._showFeedback('デバッグ情報の表示に失敗しました', 'error');
+      this.#showFeedback('デバッグ情報の表示に失敗しました', 'error');
     }
   }
 
@@ -2245,7 +2244,7 @@ export class AdminActionService {
    * @param {string} title - モーダルのタイトル
    * @param {string} content - モーダルの内容
    */
-  _createDebugModal(title, content) {
+  #createDebugModal(title, content) {
     const modalHTML = `
       <div id="debug-modal" class="modal" style="display: flex;">
         <div class="modal-content">
@@ -2272,7 +2271,7 @@ export class AdminActionService {
    * @param {Object} testResults - テスト結果
    * @returns {string}
    */
-  _generateConnectionTestResults(testResults) {
+  #generateConnectionTestResults(testResults) {
     return Object.entries(testResults).map(([page, result]) => 
       `<div class="test-result ${result ? 'success' : 'error'}">
         ${page}: ${result ? '✅ 正常' : '❌ エラー'}
@@ -2302,11 +2301,11 @@ export class AdminActionService {
       };
       
       console.log('📰 LP表示用記事データ:', debugData);
-      this._showFeedback(`LP表示用記事: ${articles.length}件`);
+      this.#showFeedback(`LP表示用記事: ${articles.length}件`);
       
     } catch (error) {
       console.error('❌ LP ニュースデバッグエラー:', error);
-      this._showFeedback('ニュースデバッグに失敗しました', 'error');
+      this.#showFeedback('ニュースデバッグに失敗しました', 'error');
     }
   }
 
@@ -2386,7 +2385,7 @@ export class AdminActionService {
    * @param {string} japaneseStatus - 日本語のステータス値
    * @returns {string} 英語のステータスキー
    */
-  _mapJapaneseStatusToKey(japaneseStatus) {
+  #mapJapaneseStatusToKey(japaneseStatus) {
     const statusMapping = {
       '通常開催': 'scheduled',
       '中止': 'cancelled',
@@ -2402,7 +2401,7 @@ export class AdminActionService {
    * @param {string} statusKey - 英語のステータスキー
    * @returns {string} 日本語のステータス値
    */
-  _mapStatusKeyToJapanese(statusKey) {
+  #mapStatusKeyToJapanese(statusKey) {
     const statusMapping = {
       'scheduled': '通常開催',
       'cancelled': '中止',
@@ -2417,7 +2416,7 @@ export class AdminActionService {
    * @private
    * @returns {Object}
    */
-  _getArticleDataFromForm() {
+  #getArticleDataFromForm() {
     return {
       id: document.getElementById('news-id')?.value || '',
       title: document.getElementById('news-title')?.value || '',
@@ -2436,14 +2435,14 @@ export class AdminActionService {
    * @param {Object} articleData - 記事データ
    * @returns {boolean}
    */
-  _validateArticleData(articleData) {
+  #validateArticleData(articleData) {
     if (!articleData.title) {
-      this._showFeedback('タイトルを入力してください', 'error');
+      this.#showFeedback('タイトルを入力してください', 'error');
       return false;
     }
     
     if (!articleData.content) {
-      this._showFeedback('本文を入力してください', 'error');
+      this.#showFeedback('本文を入力してください', 'error');
       return false;
     }
     
@@ -2457,7 +2456,7 @@ export class AdminActionService {
    * @param {Object} options - 表示オプション
    * @returns {string}
    */
-  _generateArticleListHTML(articles, options = {}) {
+  #generateArticleListHTML(articles, options = {}) {
     const {
       mode = 'list', // 'recent' | 'list'
       showActions = true,
@@ -2493,7 +2492,7 @@ export class AdminActionService {
       const createdDate = new Date(article.createdAt);
       const updatedDate = new Date(article.updatedAt || article.createdAt);
       const isRecent = (Date.now() - updatedDate.getTime()) < (24 * 60 * 60 * 1000); // 24時間以内
-      const categoryName = this._getCategoryName(article.category);
+      const categoryName = this.#getCategoryName(article.category);
       const summary = article.summary ? 
         (article.summary.length > 80 ? article.summary.substring(0, 80) + '...' : article.summary) : 
         '概要なし';
@@ -2552,7 +2551,7 @@ export class AdminActionService {
    * @private
    * @param {string} filter - フィルター
    */
-  _renderNewsList(filter = 'all') {
+  #renderNewsList(filter = 'all') {
     try {
       if (!this.articleDataService?.initialized) {
         console.warn('ArticleDataServiceが初期化されていません');
@@ -2560,12 +2559,12 @@ export class AdminActionService {
       }
 
       const articles = this.articleDataService.loadArticles();
-      const filteredArticles = this._filterArticles(articles, filter);
+      const filteredArticles = this.#filterArticles(articles, filter);
       
       const listContainer = document.getElementById('news-list');
       if (listContainer) {
         // 統合されたメソッドを使用
-        const html = this._generateArticleListHTML(filteredArticles, {
+        const html = this.#generateArticleListHTML(filteredArticles, {
           mode: 'list',
           showActions: true,
           showStats: true,
@@ -2581,7 +2580,7 @@ export class AdminActionService {
         listContainer.innerHTML = html;
         
         // ドロップダウンメニューの初期化
-        this._initializeDropdownMenus(listContainer);
+        this.#initializeDropdownMenus(listContainer);
       } else {
         console.warn('news-list要素が見つかりません');
       }
@@ -2626,7 +2625,7 @@ export class AdminActionService {
       const recentContainer = document.getElementById('recent-articles');
       if (recentContainer) {
         // 統合されたメソッドを使用
-        const html = this._generateArticleListHTML(recentArticles, {
+        const html = this.#generateArticleListHTML(recentArticles, {
           mode: 'recent',
           showActions: true,
           showStats: true,
@@ -2642,7 +2641,7 @@ export class AdminActionService {
         recentContainer.innerHTML = html;
         
         // ドロップダウンメニューの初期化
-        this._initializeDropdownMenus(recentContainer);
+        this.#initializeDropdownMenus(recentContainer);
       }
       
       this.debug(`最近の記事を${recentArticles.length}件表示（最初の3件がメイン表示）`);
@@ -2657,7 +2656,7 @@ export class AdminActionService {
    * ドロップダウンメニューの初期化
    * @private
    */
-  _initializeDropdownMenus(container) {
+  #initializeDropdownMenus(container) {
     const dropdowns = container.querySelectorAll('.dropdown');
     dropdowns.forEach(dropdown => {
       const toggle = dropdown.querySelector('.dropdown-toggle');
@@ -2699,7 +2698,7 @@ export class AdminActionService {
    * @param {string} filter - フィルター
    * @returns {Array}
    */
-  _filterArticles(articles, filter) {
+  #filterArticles(articles, filter) {
     switch (filter) {
       case 'published':
         return articles.filter(article => article.status === 'published');
@@ -2716,7 +2715,7 @@ export class AdminActionService {
    * @param {Array} articles - 記事配列
    * @returns {string}
    */
-  _generateNewsListHTML(articles) {
+  #generateNewsListHTML(articles) {
     if (articles.length === 0) {
       return '<div class="empty-state">記事がありません</div>';
     }
@@ -2728,7 +2727,7 @@ export class AdminActionService {
           <span class="status-badge ${article.status}">${article.status === 'published' ? '公開' : '下書き'}</span>
         </div>
         <div class="news-item-meta">
-          <span class="category">${this._getCategoryName(article.category)}</span>
+          <span class="category">${this.#getCategoryName(article.category)}</span>
           <span class="date">${new Date(article.createdAt).toLocaleDateString('ja-JP')}</span>
         </div>
         <div class="news-item-actions">
@@ -2745,7 +2744,7 @@ export class AdminActionService {
    * @param {Array} articles - 記事配列
    * @returns {string}
    */
-  _generateRecentArticlesHTML(articles) {
+  #generateRecentArticlesHTML(articles) {
     if (articles.length === 0) {
       return `
         <div class="empty-state">
@@ -2762,7 +2761,7 @@ export class AdminActionService {
       const createdDate = new Date(article.createdAt);
       const updatedDate = new Date(article.updatedAt || article.createdAt);
       const isRecent = (Date.now() - updatedDate.getTime()) < (24 * 60 * 60 * 1000); // 24時間以内
-      const categoryName = this._getCategoryName(article.category);
+      const categoryName = this.#getCategoryName(article.category);
       const summary = article.summary ? 
         (article.summary.length > 80 ? article.summary.substring(0, 80) + '...' : article.summary) : 
         '概要なし';
@@ -2812,7 +2811,7 @@ export class AdminActionService {
             <div class="meta-item">
               <i class="fas fa-clock"></i>
               <span class="date-text" title="更新: ${updatedDate.toLocaleString('ja-JP')}">
-                ${this._formatRelativeTime(updatedDate)}
+                ${this.#formatRelativeTime(updatedDate)}
               </span>
             </div>
             ${article.featured ? '<div class="meta-item"><i class="fas fa-star featured"></i><span>注目記事</span></div>' : ''}
@@ -2825,7 +2824,7 @@ export class AdminActionService {
             </div>
             <div class="stat-item">
               <i class="fas fa-align-left"></i>
-              <span>${this._getWordCount(article)} 文字</span>
+              <span>${this.#getWordCount(article)} 文字</span>
             </div>
           </div>
         </div>
@@ -2839,7 +2838,7 @@ export class AdminActionService {
    * @param {string} category - カテゴリーキー
    * @returns {string}
    */
-  _getCategoryName(category) {
+  #getCategoryName(category) {
     const categoryNames = {
       'announcement': 'お知らせ',
       'event': '体験会',
@@ -2859,7 +2858,7 @@ export class AdminActionService {
       
       const article = this.articleDataService.getArticleById(articleId);
       if (!article) {
-        this._showFeedback('記事が見つかりません', 'error');
+        this.#showFeedback('記事が見つかりません', 'error');
         return;
       }
       
@@ -2874,13 +2873,13 @@ export class AdminActionService {
         
         // さらに少し遅延させてフォームにデータを読み込み
         setTimeout(() => {
-          this._loadArticleToEditor(article, articleId);
+          this.#loadArticleToEditor(article, articleId);
         }, 100);
       }, 100);
       
     } catch (error) {
       console.error('❌ 記事編集エラー:', error);
-      this._showFeedback('記事の編集に失敗しました', 'error');
+      this.#showFeedback('記事の編集に失敗しました', 'error');
     }
   }
 
@@ -2890,7 +2889,7 @@ export class AdminActionService {
    * @param {Object} article - 記事データ
    * @param {string} articleId - 記事ID
    */
-  _loadArticleToEditor(article, articleId) {
+  #loadArticleToEditor(article, articleId) {
     try {
       console.log('📝 記事データをエディターに読み込み中...');
       
@@ -2948,12 +2947,12 @@ export class AdminActionService {
         elements.title.focus();
       }
       
-      this._showFeedback(`記事「${article.title}」をエディターに読み込みました`);
+      this.#showFeedback(`記事「${article.title}」をエディターに読み込みました`);
       console.log('✅ 記事データの読み込み完了');
       
     } catch (error) {
       console.error('❌ 記事データ読み込みエラー:', error);
-      this._showFeedback('記事データの読み込みに失敗しました', 'error');
+      this.#showFeedback('記事データの読み込みに失敗しました', 'error');
     }
   }
 
@@ -2975,14 +2974,14 @@ export class AdminActionService {
         this.refreshNewsList();
         this.updateDashboardStats();
         
-        this._showFeedback('記事を削除しました');
+        this.#showFeedback('記事を削除しました');
       } else {
-        this._showFeedback(result.message || '削除に失敗しました', 'error');
+        this.#showFeedback(result.message || '削除に失敗しました', 'error');
       }
       
     } catch (error) {
       console.error('❌ 記事削除エラー:', error);
-      this._showFeedback('記事の削除中にエラーが発生しました', 'error');
+      this.#showFeedback('記事の削除中にエラーが発生しました', 'error');
     }
   }
 
@@ -2991,7 +2990,7 @@ export class AdminActionService {
    * @private
    * @param {Object} articleData - 記事データ
    */
-  _showNewsPreviewModal(articleData) {
+  #showNewsPreviewModal(articleData) {
     // 既存のモーダルがあれば削除
     const existingModal = document.getElementById('news-preview-modal');
     if (existingModal) {
@@ -3032,7 +3031,7 @@ export class AdminActionService {
                 ${articleData.summary ? `<div class="article-summary">${this.escapeHtml(articleData.summary)}</div>` : ''}
               </div>
               <div class="article-content">
-                ${this._convertMarkdownToHtml(articleData.content)}
+                ${this.#convertMarkdownToHtml(articleData.content)}
               </div>
             </div>
           </div>
@@ -3076,7 +3075,7 @@ export class AdminActionService {
    * @param {string} markdown - Markdownテキスト
    * @returns {string} HTMLテキスト
    */
-  _convertMarkdownToHtml(markdown) {
+  #convertMarkdownToHtml(markdown) {
     return markdown
       .replace(/^### (.*$)/gim, '<h3>$1</h3>')
       .replace(/^## (.*$)/gim, '<h2>$1</h2>')
@@ -3144,11 +3143,11 @@ export class AdminActionService {
       }
       
       const tabDisplayName = tabName === 'editor' ? '記事作成' : '記事一覧';
-      this._showFeedback(`${tabDisplayName}タブに切り替えました`);
+      this.#showFeedback(`${tabDisplayName}タブに切り替えました`);
       
     } catch (error) {
       console.error('❌ 記事管理サブタブ切り替えエラー:', error);
-      this._showFeedback('タブの切り替えに失敗しました', 'error');
+      this.#showFeedback('タブの切り替えに失敗しました', 'error');
     }
   }
 
@@ -3157,7 +3156,7 @@ export class AdminActionService {
    * @private
    * @returns {Object}
    */
-  _getNewsFormData() {
+  #getNewsFormData() {
     return {
       title: document.getElementById('news-title')?.value || '',
       category: document.getElementById('news-category')?.value || 'announcement',
@@ -3182,7 +3181,7 @@ export class AdminActionService {
    * @private
    * @returns {Object}
    */
-  _getLessonStatusFromForm() {
+  #getLessonStatusFromForm() {
     // 今日の日付をデフォルトとして取得
     const today = new Date().toISOString().slice(0, 10);
     
@@ -3192,9 +3191,9 @@ export class AdminActionService {
     const advanceLessonRaw = document.querySelector('input[name="advance-lesson"]:checked')?.value || '通常開催';
     
     // 日本語の値を英語キーにマッピング
-    const globalStatus = this._mapJapaneseStatusToKey(globalStatusRaw);
-    const basicLessonStatus = this._mapJapaneseStatusToKey(basicLessonRaw);
-    const advanceLessonStatus = this._mapJapaneseStatusToKey(advanceLessonRaw);
+    const globalStatus = this.#mapJapaneseStatusToKey(globalStatusRaw);
+    const basicLessonStatus = this.#mapJapaneseStatusToKey(basicLessonRaw);
+    const advanceLessonStatus = this.#mapJapaneseStatusToKey(advanceLessonRaw);
     
     return {
       date: document.getElementById('lesson-date')?.value || today,
@@ -3222,7 +3221,7 @@ export class AdminActionService {
    * @private
    * @param {Object} status - レッスン状況
    */
-  _loadLessonStatusToForm(status) {
+  #loadLessonStatusToForm(status) {
     try {
       if (status.date) {
         const dateField = document.getElementById('lesson-date');
@@ -3236,14 +3235,14 @@ export class AdminActionService {
       
       // ラジオボタンの設定（英語キーから日本語値にマッピング）
       if (status.globalStatus) {
-        const globalJapanese = this._mapStatusKeyToJapanese(status.globalStatus);
+        const globalJapanese = this.#mapStatusKeyToJapanese(status.globalStatus);
         const globalRadio = document.querySelector(`input[name="global-status"][value="${globalJapanese}"]`);
         if (globalRadio) globalRadio.checked = true;
       }
       
       // コースデータの処理
       if (status.courses?.basic?.status) {
-        const basicJapanese = this._mapStatusKeyToJapanese(status.courses.basic.status);
+        const basicJapanese = this.#mapStatusKeyToJapanese(status.courses.basic.status);
         const basicRadio = document.querySelector(`input[name="basic-lesson"][value="${basicJapanese}"]`);
         if (basicRadio) basicRadio.checked = true;
       }
@@ -3254,7 +3253,7 @@ export class AdminActionService {
       }
       
       if (status.courses?.advance?.status) {
-        const advanceJapanese = this._mapStatusKeyToJapanese(status.courses.advance.status);
+        const advanceJapanese = this.#mapStatusKeyToJapanese(status.courses.advance.status);
         const advanceRadio = document.querySelector(`input[name="advance-lesson"][value="${advanceJapanese}"]`);
         if (advanceRadio) advanceRadio.checked = true;
       }
@@ -3265,7 +3264,7 @@ export class AdminActionService {
       }
     } catch (error) {
       console.error('❌ レッスン状況フォーム読み込みエラー:', error);
-      this._showFeedback('データの読み込み中にエラーが発生しました', 'error');
+      this.#showFeedback('データの読み込み中にエラーが発生しました', 'error');
     }
   }
 
@@ -3378,7 +3377,7 @@ export class AdminActionService {
    * @param {string} elementId - 統計要素のID
    * @param {number} value - 更新する値
    */
-  _updateStatsElement(elementId, value) {
+  #updateStatsElement(elementId, value) {
     const element = document.getElementById(elementId);
     if (element) {
       element.textContent = value;
@@ -3444,13 +3443,13 @@ export class AdminActionService {
       // 保存されたタブ状態を復元（統一ストレージキーを使用）
       const savedTab = localStorage.getItem(this.storageKeys.adminTab);
       const defaultTab = 'dashboard';
-      const activeTab = (savedTab && this._isValidTabName(savedTab)) ? savedTab : defaultTab;
+      const activeTab = (savedTab && this.#isValidTabName(savedTab)) ? savedTab : defaultTab;
       
       console.log('🔍 タブ状態:', {
         saved: savedTab,
         default: defaultTab,
         active: activeTab,
-        isValid: this._isValidTabName(activeTab)
+        isValid: this.#isValidTabName(activeTab)
       });
       
       // DOM要素の存在確認
@@ -3501,7 +3500,7 @@ export class AdminActionService {
         this.switchAdminTab('dashboard');
       } catch (fallbackError) {
         console.error('❌ フォールバック失敗:', fallbackError);
-        this._showFeedback('タブナビゲーションの初期化に失敗しました', 'error');
+        this.#showFeedback('タブナビゲーションの初期化に失敗しました', 'error');
       }
     }
   }
@@ -3651,12 +3650,12 @@ export class AdminActionService {
         titleField.focus();
       }
       
-      this._showFeedback('新規記事作成を開始しました');
+      this.#showFeedback('新規記事作成を開始しました');
       console.log('📝 新規記事作成開始');
       
     } catch (error) {
       console.error('❌ 新規記事作成開始エラー:', error);
-      this._showFeedback('新規記事作成の開始に失敗しました', 'error');
+      this.#showFeedback('新規記事作成の開始に失敗しました', 'error');
     }
   }
 
@@ -3664,7 +3663,7 @@ export class AdminActionService {
    * 記事作成ガイドを表示
    * @private
    */
-  _showWritingGuide() {
+  #showWritingGuide() {
     const guideContent = `
       <div class="writing-guide">
         <h3><i class="fas fa-lightbulb"></i> 記事執筆ガイド</h3>
@@ -3701,14 +3700,14 @@ export class AdminActionService {
       </div>
     `;
     
-    this._createModal('記事執筆ガイド', guideContent);
+    this.#createModal('記事執筆ガイド', guideContent);
   }
 
   /**
    * ニュースフォームデータを取得
    * @private
    */
-  _getNewsFormData() {
+  #getNewsFormData() {
     return {
       title: document.getElementById('news-title')?.value?.trim() || '',
       content: document.getElementById('news-content')?.value?.trim() || '',
@@ -3721,31 +3720,31 @@ export class AdminActionService {
    * ニュースプレビューモーダルを表示
    * @private
    */
-  _showNewsPreviewModal(formData) {
+  #showNewsPreviewModal(formData) {
     const previewContent = `
       <div class="news-preview">
         <div class="news-preview-header">
           <div class="news-meta">
-            <span class="news-category">${this._getCategoryName(formData.category)}</span>
+            <span class="news-category">${this.#getCategoryName(formData.category)}</span>
             <span class="news-date">${new Date().toLocaleDateString('ja-JP')}</span>
           </div>
           <h1 class="news-title">${formData.title}</h1>
         </div>
         <div class="news-preview-content">
-          ${this._formatMarkdown(formData.content)}
+          ${this.#formatMarkdown(formData.content)}
         </div>
       </div>
     `;
     
-    this._createModal('記事プレビュー', previewContent, 'large');
+    this.#createModal('記事プレビュー', previewContent, 'large');
   }
 
   /**
    * フォームから記事データを取得
    * @private
    */
-  _getArticleDataFromForm() {
-    const formData = this._getNewsFormData();
+  #getArticleDataFromForm() {
+    const formData = this.#getNewsFormData();
     return {
       id: `article_${Date.now()}`,
       title: formData.title,
@@ -3762,19 +3761,19 @@ export class AdminActionService {
    * 記事データの検証
    * @private
    */
-  _validateArticleData(articleData) {
+  #validateArticleData(articleData) {
     if (!articleData.title || articleData.title.length < 3) {
-      this._showFeedback('タイトルは3文字以上で入力してください', 'error');
+      this.#showFeedback('タイトルは3文字以上で入力してください', 'error');
       return false;
     }
     
     if (!articleData.content || articleData.content.length < 10) {
-      this._showFeedback('本文は10文字以上で入力してください', 'error');
+      this.#showFeedback('本文は10文字以上で入力してください', 'error');
       return false;
     }
     
     if (articleData.title.length > 100) {
-      this._showFeedback('タイトルは100文字以内で入力してください', 'error');
+      this.#showFeedback('タイトルは100文字以内で入力してください', 'error');
       return false;
     }
     
@@ -3785,7 +3784,7 @@ export class AdminActionService {
    * ニュース一覧をレンダリング
    * @private
    */
-  _renderNewsList(filterValue = '') {
+  #renderNewsList(filterValue = '') {
     const container = document.getElementById('news-list');
     if (!container) {
       console.warn('ニュース一覧コンテナが見つかりません');
@@ -3815,7 +3814,7 @@ export class AdminActionService {
       <div class="news-item" data-article-id="${article.id}">
         <div class="news-item-header">
           <h4>${article.title}</h4>
-          <span class="news-category">${this._getCategoryName(article.category)}</span>
+          <span class="news-category">${this.#getCategoryName(article.category)}</span>
         </div>
         <div class="news-item-meta">
           <span class="news-date">${new Date(article.date).toLocaleDateString('ja-JP')}</span>
@@ -3836,7 +3835,7 @@ export class AdminActionService {
    * カテゴリ名を取得
    * @private
    */
-  _getCategoryName(category) {
+  #getCategoryName(category) {
     const categories = {
       announcement: 'お知らせ',
       lesson: 'レッスン情報',
@@ -3850,7 +3849,7 @@ export class AdminActionService {
    * 接続テスト結果HTML生成
    * @private
    */
-  _generateConnectionTestResults(results) {
+  #generateConnectionTestResults(results) {
     return results.map(result => `
       <div class="connection-test-item ${result.success ? 'success' : 'error'}">
         <div class="test-icon">
@@ -3869,15 +3868,15 @@ export class AdminActionService {
    * デバッグモーダルを作成
    * @private
    */
-  _createDebugModal(title, content) {
-    this._createModal(title, content, 'large debug-modal');
+  #createDebugModal(title, content) {
+    this.#createModal(title, content, 'large debug-modal');
   }
 
   /**
    * 汎用モーダル作成
    * @private
    */
-  _createModal(title, content, className = '') {
+  #createModal(title, content, className = '') {
     const modalId = `modal-${Date.now()}`;
     const modal = document.createElement('div');
     modal.id = modalId;
@@ -3914,7 +3913,7 @@ export class AdminActionService {
    * 統計情報を更新
    * @private
    */
-  _updateStats() {
+  #updateStats() {
     try {
       const articles = this.articleDataService?.getAllArticles() || [];
       const publishedCount = articles.filter(a => a.status === 'published').length;
@@ -3946,7 +3945,7 @@ export class AdminActionService {
    * マークダウンフォーマット
    * @private
    */
-  _formatMarkdown(text) {
+  #formatMarkdown(text) {
     if (!text) return '';
     
     return text
@@ -3965,7 +3964,7 @@ export class AdminActionService {
    * Instagram投稿データを取得
    * @private
    */
-  _getInstagramPosts() {
+  #getInstagramPosts() {
     try {
       const stored = localStorage.getItem(this.storageKeys.instagram);
       return stored ? JSON.parse(stored) : [];
@@ -3979,7 +3978,7 @@ export class AdminActionService {
    * Instagram投稿データを保存
    * @private
    */
-  _saveInstagramPosts(posts) {
+  #saveInstagramPosts(posts) {
     try {
       localStorage.setItem(this.storageKeys.instagram, JSON.stringify(posts));
       return true;
@@ -4056,7 +4055,7 @@ export class AdminActionService {
   async forceTabSwitch(tabName) {
     console.log(`🔧 タブ強制切り替え: ${tabName}`);
     
-    if (!this._isValidTabName(tabName)) {
+    if (!this.#isValidTabName(tabName)) {
       console.error(`❌ 無効なタブ名: ${tabName}`);
       return;
     }
@@ -4320,15 +4319,15 @@ export class AdminActionService {
     }
     
     // ステップ切り替え
-    this._switchWizardStep(nextStep);
-    this._updateWizardButtons();
+    this.#switchWizardStep(nextStep);
+    this.#updateWizardButtons();
   }
 
   /**
    * ウィザードステップ切り替え
    * @param {Element} targetStep - 切り替え先のステップ
    */
-  _switchWizardStep(targetStep) {
+  #switchWizardStep(targetStep) {
     // 全てのステップを非アクティブに
     document.querySelectorAll('.wizard-content').forEach(step => {
       step.classList.remove('active');
@@ -4354,7 +4353,7 @@ export class AdminActionService {
   /**
    * ウィザードボタンの状態更新
    */
-  _updateWizardButtons() {
+  #updateWizardButtons() {
     const currentStep = document.querySelector('.wizard-content.active');
     const prevBtn = document.querySelector('.wizard-prev');
     const nextBtn = document.querySelector('.wizard-next');
@@ -4389,14 +4388,14 @@ export class AdminActionService {
       // ステップ1: グローバルステータスの選択確認
       const selectedStatus = document.querySelector('input[name="global-status"]:checked');
       if (!selectedStatus) {
-        this._showFeedback('全体ステータスを選択してください', 'error');
+        this.#showFeedback('全体ステータスを選択してください', 'error');
         return false;
       }
       
       // 日付の確認
       const dateInput = document.getElementById('lesson-date');
       if (!dateInput?.value) {
-        this._showFeedback('対象日を選択してください', 'error');
+        this.#showFeedback('対象日を選択してください', 'error');
         return false;
       }
       
@@ -4505,7 +4504,7 @@ export class AdminActionService {
         this.refreshInstagramPosts();
       } else if (targetTab === 'settings') {
         console.log('⚙️ 連携設定タブの初期化');
-        this._loadInstagramSettings();
+        this.#loadInstagramSettings();
       }
       
       const tabDisplayName = targetTab === 'posts' ? '投稿管理' : '連携設定';
@@ -4541,10 +4540,10 @@ export class AdminActionService {
       `;
       
       // LocalStorageからInstagram投稿データを取得
-      const instagramPosts = this._getInstagramPosts();
+      const instagramPosts = this.#getInstagramPosts();
       
       // 投稿グリッドの生成
-      const postsHTML = this._generateInstagramPostsHTML(instagramPosts);
+      const postsHTML = this.#generateInstagramPostsHTML(instagramPosts);
       
       // 少し遅延してローディング感を演出
       setTimeout(() => {
@@ -4618,7 +4617,7 @@ export class AdminActionService {
     try {
       // フォームデータの取得
       const postData = {
-        id: document.getElementById('instagram-post-id').value || this._generateId(),
+        id: document.getElementById('instagram-post-id').value || this.#generateId(),
         url: document.getElementById('instagram-post-url').value.trim(),
         caption: document.getElementById('instagram-post-caption').value.trim(),
         date: document.getElementById('instagram-post-date').value,
@@ -4634,13 +4633,13 @@ export class AdminActionService {
         return;
       }
       
-      if (!this._isValidInstagramURL(postData.url)) {
+      if (!this.#isValidInstagramURL(postData.url)) {
         this.error('有効なInstagram投稿URLを入力してください');
         return;
       }
       
       // LocalStorageに保存
-      const posts = this._getInstagramPosts();
+      const posts = this.#getInstagramPosts();
       const existingIndex = posts.findIndex(post => post.id === postData.id);
       
       if (existingIndex >= 0) {
@@ -4719,7 +4718,7 @@ export class AdminActionService {
     console.log('✏️ Instagram投稿編集:', postId);
     
     try {
-      const posts = this._getInstagramPosts();
+      const posts = this.#getInstagramPosts();
       const post = posts.find(p => p.id === postId);
       
       if (!post) {
@@ -4760,7 +4759,7 @@ export class AdminActionService {
     console.log('👁️ Instagram投稿ステータス切り替え:', postId);
     
     try {
-      const posts = this._getInstagramPosts();
+      const posts = this.#getInstagramPosts();
       const postIndex = posts.findIndex(p => p.id === postId);
       
       if (postIndex === -1) {
@@ -4792,7 +4791,7 @@ export class AdminActionService {
     console.log('🗑️ Instagram投稿削除:', postId);
     
     try {
-      const posts = this._getInstagramPosts();
+      const posts = this.#getInstagramPosts();
       const filteredPosts = posts.filter(post => post.id !== postId);
       
       if (posts.length === filteredPosts.length) {
@@ -4819,7 +4818,7 @@ export class AdminActionService {
    * LocalStorageからInstagram投稿を取得（移行機能付き）
    * @private
    */
-  _getInstagramPosts() {
+  #getInstagramPosts() {
     try {
       // 現在のキーでデータを確認
       const currentKey = this.storageKeys.instagram;
@@ -4892,7 +4891,7 @@ export class AdminActionService {
    * Instagram投稿HTMLの生成
    * @private
    */
-  _generateInstagramPostsHTML(posts) {
+  #generateInstagramPostsHTML(posts) {
     if (!posts || posts.length === 0) {
       return `
         <div class="instagram-post-card add-new" data-action="add-instagram-post">
@@ -4917,7 +4916,7 @@ export class AdminActionService {
     
     posts.forEach(post => {
       const postDate = new Date(post.date || post.createdAt);
-      const thumbnailUrl = this._getInstagramThumbnail(post.url);
+      const thumbnailUrl = this.#getInstagramThumbnail(post.url);
       
       html += `
         <div class="instagram-post-card" data-post-id="${post.id}">
@@ -4937,7 +4936,7 @@ export class AdminActionService {
               <div class="instagram-post-info">
                 <div class="instagram-post-date">
                   <i class="fas fa-calendar-alt"></i>
-                  ${this._formatDate(postDate)}
+                  ${this.#formatDate(postDate)}
                 </div>
                 <a href="${post.url}" target="_blank" class="instagram-post-url">
                   <i class="fab fa-instagram"></i>
@@ -4968,8 +4967,8 @@ export class AdminActionService {
             ${post.caption ? `<div class="instagram-post-caption">${post.caption}</div>` : ''}
             <div class="instagram-post-meta">
               <div class="instagram-post-type">
-                <i class="fas fa-${this._getPostTypeIcon(post.type)}"></i>
-                ${this._getPostTypeLabel(post.type)}
+                <i class="fas fa-${this.#getPostTypeIcon(post.type)}"></i>
+                ${this.#getPostTypeLabel(post.type)}
               </div>
               <div class="instagram-post-status ${post.status || 'active'}">
                 ${post.status === 'hidden' ? '非表示' : '表示中'}
@@ -4987,7 +4986,7 @@ export class AdminActionService {
    * Instagram設定を読み込み
    * @private
    */
-  _loadInstagramSettings() {
+  #loadInstagramSettings() {
     try {
       const stored = localStorage.getItem(`${this.storageKeys.instagram}_settings`);
       const settings = stored ? JSON.parse(stored) : {
@@ -5011,7 +5010,7 @@ export class AdminActionService {
    * Instagram URL バリデーション
    * @private
    */
-  _isValidInstagramURL(url) {
+  #isValidInstagramURL(url) {
     try {
       const urlObj = new URL(url);
       return urlObj.hostname === 'www.instagram.com' && urlObj.pathname.includes('/p/');
@@ -5024,7 +5023,7 @@ export class AdminActionService {
    * Instagram サムネイル取得（プレースホルダー）
    * @private
    */
-  _getInstagramThumbnail(url) {
+  #getInstagramThumbnail(url) {
     // 実際の実装では Instagram Graph API などを使用
     return 'https://via.placeholder.com/400x400/833ab4/ffffff?text=Instagram';
   }
@@ -5033,7 +5032,7 @@ export class AdminActionService {
    * 投稿タイプのアイコン取得
    * @private
    */
-  _getPostTypeIcon(type) {
+  #getPostTypeIcon(type) {
     const icons = {
       photo: 'image',
       video: 'video',
@@ -5046,7 +5045,7 @@ export class AdminActionService {
    * 投稿タイプのラベル取得
    * @private
    */
-  _getPostTypeLabel(type) {
+  #getPostTypeLabel(type) {
     const labels = {
       photo: '写真',
       video: '動画',
@@ -5059,7 +5058,7 @@ export class AdminActionService {
    * ユニークIDの生成
    * @private
    */
-  _generateId() {
+  #generateId() {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
@@ -5067,7 +5066,7 @@ export class AdminActionService {
    * 日付フォーマット
    * @private
    */
-  _formatDate(date) {
+  #formatDate(date) {
     try {
       const options = {
         year: 'numeric',
@@ -5086,7 +5085,7 @@ export class AdminActionService {
    * 相対時間のフォーマット
    * @private
    */
-  _formatRelativeTime(date) {
+  #formatRelativeTime(date) {
     const now = new Date();
     const diff = now - date;
     
@@ -5117,7 +5116,7 @@ export class AdminActionService {
    * 文字数のカウント
    * @private
    */
-  _getWordCount(article) {
+  #getWordCount(article) {
     return article.content.trim().split(/\s+/).length;
   }
 
@@ -5125,7 +5124,7 @@ export class AdminActionService {
    * 記事をフィルタリング
    * @private
    */
-  _filterArticles(articles, filter) {
+  #filterArticles(articles, filter) {
     if (!filter || !filter.query) {
       return articles;
     }
@@ -5142,7 +5141,7 @@ export class AdminActionService {
    * 記事リストHTMLを生成
    * @private
    */
-  _generateArticleListHTML(articles, options = {}) {
+  #generateArticleListHTML(articles, options = {}) {
     if (!articles || articles.length === 0) {
       return `
         <div class="empty-state">
@@ -5155,7 +5154,7 @@ export class AdminActionService {
 
     return articles.map(article => {
       const date = new Date(article.date);
-      const categoryName = this._getCategoryName(article.category);
+      const categoryName = this.#getCategoryName(article.category);
       
       return `
         <div class="article-item" data-article-id="${article.id}">
@@ -5168,7 +5167,7 @@ export class AdminActionService {
             <span class="article-status ${article.status}">
               ${article.status === 'published' ? '公開済み' : '下書き'}
             </span>
-            <span class="article-words">${this._getWordCount(article)} 文字</span>
+            <span class="article-words">${this.#getWordCount(article)} 文字</span>
           </div>
           <div class="article-actions">
             <button class="btn-sm" data-action="edit-article" data-article-id="${article.id}">
@@ -5200,7 +5199,7 @@ export class AdminActionService {
    * ドロップダウンメニューを初期化
    * @private
    */
-  _initializeDropdownMenus(container) {
+  #initializeDropdownMenus(container) {
     const dropdowns = container.querySelectorAll('.dropdown');
     
     dropdowns.forEach(dropdown => {
@@ -5236,7 +5235,7 @@ export class AdminActionService {
    * 記事をエディターに読み込み
    * @private
    */
-  _loadArticleToEditor(article, articleId) {
+  #loadArticleToEditor(article, articleId) {
     try {
       // フォーム要素の取得
       const titleField = document.getElementById('news-title');
@@ -5286,11 +5285,11 @@ export class AdminActionService {
       // ニュースタブに切り替え
       this.switchAdminTab('news');
       
-      this._showFeedback(`記事「${article.title}」をエディターに読み込みました`);
+      this.#showFeedback(`記事「${article.title}」をエディターに読み込みました`);
       
     } catch (error) {
       console.error('記事読み込みエラー:', error);
-      this._showFeedback('記事データの読み込みに失敗しました', 'error');
+      this.#showFeedback('記事データの読み込みに失敗しました', 'error');
     }
   }
 }

@@ -92,7 +92,7 @@ export class AdminSystemService {
   async checkAuthentication() {
     // 開発環境では認証をスキップ
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      console.warn('🚧 開発環境のため認証をスキップ');
+      console.debug('🚧 開発環境のため認証をスキップ');
       this.isAuthenticated = true;
       return;
     }

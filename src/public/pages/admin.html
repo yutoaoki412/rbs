@@ -824,8 +824,33 @@
 
   <!-- 通知システムヘルパー -->
   <script>
-    // グローバル通知ヘルパー関数
+    // グローバル通知統一システム
+    window.notificationHistory = new Map();
+    
+    // グローバル通知ヘルパー関数（重複防止機能付き）
     window.showNotification = function(type, message, duration = 4000, options = {}) {
+      // 重複チェック
+      const notificationKey = `${type}:${message}`;
+      const now = Date.now();
+      
+      if (window.notificationHistory.has(notificationKey)) {
+        const lastTime = window.notificationHistory.get(notificationKey);
+        if (now - lastTime < 3000) {
+          console.debug('重複通知をスキップ:', message);
+          return;
+        }
+      }
+      
+      // 通知履歴に記録
+      window.notificationHistory.set(notificationKey, now);
+      
+      // 既存の同じ通知を削除
+      document.querySelectorAll('.global-notification').forEach(notification => {
+        if (notification.textContent.includes(message)) {
+          notification.remove();
+        }
+      });
+      
       if (window.uiManagerService) {
         return window.uiManagerService.showNotification(type, message, duration, options);
       } else {
@@ -834,6 +859,7 @@
         
         // 簡易通知要素を作成
         const notification = document.createElement('div');
+        notification.className = 'global-notification';
         notification.style.cssText = `
           position: fixed;
           top: 80px;
@@ -870,6 +896,11 @@
           }, 300);
         }, duration);
       }
+      
+      // 履歴クリーンアップ（5分後）
+      setTimeout(() => {
+        window.notificationHistory.delete(notificationKey);
+      }, 300000);
     };
     
     // 便利なヘルパー関数

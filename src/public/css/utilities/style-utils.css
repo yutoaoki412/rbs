@@ -1,0 +1,604 @@
+/**
+ * スタイルユーティリティCSS - StyleUtils.jsに対応するクラス群
+ * インラインスタイルの代替としてのCSSクラス
+ * @version 1.0.0
+ */
+
+/* ===== 表示制御 ===== */
+.hidden {
+  display: none !important;
+}
+
+.visible {
+  display: block !important;
+}
+
+.d-none {
+  display: none !important;
+}
+
+.d-block {
+  display: block !important;
+}
+
+.d-flex {
+  display: flex !important;
+}
+
+.d-grid {
+  display: grid !important;
+}
+
+.d-inline {
+  display: inline !important;
+}
+
+.d-inline-block {
+  display: inline-block !important;
+}
+
+.d-inline-flex {
+  display: inline-flex !important;
+}
+
+/* ===== アニメーション ===== */
+.fade-in {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.fade-out {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.slide-down {
+  max-height: 1000px;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-up {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== 状態クラス ===== */
+.loading-state {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.loading-state::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid var(--admin-primary, #4a90e2);
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+  z-index: 1;
+}
+
+.error-state {
+  border-color: var(--admin-error, #dc3545) !important;
+  background-color: rgba(220, 53, 69, 0.05);
+  color: var(--admin-error, #dc3545);
+}
+
+.success-state {
+  border-color: var(--admin-success, #28a745) !important;
+  background-color: rgba(40, 167, 69, 0.05);
+  color: var(--admin-success, #28a745);
+}
+
+.disabled-state {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== 位置制御 ===== */
+.position-static {
+  position: static !important;
+}
+
+.position-relative {
+  position: relative !important;
+}
+
+.position-absolute {
+  position: absolute !important;
+}
+
+.position-fixed {
+  position: fixed !important;
+}
+
+.position-sticky {
+  position: sticky !important;
+}
+
+/* ===== テーマクラス ===== */
+.theme-light {
+  background-color: var(--admin-white, #ffffff);
+  color: var(--admin-gray-900, #0f172a);
+}
+
+.theme-dark {
+  background-color: var(--admin-gray-900, #0f172a);
+  color: var(--admin-white, #ffffff);
+}
+
+.theme-primary {
+  background-color: var(--admin-primary, #4a90e2);
+  color: var(--admin-white, #ffffff);
+}
+
+.theme-secondary {
+  background-color: var(--admin-gray-500, #64748b);
+  color: var(--admin-white, #ffffff);
+}
+
+/* ===== アニメーションクラス ===== */
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.animate-fadeOut {
+  animation: fadeOut 0.3s ease forwards;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-bounceIn {
+  animation: bounceIn 0.6s ease forwards;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease forwards;
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* ===== レスポンシブ表示 ===== */
+/* モバイル */
+@media (max-width: 767px) {
+  .d-mobile-none {
+    display: none !important;
+  }
+  
+  .d-mobile-block {
+    display: block !important;
+  }
+  
+  .d-mobile-flex {
+    display: flex !important;
+  }
+  
+  .d-mobile-grid {
+    display: grid !important;
+  }
+}
+
+/* タブレット */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .d-tablet-none {
+    display: none !important;
+  }
+  
+  .d-tablet-block {
+    display: block !important;
+  }
+  
+  .d-tablet-flex {
+    display: flex !important;
+  }
+  
+  .d-tablet-grid {
+    display: grid !important;
+  }
+}
+
+/* デスクトップ */
+@media (min-width: 1024px) {
+  .d-desktop-none {
+    display: none !important;
+  }
+  
+  .d-desktop-block {
+    display: block !important;
+  }
+  
+  .d-desktop-flex {
+    display: flex !important;
+  }
+  
+  .d-desktop-grid {
+    display: grid !important;
+  }
+}
+
+/* ===== アニメーション定義 ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    max-height: 0;
+    opacity: 0;
+  }
+  to {
+    max-height: 1000px;
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    max-height: 1000px;
+    opacity: 1;
+  }
+  to {
+    max-height: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== フレックスボックスユーティリティ ===== */
+.flex-row {
+  flex-direction: row !important;
+}
+
+.flex-column {
+  flex-direction: column !important;
+}
+
+.flex-wrap {
+  flex-wrap: wrap !important;
+}
+
+.flex-nowrap {
+  flex-wrap: nowrap !important;
+}
+
+.justify-start {
+  justify-content: flex-start !important;
+}
+
+.justify-center {
+  justify-content: center !important;
+}
+
+.justify-end {
+  justify-content: flex-end !important;
+}
+
+.justify-between {
+  justify-content: space-between !important;
+}
+
+.justify-around {
+  justify-content: space-around !important;
+}
+
+.align-start {
+  align-items: flex-start !important;
+}
+
+.align-center {
+  align-items: center !important;
+}
+
+.align-end {
+  align-items: flex-end !important;
+}
+
+.align-stretch {
+  align-items: stretch !important;
+}
+
+/* ===== テキストユーティリティ ===== */
+.text-center {
+  text-align: center !important;
+}
+
+.text-left {
+  text-align: left !important;
+}
+
+.text-right {
+  text-align: right !important;
+}
+
+.text-primary {
+  color: var(--admin-primary, #4a90e2) !important;
+}
+
+.text-secondary {
+  color: var(--admin-gray-500, #64748b) !important;
+}
+
+.text-success {
+  color: var(--admin-success, #28a745) !important;
+}
+
+.text-error {
+  color: var(--admin-error, #dc3545) !important;
+}
+
+.text-warning {
+  color: var(--admin-warning, #ffc107) !important;
+}
+
+/* ===== スペーシングユーティリティ ===== */
+.m-0 { margin: 0 !important; }
+.m-1 { margin: 0.25rem !important; }
+.m-2 { margin: 0.5rem !important; }
+.m-3 { margin: 1rem !important; }
+.m-4 { margin: 1.5rem !important; }
+.m-5 { margin: 3rem !important; }
+
+.p-0 { padding: 0 !important; }
+.p-1 { padding: 0.25rem !important; }
+.p-2 { padding: 0.5rem !important; }
+.p-3 { padding: 1rem !important; }
+.p-4 { padding: 1.5rem !important; }
+.p-5 { padding: 3rem !important; }
+
+.mt-0 { margin-top: 0 !important; }
+.mt-1 { margin-top: 0.25rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }
+.mt-5 { margin-top: 3rem !important; }
+
+.pt-0 { padding-top: 0 !important; }
+.pt-1 { padding-top: 0.25rem !important; }
+.pt-2 { padding-top: 0.5rem !important; }
+.pt-3 { padding-top: 1rem !important; }
+.pt-4 { padding-top: 1.5rem !important; }
+.pt-5 { padding-top: 3rem !important; }
+
+/* ===== 境界線ユーティリティ ===== */
+.border {
+  border: 1px solid var(--admin-gray-200, #e2e8f0) !important;
+}
+
+.border-0 {
+  border: 0 !important;
+}
+
+.border-top {
+  border-top: 1px solid var(--admin-gray-200, #e2e8f0) !important;
+}
+
+.border-right {
+  border-right: 1px solid var(--admin-gray-200, #e2e8f0) !important;
+}
+
+.border-bottom {
+  border-bottom: 1px solid var(--admin-gray-200, #e2e8f0) !important;
+}
+
+.border-left {
+  border-left: 1px solid var(--admin-gray-200, #e2e8f0) !important;
+}
+
+.rounded {
+  border-radius: 0.375rem !important;
+}
+
+.rounded-0 {
+  border-radius: 0 !important;
+}
+
+.rounded-sm {
+  border-radius: 0.25rem !important;
+}
+
+.rounded-lg {
+  border-radius: 0.5rem !important;
+}
+
+.rounded-xl {
+  border-radius: 0.75rem !important;
+}
+
+.rounded-full {
+  border-radius: 9999px !important;
+}
+
+/* ===== シャドウユーティリティ ===== */
+.shadow-none {
+  box-shadow: none !important;
+}
+
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* ===== オーバーフローユーティリティ ===== */
+.overflow-auto {
+  overflow: auto !important;
+}
+
+.overflow-hidden {
+  overflow: hidden !important;
+}
+
+.overflow-visible {
+  overflow: visible !important;
+}
+
+.overflow-scroll {
+  overflow: scroll !important;
+}
+
+/* ===== カーソルユーティリティ ===== */
+.cursor-auto {
+  cursor: auto !important;
+}
+
+.cursor-default {
+  cursor: default !important;
+}
+
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+.cursor-wait {
+  cursor: wait !important;
+}
+
+.cursor-text {
+  cursor: text !important;
+}
+
+.cursor-move {
+  cursor: move !important;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed !important;
+}
+
+/* ===== セレクトユーティリティ ===== */
+.select-none {
+  user-select: none !important;
+}
+
+.select-text {
+  user-select: text !important;
+}
+
+.select-all {
+  user-select: all !important;
+}
+
+.select-auto {
+  user-select: auto !important;
+}
+
+/* ===== ポインターイベントユーティリティ ===== */
+.pointer-events-none {
+  pointer-events: none !important;
+}
+
+.pointer-events-auto {
+  pointer-events: auto !important;
+}
+
+/* ===== 動き低減対応 ===== */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fadeIn,
+  .animate-fadeOut,
+  .animate-slideDown,
+  .animate-slideUp,
+  .animate-bounceIn,
+  .animate-shake,
+  .animate-pulse {
+    animation: none !important;
+  }
+  
+  .fade-in,
+  .fade-out,
+  .slide-down,
+  .slide-up {
+    transition: none !important;
+  }
+} 

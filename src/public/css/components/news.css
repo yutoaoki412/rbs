@@ -1,0 +1,54 @@
+/* ===== 管理機能とインラインCSS移行 ===== */
+
+/* 管理コントロール */
+.admin-controls {
+  background: var(--admin-gray-50);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 2rem;
+  border: 1px solid var(--admin-gray-200);
+}
+
+/* 共有セクション */
+.share-section {
+  background: var(--gray-light);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  text-align: center;
+  margin: 2rem 0;
+}
+
+/* 関連記事セクション */
+.related-articles {
+  background: var(--admin-gray-50);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  margin: 2rem 0;
+}
+
+/* 管理リンク */
+.admin-link {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+/* 検索結果 */
+.search-results {
+  background: var(--admin-white);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  margin-top: 1rem;
+  box-shadow: var(--admin-shadow);
+}
+
+/* 表示制御クラス */
+.hidden-section {
+  display: none;
+}
+
+.visible-section {
+  display: block;
+} 

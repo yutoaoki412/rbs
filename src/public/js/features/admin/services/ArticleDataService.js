@@ -254,6 +254,20 @@ export class ArticleDataService {
   }
 
   /**
+   * 全記事の取得
+   * @param {Object} options - 取得オプション
+   * @returns {Array} 全記事一覧
+   */
+  getAllArticles(options = {}) {
+    if (!this.storageService) {
+      this.warn('ストレージサービスが初期化されていません');
+      return [];
+    }
+    
+    return this.storageService.getAllArticles(options);
+  }
+
+  /**
    * 下書き記事の取得
    * @returns {Array} 下書き記事一覧
    */

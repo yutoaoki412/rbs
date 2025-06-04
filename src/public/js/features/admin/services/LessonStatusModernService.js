@@ -7,6 +7,8 @@
 import { Component } from '../../../shared/base/Component.js';
 import { getLessonStatusStorageService } from '../../../shared/services/LessonStatusStorageService.js';
 import { EventBus } from '../../../shared/services/EventBus.js';
+import { getUnifiedNotificationService } from '../../../shared/services/UnifiedNotificationService.js';
+import { FunctionUtils } from '../../../shared/utils/FunctionUtils.js';
 
 export class LessonStatusModernService extends Component {
   constructor() {
@@ -16,6 +18,7 @@ export class LessonStatusModernService extends Component {
     
     // サービス参照
     this.storageService = null;
+    this.notificationService = getUnifiedNotificationService();
     
     // DOM要素
     this.container = null;
@@ -36,6 +39,18 @@ export class LessonStatusModernService extends Component {
       previewUpdateDelay: 500, // 0.5秒後にプレビュー更新
       maxTemplates: 10
     };
+
+    // 関数のデバウンス化
+    this.debouncedAutoSave = FunctionUtils.debounce(() => {
+      this.saveDraftLessonStatus();
+    }, this.config.autoSaveDelay);
+
+    this.debouncedPreviewUpdate = FunctionUtils.debounce(() => {
+      this.updateRealTimePreview();
+    }, this.config.previewUpdateDelay);
+
+    // 通知履歴管理
+    this.lastNotifications = {};
   }
 
   /**
@@ -269,20 +284,12 @@ export class LessonStatusModernService extends Component {
   handleFormChange(e) {
     this.hasUnsavedChanges = true;
     
-    // 自動保存タイマーリセット
-    if (this.autoSaveTimeout) {
-      clearTimeout(this.autoSaveTimeout);
-    }
+    // デバウンス化された自動保存を実行
+    this.debouncedAutoSave();
     
-    this.autoSaveTimeout = setTimeout(() => {
-      this.saveDraftLessonStatus();
-    }, this.config.autoSaveDelay);
-    
-    // リアルタイムプレビュー更新
+    // リアルタイムプレビュー更新（デバウンス化）
     if (this.previewSection && this.previewSection.style.display !== 'none') {
-      setTimeout(() => {
-        this.updateRealTimePreview();
-      }, this.config.previewUpdateDelay);
+      this.debouncedPreviewUpdate();
     }
     
     // 現在のステータス表示更新
@@ -678,47 +685,14 @@ export class LessonStatusModernService extends Component {
   }
 
   /**
-   * 通知表示
+   * 通知表示（統一サービス使用）
    */
   showNotification(type, message, duration = 3000) {
-    const notification = document.createElement('div');
-    notification.className = `status-notification ${type}`;
-    notification.innerHTML = `
-      <div class="notification-content">
-        <strong>${this.getNotificationTitle(type)}</strong>
-        <p>${message}</p>
-      </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // 表示アニメーション
-    setTimeout(() => {
-      notification.classList.add('show');
-    }, 100);
-    
-    // 自動削除
-    setTimeout(() => {
-      notification.classList.remove('show');
-      setTimeout(() => {
-        if (notification.parentNode) {
-          notification.parentNode.removeChild(notification);
-        }
-      }, 300);
-    }, duration);
-  }
-
-  /**
-   * 通知タイトル取得
-   */
-  getNotificationTitle(type) {
-    const titles = {
-      'success': '成功',
-      'error': 'エラー',
-      'info': '情報',
-      'warning': '警告'
-    };
-    return titles[type] || '通知';
+    return this.notificationService.show({
+      type,
+      message,
+      duration
+    });
   }
 
   /**
