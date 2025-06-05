@@ -554,10 +554,11 @@ textarea::placeholder {
 }
 
 .form-actions .btn-outline:hover {
-  background: var(--admin-gray-50);
-  border-color: var(--admin-gray-600);
+  background: var(--admin-gray-600);
+  border-color: var(--admin-gray-700);
+  color: var(--admin-white);
   transform: translateY(-1px);
-  box-shadow: var(--admin-shadow);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
 }
 
 .form-actions .btn-secondary {
@@ -568,10 +569,11 @@ textarea::placeholder {
 }
 
 .form-actions .btn-secondary:hover {
-  background: var(--admin-gray-600);
-  border-color: var(--admin-gray-600);
+  background: var(--admin-gray-700);
+  border-color: var(--admin-gray-800);
+  color: var(--admin-white);
   transform: translateY(-1px);
-  box-shadow: var(--admin-shadow);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
 }
 
 .form-actions .btn-primary {
@@ -645,9 +647,11 @@ textarea::placeholder {
 }
 
 .preview-header .btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 1);
+  color: var(--admin-primary);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
 }
 
 .preview-content {
