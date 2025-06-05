@@ -23,29 +23,22 @@ export async function initAdminFeature() {
   try {
     console.log('🏗️ 管理画面機能初期化開始');
     
-    // 1. AuthManager初期化
-    console.log('🔐 認証マネージャーを初期化中...');
+    // 1. 認証確認
     authManager.init();
-
-    // 2. 認証チェック
-    console.log('🔐 認証状態を確認中...');
     if (!authManager.isAuthenticated()) {
       console.warn('❌ 認証チェック失敗 - ログインページにリダイレクト');
       
-      // リダイレクトループ防止
       if (!window.location.pathname.includes('admin-login.html')) {
-        authManager.logout(); // セッションクリア
+        authManager.logout();
         window.location.replace('admin-login.html?from=admin');
       }
       return;
     }
 
-    console.log('✅ 認証状態確認完了');
-
-    // 3. 管理機能の初期化
+    // 2. 管理機能の初期化
     const services = await initializeAdminFeatures();
 
-    // 4. グローバルアクセス設定
+    // 3. グローバルアクセス設定
     if (typeof window !== 'undefined') {
       window.authManager = authManager;
       window.adminActionService = services.adminActionService;
@@ -53,7 +46,7 @@ export async function initAdminFeature() {
       window.uiManagerService = services.uiManagerService;
       window.adminNotificationService = services.notificationService;
       
-      // 簡単アクセス用のグローバル関数
+      // 便利なヘルパー関数
       window.adminNotify = adminNotify;
       window.adminLog = adminLog;
       window.adminToast = adminToast;
@@ -87,40 +80,34 @@ export async function initializeAdminFeatures() {
     const notificationService = getAdminNotificationService();
     await notificationService.init();
     
-    // AdminActionServiceの初期化
+    // メインサービスの初期化
     if (!adminActionService) {
       adminActionService = new AdminActionService();
     }
     await adminActionService.init();
     
-    // AdminSystemServiceの初期化
     if (!adminSystemService) {
       adminSystemService = new AdminSystemService();
     }
     await adminSystemService.init();
     
-    // ArticleDataServiceの初期化確認
-    const articleDataService = getArticleDataService();
-    if (!articleDataService.initialized) {
-      await articleDataService.init();
-    }
+    // データサービスの初期化（エラーがあっても続行）
+    const dataServicePromises = [
+      initDataService(getArticleDataService()),
+      initDataService(getLessonStatusStorageService())
+    ];
     
-    // LessonStatusStorageServiceの初期化確認
-    const lessonStatusService = getLessonStatusStorageService();
-    if (!lessonStatusService.initialized) {
-      await lessonStatusService.init();
-    }
+    await Promise.allSettled(dataServicePromises);
     
     // 初期化完了の通知
     adminLog('管理機能の初期化が完了しました', 'info', 'system');
-    
     console.log('✅ 管理機能初期化完了');
     
     return {
       adminActionService,
       adminSystemService,
-      articleDataService,
-      lessonStatusService,
+      articleDataService: getArticleDataService(),
+      lessonStatusService: getLessonStatusStorageService(),
       notificationService,
       uiManagerService: adminActionService.uiManagerService,
       instagramDataService: adminActionService.instagramDataService,
@@ -136,6 +123,20 @@ export async function initializeAdminFeatures() {
     }
     
     throw error;
+  }
+}
+
+/**
+ * データサービスの安全な初期化
+ * @private
+ */
+async function initDataService(service) {
+  try {
+    if (service && !service.initialized) {
+      await service.init();
+    }
+  } catch (error) {
+    console.warn('データサービス初期化失敗:', error.message);
   }
 }
 

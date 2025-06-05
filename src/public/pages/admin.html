@@ -345,290 +345,176 @@
 
       <!-- レッスン状況タブ -->
       <div class="admin-section" id="lesson-status">
-        <div class="lesson-status-container">
-          <!-- ヘッダー -->
-          <div class="lesson-status-header">
-            <div class="lesson-status-header-content">
-              <div>
-                <h2 class="lesson-status-title">
-                  <i class="fas fa-calendar-check"></i>
-                  レッスン状況管理
-                </h2>
-                <p class="lesson-status-subtitle">
-                  保護者向けのレッスン開催状況を設定・管理できます
-                </p>
-              </div>
-              <div class="current-status-display" id="current-status-display">
-                <div class="current-status-label">現在の状況</div>
-                <div class="current-status-value">
-                  <i class="fas fa-clock"></i>
-                  読み込み中...
-                </div>
-              </div>
+        <div class="section-header">
+          <h1><i class="fas fa-calendar-check"></i> レッスン状況管理</h1>
+        </div>
+
+        <!-- 現在の状況表示 -->
+        <div class="current-status-card">
+          <div class="status-header">
+            <h3><i class="fas fa-info-circle"></i> 現在の状況</h3>
+            <span class="status-date" id="current-status-date">今日</span>
+          </div>
+          <div class="status-display" id="current-status-display">
+            <div class="status-indicator">
+              <i class="fas fa-check-circle status-icon"></i>
+              <span class="status-text">通常開催</span>
+            </div>
+            <div class="status-updated">
+              最終更新: <span id="last-updated">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 設定フォーム -->
+        <div class="lesson-form-container">
+          <div class="form-header">
+            <h3><i class="fas fa-edit"></i> レッスン状況を設定</h3>
+            <div class="form-controls">
+              <input type="date" id="lesson-date" class="date-input">
+              <button class="btn btn-outline" data-action="load-lesson-status" id="load-btn">
+                <i class="fas fa-download"></i> 読み込み
+              </button>
             </div>
           </div>
 
-          <!-- メインコンテンツ -->
-          <div class="lesson-status-main">
-            
-            <!-- 日付・クイック設定バー -->
-            <div class="lesson-status-controls">
-              <div class="date-control">
-                <label for="lesson-date-modern">対象日</label>
-                <input type="date" id="lesson-date-modern" />
-              </div>
-              <div class="quick-actions">
-                <button class="quick-action-btn" data-action="loadLessonStatusModern" title="選択した日付の設定を読み込み">
-                  <i class="fas fa-download"></i>
-                  読み込み
-                </button>
-                <button class="quick-action-btn" data-action="copyPreviousDay" title="前日の設定をコピー">
-                  <i class="fas fa-copy"></i>
-                  前日をコピー
-                </button>
-                <button class="quick-action-btn primary" data-action="previewLessonStatus" title="LP側での表示をプレビュー">
-                  <i class="fas fa-eye"></i>
-                  プレビュー
-                </button>
+          <form class="lesson-form" id="lesson-form">
+            <!-- 全体ステータス -->
+            <div class="form-section">
+              <label class="section-label">
+                <i class="fas fa-bullhorn"></i>
+                全体開催ステータス
+              </label>
+              <div class="status-options">
+                <label class="status-option">
+                  <input type="radio" name="global-status" value="scheduled" checked>
+                  <div class="option-card scheduled">
+                    <i class="fas fa-check-circle"></i>
+                    <span>通常開催</span>
+                  </div>
+                </label>
+                <label class="status-option">
+                  <input type="radio" name="global-status" value="cancelled">
+                  <div class="option-card cancelled">
+                    <i class="fas fa-times-circle"></i>
+                    <span>中止</span>
+                  </div>
+                </label>
+                <label class="status-option">
+                  <input type="radio" name="global-status" value="indoor">
+                  <div class="option-card indoor">
+                    <i class="fas fa-home"></i>
+                    <span>室内開催</span>
+                  </div>
+                </label>
+                <label class="status-option">
+                  <input type="radio" name="global-status" value="postponed">
+                  <div class="option-card postponed">
+                    <i class="fas fa-clock"></i>
+                    <span>延期</span>
+                  </div>
+                </label>
               </div>
             </div>
 
-            <!-- 統合設定パネル -->
-            <div class="lesson-status-panel">
+            <!-- 全体メッセージ -->
+            <div class="form-section">
+              <label for="global-message" class="section-label">
+                <i class="fas fa-comment"></i>
+                全体向けメッセージ（任意）
+              </label>
+              <textarea id="global-message" placeholder="保護者向けの追加メッセージがあれば入力してください" rows="3"></textarea>
+            </div>
+
+            <!-- コース別設定 -->
+            <div class="form-section">
+              <label class="section-label">
+                <i class="fas fa-users"></i>
+                コース別設定
+              </label>
               
-              <!-- 全体開催ステータス設定 -->
-              <div class="panel-section">
-                <div class="section-header">
-                  <h3 class="section-title">
-                    <i class="fas fa-bullhorn"></i>
-                    全体開催ステータス
-                  </h3>
-                  <button class="section-toggle" type="button" aria-label="セクションを開閉">
-                    <i class="fas fa-chevron-down"></i>
-                  </button>
-                </div>
-                <div class="section-content">
-                  <div class="global-status-grid">
-                    
-                    <!-- 通常開催 -->
-                    <label class="status-option-modern scheduled">
-                      <input type="radio" name="global-status-modern" value="通常開催" checked>
-                      <div class="status-card">
-                        <div class="status-icon-modern">
-                          <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="status-label">通常開催</div>
-                      </div>
-                    </label>
-
-                    <!-- 中止 -->
-                    <label class="status-option-modern cancelled">
-                      <input type="radio" name="global-status-modern" value="中止">
-                      <div class="status-card">
-                        <div class="status-icon-modern">
-                          <i class="fas fa-times-circle"></i>
-                        </div>
-                        <div class="status-label">中止</div>
-                      </div>
-                    </label>
-
-                    <!-- 室内開催 -->
-                    <label class="status-option-modern indoor">
-                      <input type="radio" name="global-status-modern" value="室内開催">
-                      <div class="status-card">
-                        <div class="status-icon-modern">
-                          <i class="fas fa-home"></i>
-                        </div>
-                        <div class="status-label">室内開催</div>
-                      </div>
-                    </label>
-
-                    <!-- 延期 -->
-                    <label class="status-option-modern postponed">
-                      <input type="radio" name="global-status-modern" value="延期">
-                      <div class="status-card">
-                        <div class="status-icon-modern">
-                          <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="status-label">延期</div>
-                      </div>
-                    </label>
-
+              <div class="course-settings">
+                <!-- ベーシックコース -->
+                <div class="course-card">
+                  <div class="course-header">
+                    <h4>ベーシックコース</h4>
+                    <span class="course-time">17:00 - 17:50</span>
                   </div>
-
-                  <!-- グローバルメッセージ -->
-                  <div class="message-field">
-                    <label for="global-message-modern">全体向けメッセージ（任意）</label>
-                    <textarea id="global-message-modern" rows="3" placeholder="保護者向けの追加メッセージがあれば入力してください"></textarea>
-                    <div class="message-help">
-                      <i class="fas fa-info-circle"></i>
-                      このメッセージは全てのコースに表示されます
-                    </div>
+                  <div class="course-options">
+                    <label class="course-option">
+                      <input type="radio" name="basic-status" value="scheduled" checked>
+                      <span class="option-text scheduled">通常開催</span>
+                    </label>
+                    <label class="course-option">
+                      <input type="radio" name="basic-status" value="cancelled">
+                      <span class="option-text cancelled">中止</span>
+                    </label>
+                    <label class="course-option">
+                      <input type="radio" name="basic-status" value="indoor">
+                      <span class="option-text indoor">室内開催</span>
+                    </label>
+                    <label class="course-option">
+                      <input type="radio" name="basic-status" value="postponed">
+                      <span class="option-text postponed">延期</span>
+                    </label>
                   </div>
+                  <textarea id="basic-message" placeholder="ベーシックコース向けメッセージ（任意）" rows="2"></textarea>
                 </div>
-              </div>
 
-              <!-- コース別設定 -->
-              <div class="panel-section">
-                <div class="section-header">
-                  <h3 class="section-title">
-                    <i class="fas fa-users"></i>
-                    コース別個別設定
-                  </h3>
-                  <button class="section-toggle" type="button" aria-label="セクションを開閉">
-                    <i class="fas fa-chevron-down"></i>
-                  </button>
-                </div>
-                <div class="section-content">
-                  <div class="courses-grid">
-                    
-                    <!-- ベーシックコース -->
-                    <div class="course-card">
-                      <div class="course-header">
-                        <h4 class="course-name">ベーシックコース</h4>
-                        <div class="course-time">
-                          17:00 - 17:50
-                        </div>
-                      </div>
-                      <div class="course-body">
-                        <div class="course-status-options">
-                          <label class="course-status-option scheduled">
-                            <input type="radio" name="basic-status" value="通常開催" checked>
-                            <div class="course-option-card">
-                              <div class="course-option-icon">
-                                <i class="fas fa-check-circle"></i>
-                              </div>
-                              <span class="course-option-text">通常開催</span>
-                            </div>
-                          </label>
-                          <label class="course-status-option cancelled">
-                            <input type="radio" name="basic-status" value="中止">
-                            <div class="course-option-card">
-                              <div class="course-option-icon">
-                                <i class="fas fa-times-circle"></i>
-                              </div>
-                              <span class="course-option-text">中止</span>
-                            </div>
-                          </label>
-                          <label class="course-status-option indoor">
-                            <input type="radio" name="basic-status" value="室内開催">
-                            <div class="course-option-card">
-                              <div class="course-option-icon">
-                                <i class="fas fa-home"></i>
-                              </div>
-                              <span class="course-option-text">室内開催</span>
-                            </div>
-                          </label>
-                          <label class="course-status-option postponed">
-                            <input type="radio" name="basic-status" value="延期">
-                            <div class="course-option-card">
-                              <div class="course-option-icon">
-                                <i class="fas fa-clock"></i>
-                              </div>
-                              <span class="course-option-text">延期</span>
-                            </div>
-                          </label>
-                        </div>
-                        <div class="message-field">
-                          <label for="basic-message">ベーシックコース向けメッセージ（任意）</label>
-                          <textarea id="basic-message" rows="2" placeholder="ベーシックコース特有の注意事項があれば入力"></textarea>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- アドバンスコース -->
-                    <div class="course-card">
-                      <div class="course-header">
-                        <h4 class="course-name">アドバンスコース</h4>
-                        <div class="course-time">
-                          18:00 - 18:50
-                        </div>
-                      </div>
-                      <div class="course-body">
-                        <div class="course-status-options">
-                          <label class="course-status-option scheduled">
-                            <input type="radio" name="advance-status" value="通常開催" checked>
-                            <div class="course-option-card">
-                              <div class="course-option-icon">
-                                <i class="fas fa-check-circle"></i>
-                              </div>
-                              <span class="course-option-text">通常開催</span>
-                            </div>
-                          </label>
-                          <label class="course-status-option cancelled">
-                            <input type="radio" name="advance-status" value="中止">
-                            <div class="course-option-card">
-                              <div class="course-option-icon">
-                                <i class="fas fa-times-circle"></i>
-                              </div>
-                              <span class="course-option-text">中止</span>
-                            </div>
-                          </label>
-                          <label class="course-status-option indoor">
-                            <input type="radio" name="advance-status" value="室内開催">
-                            <div class="course-option-card">
-                              <div class="course-option-icon">
-                                <i class="fas fa-home"></i>
-                              </div>
-                              <span class="course-option-text">室内開催</span>
-                            </div>
-                          </label>
-                          <label class="course-status-option postponed">
-                            <input type="radio" name="advance-status" value="延期">
-                            <div class="course-option-card">
-                              <div class="course-option-icon">
-                                <i class="fas fa-clock"></i>
-                              </div>
-                              <span class="course-option-text">延期</span>
-                            </div>
-                          </label>
-                        </div>
-                        <div class="message-field">
-                          <label for="advance-message">アドバンスコース向けメッセージ（任意）</label>
-                          <textarea id="advance-message" rows="2" placeholder="アドバンスコース特有の注意事項があれば入力"></textarea>
-                        </div>
-                      </div>
-                    </div>
-
+                <!-- アドバンスコース -->
+                <div class="course-card">
+                  <div class="course-header">
+                    <h4>アドバンスコース</h4>
+                    <span class="course-time">18:00 - 18:50</span>
                   </div>
+                  <div class="course-options">
+                    <label class="course-option">
+                      <input type="radio" name="advance-status" value="scheduled" checked>
+                      <span class="option-text scheduled">通常開催</span>
+                    </label>
+                    <label class="course-option">
+                      <input type="radio" name="advance-status" value="cancelled">
+                      <span class="option-text cancelled">中止</span>
+                    </label>
+                    <label class="course-option">
+                      <input type="radio" name="advance-status" value="indoor">
+                      <span class="option-text indoor">室内開催</span>
+                    </label>
+                    <label class="course-option">
+                      <input type="radio" name="advance-status" value="postponed">
+                      <span class="option-text postponed">延期</span>
+                    </label>
+                  </div>
+                  <textarea id="advance-message" placeholder="アドバンスコース向けメッセージ（任意）" rows="2"></textarea>
                 </div>
-              </div>
-
-            </div>
-
-            <!-- プレビューパネル -->
-            <div id="preview-section" class="preview-panel preview-hidden">
-              <div class="preview-header">
-                <h4>
-                  <i class="fas fa-eye"></i>
-                  LP側プレビュー
-                </h4>
-              </div>
-              <div id="live-preview-content" class="preview-content">
-                <!-- プレビュー内容がここに動的に生成されます -->
               </div>
             </div>
 
             <!-- アクションボタン -->
-            <div class="lesson-status-actions">
-              <div class="actions-left">
-                <button class="action-btn-secondary" data-action="saveDraftLessonStatus">
-                  <i class="fas fa-save"></i>
-                  下書き保存
-                </button>
-                <button class="action-btn-secondary" data-action="resetLessonStatus">
-                  <i class="fas fa-undo"></i>
-                  リセット
-                </button>
-              </div>
-              <div class="actions-right">
-                <button class="action-btn-primary" data-action="updateLessonStatusModern">
-                  <i class="fas fa-upload"></i>
-                  保存して公開
-                </button>
-              </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn-outline" data-action="preview-lesson-status">
+                <i class="fas fa-eye"></i> プレビュー
+              </button>
+              <button type="button" class="btn btn-secondary" data-action="save-draft-lesson-status">
+                <i class="fas fa-save"></i> 下書き保存
+              </button>
+              <button type="button" class="btn btn-primary" data-action="update-lesson-status">
+                <i class="fas fa-upload"></i> 保存して公開
+              </button>
             </div>
+          </form>
+        </div>
 
+        <!-- プレビューエリア -->
+        <div class="preview-container" id="preview-container" style="display: none;">
+          <div class="preview-header">
+            <h3><i class="fas fa-eye"></i> プレビュー</h3>
+            <button class="btn btn-sm btn-outline" onclick="document.getElementById('preview-container').style.display='none'">
+              <i class="fas fa-times"></i> 閉じる
+            </button>
+          </div>
+          <div class="preview-content" id="preview-content">
+            <!-- プレビュー内容 -->
           </div>
         </div>
       </div>
