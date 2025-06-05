@@ -44,7 +44,7 @@ function setupBannerControl() {
  */
 window.showAuthStatus = function() {
   try {
-    const authData = localStorage.getItem('rbs_admin_auth');
+    const authData = localStorage.getItem(CONFIG.storage.keys.adminAuth);
     if (!authData) {
       console.log('🔐 認証状態: 未ログイン');
       return;
@@ -73,9 +73,9 @@ window.showAuthStatus = function() {
  */
 window.clearAuthData = function() {
   try {
-    localStorage.removeItem('rbs_admin_auth');
-    localStorage.removeItem('rbs_admin_attempts');
-    localStorage.removeItem('rbs_admin_last_attempt');
+    localStorage.removeItem(CONFIG.storage.keys.adminAuth);
+    localStorage.removeItem(CONFIG.storage.keys.authAttempts);
+    localStorage.removeItem(CONFIG.storage.keys.authLastAttempt);
     console.log('🧹 認証データをクリアしました');
     
     // 現在のページがadmin系の場合は警告
@@ -101,7 +101,7 @@ window.createTestSession = function(durationHours = 24) {
       version: '2.0'
     };
     
-    localStorage.setItem('rbs_admin_auth', JSON.stringify(testAuthData));
+    localStorage.setItem(CONFIG.storage.keys.adminAuth, JSON.stringify(testAuthData));
     console.log('🧪 テストセッションを作成しました:', {
       duration: durationHours + '時間',
       expires: new Date(testAuthData.expires)
@@ -197,19 +197,56 @@ app.init().catch(error => {
 // バナー制御の初期化
 document.addEventListener('DOMContentLoaded', setupBannerControl);
 
-// グローバルエラーハンドラー
+// 改善されたグローバルエラーハンドラー
 window.addEventListener('error', function(event) {
-  console.error('🚨 グローバルエラー:', event.error);
-  if (event.error && event.error.message.includes('critical')) {
-    showCriticalError('重要なエラーが発生しました: ' + event.error.message);
+  // 外部スクリプト（Google関連など）のエラーを無視
+  if (event.filename && (
+    event.filename.includes('google') || 
+    event.filename.includes('search_impl') ||
+    event.filename.includes('common.js') ||
+    event.filename.includes('gstatic') ||
+    event.filename === '' // 外部スクリプトは空になることがある
+  )) {
+    console.debug('🔇 外部スクリプトエラーを無視:', event.filename);
+    return true; // エラーを処理済みとしてマーク
+  }
+  
+  // RBSアプリケーション内のエラーのみログ出力
+  if (event.filename && event.filename.includes('/js/')) {
+    console.error('🚨 RBSアプリケーションエラー:', {
+      message: event.message,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+      error: event.error
+    });
+    
+    if (event.error && event.error.message.includes('critical')) {
+      showCriticalError('重要なエラーが発生しました: ' + event.error.message);
+    }
   }
 });
 
-// 未捕捉のPromise拒否ハンドラー
+// 改善された未捕捉Promise拒否ハンドラー
 window.addEventListener('unhandledrejection', function(event) {
-  console.error('🚨 未捕捉のPromise拒否:', event.reason);
-  if (event.reason && typeof event.reason === 'string' && event.reason.includes('critical')) {
-    showCriticalError('重要なPromiseエラーが発生しました: ' + event.reason);
+  // RBSアプリケーション関連のPromise拒否のみ処理
+  if (event.reason && typeof event.reason === 'object' && event.reason.stack) {
+    // スタックトレースでRBSコードかどうか判定
+    if (event.reason.stack.includes('/js/')) {
+      console.error('🚨 RBS未捕捉Promise拒否:', {
+        reason: event.reason,
+        stack: event.reason.stack
+      });
+      
+      if (typeof event.reason === 'string' && event.reason.includes('critical')) {
+        showCriticalError('重要なPromiseエラーが発生しました: ' + event.reason);
+      }
+    }
+  } else if (typeof event.reason === 'string' && event.reason.includes('rbs')) {
+    console.error('🚨 RBS未捕捉Promise拒否:', event.reason);
+  } else {
+    // 外部ライブラリのPromise拒否は無視
+    console.debug('🔇 外部Promise拒否を無視:', event.reason);
   }
 });
 

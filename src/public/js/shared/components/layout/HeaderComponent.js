@@ -1,5 +1,6 @@
 import { Component } from '../../base/Component.js';
 import { EventBus } from '../../services/EventBus.js';
+import { CONFIG } from '../../constants/config.js';
 
 /**
  * ヘッダー専用コンポーネント（新アーキテクチャ対応）
@@ -506,7 +507,7 @@ class HeaderComponent extends Component {
             
             // セッションストレージに遷移先セクションを保存
             if (section) {
-                sessionStorage.setItem('rbs_target_section', section);
+                sessionStorage.setItem(CONFIG.storage.keys.targetSection, section);
             }
             
             window.location.href = fullUrl;

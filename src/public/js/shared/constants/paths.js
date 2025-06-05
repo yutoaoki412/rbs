@@ -4,6 +4,8 @@
  * @version 1.1.0 - リダイレクトループ防止機能追加
  */
 
+import { CONFIG } from './config.js';
+
 /**
  * リダイレクト履歴管理（ループ防止用）
  */
@@ -397,9 +399,9 @@ export const redirect = {
       // グローバル関数を追加
       window.clearSessionAndRetry = () => {
         // 認証関連のストレージをクリア
-        localStorage.removeItem('rbs_admin_auth');
-        localStorage.removeItem('rbs_auth_attempts');
-        localStorage.removeItem('rbs_auth_last_attempt');
+              localStorage.removeItem(CONFIG.storage.keys.adminAuth);
+      localStorage.removeItem(CONFIG.storage.keys.authAttempts);
+      localStorage.removeItem(CONFIG.storage.keys.authLastAttempt);
         sessionStorage.clear();
         
         // リダイレクト履歴をクリア

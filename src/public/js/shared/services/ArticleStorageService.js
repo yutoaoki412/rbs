@@ -139,37 +139,58 @@ export class ArticleStorageService {
    */
   async migrateExistingData() {
     try {
-      const legacyKeys = [`${CONFIG.storage.prefix}articles_data`]; // 旧ArticleDataServiceのキー
-      let migrated = false;
+      // 統一されたマイグレーション対象キー
+      const legacyKeys = [
+        `${CONFIG.storage.prefix}articles_data`, // 旧ArticleDataService
+        'articles_data', // プレフィックスなし
+        'rbs_news_data', // 別の可能性のあるキー
+      ];
+      
+      let totalMigrated = 0;
       
       for (const legacyKey of legacyKeys) {
         const legacyData = localStorage.getItem(legacyKey);
         if (legacyData) {
-          this.debug(`旧データをマイグレーション中: ${legacyKey}`);
+          this.debug(`旧データを発見: ${legacyKey}`);
           
-          const articles = JSON.parse(legacyData);
-          if (Array.isArray(articles)) {
-            // 既存記事とマージ（重複除去）
-            const existingIds = new Set(this.articles.map(a => a.id));
-            const newArticles = articles.filter(a => !existingIds.has(a.id));
-            
-            this.articles.push(...newArticles);
-            migrated = true;
-            
-            this.debug(`マイグレーション完了: ${newArticles.length}件の記事を統合`);
+          try {
+            const articles = JSON.parse(legacyData);
+            if (Array.isArray(articles) && articles.length > 0) {
+              // 既存記事とマージ（重複除去）
+              const existingIds = new Set(this.articles.map(a => a.id));
+              const newArticles = articles.filter(a => a.id && !existingIds.has(a.id));
+              
+              if (newArticles.length > 0) {
+                this.articles.push(...newArticles);
+                totalMigrated += newArticles.length;
+                this.debug(`${legacyKey}から${newArticles.length}件の記事をマイグレーション`);
+              }
+            }
+          } catch (parseError) {
+            this.warn(`${legacyKey}のパースに失敗:`, parseError.message);
           }
         }
       }
       
-      if (migrated) {
+      if (totalMigrated > 0) {
         // マイグレーション後のデータを保存
         await this.saveData();
         this.categorizeArticles();
         
-        // 旧データの削除確認（開発環境のみ）
+        this.log(`合計${totalMigrated}件の記事をマイグレーションしました`);
+        
+        // EventBus通知
+        EventBus.emit('articleStorage:migrationCompleted', {
+          totalMigrated,
+          totalArticles: this.articles.length
+        });
+        
+        // 開発環境では旧データを保持（安全性のため）
         if (CONFIG.app.environment === 'development') {
-          this.log('旧データの削除はスキップしました（開発環境）');
+          this.log('開発環境のため旧データは保持されています');
         }
+      } else {
+        this.debug('マイグレーション対象のデータはありませんでした');
       }
       
     } catch (error) {

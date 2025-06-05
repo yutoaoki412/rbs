@@ -47,10 +47,19 @@ const config = {
       
       // Instagram連携
       instagram: 'rbs_instagram_data',
+      instagramPosts: 'rbs_instagram_posts',
+      instagramSettings: 'rbs_instagram_settings',
       
       // 認証関連
       authAttempts: 'rbs_auth_attempts',
-      authLastAttempt: 'rbs_auth_last_attempt'
+      authLastAttempt: 'rbs_auth_last_attempt',
+      
+      // 管理画面設定
+      adminSettings: 'rbs_admin_settings',
+      notificationMode: 'rbs_notification_mode',
+      
+      // セッション関連
+      targetSection: 'rbs_target_section'
     },
     autoSaveInterval: 3000,
     cleanupInterval: 30 * 60 * 1000,

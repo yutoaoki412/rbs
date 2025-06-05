@@ -1000,11 +1000,11 @@ export class AdminActionService {
       }
       
       // 現在の状態を取得
-      const currentMode = localStorage.getItem('rbs_notification_mode') || 'off';
+      const currentMode = localStorage.getItem(CONFIG.storage.keys.notificationMode) || 'off';
       const newMode = currentMode === 'on' ? 'off' : 'on';
       
       // 状態を保存
-      localStorage.setItem('rbs_notification_mode', newMode);
+              localStorage.setItem(CONFIG.storage.keys.notificationMode, newMode);
       
       // UIを更新
       if (newMode === 'on') {
@@ -1038,12 +1038,12 @@ export class AdminActionService {
       
       // 現在の設定を収集
       const settings = {
-        notificationMode: localStorage.getItem('rbs_notification_mode') || 'off',
+        notificationMode: localStorage.getItem(CONFIG.storage.keys.notificationMode) || 'off',
         lastSaved: new Date().toISOString()
       };
       
       // 設定を保存
-      localStorage.setItem('rbs_admin_settings', JSON.stringify(settings));
+      localStorage.setItem(CONFIG.storage.keys.adminSettings, JSON.stringify(settings));
       
       this._showFeedback('設定を保存しました', 'success');
       this.debug('SUCCESS 設定保存完了:', settings);
@@ -2320,10 +2320,9 @@ export class AdminActionService {
       
       // Instagram関連データのクリア
       const instagramKeys = [
-        `${CONFIG.storage.prefix}instagram_posts`,
-        `${CONFIG.storage.prefix}instagram_settings`,
-        'rbs_instagram_posts',  // 旧形式
-        'rbs_instagram_settings'  // 旧形式
+        CONFIG.storage.keys.instagram,
+        CONFIG.storage.keys.instagramPosts,
+        CONFIG.storage.keys.instagramSettings
       ];
       
       instagramKeys.forEach(key => {
