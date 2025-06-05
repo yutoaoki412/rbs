@@ -532,7 +532,7 @@ export class Application {
         statusContainer.className = 'status-banner lesson-status';
         statusContainer.innerHTML = `
           <div class="container">
-            <div class="status-header" data-action="toggle-status" style="cursor: pointer;" aria-expanded="false">
+            <div class="status-header status-header-clickable" data-action="toggle-status" aria-expanded="false">
               <div class="status-info">
                 <span class="status-dot"></span>
                 <span class="status-text">本日のレッスン開催状況</span>
@@ -546,7 +546,7 @@ export class Application {
                   <p>レッスン状況を読み込み中...</p>
                 </div>
               </div>
-              <div class="status-message" id="global-status-message" style="display: none;">
+              <div class="status-message status-message-hidden" id="global-status-message">
                 <div class="message-content">
                   <i class="fas fa-info-circle"></i>
                   <span id="global-message-text"></span>

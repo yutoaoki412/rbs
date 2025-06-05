@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="../css/common.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/admin.css">
+  <link rel="stylesheet" href="../css/utilities/style-utils.css">
   <link rel="stylesheet" href="../css/components/recent-articles.css">
   <link rel="stylesheet" href="../css/components/lesson-status-admin.css">
   
@@ -712,111 +713,54 @@
 
   <!-- アプリケーション初期化 -->
   <script type="module">
-    import { app } from '../js/core/Application.js';
+    import { initAdminFeature } from '../js/features/admin/index.js';
     
-    // 標準的なApplication.jsを使った初期化
     document.addEventListener('DOMContentLoaded', async () => {
       try {
-        console.log('🚀 RBS管理画面 - Application初期化開始');
+        console.log('🚀 RBS管理画面初期化開始');
         
-        // LocalStorageクリーンアップ（開発時）
-        const cleanupOldData = () => {
-          console.log('🧹 LocalStorageクリーンアップ開始');
-          
-          // Instagram関連の古いデータを削除
-          const keysToRemove = [];
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && (key.includes('instagram') || key.includes('Instagram'))) {
-              keysToRemove.push(key);
-            }
-          }
-          
-          keysToRemove.forEach(key => {
-            localStorage.removeItem(key);
-            console.log(`🗑️ 削除: ${key}`);
-          });
-          
-          // 古い記事データで問題のあるものがあれば修正
-          const articlesKey = 'rbs_articles';
-          const articlesData = localStorage.getItem(articlesKey);
-          if (articlesData) {
-            try {
-              const articles = JSON.parse(articlesData);
-              if (Array.isArray(articles)) {
-                // 無効な記事データを除去
-                const validArticles = articles.filter(article => 
-                  article && 
-                  article.id && 
-                  article.title && 
-                  !article.title.includes('Instagram管理')
-                );
-                
-                if (validArticles.length !== articles.length) {
-                  localStorage.setItem(articlesKey, JSON.stringify(validArticles));
-                  console.log(`🔧 記事データを修正: ${articles.length} → ${validArticles.length}件`);
-                }
-              }
-            } catch (error) {
-              console.warn('記事データの解析でエラー:', error);
-              localStorage.removeItem(articlesKey);
-            }
-          }
-          
-          console.log('✅ LocalStorageクリーンアップ完了');
-        };
-        
-        // 初期化前にダッシュボードタブを強制表示
+        // ダッシュボードタブを初期表示
         const initializeDashboard = () => {
-          // 全ての.admin-sectionからactiveクラスを削除
           document.querySelectorAll('.admin-section').forEach(section => {
             section.classList.remove('active');
           });
-          
-          // 全ての.nav-itemからactiveクラスを削除
           document.querySelectorAll('.nav-item').forEach(navItem => {
             navItem.classList.remove('active');
           });
           
-          // ダッシュボードをアクティブに設定
           const dashboardSection = document.getElementById('dashboard');
           const dashboardNav = document.querySelector('[data-tab="dashboard"]');
           
           if (dashboardSection) {
             dashboardSection.classList.add('active');
-            console.log('✅ ダッシュボードセクションをアクティブに設定');
           }
-          
           if (dashboardNav) {
             dashboardNav.classList.add('active');
-            console.log('✅ ダッシュボードナビをアクティブに設定');
           }
           
-          // LocalStorageにダッシュボード状態を保存
           localStorage.setItem('rbs_admin_tab', 'dashboard');
         };
         
-        // データクリーンアップを実行
-        cleanupOldData();
-        
-        // 即座にダッシュボードを表示
         initializeDashboard();
         
-        await app.init();
-        console.log('✅ RBS管理画面 - Application初期化完了');
+        // 統一された管理機能初期化
+        await initAdminFeature();
         
-        // 初期化完了後も念のためダッシュボードを確認
-        setTimeout(initializeDashboard, 100);
+        console.log('✅ RBS管理画面初期化完了');
         
       } catch (error) {
-        console.error('❌ Application初期化エラー:', error);
+        console.error('❌ 管理画面初期化エラー:', error);
         
-        // エラー時はログイン画面にリダイレクト
-        const shouldRedirect = confirm(
-          `管理画面の初期化に失敗しました。\n\nエラー: ${error.message}\n\nログイン画面に戻りますか？`
-        );
-        if (shouldRedirect) {
-          window.location.href = 'admin-login.html';
+        // エラー処理は initAdminFeature 内で実行済み
+        // ここでは追加のフォールバック処理のみ
+        if (!window.location.pathname.includes('admin-login.html')) {
+          const shouldRedirect = confirm(
+            `管理画面の初期化に失敗しました。\n\nエラー: ${error.message}\n\nログイン画面に戻りますか？`
+          );
+          if (shouldRedirect) {
+            localStorage.removeItem('rbs_admin_auth');
+            window.location.replace('admin-login.html?from=admin');
+          }
         }
       }
     });
@@ -859,36 +803,20 @@
         
         // 簡易通知要素を作成
         const notification = document.createElement('div');
-        notification.className = 'global-notification';
-        notification.style.cssText = `
-          position: fixed;
-          top: 80px;
-          right: 24px;
-          padding: 16px 20px;
-          border-radius: 12px;
-          color: white;
-          font-weight: 600;
-          z-index: 9999;
-          max-width: 400px;
-          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-          background: ${type === 'success' ? '#22c55e' : 
-                      type === 'error' ? '#ef4444' : 
-                      type === 'warning' ? '#f59e0b' : '#3b82f6'};
-          transform: translateX(100%);
-          transition: all 0.3s ease;
-        `;
+        notification.className = `global-notification ${type}`;
         notification.textContent = message;
         
         document.body.appendChild(notification);
         
         // アニメーション
         setTimeout(() => {
-          notification.style.transform = 'translateX(0)';
+          notification.classList.add('show');
         }, 10);
         
         // 自動削除
         setTimeout(() => {
-          notification.style.transform = 'translateX(100%)';
+          notification.classList.remove('show');
+          notification.classList.add('hide');
           setTimeout(() => {
             if (notification.parentNode) {
               notification.remove();

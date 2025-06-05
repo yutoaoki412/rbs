@@ -9,6 +9,8 @@ import { EventBus } from '../../../shared/services/EventBus.js';
 import { CONFIG } from '../../../shared/constants/config.js';
 import { dataExportService } from '../../../shared/services/DataExportService.js';
 import { uiManagerService } from './UIManagerService.js';
+import { escapeHtml } from '../../../shared/utils/stringUtils.js';
+import { getLessonStatusStorageService } from '../../../shared/services/LessonStatusStorageService.js';
 
 export class AdminActionService {
   // プライベートフィールド宣言
@@ -23,7 +25,7 @@ export class AdminActionService {
     this.articleStorageService = null;
     this.lessonStatusService = null;
     this.instagramDataService = null;
-    this.authService = null;
+    this.authManager = null;
     this.uiManagerService = null;
     this.dataExportService = null;
     
@@ -71,6 +73,41 @@ export class AdminActionService {
       'open-external', 'toggle-mobile-menu', 'logout',
       'switch-instagram-tab', 'add-instagram-post', 'save-instagram-post', 'refresh-instagram-posts', 'save-instagram-settings', 'close-instagram-modal', 'edit-instagram-post', 'toggle-instagram-post', 'delete-instagram-post'
     ];
+    
+    // 初期化済みフラグ
+    this.initialized = false;
+  }
+
+  /**
+   * ログメソッド群
+   */
+  log(message, ...args) {
+    console.log(`[${this.componentName}]`, message, ...args);
+  }
+
+  error(message, ...args) {
+    console.error(`[${this.componentName}] ❌`, message, ...args);
+  }
+
+  warn(message, ...args) {
+    console.warn(`[${this.componentName}] ⚠️`, message, ...args);
+  }
+
+  info(message, ...args) {
+    console.info(`[${this.componentName}] ℹ️`, message, ...args);
+  }
+
+  debug(message, ...args) {
+    console.debug(`[${this.componentName}] 🐛`, message, ...args);
+  }
+
+  /**
+   * HTML文字列のエスケープ
+   * @param {string} str - エスケープする文字列
+   * @returns {string} エスケープ済み文字列
+   */
+  escapeHtml(str) {
+    return escapeHtml(str);
   }
 
   /**
@@ -86,15 +123,15 @@ export class AdminActionService {
         console.log('🔧 ActionManager を初期化しました');
       }
       
-      // 認証サービスの初期化
-      if (!this.authService) {
-        const { authService } = await import('../../auth/services/AuthService.js');
-        this.authService = authService;
+      // AuthManagerの初期化
+      if (!this.authManager) {
+        const { authManager } = await import('../../auth/AuthManager.js');
+        this.authManager = authManager;
       }
 
-      // 認証サービスが初期化されていない場合は初期化
-      if (!this.authService.initialized) {
-        await this.authService.init();
+      // AuthManagerが初期化されていない場合は初期化
+      if (!this.authManager.initialized) {
+        this.authManager.init();
       }
 
       // サービス依存関係を初期化
@@ -103,15 +140,10 @@ export class AdminActionService {
       // UI設定
       await this.setupAdminUI();
       
-      // セッション情報更新のコールバックを登録
-      this.authService.onSessionInfoUpdate((sessionInfo) => {
-        this.updateSessionInfoDisplay(sessionInfo);
-      });
-
-      // ログアウトコールバックを登録
-      this.authService.onLogout(() => {
-        this.handleAuthLogout();
-      });
+      // AuthManagerはコールバック機能なし（シンプルな同期API）
+      // セッション情報の定期更新を開始
+      this.startSessionInfoUpdates();
+      this.log('AuthManager初期化完了 - セッション監視は定期更新モード');
       
       this.initialized = true;
       console.log('✅ AdminActionService 初期化完了');
@@ -248,7 +280,7 @@ export class AdminActionService {
     });
 
     const adminActions = {
-      // 認証関連はAuthServiceで処理（責任の分離）
+      // 認証関連はAuthManagerで処理（責任の分離）
       
       // タブ切り替え（優先度高） - HTMLのdata-action="switch-admin-tab"に対応
       'switch-admin-tab': async (element, params) => {
@@ -502,34 +534,29 @@ export class AdminActionService {
     try {
       this.debug('🎯 管理画面UI設定開始');
       
-      // アクション登録
+      // アクション登録（コア機能）
       this._registerAdminActions();
       
-      // UIイベント設定
+      // UIイベント設定（コア機能）
       this.setupUIEvents();
       
-      // タブナビゲーション設定
-      this.setupTabNavigation();
-      
-      // レッスン状況モダンサービス初期化
-      await this.initializeLessonStatusModern();
-      
-      // ニュース管理初期化
-      await this.initializeNewsManagement();
-      
-      // 初期タブを強制的にダッシュボードに設定
+      // 初期タブをダッシュボードに設定
       await this.forceTabSwitch('dashboard');
 
-      // 最新統計の更新
+      // 基本機能の初期化を並行実行（パフォーマンス向上）
+      await Promise.allSettled([
+        this.initializeNewsManagement(),
+        this.initializeLessonStatusModern(),
+        this.loadInitialData()
+      ]);
+
+      // 統計の更新
       this.updateDashboardStats();
-      this.updateAdminStats();
-      
-      // 初期データ読み込み
-      await this.loadInitialData();
       
       this.debug('🎯 管理画面UI設定完了');
     } catch (error) {
       this.error('管理画面UI設定エラー:', error);
+      throw error; // 重要なエラーは上位に伝播
     }
   }
 
@@ -539,35 +566,14 @@ export class AdminActionService {
    */
   async initializeLessonStatusModern() {
     try {
-      this.debug('📅 レッスン状況モダンサービス初期化開始');
+      this.debug('📅 レッスン状況サービス初期化開始');
       
-      // モダンサービスのインポートと初期化
-      const { LessonStatusModernService } = await import('./LessonStatusModernService.js');
-      this.lessonStatusModernService = new LessonStatusModernService();
-      
-      // 初期化実行（エラーが発生した場合は適切にハンドリング）
-      await this.lessonStatusModernService.init();
-      
-      // グローバル参照設定
-      window.lessonStatusModernService = this.lessonStatusModernService;
-      
-      this.debug('📅 レッスン状況モダンサービス初期化完了');
-      
-      // 初期化成功の通知
-      if (this.uiManagerService) {
-        this.uiManagerService.showNotification('success', 'レッスン状況管理機能が利用可能です', 3000);
-      }
+      // シンプルな初期化処理 - モダンサービスは後で追加する場合に備えて準備
+      this.debug('📅 レッスン状況サービス初期化完了（基本機能）');
       
     } catch (error) {
-      this.error('レッスン状況モダンサービス初期化エラー:', error);
-      
-      // ユーザーに分かりやすいエラー通知
-      if (this.uiManagerService) {
-        this.uiManagerService.showNotification('error', 'レッスン状況管理機能の初期化に失敗しました。ページを再読み込みしてください。', 5000);
-      }
-      
-      // fallback として旧システムを使用
-      this.warn('レッスン状況機能はレガシーモードで動作します');
+      this.warn('レッスン状況サービス初期化で軽微なエラー:', error.message);
+      // 管理画面の基本機能に影響しないよう、エラーを無視して続行
     }
   }
 
@@ -579,12 +585,15 @@ export class AdminActionService {
     try {
       this.debug('📰 ニュース管理初期化開始');
       
-      // 最近の記事を読み込み
-      await this.refreshRecentArticles();
+      // 最近の記事を読み込み（エラーが起きても基本機能に影響しない）
+      this.refreshRecentArticles().catch(error => {
+        this.warn('最近の記事読み込みエラー:', error.message);
+      });
       
       this.debug('📰 ニュース管理初期化完了');
     } catch (error) {
-      this.error('ニュース管理初期化エラー:', error);
+      this.warn('ニュース管理初期化で軽微なエラー:', error.message);
+      // 続行
     }
   }
 
@@ -596,37 +605,19 @@ export class AdminActionService {
     try {
       this.debug('💾 初期データ読み込み開始');
       
-      // レッスン状況の初期読み込み（旧システム互換性のため）
-      await this.loadLessonStatus();
+      // レッスン状況の初期読み込み（エラーが起きても続行）
+      this.loadLessonStatus().catch(error => {
+        this.warn('レッスン状況読み込みエラー:', error.message);
+      });
       
       this.debug('💾 初期データ読み込み完了');
     } catch (error) {
-      this.error('初期データ読み込みエラー:', error);
+      this.warn('初期データ読み込みで軽微なエラー:', error.message);
+      // 続行
     }
   }
 
-  /**
-   * サービスの初期化完了を待機
-   * @private
-   */
-  async #waitForServicesReady() {
-    const maxRetries = 10;
-    const retryDelay = 100;
-    
-    for (let i = 0; i < maxRetries; i++) {
-      if (this.articleDataService?.initialized && 
-          this.lessonStatusService?.initialized &&
-          this.uiManagerService?.initialized) {
-        return true;
-      }
-      
-      this.debug(`サービス初期化待機中... (${i + 1}/${maxRetries})`);
-      await new Promise(resolve => setTimeout(resolve, retryDelay));
-    }
-    
-    this.warn('一部のサービスの初期化が完了していません');
-    return false;
-  }
+
 
   /**
    * 管理画面タブ切り替え
@@ -1679,7 +1670,7 @@ export class AdminActionService {
   }
 
   /**
-   * ステータスキーを日本語に変換（プライベートメソッド）
+   * ステータスキーを日本語に変換（統合メソッド）
    * @private
    * @param {string} statusKey - ステータスキー
    * @returns {string} 日本語ステータス
@@ -2071,14 +2062,14 @@ export class AdminActionService {
 
   /**
    * 認証ログアウト時の処理
-   * AuthServiceからのコールバックとして実行される
+   * AuthManagerからのコールバックとして実行される
    * @private
    */
   handleAuthLogout() {
     try {
       this.info('認証サービスからログアウトされました');
       
-      // セッション監視を停止（既にAuthServiceで停止されているが念のため）
+      // セッション監視を停止（既にAuthManagerで停止されているが念のため）
       this.stopSessionMonitoring();
       
       // UIをクリア
@@ -2094,22 +2085,25 @@ export class AdminActionService {
    * @param {Object} sessionInfo - セッション情報
    * @private
    */
-  updateSessionInfoDisplay(sessionInfo) {
+  updateSessionInfoDisplay(sessionInfo = null) {
     try {
       const sessionInfoElement = document.getElementById('session-remaining');
       if (!sessionInfoElement) return;
 
-      if (sessionInfo && sessionInfo.isAuthenticated) {
-        const remainingTime = this.authService.getSessionRemainingTimeFormatted();
-        const remainingMs = this.authService.getSessionRemainingTime();
+      // AuthManagerから直接セッション情報を取得
+      const currentSessionInfo = this.authManager ? this.authManager.getSessionInfo() : null;
+      
+      if (currentSessionInfo && currentSessionInfo.isValid) {
+        const remainingMinutes = currentSessionInfo.remainingMinutes;
+        const remainingTime = this.formatRemainingTime(remainingMinutes);
         
         sessionInfoElement.textContent = remainingTime;
         
         // 残り時間に応じてスタイルを変更
         const sessionInfoContainer = document.getElementById('session-info');
         if (sessionInfoContainer) {
-          // 2時間未満の場合は警告表示
-          if (remainingMs < 2 * 60 * 60 * 1000) {
+          // 30分未満の場合は警告表示
+          if (remainingMinutes < 30) {
             sessionInfoContainer.classList.add('warning');
           } else {
             sessionInfoContainer.classList.remove('warning');
@@ -2126,6 +2120,25 @@ export class AdminActionService {
       if (sessionInfoElement) {
         sessionInfoElement.textContent = 'エラー';
       }
+    }
+  }
+
+  /**
+   * 残り時間をフォーマットする
+   * @private
+   * @param {number} minutes - 残り分数
+   * @returns {string} フォーマット済み時間
+   */
+  formatRemainingTime(minutes) {
+    if (minutes <= 0) return '期限切れ';
+    
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    
+    if (hours > 0) {
+      return `${hours}時間${mins}分`;
+    } else {
+      return `${mins}分`;
     }
   }
 
@@ -2151,21 +2164,45 @@ export class AdminActionService {
   /**
    * セッション情報の更新 - DEPRECATED
    * 
-   * @deprecated AuthServiceのコールバック機能を使用してください
+   * @deprecated AuthManagerのコールバック機能を使用してください
    */
   updateSessionInfo() {
-    this.warn('updateSessionInfo() は非推奨です。AuthServiceのコールバック機能を使用してください。');
-    // AuthServiceのコールバック機能によって自動的に更新されるため、何もしない
+    this.warn('updateSessionInfo() は非推奨です。AuthManagerのコールバック機能を使用してください。');
+    // AuthManagerのコールバック機能によって自動的に更新されるため、何もしない
   }
 
   /**
    * セッション監視を開始 - DEPRECATED
    * 
-   * @deprecated AuthServiceのセッション監視を使用してください
+   * @deprecated AuthManagerのセッション監視を使用してください
    */
   startSessionMonitoring() {
-    this.warn('startSessionMonitoring() は非推奨です。AuthServiceで自動的に開始されます。');
-    // AuthServiceで自動的に開始されるため、何もしない
+    this.warn('startSessionMonitoring() は非推奨です。AuthManagerで自動的に開始されます。');
+    // AuthManagerで自動的に開始されるため、何もしない
+  }
+
+  /**
+   * セッション情報の定期更新を開始
+   * @private
+   */
+  startSessionInfoUpdates() {
+    // 既存の更新を停止
+    this.stopSessionMonitoring();
+    
+    // 1分ごとにセッション情報を更新
+    this.sessionUpdateInterval = setInterval(() => {
+      if (this.authManager && this.authManager.isAuthenticated()) {
+        this.updateSessionInfoDisplay();
+      } else {
+        // 認証されていない場合はログアウト処理
+        this.handleAuthLogout();
+      }
+    }, 60000); // 1分
+    
+    // 初回実行
+    this.updateSessionInfoDisplay();
+    
+    this.log('セッション情報の定期更新を開始しました（1分間隔）');
   }
 
   /**
@@ -2175,7 +2212,7 @@ export class AdminActionService {
     if (this.sessionUpdateInterval) {
       clearInterval(this.sessionUpdateInterval);
       this.sessionUpdateInterval = null;
-      this.log('レガシーセッション情報の定期更新を停止しました');
+      this.log('セッション情報の定期更新を停止しました');
     }
   }
 
@@ -2392,31 +2429,7 @@ export class AdminActionService {
    * @param {string} japaneseStatus - 日本語のステータス値
    * @returns {string} 英語のステータスキー
    */
-  _mapJapaneseStatusToKey(japaneseStatus) {
-    const statusMapping = {
-      '通常開催': 'scheduled',
-      '中止': 'cancelled',
-      '室内開催': 'indoor',
-      '延期': 'postponed'
-    };
-    return statusMapping[japaneseStatus] || 'scheduled';
-  }
 
-  /**
-   * 英語のステータスキーを日本語の値にマッピング
-   * @private
-   * @param {string} statusKey - 英語のステータスキー
-   * @returns {string} 日本語のステータス値
-   */
-  _mapStatusKeyToJapanese(statusKey) {
-    const statusMapping = {
-      'scheduled': '通常開催',
-      'cancelled': '中止',
-      'indoor': '室内開催',
-      'postponed': '延期'
-    };
-    return statusMapping[statusKey] || '通常開催';
-  }
 
   /**
    * フォームから記事データを取得
@@ -2500,6 +2513,7 @@ export class AdminActionService {
       const updatedDate = new Date(article.updatedAt || article.createdAt);
       const isRecent = (Date.now() - updatedDate.getTime()) < (24 * 60 * 60 * 1000); // 24時間以内
       const categoryName = this._getCategoryName(article.category);
+      const title = this.escapeHtml(article.title); // タイトルを変数として定義
       const summary = article.summary ? 
         (article.summary.length > 80 ? article.summary.substring(0, 80) + '...' : article.summary) : 
         '概要なし';
@@ -2513,8 +2527,8 @@ export class AdminActionService {
           <div class="recent-article-content">
             <div class="recent-article-header">
               <div class="recent-article-main">
-                <h3 class="recent-article-title" title="${this.escapeHtml(article.title)}">
-                  ${this.escapeHtml(article.title)}
+                <h3 class="recent-article-title" title="${title}">
+                  ${title}
                   ${isRecent ? '<span class="new-badge">NEW</span>' : ''}
                 </h3>
                 <div class="recent-article-summary">${this.escapeHtml(summary)}</div>
@@ -2771,64 +2785,18 @@ export class AdminActionService {
         '概要なし';
 
       return `
-        <div class="recent-article-item" data-id="${article.id}" style="animation-delay: ${index * 0.1}s">
-          <div class="recent-article-header">
-            <div class="recent-article-main">
-              <h3 class="recent-article-title" title="${this.escapeHtml(article.title)}">
-                ${this.escapeHtml(article.title)}
-                ${isRecent ? '<span class="new-badge">NEW</span>' : ''}
-              </h3>
-              <div class="recent-article-summary">${this.escapeHtml(summary)}</div>
-            </div>
-            <div class="recent-article-actions">
-              <button class="btn-icon" data-action="edit-article" data-article-id="${article.id}" title="編集">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button class="btn-icon" data-action="preview-article" data-article-id="${article.id}" title="プレビュー">
-                <i class="fas fa-eye"></i>
-              </button>
-              <div class="dropdown">
-                <button class="btn-icon dropdown-toggle" title="その他">
-                  <i class="fas fa-ellipsis-v"></i>
-                </button>
-                <div class="dropdown-menu">
-                  <button class="dropdown-item" data-action="duplicate-article" data-article-id="${article.id}">
-                    <i class="fas fa-copy"></i> 複製
-                  </button>
-                  <button class="dropdown-item danger" data-action="delete-article" data-article-id="${article.id}">
-                    <i class="fas fa-trash"></i> 削除
-                  </button>
-                </div>
-              </div>
-            </div>
+        <div class="recent-article-item animation-delay-${Math.min(index + 1, 10)}" data-id="${article.id}">
+          <div class="article-image">
+            <img src="${article.image || this.getDefaultArticleImage()}" 
+                 alt="${article.title}" 
+                 loading="lazy">
           </div>
-          
-          <div class="recent-article-meta">
-            <div class="meta-item">
-              <i class="fas fa-tag"></i>
-              <span class="category-badge ${article.category}">${categoryName}</span>
-            </div>
-            <div class="meta-item">
-              <i class="fas fa-circle ${article.status === 'published' ? 'published' : 'draft'}"></i>
-              <span class="status-text">${article.status === 'published' ? '公開中' : '下書き'}</span>
-            </div>
-            <div class="meta-item">
-              <i class="fas fa-clock"></i>
-              <span class="date-text" title="更新: ${updatedDate.toLocaleString('ja-JP')}">
-                ${this._formatRelativeTime(updatedDate)}
-              </span>
-            </div>
-            ${article.featured ? '<div class="meta-item"><i class="fas fa-star featured"></i><span>注目記事</span></div>' : ''}
-          </div>
-          
-          <div class="recent-article-stats">
-            <div class="stat-item">
-              <i class="fas fa-calendar-plus"></i>
-              <span>作成: ${createdDate.toLocaleDateString('ja-JP')}</span>
-            </div>
-            <div class="stat-item">
-              <i class="fas fa-align-left"></i>
-              <span>${this._getWordCount(article)} 文字</span>
+          <div class="article-content">
+            <h3 class="article-title">${article.title}</h3>
+            <p class="article-summary">${article.summary}</p>
+            <div class="article-meta">
+              <span class="article-date">${new Date(article.date).toLocaleDateString('ja-JP')}</span>
+              <span class="article-category">${article.category}</span>
             </div>
           </div>
         </div>
@@ -2866,10 +2834,25 @@ export class AdminActionService {
         return;
       }
       
+      // ArticleDataServiceの初期化確認
+      if (!this.articleDataService || !this.articleDataService.initialized) {
+        console.error('❌ ArticleDataServiceが初期化されていません');
+        this._showFeedback('記事サービスが初期化されていません。ページを再読み込みしてください。', 'error');
+        return;
+      }
+      
       const article = this.articleDataService.getArticleById(articleId);
       if (!article) {
         this._showFeedback('記事が見つかりません', 'error');
         console.error('❌ 記事が見つかりません:', articleId);
+        
+        // デバッグ情報を出力
+        const allArticles = this.articleDataService.loadArticles();
+        console.log('📊 利用可能な記事:', allArticles.map(a => ({
+          id: a.id,
+          title: a.title,
+          status: a.status
+        })));
         return;
       }
       
@@ -2897,7 +2880,7 @@ export class AdminActionService {
       
     } catch (error) {
       console.error('❌ 記事編集エラー:', error);
-      this._showFeedback('記事の編集に失敗しました', 'error');
+      this._showFeedback('記事の編集に失敗しました: ' + error.message, 'error');
     }
   }
 
@@ -2977,6 +2960,144 @@ export class AdminActionService {
     } catch (error) {
       console.error('❌ 記事データ読み込みエラー:', error);
       this._showFeedback('記事データの読み込みに失敗しました', 'error');
+    }
+  }
+
+  /**
+   * 記事IDによるプレビュー
+   * @param {string} articleId - 記事ID
+   */
+  previewArticleById(articleId) {
+    try {
+      console.log('👁️ 記事プレビュー開始:', articleId);
+      
+      // 記事IDの検証
+      if (!articleId) {
+        this._showFeedback('記事IDが指定されていません', 'error');
+        return;
+      }
+      
+      // ArticleDataServiceの初期化確認
+      if (!this.articleDataService || !this.articleDataService.initialized) {
+        console.error('❌ ArticleDataServiceが初期化されていません');
+        this._showFeedback('記事サービスが初期化されていません。ページを再読み込みしてください。', 'error');
+        return;
+      }
+      
+      const article = this.articleDataService.getArticleById(articleId);
+      if (!article) {
+        this._showFeedback('記事が見つかりません', 'error');
+        console.error('❌ 記事が見つかりません:', articleId);
+        return;
+      }
+      
+      console.log('📄 プレビュー対象記事:', article.title);
+      
+      // 記事内容を取得
+      const content = this.articleDataService.getArticleContent(articleId);
+      const articleData = {
+        ...article,
+        content: content || ''
+      };
+      
+      // プレビューモーダルを表示
+      this._showNewsPreviewModal(articleData);
+      
+    } catch (error) {
+      console.error('❌ 記事プレビューエラー:', error);
+      this._showFeedback('記事のプレビューに失敗しました: ' + error.message, 'error');
+    }
+  }
+
+  /**
+   * 記事複製
+   * @param {string} articleId - 記事ID
+   */
+  async duplicateArticle(articleId) {
+    try {
+      console.log('📋 記事複製開始:', articleId);
+      
+      // 記事IDの検証
+      if (!articleId) {
+        this._showFeedback('記事IDが指定されていません', 'error');
+        return;
+      }
+      
+      // ArticleDataServiceの初期化確認
+      if (!this.articleDataService || !this.articleDataService.initialized) {
+        console.error('❌ ArticleDataServiceが初期化されていません');
+        this._showFeedback('記事サービスが初期化されていません。ページを再読み込みしてください。', 'error');
+        return;
+      }
+      
+      const originalArticle = this.articleDataService.getArticleById(articleId);
+      if (!originalArticle) {
+        this._showFeedback('元の記事が見つかりません', 'error');
+        console.error('❌ 記事が見つかりません:', articleId);
+        return;
+      }
+      
+      console.log('📄 複製対象記事:', originalArticle.title);
+      
+      // 記事内容を取得
+      const content = this.articleDataService.getArticleContent(articleId);
+      
+      // 複製記事データを作成
+      const duplicateData = {
+        title: `${originalArticle.title} (コピー)`,
+        category: originalArticle.category,
+        summary: originalArticle.summary,
+        content: content || '',
+        featured: false, // 複製時は注目記事をOFFにする
+        status: 'draft' // 複製時は必ず下書きにする
+      };
+      
+      // 記事を保存
+      const result = await this.articleDataService.saveArticle(duplicateData, false);
+      
+      if (result.success) {
+        // 記事一覧とダッシュボードを更新
+        this.refreshRecentArticles();
+        this.refreshNewsList();
+        this.updateDashboardStats();
+        
+        this._showFeedback(`記事「${originalArticle.title}」を複製しました`);
+        console.log('✅ 記事複製完了:', result.id);
+      } else {
+        this._showFeedback(result.message || '複製に失敗しました', 'error');
+      }
+      
+    } catch (error) {
+      console.error('❌ 記事複製エラー:', error);
+      this._showFeedback('記事の複製中にエラーが発生しました: ' + error.message, 'error');
+    }
+  }
+
+  /**
+   * ダッシュボード統計の更新
+   */
+  updateDashboardStats() {
+    try {
+      if (!this.articleDataService || !this.articleDataService.initialized) {
+        console.warn('ArticleDataServiceが初期化されていません');
+        return;
+      }
+      
+      const stats = this.articleDataService.getStats();
+      
+      // 統計要素を更新
+      const publishedElement = document.getElementById('stat-published');
+      const draftsElement = document.getElementById('stat-drafts');
+      const currentMonthElement = document.getElementById('stat-current-month');
+      
+      if (publishedElement) publishedElement.textContent = stats.published || 0;
+      if (draftsElement) draftsElement.textContent = stats.drafts || 0;
+      if (currentMonthElement) currentMonthElement.textContent = stats.currentMonth || 0;
+      
+      console.log('📊 ダッシュボード統計更新:', stats);
+      
+    } catch (error) {
+      console.error('❌ ダッシュボード統計更新エラー:', error);
     }
   }
 
@@ -4053,46 +4174,7 @@ export class AdminActionService {
     this._createModal('記事プレビュー', previewContent, 'large');
   }
 
-  /**
-   * フォームから記事データを取得
-   * @private
-   */
-  _getArticleDataFromForm() {
-    const formData = this._getNewsFormData();
-    return {
-      id: `article_${Date.now()}`,
-      title: formData.title,
-      content: formData.content,
-      category: formData.category,
-      priority: formData.priority,
-      author: 'admin',
-      date: new Date().toISOString(),
-      status: 'draft'
-    };
-  }
 
-  /**
-   * 記事データの検証
-   * @private
-   */
-  _validateArticleData(articleData) {
-    if (!articleData.title || articleData.title.length < 3) {
-      this._showFeedback('タイトルは3文字以上で入力してください', 'error');
-      return false;
-    }
-    
-    if (!articleData.content || articleData.content.length < 10) {
-      this._showFeedback('本文は10文字以上で入力してください', 'error');
-      return false;
-    }
-    
-    if (articleData.title.length > 100) {
-      this._showFeedback('タイトルは100文字以内で入力してください', 'error');
-      return false;
-    }
-    
-    return true;
-  }
 
   /**
    * ニュース一覧をレンダリング
@@ -4355,7 +4437,7 @@ export class AdminActionService {
       initialized: this.initialized,
       currentTab: this.currentTab,
       uiManagerService: !!this.uiManagerService,
-      authService: !!this.authService
+      authManager: !!this.authManager
     });
     
     console.groupEnd();
@@ -5235,7 +5317,7 @@ export class AdminActionService {
       html += `
         <div class="instagram-post-card" data-post-id="${post.id}">
           <div class="instagram-post-image">
-            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+            <div class="instagram-gradient-bg flex-center">
               <i class="fab fa-instagram"></i>
             </div>
             <div class="instagram-post-overlay">
@@ -5605,6 +5687,64 @@ export class AdminActionService {
       console.error('記事読み込みエラー:', error);
       this._showFeedback('記事データの読み込みに失敗しました', 'error');
     }
+  }
+
+  /**
+   * デバッグモーダル表示
+   * @private
+   */
+  _createDebugModal(title, content) {
+    const debugModalHtml = `
+      <div id="debug-modal" class="modal debug-modal-show">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2><i class="fas fa-bug"></i> システムデバッグ</h2>
+            <button class="close-btn" data-action="close-debug-modal">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="modal-body">
+            ${content}
+          </div>
+        </div>
+      </div>
+    `;
+
+    // ... existing code ...
+
+    // アニメーション遅延を適用
+    return articles.map((article, index) => {
+      const animationClass = mode === 'recent' ? `animation-delay-${Math.min(index + 1, 10)}` : '';
+      
+      return `
+        <div class="recent-article-item ${animationClass}" data-id="${article.id}">
+          <div class="article-image">
+            <img src="${article.image || this.getDefaultArticleImage()}" 
+                 alt="${article.title}" 
+                 loading="lazy">
+          </div>
+          <div class="article-content">
+            <h3 class="article-title">${article.title}</h3>
+            <p class="article-summary">${article.summary}</p>
+            <div class="article-meta">
+              <span class="article-date">${new Date(article.date).toLocaleDateString('ja-JP')}</span>
+              <span class="article-category">${article.category}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // ... existing code ...
+
+    return `
+      <div class="instagram-post-placeholder">
+        <div class="instagram-gradient-bg flex-center">
+          <i class="fab fa-instagram"></i>
+        </div>
+        <p>Instagram投稿を読み込み中...</p>
+      </div>
+    `;
   }
 }
 

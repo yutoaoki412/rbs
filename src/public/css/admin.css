@@ -5894,3 +5894,410 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   }
 }
 
+/* ===== インラインCSS移行クラス ===== */
+
+/* グローバル通知（admin.htmlから移行） */
+.global-notification {
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  z-index: 9999;
+  max-width: 400px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  transform: translateX(100%);
+  transition: all 0.3s ease;
+}
+
+.global-notification.success {
+  background: #22c55e;
+}
+
+.global-notification.error {
+  background: #ef4444;
+}
+
+.global-notification.warning {
+  background: #f59e0b;
+}
+
+.global-notification.info {
+  background: #3b82f6;
+}
+
+.global-notification.show {
+  transform: translateX(0);
+}
+
+.global-notification.hide {
+  transform: translateX(100%);
+}
+
+/* エラー表示ダイアログ（AdminSystemServiceから移行） */
+.admin-error-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  text-align: center;
+  z-index: 9999;
+  max-width: 400px;
+  font-family: sans-serif;
+}
+
+.admin-error-dialog h2 {
+  color: #e53e3e;
+  margin-bottom: 1rem;
+}
+
+.admin-error-dialog p {
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.admin-error-dialog .error-detail {
+  margin-bottom: 1rem;
+  font-size: 0.8em;
+  color: #666;
+  background: #f7f7f7;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.admin-error-dialog .error-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.admin-error-btn {
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.admin-error-btn-primary {
+  background: #4299e1;
+  color: white;
+}
+
+.admin-error-btn-primary:hover {
+  background: #3182ce;
+}
+
+.admin-error-btn-secondary {
+  background: #718096;
+  color: white;
+}
+
+.admin-error-btn-secondary:hover {
+  background: #4a5568;
+}
+
+/* リダイレクトループエラー（paths.jsから移行） */
+.redirect-loop-error {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
+  border: 2px solid #ef4444;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 20px 60px rgba(239, 68, 68, 0.3);
+  text-align: center;
+  z-index: 10000;
+  max-width: 500px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.redirect-loop-error h3 {
+  color: #dc2626;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.redirect-loop-error p {
+  color: #7f1d1d;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.redirect-loop-error .error-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.redirect-loop-error button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.btn-error-primary {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.btn-error-primary:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-1px);
+}
+
+.btn-error-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.btn-error-secondary:hover {
+  background: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+/* アプリ初期化エラー */
+.app-init-error-container {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  z-index: 10000;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.app-init-error-title {
+  color: #d97706;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.app-init-error-text {
+  color: #92400e;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.app-init-error-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.app-init-error-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.app-init-error-btn-primary {
+  background: #f59e0b;
+  color: white;
+}
+
+.app-init-error-btn-primary:hover {
+  background: #d97706;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .global-notification {
+    right: 12px;
+    left: 12px;
+    max-width: none;
+  }
+  
+  .admin-error-dialog,
+  .redirect-loop-error {
+    margin: 20px;
+    max-width: none;
+    left: 20px;
+    right: 20px;
+    transform: translateY(-50%);
+  }
+  
+  .redirect-loop-error .error-actions {
+    flex-direction: column;
+  }
+  
+  .redirect-loop-error button {
+    width: 100%;
+  }
+}
+
+/* ===== バナー制御クラス（main.jsから移行） ===== */
+
+.banner-reset-margin {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* ===== エラー表示統合クラス（main.jsから移行） ===== */
+
+.app-error-container {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  z-index: 10000;
+  font-family: var(--font-family);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.app-error-content {
+  background: linear-gradient(135deg, #fff3cd 0%, #fef7e0 100%);
+  border-left: 4px solid var(--admin-warning);
+  padding: 1.5rem;
+}
+
+.app-error-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+}
+
+.app-error-message {
+  margin: 0 0 1rem 0;
+  color: var(--admin-gray-700);
+  line-height: 1.5;
+}
+
+.app-error-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.app-error-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.app-error-btn-primary {
+  background: var(--admin-primary);
+  color: white;
+}
+
+.app-error-btn-primary:hover {
+  background: var(--admin-primary-dark);
+  transform: translateY(-1px);
+}
+
+.app-error-btn-secondary {
+  background: var(--admin-gray-500);
+  color: white;
+}
+
+.app-error-btn-secondary:hover {
+  background: var(--admin-gray-700);
+  transform: translateY(-1px);
+}
+
+/* 重要エラー表示 */
+.critical-error-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 500px;
+  width: 90%;
+  z-index: 20000;
+  font-family: var(--font-family);
+  box-shadow: 0 20px 60px rgba(231, 76, 60, 0.3);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.critical-error-content {
+  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+  border: 2px solid var(--admin-error);
+  padding: 2rem;
+  text-align: center;
+}
+
+.critical-error-title {
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--admin-error);
+}
+
+.critical-error-message {
+  margin: 0 0 1.5rem 0;
+  color: var(--admin-gray-900);
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.critical-error-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.critical-error-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.critical-error-btn-primary {
+  background: var(--admin-error);
+  color: white;
+}
+
+.critical-error-btn-primary:hover {
+  background: var(--admin-error);
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
+
+.critical-error-btn-secondary {
+  background: var(--admin-gray-600);
+  color: white;
+}
+
+.critical-error-btn-secondary:hover {
+  background: var(--admin-gray-800);
+  transform: translateY(-2px);
+}
+

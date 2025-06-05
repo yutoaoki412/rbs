@@ -441,60 +441,31 @@ export default class Application {
   }
 
   /**
-   * 開発環境用の警告表示
+   * 開発環境警告を表示
    * @private
-   * @param {Error} error - エラーオブジェクト
    */
   showDevelopmentWarning(error) {
     const warningHtml = `
-      <div id="dev-warning" style="
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        width: 400px;
-        background: #fef3c7;
-        border: 2px solid #f59e0b;
-        border-radius: 8px;
-        padding: 1rem;
-        font-family: monospace;
-        font-size: 0.85rem;
-        z-index: 9999;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      ">
-        <h4 style="margin: 0 0 0.5rem 0; color: #92400e; font-size: 1rem;">
-          🚧 開発環境: 管理画面初期化エラー
+      <div id="dev-warning" class="dev-warning">
+        <h4 class="dev-warning-title">
+          ⚠️ 開発環境エラー通知
         </h4>
-        <p style="margin: 0 0 0.5rem 0; color: #78350f; line-height: 1.4;">
-          管理画面の初期化でエラーが発生しましたが、開発環境のため続行します。
+        <p class="dev-warning-text">
+          開発環境でエラーが発生しました。本番環境では表示されません。
         </p>
-        <details style="color: #78350f;">
-          <summary style="cursor: pointer; font-weight: bold;">エラー詳細</summary>
-          <pre style="margin: 0.5rem 0 0 0; font-size: 0.75rem; white-space: pre-wrap;">${error.message}</pre>
+        <details class="dev-warning-details">
+          <summary class="dev-warning-summary">エラー詳細</summary>
+          <pre class="dev-warning-code">${error.message}</pre>
         </details>
-        <button onclick="document.getElementById('dev-warning').remove()" style="
-          margin-top: 0.5rem;
-          background: #92400e;
-          color: white;
-          border: none;
-          padding: 0.25rem 0.5rem;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 0.8rem;
-        ">
+        <button onclick="document.getElementById('dev-warning').remove()" class="dev-warning-close">
           閉じる
         </button>
       </div>
     `;
     
-    document.body.insertAdjacentHTML('beforeend', warningHtml);
-    
-    // 15秒後に自動で閉じる
-    setTimeout(() => {
-      const warningElement = document.getElementById('dev-warning');
-      if (warningElement) {
-        warningElement.remove();
-      }
-    }, 15000);
+    if (!document.getElementById('dev-warning')) {
+      document.body.insertAdjacentHTML('beforeend', warningHtml);
+    }
   }
 
   /**
@@ -512,9 +483,9 @@ export default class Application {
           this.services.set('authActions', authActionService);
           console.log('✅ AuthActionService登録完了');
         }
-      } catch (authServiceError) {
-        console.warn('⚠️ AuthActionService のインポートに失敗しましたが、続行します:', authServiceError.message);
-        this.initializationErrors.authActionService = authServiceError;
+      } catch (authActionServiceError) {
+        console.warn('⚠️ AuthActionService のインポートに失敗しましたが、続行します:', authActionServiceError.message);
+        this.initializationErrors.authActionService = authActionServiceError;
       }
       
       this.features.set('auth', true);
@@ -614,72 +585,32 @@ export default class Application {
   }
 
   /**
-   * 初期化エラーをユーザーに表示
+   * 初期化エラーの表示
    * @private
    * @param {string} message - エラーメッセージ
    */
   showInitializationError(message) {
     // エラーメッセージを表示するためのHTML構造を作成
     const errorContainer = document.createElement('div');
-    errorContainer.className = 'initialization-error';
+    errorContainer.className = 'app-init-error-container';
     errorContainer.innerHTML = `
-      <div class="error-content">
-        <h2>🚨 初期化エラー</h2>
-        <p>${message}</p>
-        <button onclick="window.location.reload()" class="retry-button">
+      <h3 class="app-init-error-title">⚠️ アプリケーション初期化エラー</h3>
+      <p class="app-init-error-text">${message}</p>
+      <div class="app-init-error-actions">
+        <button onclick="window.location.reload()" class="app-init-error-btn app-init-error-btn-primary">
           ページを再読み込み
         </button>
       </div>
     `;
     
-    // エラー用のスタイルを追加
-    const style = document.createElement('style');
-    style.textContent = `
-      .initialization-error {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.8);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      }
-      
-      .error-content {
-        background: white;
-        padding: 2rem;
-        border-radius: 8px;
-        text-align: center;
-        max-width: 400px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      }
-      
-      .error-content h2 {
-        color: #dc3545;
-        margin-bottom: 1rem;
-      }
-      
-      .retry-button {
-        background: #007bff;
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-top: 1rem;
-      }
-      
-      .retry-button:hover {
-        background: #0056b3;
-      }
-    `;
-    
-    document.head.appendChild(style);
     document.body.appendChild(errorContainer);
+    
+    // 10秒後に自動で閉じる
+    setTimeout(() => {
+      if (errorContainer.parentNode) {
+        errorContainer.parentNode.removeChild(errorContainer);
+      }
+    }, 10000);
   }
 
   /**
@@ -840,8 +771,12 @@ export default class Application {
   /**
    * 認証サービス取得（非同期）
    * @returns {Promise<*>} 認証サービス
+   * @deprecated AuthManagerを直接使用してください
    */
   async getAuthService() {
+    // 後方互換性のため残しているが、AuthManagerの使用を推奨
+    console.warn('getAuthService()は非推奨です。AuthManagerを直接使用してください。');
+    
     let authService = this.services.get('authActions');
     
     if (!authService) {

@@ -63,8 +63,20 @@ class NewsCard extends Component {
    * 初期化処理
    */
   doInit() {
-    this.element = this.createElement();
-    this.setupEventListeners();
+    try {
+      this.element = this.createElement();
+      this.setupEventListeners();
+      
+      // カテゴリー色を適用
+      this.updateCategoryColor();
+      
+      this.emit('newsCard:created', { article: this.article });
+      return true;
+    } catch (error) {
+      console.error('NewsCard: 初期化エラー:', error);
+      this.emit('newsCard:initError', { error, article: this.article });
+      return false;
+    }
   }
 
   /**
@@ -87,8 +99,6 @@ class NewsCard extends Component {
       
       card.innerHTML = this.buildCardHTML(formattedDate, categoryColor);
       
-      this.emit('newsCard:created', { article: this.article });
-      
       return card;
     } catch (error) {
       console.error('NewsCard: カード作成エラー:', error);
@@ -103,9 +113,9 @@ class NewsCard extends Component {
    * @returns {string} カードHTML
    */
   buildCardHTML(formattedDate, categoryColor) {
-    const safeTitle = RBSHelpers.sanitizeString(this.article.title);
-    const safeCategoryName = RBSHelpers.sanitizeString(this.article.categoryName);
-    const safeExcerpt = RBSHelpers.sanitizeString(this.article.excerpt);
+    const safeTitle = this.escapeHtml(this.article.title);
+    const safeExcerpt = this.escapeHtml(this.article.excerpt);
+    const safeCategoryName = this.escapeHtml(this.config.categoryNames[this.article.category] || this.article.category);
     
     return `
       <div class="news-card-header">
@@ -113,7 +123,7 @@ class NewsCard extends Component {
           <time class="news-date" datetime="${this.article.date}">${formattedDate}</time>
           <span 
             class="news-category ${this.article.category}" 
-            style="background: ${categoryColor};"
+            data-category-color="${categoryColor}"
             aria-label="カテゴリー: ${safeCategoryName}"
           >
             ${safeCategoryName}
@@ -277,7 +287,9 @@ class NewsCard extends Component {
     const categoryElement = this.element.querySelector('.news-category');
     if (categoryElement) {
       const newColor = this.getCategoryColor(this.article.category);
-      categoryElement.style.background = newColor;
+      categoryElement.setAttribute('data-category-color', newColor);
+      // CSS変数として色を設定
+      categoryElement.style.setProperty('--category-color', newColor);
     }
   }
 

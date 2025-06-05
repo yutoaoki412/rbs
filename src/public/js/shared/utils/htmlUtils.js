@@ -226,9 +226,9 @@ export function createButtonHtml(text, variant = 'primary', attributes = {}) {
   const element = attributes.href ? 'a' : 'button';
   
   if (attributes.disabled) {
-    return `<${element} ${attrsStr} style="${baseStyles} ${variantStyle} ${disabledStyle}" disabled>${escapeHtml(text)}</${element}>`;
+    return `<${element} ${attrsStr} class="${variantClass} ${disabledClass}" disabled>${escapeHtml(text)}</${element}>`;
   } else {
-    return `<${element} ${attrsStr} style="${baseStyles} ${variantStyle}">${escapeHtml(text)}</${element}>`;
+    return `<${element} ${attrsStr} class="${variantClass}">${escapeHtml(text)}</${element}>`;
   }
 }
 
@@ -293,7 +293,7 @@ export function createProgressHtml(value = 0, max = 100, label = '', className =
     </div>
   ` : ''}
   <div class="progress-track">
-    <div class="progress-bar" style="width: ${percentage}%"></div>
+    <div class="progress-bar" data-progress="${percentage}"></div>
   </div>
 </div>
   `;

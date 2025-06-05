@@ -1,11 +1,10 @@
 /**
  * RBS陸上教室 メインエントリーポイント
  * アプリケーション全体の初期化とコーディネート
- * @version 2.1.0 - パス修正機能統合版
+ * @version 2.2.0 - インラインCSS削除・重複統合版
  */
 
 import Application from './core/Application.js';
-import { autoFixLinks } from './shared/utils/linkUtils.js';
 import { debugPaths } from './shared/constants/paths.js';
 import { CONFIG } from './shared/constants/config.js';
 
@@ -16,301 +15,211 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
   debugPaths();
 }
 
-// リンクパスの自動修正
-autoFixLinks();
+// 注意: autoFixLinksは各ページで個別に実行するため、ここでは削除
+// これにより初期化処理の競合とリダイレクトループを防ぐ
 
 // メインアプリケーションの初期化
 const app = new Application();
 
-// アプリケーション初期化
-async function initializeApp() {
-  try {
-    await app.init();
-    console.log('✅ RBS陸上教室 アプリケーション起動完了');
-  } catch (error) {
-    console.error('❌ アプリケーション初期化エラー:', error);
+// バナーメッセージ制御用のユーティリティ（統合版）
+function setupBannerControl() {
+  const banner = document.querySelector('.important-message-banner');
+  const statusBanner = document.querySelector('.lesson-status-banner');
+  
+  if (banner) {
+    // CSSクラスでマージンをリセット
+    banner.classList.add('banner-reset-margin');
+  }
+  
+  if (statusBanner) {
+    // CSSクラスでマージンをリセット  
+    statusBanner.classList.add('banner-reset-margin');
   }
 }
 
-// DOM準備完了時に初期化
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeApp);
-} else {
-  initializeApp();
-}
-
-// 開発環境用グローバル公開
-if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-  window.RBSApp = app;
-  window.debugPaths = debugPaths;
-}
+// === デバッグ・開発支援ツール ===
 
 /**
- * ステータスバナーの事前初期化
- * DOM読み込み直後にステータスバナーの基本的な表示を確保
+ * 認証状態をコンソールに表示（開発用）
  */
-function preInitializeStatusBanner() {
+window.showAuthStatus = function() {
   try {
-    console.log('🎯 ステータスバナー事前初期化開始');
-    
-    // ステータスバナー要素を検索
-    const statusBanners = document.querySelectorAll('.status-banner, #today-status');
-    
-    if (statusBanners.length > 0) {
-      statusBanners.forEach(banner => {
-        // 必要なクラスを追加（CSSで定義されたスタイルを適用）
-        banner.classList.add('status-banner');
-        banner.classList.remove('status-banner-hidden');
-        banner.classList.add('status-banner-visible');
-        
-        // ヒーローセクションとの隙間を完全に削除
-        banner.style.marginTop = '0';
-        banner.style.marginBottom = '0';
-        
-        console.log('✅ ステータスバナー表示確保:', banner.id || banner.className);
-      });
-      
-      // 基本構造の確保
-      ensureStatusBannerStructure();
-      
-      // デバッグ用：ステータスバナーの現在の状態をチェック
-      if (CONFIG.debug.enabled) {
-        setTimeout(() => {
-          checkStatusBannerVisibility();
-        }, 1000);
-      }
-    } else {
-      console.log('⚠️ ステータスバナー要素が見つかりません。動的作成を準備します。');
+    const authData = localStorage.getItem('rbs_admin_auth');
+    if (!authData) {
+      console.log('🔐 認証状態: 未ログイン');
+      return;
     }
     
+    const parsed = JSON.parse(authData);
+    const now = Date.now();
+    const isValid = now < parsed.expires;
+    
+    console.log('🔐 認証状態詳細:', {
+      status: isValid ? '✅ 有効' : '❌ 期限切れ',
+      token: parsed.token ? parsed.token.substring(0, 20) + '...' : 'なし',
+      created: parsed.created ? new Date(parsed.created) : 'N/A',
+      expires: parsed.expires ? new Date(parsed.expires) : 'N/A',
+      lastActivity: parsed.lastActivity ? new Date(parsed.lastActivity) : 'N/A',
+      remaining: isValid ? Math.round((parsed.expires - now) / 60000) + '分' : '期限切れ',
+      version: parsed.version || '不明'
+    });
   } catch (error) {
-    console.warn('⚠️ ステータスバナー事前初期化エラー:', error);
+    console.error('❌ 認証データ取得エラー:', error);
   }
-}
+};
 
 /**
- * ステータスバナーの基本構造を確保
+ * 認証データをクリア（開発用）
  */
-function ensureStatusBannerStructure() {
-  const statusBanner = document.querySelector('#today-status');
-  if (statusBanner && !statusBanner.querySelector('.container')) {
-    // ヒーローセクションとの隙間を完全に削除
-    statusBanner.style.marginTop = '0';
-    statusBanner.style.marginBottom = '0';
+window.clearAuthData = function() {
+  try {
+    localStorage.removeItem('rbs_admin_auth');
+    localStorage.removeItem('rbs_admin_attempts');
+    localStorage.removeItem('rbs_admin_last_attempt');
+    console.log('🧹 認証データをクリアしました');
     
-    statusBanner.innerHTML = `
-      <div class="container">
-        <div class="status-header" data-action="toggle-status" style="cursor: pointer;" aria-expanded="false">
-          <div class="status-info">
-            <span class="status-dot"></span>
-            <span class="status-text">本日のレッスン開催状況</span>
-            <span class="status-indicator" id="global-status-indicator">準備中...</span>
-          </div>
-          <span class="toggle-icon">▼</span>
-        </div>
-        <div class="status-content">
-          <div class="status-details" id="status-details">
-            <div class="loading-status">
-              <i class="fas fa-spinner fa-spin"></i>
-              <p>レッスン状況を読み込み中...</p>
-            </div>
-          </div>
-        </div>
+    // 現在のページがadmin系の場合は警告
+    if (window.location.pathname.includes('admin')) {
+      console.warn('⚠️ 管理画面から認証データをクリアしました。ページをリロードしてください。');
+    }
+  } catch (error) {
+    console.error('❌ 認証データクリアエラー:', error);
+  }
+};
+
+/**
+ * テスト用セッションを作成（開発用）
+ */
+window.createTestSession = function(durationHours = 24) {
+  try {
+    const now = Date.now();
+    const testAuthData = {
+      token: 'test_' + now + '_' + Math.random().toString(36).substr(2, 9),
+      created: now,
+      expires: now + (durationHours * 60 * 60 * 1000),
+      lastActivity: now,
+      version: '2.0'
+    };
+    
+    localStorage.setItem('rbs_admin_auth', JSON.stringify(testAuthData));
+    console.log('🧪 テストセッションを作成しました:', {
+      duration: durationHours + '時間',
+      expires: new Date(testAuthData.expires)
+    });
+  } catch (error) {
+    console.error('❌ テストセッション作成エラー:', error);
+  }
+};
+
+/**
+ * アプリケーションエラー表示（統合版）
+ */
+function showApplicationError(message, isRecoverable = true) {
+  // 既存のエラー要素を削除
+  const existingError = document.querySelector('.app-error-container');
+  if (existingError) {
+    existingError.remove();
+  }
+  
+  const errorContainer = document.createElement('div');
+  errorContainer.className = 'app-error-container';
+  
+  errorContainer.innerHTML = `
+    <div class="app-error-content">
+      <h3 class="app-error-title">⚠️ アプリケーションエラー</h3>
+      <p class="app-error-message">${message}</p>
+      <div class="app-error-actions">
+        ${isRecoverable ? `
+          <button onclick="window.location.reload()" class="app-error-btn app-error-btn-primary">
+            🔄 ページを再読み込み
+          </button>
+          <button onclick="this.closest('.app-error-container').remove()" class="app-error-btn app-error-btn-secondary">
+            ✕ 閉じる
+          </button>
+        ` : `
+          <button onclick="window.location.reload()" class="app-error-btn app-error-btn-primary">
+            🔄 ページを再読み込み
+          </button>
+        `}
       </div>
-    `;
-    console.log('✅ ステータスバナー基本構造を設定しました（隙間削除済み）');
-  }
-}
-
-/**
- * ステータスバナーの表示状態をデバッグ確認
- */
-function checkStatusBannerVisibility() {
-  try {
-    console.group('🔍 ステータスバナー表示状態チェック');
-    
-    const statusBanner = document.querySelector('#today-status');
-    if (statusBanner) {
-      const computedStyle = window.getComputedStyle(statusBanner);
-      const rect = statusBanner.getBoundingClientRect();
-      
-      console.log('要素情報:', {
-        id: statusBanner.id,
-        classes: Array.from(statusBanner.classList),
-        display: computedStyle.display,
-        visibility: computedStyle.visibility,
-        opacity: computedStyle.opacity,
-        transform: computedStyle.transform,
-        height: rect.height,
-        width: rect.width,
-        top: rect.top,
-        visible: rect.height > 0 && rect.width > 0 && computedStyle.visibility === 'visible'
-      });
-      
-      // 表示されていない場合は警告
-      if (rect.height === 0 || computedStyle.display === 'none' || computedStyle.visibility === 'hidden') {
-        console.warn('⚠️ ステータスバナーが非表示になっています');
-      } else {
-        console.log('✅ ステータスバナーは正常に表示されています');
-      }
-    } else {
-      console.warn('⚠️ ステータスバナー要素が見つかりません');
-    }
-    
-    console.groupEnd();
-  } catch (error) {
-    console.error('デバッグチェックエラー:', error);
-  }
-}
-
-/**
- * グローバルエラーハンドラーの設定
- */
-function setupGlobalErrorHandlers() {
-  // 未処理のエラー
-  window.addEventListener('error', (event) => {
-    console.error('🚨 グローバルエラー:', event.error);
-    
-    // 重要なモジュール読み込みエラーの場合は詳細ログ
-    if (event.error?.message?.includes('import') || event.error?.message?.includes('module')) {
-      console.error('📦 モジュール読み込みエラー詳細:', {
-        message: event.error.message,
-        filename: event.filename,
-        stack: event.error.stack
-      });
-    }
-  });
+    </div>
+  `;
   
-  // 未処理のPromise拒否
-  window.addEventListener('unhandledrejection', (event) => {
-    console.error('🚨 未処理のPromise拒否:', event.reason);
-    
-    // モジュール読み込み関連のエラーの場合は詳細情報を表示
-    if (event.reason?.message?.includes('Failed to fetch dynamically imported module') ||
-        event.reason?.message?.includes('404')) {
-      console.error('📦 動的インポートエラー:', {
-        reason: event.reason,
-        stack: event.reason.stack
-      });
-    }
-  });
-}
-
-/**
- * デバッグ環境の設定
- */
-function setupDebugEnvironment() {
-  // パフォーマンス測定の開始
-  if (CONFIG.debug.performance) {
-    console.time('🕐 アプリケーション起動時間');
-  }
+  document.body.appendChild(errorContainer);
   
-  // デバッグ情報の表示
-  if (CONFIG.debug.enabled) {
-    console.log('🔧 デバッグモード有効');
-    console.log('⚙️ 設定情報:', CONFIG);
-  }
-}
-
-/**
- * 開発ツールの設定
- * @param {Application} app - アプリケーションインスタンス
- */
-function setupDevelopmentTools(app) {
-  // デバッグコマンドの登録
-  window.showAppStatus = () => app.showDebugInfo();
-  window.refreshNews = () => {
-    if (window.newsDisplayComponent) {
-      return window.newsDisplayComponent.refresh();
-    }
-    console.warn('NewsDisplayComponentが見つかりません');
-  };
-  
-  // 記事ストレージサービスのデバッグ
-  window.showArticleStatus = () => {
-    if (app.articleStorageService) {
-      const status = app.articleStorageService.getStatus();
-      console.log('📰 記事ストレージ状況:', status);
-      return status;
-    }
-    console.warn('ArticleStorageServiceが見つかりません');
-  };
-  
-  // 設定情報の表示
-  window.showConfig = () => {
-    console.log('⚙️ アプリケーション設定:', CONFIG);
-    return CONFIG;
-  };
-  
-  // パフォーマンス測定終了
-  if (CONFIG.debug.performance) {
-    console.timeEnd('🕐 アプリケーション起動時間');
-  }
-  
-  console.log('🛠️ 開発ツールが利用可能です:');
-  console.log('  - showAppStatus(): アプリケーション状況表示');
-  console.log('  - refreshNews(): ニュース更新');
-  console.log('  - showArticleStatus(): 記事ストレージ状況表示');
-  console.log('  - showConfig(): 設定情報表示');
-}
-
-/**
- * 初期化エラーの表示
- * @param {Error} error - エラーオブジェクト
- */
-function showInitializationError(error) {
-  // HTMLUtilsの初期化エラー専用関数を使用
-  import('./shared/utils/htmlUtils.js').then(({ createAppInitErrorHtml }) => {
-    const errorContainer = document.createElement('div');
-    errorContainer.innerHTML = createAppInitErrorHtml(error);
-    
-    // 固定位置に表示
-    errorContainer.style.cssText = `
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      right: 20px;
-      z-index: 10000;
-      font-family: Arial, sans-serif;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    `;
-    
-    document.body.appendChild(errorContainer);
-    
-    // 自動で閉じる（開発環境では長めに表示）
-    const autoCloseDelay = CONFIG.debug.enabled ? 60000 : 30000;
+  // 自動削除（復旧可能なエラーのみ）
+  if (isRecoverable) {
     setTimeout(() => {
       if (errorContainer.parentNode) {
-        errorContainer.parentNode.removeChild(errorContainer);
+        errorContainer.remove();
       }
-    }, autoCloseDelay);
-    
-  }).catch(() => {
-    // HTMLUtilsのインポートに失敗した場合はフォールバック
-    const errorContainer = document.createElement('div');
-    errorContainer.className = 'app-init-error-container';
-    errorContainer.innerHTML = `
-      <h3 class="app-init-error-title">⚠️ アプリケーション初期化エラー</h3>
-      <p class="app-init-error-text">
-        アプリケーションの初期化中にエラーが発生しました。<br>
-        ページの再読み込みまたは管理者にお問い合わせください。
-      </p>
-      <div class="app-init-error-actions">
-        <button onclick="location.reload()" class="app-init-error-btn app-init-error-btn-primary">ページを再読み込み</button>
+    }, 10000);
+  }
+}
+
+/**
+ * 重要情報エラー表示（統合版）
+ */
+function showCriticalError(message) {
+  // 既存のエラー要素を削除
+  const existingError = document.querySelector('.critical-error-container');
+  if (existingError) {
+    existingError.remove();
+  }
+  
+  const errorContainer = document.createElement('div');
+  errorContainer.className = 'critical-error-container';
+  
+  errorContainer.innerHTML = `
+    <div class="critical-error-content">
+      <h3 class="critical-error-title">🚨 重要なエラー</h3>
+      <p class="critical-error-message">${message}</p>
+      <div class="critical-error-actions">
+        <button onclick="window.location.reload()" class="critical-error-btn critical-error-btn-primary">
+          🔄 ページを再読み込み
+        </button>
+        <button onclick="window.location.href='/'" class="critical-error-btn critical-error-btn-secondary">
+          🏠 トップページに戻る
+        </button>
       </div>
-    `;
-    
-    // 固定位置に表示
-    errorContainer.style.cssText = `
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      right: 20px;
-      z-index: 10000;
-      font-family: Arial, sans-serif;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    `;
-    
-    document.body.appendChild(errorContainer);
-  });
+    </div>
+  `;
+  
+  document.body.appendChild(errorContainer);
+}
+
+// アプリケーション開始
+app.init().catch(error => {
+  console.error('❌ アプリケーション初期化失敗:', error);
+  showApplicationError('アプリケーションの初期化に失敗しました。', false);
+});
+
+// バナー制御の初期化
+document.addEventListener('DOMContentLoaded', setupBannerControl);
+
+// グローバルエラーハンドラー
+window.addEventListener('error', function(event) {
+  console.error('🚨 グローバルエラー:', event.error);
+  if (event.error && event.error.message.includes('critical')) {
+    showCriticalError('重要なエラーが発生しました: ' + event.error.message);
+  }
+});
+
+// 未捕捉のPromise拒否ハンドラー
+window.addEventListener('unhandledrejection', function(event) {
+  console.error('🚨 未捕捉のPromise拒否:', event.reason);
+  if (event.reason && typeof event.reason === 'string' && event.reason.includes('critical')) {
+    showCriticalError('重要なPromiseエラーが発生しました: ' + event.reason);
+  }
+});
+
+// 開発用ヘルパーのエクスポート
+if (CONFIG.debug?.enabled) {
+  window.rbsDevTools = {
+    showAuthStatus,
+    clearAuthData,
+    createTestSession,
+    showApplicationError,
+    showCriticalError
+  };
 } 

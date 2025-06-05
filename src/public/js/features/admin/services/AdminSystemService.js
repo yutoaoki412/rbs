@@ -10,7 +10,7 @@ import { instagramDataService } from './InstagramDataService.js';
 import { getLessonStatusStorageService } from '../../../shared/services/LessonStatusStorageService.js';
 import { uiManagerService } from './UIManagerService.js';
 import { newsFormManager } from '../components/NewsFormManager.js';
-import { authService } from '../../auth/services/AuthService.js';
+import { authManager } from '../../auth/AuthManager.js';
 import { CONFIG } from '../../../shared/constants/config.js';
 import { redirect } from '../../../shared/constants/paths.js';
 
@@ -20,7 +20,7 @@ export class AdminSystemService {
     
     // 統一ストレージキー（CONFIG.storage.keysから取得）
     this.storageKeys = {
-      auth: CONFIG.storage.keys.auth
+      auth: CONFIG.storage.keys.adminAuth // adminAuthキーに統一
     };
     
     // システム状態
@@ -30,7 +30,7 @@ export class AdminSystemService {
       lessonService: false,
       uiManagerService: false,
       newsFormManager: false,
-      authService: false
+      authManager: false
     };
     
     // パフォーマンス追跡
@@ -39,6 +39,9 @@ export class AdminSystemService {
       lastActivity: null,
       errorCount: 0
     };
+    
+    this.initialized = false;
+    this.isAuthenticated = false;
   }
 
   /**
@@ -54,13 +57,14 @@ export class AdminSystemService {
     console.log('🏢 管理システム統合サービス初期化開始');
 
     try {
-      // 開発環境での認証スキップ（AdminCoreと同じロジック）
-      await this.checkAuthentication();
-      
-      if (!this.isAuthenticated) {
-        console.warn('🔒 認証が必要です - ログインページへリダイレクト');
-        this.redirectToLogin();
-        return;
+      // AuthManagerの状態確認
+      if (authManager.initialized) {
+        this.systemStatus.authManager = true;
+        this.isAuthenticated = authManager.isAuthenticated();
+        console.log('✅ AuthManagerが利用可能');
+      } else {
+        console.warn('⚠️ AuthManagerが初期化されていません');
+        this.systemStatus.authManager = false;
       }
 
       // 各サービスの初期化
@@ -83,33 +87,6 @@ export class AdminSystemService {
       console.error('❌ 管理システム初期化エラー:', error);
       this.handleCriticalError(error);
       throw error;
-    }
-  }
-
-  /**
-   * 認証確認
-   * @private
-   */
-  async checkAuthentication() {
-    // 開発環境では認証をスキップ
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      console.debug('🚧 開発環境のため認証をスキップ');
-      this.isAuthenticated = true;
-      return;
-    }
-
-    try {
-      // 認証サービスの確認
-      if (authService.initialized) {
-        this.isAuthenticated = authService.isAuthenticated();
-        this.systemStatus.authService = true;
-      } else {
-        console.warn('⚠️ 認証サービスが初期化されていません');
-        this.isAuthenticated = false;
-      }
-    } catch (error) {
-      console.error('❌ 認証確認エラー:', error);
-      this.isAuthenticated = false;
     }
   }
 
@@ -317,23 +294,24 @@ export class AdminSystemService {
         }
       }
       
-      // 認証サービスからのログアウト
-      if (authService?.initialized) {
-        const result = authService.logout();
-        if (result.success) {
-          console.log('✅ 認証サービスからのログアウト成功');
+      // AuthManagerからのログアウト
+      if (authManager?.initialized) {
+        try {
+          authManager.logout();
+          console.log('✅ AuthManagerからのログアウト成功');
           
           // システムクリーンアップ
           this.destroy();
           
-          // ログインページへリダイレクト（AuthServiceが処理する）
-        } else {
-          console.error('❌ 認証サービスログアウトエラー:', result.message);
+          // ログインページへリダイレクト
+          this.redirectToLogin();
+        } catch (error) {
+          console.error('❌ AuthManagerログアウトエラー:', error);
           // フォールバック処理
           await this.performFallbackLogout();
         }
       } else {
-        console.warn('⚠️ 認証サービスが利用できません。フォールバック処理を実行');
+        console.warn('⚠️ AuthManagerが利用できません。フォールバック処理を実行');
         await this.performFallbackLogout();
       }
       
@@ -412,53 +390,23 @@ export class AdminSystemService {
    */
   showFallbackError(error) {
     const errorHtml = `
-      <div style="
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #fff;
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        text-align: center;
-        z-index: 9999;
-        max-width: 400px;
-        font-family: sans-serif;
-      ">
-        <h2 style="color: #e53e3e; margin-bottom: 1rem;">
-          ⚠️ システムエラー
-        </h2>
-        <p style="margin-bottom: 1rem; line-height: 1.4;">
+      <div class="admin-error-dialog">
+        <h2>⚠️ システムエラー</h2>
+        <p>
           管理システムでエラーが発生しました。<br>
           ページを再読み込みしてください。
         </p>
-        <div style="margin-bottom: 1rem; font-size: 0.8em; color: #666; background: #f7f7f7; padding: 0.5rem; border-radius: 4px;">
+        <div class="error-detail">
           ${error.message}
         </div>
-        <button onclick="window.location.reload()" style="
-          background: #4299e1;
-          color: white;
-          border: none;
-          padding: 0.75rem 1.5rem;
-          border-radius: 4px;
-          cursor: pointer;
-          margin-right: 0.5rem;
-          font-size: 0.9em;
-        ">
-          🔄 再読み込み
-        </button>
-        <button onclick="window.location.href='admin-login.html'" style="
-          background: #718096;
-          color: white;
-          border: none;
-          padding: 0.75rem 1.5rem;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 0.9em;
-        ">
-          🔑 ログイン画面へ
-        </button>
+        <div class="error-actions">
+          <button onclick="window.location.reload()" class="admin-error-btn admin-error-btn-primary">
+            🔄 再読み込み
+          </button>
+          <button onclick="window.location.href='admin-login.html'" class="admin-error-btn admin-error-btn-secondary">
+            🔑 ログイン画面へ
+          </button>
+        </div>
       </div>
     `;
     

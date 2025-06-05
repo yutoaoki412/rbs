@@ -10,7 +10,7 @@
 const redirectHistory = {
   history: [],
   maxHistory: 10,
-  loopThreshold: 3,
+  loopThreshold: 2, // より厳格に（2回で検出）
   
   /**
    * リダイレクトを記録
@@ -22,6 +22,8 @@ const redirectHistory = {
     const now = Date.now();
     const entry = { from, to, timestamp: now };
     
+    console.log('🔄 リダイレクト記録:', { from, to, timestamp: new Date(now) });
+    
     // 履歴に追加
     this.history.push(entry);
     
@@ -30,14 +32,26 @@ const redirectHistory = {
       this.history.shift();
     }
     
-    // ループチェック（過去5秒以内の同じパターンをチェック）
+    // より厳格なループチェック（過去3秒以内）
     const recentRedirects = this.history.filter(h => 
-      now - h.timestamp < 5000 && 
+      now - h.timestamp < 3000 && 
       ((h.from === from && h.to === to) || (h.from === to && h.to === from))
     );
     
-    if (recentRedirects.length >= this.loopThreshold) {
-      console.error('🚨 リダイレクトループを検出:', { from, to, count: recentRedirects.length });
+    // 同じパターンのリダイレクトを検出
+    const samePatternCount = recentRedirects.length;
+    
+    if (samePatternCount >= this.loopThreshold) {
+      console.error('🚨 リダイレクトループを検出:', { 
+        from, 
+        to, 
+        count: samePatternCount,
+        recentHistory: recentRedirects 
+      });
+      
+      // 緊急回避: 全履歴をクリアしてホームページへ
+      this.clear();
+      this.showEmergencyRedirect();
       return false;
     }
     
@@ -49,6 +63,7 @@ const redirectHistory = {
    */
   clear() {
     this.history = [];
+    console.log('🧹 リダイレクト履歴をクリア');
   },
   
   /**
@@ -57,8 +72,48 @@ const redirectHistory = {
   getDebugInfo() {
     return {
       history: this.history,
-      isLoopDetected: this.history.length >= this.loopThreshold
+      isLoopDetected: this.history.length >= this.loopThreshold,
+      lastRedirect: this.history.length > 0 ? this.history[this.history.length - 1] : null
     };
+  },
+  
+  /**
+   * 緊急リダイレクト表示
+   */
+  showEmergencyRedirect() {
+    console.log('🚨 緊急回避: 認証ループを検出したため安全な場所にリダイレクトします');
+    
+    // 3秒後にホームページに移動
+    setTimeout(() => {
+      console.log('🏠 ホームページに移動します');
+      window.location.href = window.location.origin + '/src/public/pages/index.html';
+    }, 3000);
+    
+    // 警告メッセージ表示
+    const warningHtml = `
+      <div id="emergency-redirect" style="
+        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        background: #fee2e2; border: 2px solid #fecaca; border-radius: 8px;
+        padding: 2rem; max-width: 500px; width: 90%; z-index: 10000;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); text-align: center;
+        font-family: sans-serif;
+      ">
+        <h3 style="margin: 0 0 1rem 0; color: #dc2626; font-size: 1.25rem;">
+          🚨 認証ループ検出
+        </h3>
+        <p style="margin: 0 0 1.5rem 0; color: #991b1b;">
+          認証システムでリダイレクトループが発生しました。<br>
+          3秒後にホームページに移動します。
+        </p>
+        <div style="color: #7c2d12; font-size: 0.875rem;">
+          問題が継続する場合は、ブラウザのキャッシュをクリアしてください。
+        </div>
+      </div>
+    `;
+    
+    if (!document.getElementById('emergency-redirect')) {
+      document.body.insertAdjacentHTML('beforeend', warningHtml);
+    }
   }
 };
 
@@ -318,48 +373,18 @@ export const redirect = {
    */
   showRedirectLoopError() {
     const errorHtml = `
-      <div id="redirect-loop-error" style="
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        right: 20px;
-        z-index: 10000;
-        background: #fee2e2;
-        border: 2px solid #dc2626;
-        border-radius: 8px;
-        padding: 1rem;
-        font-family: sans-serif;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      ">
-        <h3 style="margin: 0 0 0.5rem 0; color: #dc2626;">
-          🚨 認証エラー - リダイレクトループを検出
-        </h3>
-        <p style="margin: 0 0 1rem 0; line-height: 1.4;">
+      <div id="redirect-loop-error" class="redirect-loop-error">
+        <h3>🚨 リダイレクトループ検出</h3>
+        <p>
           認証システムでリダイレクトループが発生しました。<br>
-          セッションデータをクリアして再試行してください。
+          セッションデータに問題があるか、ページ設定に不具合がある可能性があります。
         </p>
-        <div style="display: flex; gap: 0.5rem;">
-          <button onclick="clearSessionAndRetry()" style="
-            background: #dc2626;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
-          ">
-            セッションクリア & 再試行
+        <div class="error-actions">
+          <button onclick="clearSessionAndRetry()" class="btn-error-primary">
+            🗑️ セッションクリア & 再試行
           </button>
-          <button onclick="goToHome()" style="
-            background: #6b7280;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
-          ">
-            ホームページに戻る
+          <button onclick="goToHome()" class="btn-error-secondary">
+            🏠 トップページへ
           </button>
         </div>
       </div>
