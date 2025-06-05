@@ -320,7 +320,7 @@ export class AdminActionService {
       'refresh-recent-articles': () => this.refreshRecentArticles(),
       'insert-markdown': (element, params) => this.insertMarkdown(element, params),
       'switch-news-tab': (element, params) => this.switchNewsTab(params.tab),
-      'show-writing-guide': () => this._showWritingGuide(),
+      'show-writing-guide': () => this.showWritingGuide(),
       
       // 記事編集関連（新しく追加）
       'edit-article': (element, params) => {
@@ -769,6 +769,231 @@ export class AdminActionService {
    */
   _isValidTabName(tabName) {
     return ['dashboard', 'news-management', 'lesson-status', 'instagram', 'settings'].includes(tabName);
+  }
+
+  /**
+   * ニュースタブの切り替え
+   * @param {string} tabName - 切り替え先タブ名 ('editor' または 'list')
+   */
+  switchNewsTab(tabName) {
+    try {
+      this.debug(`📰 ニュースタブ切り替え: ${tabName}`);
+      
+      // バリデーション
+      const validNewsTabNames = ['editor', 'list'];
+      if (!validNewsTabNames.includes(tabName)) {
+        this.error(`無効なニュースタブ名: ${tabName}`);
+        return;
+      }
+
+      // 現在のアクティブタブを非アクティブにする
+      const currentActiveNewsTab = document.querySelector('.sub-nav-item.active');
+      const currentActiveNewsContent = document.querySelector('.news-tab-content.active');
+      
+      if (currentActiveNewsTab) {
+        currentActiveNewsTab.classList.remove('active');
+      }
+      if (currentActiveNewsContent) {
+        currentActiveNewsContent.classList.remove('active');
+      }
+
+      // 新しいタブをアクティブにする
+      const newActiveNavItem = document.querySelector(`[data-action="switch-news-tab"][data-tab="${tabName}"]`);
+      const newActiveContent = document.getElementById(`news-${tabName}-tab`);
+      
+      if (newActiveNavItem) {
+        newActiveNavItem.classList.add('active');
+      } else {
+        this.warn(`ニュースナビゲーション要素が見つかりません: ${tabName}`);
+      }
+      
+      if (newActiveContent) {
+        newActiveContent.classList.add('active');
+      } else {
+        this.warn(`ニュースコンテンツ要素が見つかりません: news-${tabName}-tab`);
+      }
+
+      // タブごとの初期化処理
+      if (tabName === 'list') {
+        // 記事一覧を更新
+        this.refreshNewsList();
+      } else if (tabName === 'editor') {
+        // エディターの初期化（必要に応じて）
+        this.debug('ニュースエディターを表示');
+      }
+
+      this.debug(`✅ ニュースタブ切り替え完了: ${tabName}`);
+      
+    } catch (error) {
+      this.error('ニュースタブ切り替えエラー:', error);
+      this._showFeedback('タブの切り替えに失敗しました', 'error');
+    }
+  }
+
+  /**
+   * 記事作成ガイドを表示
+   */
+  showWritingGuide() {
+    try {
+      this.debug('📖 記事作成ガイドを表示');
+      
+      const guideContent = `
+        <div class="writing-guide">
+          <h3><i class="fas fa-edit"></i> 記事作成ガイド</h3>
+          
+          <div class="guide-section">
+            <h4>📝 基本的な書き方</h4>
+            <ul>
+              <li><strong>タイトル:</strong> 簡潔で分かりやすく（30文字以内推奨）</li>
+              <li><strong>概要:</strong> 記事の要点を1-2文で（100文字以内推奨）</li>
+              <li><strong>本文:</strong> 読みやすい長さの段落に分けて記述</li>
+            </ul>
+          </div>
+          
+          <div class="guide-section">
+            <h4>🎨 Markdown記法</h4>
+            <div class="markdown-examples">
+              <div class="example-item">
+                <code>## 見出し</code> → <strong>大見出し</strong>
+              </div>
+              <div class="example-item">
+                <code>**太字**</code> → <strong>太字</strong>
+              </div>
+              <div class="example-item">
+                <code>- リスト項目</code> → <ul><li>リスト項目</li></ul>
+              </div>
+              <div class="example-item">
+                <code>[リンクテキスト](URL)</code> → <a href="#">リンクテキスト</a>
+              </div>
+            </div>
+          </div>
+          
+          <div class="guide-section">
+            <h4>📊 カテゴリー選択</h4>
+            <ul>
+              <li><strong>お知らせ:</strong> 一般的な告知・連絡事項</li>
+              <li><strong>体験会:</strong> 体験レッスンの案内</li>
+              <li><strong>メディア:</strong> メディア掲載、取材記事</li>
+              <li><strong>重要:</strong> 緊急性の高い重要な連絡</li>
+            </ul>
+          </div>
+          
+          <div class="guide-section">
+            <h4>✅ 公開前チェックリスト</h4>
+            <ul>
+              <li>タイトルと内容が一致しているか</li>
+              <li>誤字脱字がないか</li>
+              <li>日付とカテゴリーが適切か</li>
+              <li>プレビューで表示を確認したか</li>
+            </ul>
+          </div>
+        </div>
+      `;
+
+      this._createModal('記事作成ガイド', guideContent, 'writing-guide-modal');
+      
+    } catch (error) {
+      this.error('記事作成ガイド表示エラー:', error);
+      this._showFeedback('ガイドの表示に失敗しました', 'error');
+    }
+  }
+
+  /**
+   * 新規記事作成を開始
+   */
+  startNewArticle() {
+    try {
+      this.debug('🆕 新規記事作成開始');
+      
+      // エディターをクリア
+      this.clearNewsEditor();
+      
+      // エディタータブに切り替え
+      this.switchNewsTab('editor');
+      
+      // エディターのタイトル更新
+      const editorTitle = document.getElementById('editor-title');
+      if (editorTitle) {
+        editorTitle.textContent = '新規記事作成';
+      }
+      
+      this._showFeedback('新規記事の作成を開始しました', 'success');
+      
+    } catch (error) {
+      this.error('新規記事作成開始エラー:', error);
+      this._showFeedback('新規記事作成の開始に失敗しました', 'error');
+    }
+  }
+
+  /**
+   * 通知モードの切り替え
+   */
+  toggleNotificationMode() {
+    try {
+      this.debug('🔔 通知モード切り替え');
+      
+      const toggleBtn = document.getElementById('notification-toggle');
+      const toggleText = toggleBtn?.querySelector('.toggle-text');
+      const toggleIcon = toggleBtn?.querySelector('i');
+      
+      if (!toggleBtn) {
+        this.warn('通知切り替えボタンが見つかりません');
+        return;
+      }
+      
+      // 現在の状態を取得
+      const currentMode = localStorage.getItem('rbs_notification_mode') || 'off';
+      const newMode = currentMode === 'on' ? 'off' : 'on';
+      
+      // 状態を保存
+      localStorage.setItem('rbs_notification_mode', newMode);
+      
+      // UIを更新
+      if (newMode === 'on') {
+        toggleIcon?.classList.remove('fa-bell-slash');
+        toggleIcon?.classList.add('fa-bell');
+        if (toggleText) toggleText.textContent = '通知ON';
+        toggleBtn.classList.add('active');
+        this._showFeedback('通知を有効にしました', 'success');
+      } else {
+        toggleIcon?.classList.remove('fa-bell');
+        toggleIcon?.classList.add('fa-bell-slash');
+        if (toggleText) toggleText.textContent = '通知OFF';
+        toggleBtn.classList.remove('active');
+        this._showFeedback('通知を無効にしました', 'info');
+      }
+      
+      this.debug(`✅ 通知モード変更: ${newMode}`);
+      
+    } catch (error) {
+      this.error('通知モード切り替えエラー:', error);
+      this._showFeedback('通知設定の切り替えに失敗しました', 'error');
+    }
+  }
+
+  /**
+   * 設定を保存
+   */
+  saveSettings() {
+    try {
+      this.debug('⚙️ 設定保存開始');
+      
+      // 現在の設定を収集
+      const settings = {
+        notificationMode: localStorage.getItem('rbs_notification_mode') || 'off',
+        lastSaved: new Date().toISOString()
+      };
+      
+      // 設定を保存
+      localStorage.setItem('rbs_admin_settings', JSON.stringify(settings));
+      
+      this._showFeedback('設定を保存しました', 'success');
+      this.debug('✅ 設定保存完了:', settings);
+      
+    } catch (error) {
+      this.error('設定保存エラー:', error);
+      this._showFeedback('設定の保存に失敗しました', 'error');
+    }
   }
 
   /**
