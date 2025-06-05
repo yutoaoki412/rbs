@@ -548,17 +548,17 @@ textarea::placeholder {
 }
 
 .form-actions .btn-outline {
-  background: var(--admin-white);
-  border-color: var(--admin-gray-400);
-  color: var(--admin-gray-700);
+  background: #17a2b8;
+  border-color: #17a2b8;
+  color: var(--admin-white);
 }
 
 .form-actions .btn-outline:hover {
-  background: var(--admin-gray-600);
-  border-color: var(--admin-gray-700);
+  background: #138496;
+  border-color: #117a8b;
   color: var(--admin-white);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+  box-shadow: 0 4px 12px rgba(23, 162, 184, 0.4);
 }
 
 .form-actions .btn-secondary {
@@ -647,11 +647,11 @@ textarea::placeholder {
 }
 
 .preview-header .btn:hover {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(255, 255, 255, 1);
-  color: var(--admin-primary);
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
+  color: var(--admin-white);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
 }
 
 .preview-content {
