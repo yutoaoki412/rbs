@@ -443,22 +443,33 @@
                   <div class="course-options">
                     <label class="course-option">
                       <input type="radio" name="basic-status" value="scheduled" checked>
-                      <span class="option-text scheduled">通常開催</span>
+                      <span class="option-text scheduled">
+                        <i class="fas fa-check-circle"></i>
+                        通常開催
+                      </span>
                     </label>
                     <label class="course-option">
                       <input type="radio" name="basic-status" value="cancelled">
-                      <span class="option-text cancelled">中止</span>
+                      <span class="option-text cancelled">
+                        <i class="fas fa-times-circle"></i>
+                        中止
+                      </span>
                     </label>
                     <label class="course-option">
                       <input type="radio" name="basic-status" value="indoor">
-                      <span class="option-text indoor">室内開催</span>
+                      <span class="option-text indoor">
+                        <i class="fas fa-home"></i>
+                        室内開催
+                      </span>
                     </label>
                     <label class="course-option">
                       <input type="radio" name="basic-status" value="postponed">
-                      <span class="option-text postponed">延期</span>
+                      <span class="option-text postponed">
+                        <i class="fas fa-clock"></i>
+                        延期
+                      </span>
                     </label>
                   </div>
-                  <textarea id="basic-message" placeholder="ベーシックコース向けメッセージ（任意）" rows="2"></textarea>
                 </div>
 
                 <!-- アドバンスコース -->
@@ -470,22 +481,33 @@
                   <div class="course-options">
                     <label class="course-option">
                       <input type="radio" name="advance-status" value="scheduled" checked>
-                      <span class="option-text scheduled">通常開催</span>
+                      <span class="option-text scheduled">
+                        <i class="fas fa-check-circle"></i>
+                        通常開催
+                      </span>
                     </label>
                     <label class="course-option">
                       <input type="radio" name="advance-status" value="cancelled">
-                      <span class="option-text cancelled">中止</span>
+                      <span class="option-text cancelled">
+                        <i class="fas fa-times-circle"></i>
+                        中止
+                      </span>
                     </label>
                     <label class="course-option">
                       <input type="radio" name="advance-status" value="indoor">
-                      <span class="option-text indoor">室内開催</span>
+                      <span class="option-text indoor">
+                        <i class="fas fa-home"></i>
+                        室内開催
+                      </span>
                     </label>
                     <label class="course-option">
                       <input type="radio" name="advance-status" value="postponed">
-                      <span class="option-text postponed">延期</span>
+                      <span class="option-text postponed">
+                        <i class="fas fa-clock"></i>
+                        延期
+                      </span>
                     </label>
                   </div>
-                  <textarea id="advance-message" placeholder="アドバンスコース向けメッセージ（任意）" rows="2"></textarea>
                 </div>
               </div>
             </div>
@@ -506,10 +528,10 @@
         </div>
 
         <!-- プレビューエリア -->
-        <div class="preview-container" id="preview-container" style="display: none;">
+        <div class="preview-container preview-hidden" id="preview-container">
           <div class="preview-header">
             <h3><i class="fas fa-eye"></i> プレビュー</h3>
-            <button class="btn btn-sm btn-outline" onclick="document.getElementById('preview-container').style.display='none'">
+            <button class="btn btn-sm" onclick="this.closest('.preview-container').classList.add('preview-hidden'); this.closest('.preview-container').classList.remove('preview-visible');">
               <i class="fas fa-times"></i> 閉じる
             </button>
           </div>

@@ -433,6 +433,7 @@ textarea::placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   padding: 0.75rem 1rem;
   border-radius: var(--admin-border-radius-sm);
   font-size: 0.875rem;
@@ -444,6 +445,11 @@ textarea::placeholder {
   background: var(--admin-white);
   color: var(--admin-gray-700);
   min-height: 48px;
+}
+
+.option-text i {
+  font-size: 0.875rem;
+  flex-shrink: 0;
 }
 
 .option-text:hover {
@@ -555,14 +561,15 @@ textarea::placeholder {
 }
 
 .form-actions .btn-secondary {
-  background: var(--admin-gray-600);
-  border-color: var(--admin-gray-600);
+  background: var(--admin-gray-500);
+  border-color: var(--admin-gray-500);
   color: var(--admin-white);
+  opacity: 1;
 }
 
 .form-actions .btn-secondary:hover {
-  background: var(--admin-gray-700);
-  border-color: var(--admin-gray-700);
+  background: var(--admin-gray-600);
+  border-color: var(--admin-gray-600);
   transform: translateY(-1px);
   box-shadow: var(--admin-shadow);
 }
@@ -590,6 +597,18 @@ textarea::placeholder {
   margin-top: 2rem;
   box-shadow: var(--admin-shadow);
   overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.preview-container.preview-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.preview-container.preview-hidden {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
 }
 
 .preview-header {
@@ -597,13 +616,14 @@ textarea::placeholder {
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 2rem;
-  background: var(--admin-gray-50);
-  border-bottom: 2px solid var(--admin-gray-200);
+  background: linear-gradient(135deg, var(--admin-primary), var(--admin-primary-dark));
+  color: var(--admin-white);
+  border-bottom: none;
 }
 
 .preview-header h3 {
   margin: 0;
-  color: var(--admin-gray-900);
+  color: var(--admin-white);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -612,11 +632,120 @@ textarea::placeholder {
 }
 
 .preview-header h3 i {
-  color: var(--admin-primary);
+  color: var(--admin-white);
+  opacity: 0.9;
+}
+
+.preview-header .btn {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--admin-white);
+  font-size: 0.8rem;
+  padding: 0.5rem 1rem;
+}
+
+.preview-header .btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
 }
 
 .preview-content {
   padding: 2rem;
+  background: var(--admin-gray-50);
+}
+
+/* プレビュー内部のレッスンステータス表示 */
+.preview-content .lesson-status-preview {
+  background: var(--admin-white);
+  border-radius: var(--admin-border-radius);
+  padding: 1.5rem;
+  box-shadow: var(--admin-shadow);
+}
+
+.preview-content .lesson-status-preview h3 {
+  color: var(--admin-gray-900);
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--admin-gray-100);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.preview-content .lesson-status-preview h3 i {
+  color: var(--admin-primary);
+}
+
+.preview-content .global-status,
+.preview-content .course-statuses {
+  margin-bottom: 1.5rem;
+}
+
+.preview-content .global-status h4,
+.preview-content .course-statuses h4 {
+  color: var(--admin-gray-800);
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.preview-content .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--admin-border-radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.preview-content .status-badge.scheduled {
+  background: var(--status-scheduled);
+  color: var(--admin-white);
+}
+
+.preview-content .status-badge.cancelled {
+  background: var(--status-cancelled);
+  color: var(--admin-white);
+}
+
+.preview-content .status-badge.indoor {
+  background: var(--status-indoor);
+  color: var(--admin-white);
+}
+
+.preview-content .status-badge.postponed {
+  background: var(--status-postponed);
+  color: var(--admin-white);
+}
+
+.preview-content .course-status {
+  background: var(--admin-white);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius-sm);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.preview-content .course-status h5 {
+  margin: 0 0 0.75rem 0;
+  color: var(--admin-gray-800);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.preview-content .global-message,
+.preview-content .course-message {
+  background: var(--admin-gray-50);
+  border-left: 4px solid var(--admin-primary);
+  padding: 0.75rem 1rem;
+  margin-top: 0.75rem;
+  border-radius: 0 var(--admin-border-radius-sm) var(--admin-border-radius-sm) 0;
+  font-size: 0.875rem;
+  color: var(--admin-gray-700);
+  line-height: 1.5;
 }
 
 /* ========================================

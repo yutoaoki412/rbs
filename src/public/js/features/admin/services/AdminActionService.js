@@ -1934,17 +1934,15 @@ export class AdminActionService {
     
     // グローバルステータス取得
     const globalStatusRadio = document.querySelector('input[name="global-status"]:checked');
-    const globalStatus = globalStatusRadio ? this._mapJapaneseToStatusKey(globalStatusRadio.value) : 'scheduled';
+    const globalStatus = globalStatusRadio ? globalStatusRadio.value : 'scheduled';
     
     // ベーシックコース
-    const basicStatusRadio = document.querySelector('input[name="basic-lesson"]:checked');
-    const basicStatus = basicStatusRadio ? this._mapJapaneseToStatusKey(basicStatusRadio.value) : 'scheduled';
-    const basicMessageField = document.getElementById('basic-lesson-note');
+    const basicStatusRadio = document.querySelector('input[name="basic-status"]:checked');
+    const basicStatus = basicStatusRadio ? basicStatusRadio.value : 'scheduled';
     
     // アドバンスコース
-    const advanceStatusRadio = document.querySelector('input[name="advance-lesson"]:checked');
-    const advanceStatus = advanceStatusRadio ? this._mapJapaneseToStatusKey(advanceStatusRadio.value) : 'scheduled';
-    const advanceMessageField = document.getElementById('advance-lesson-note');
+    const advanceStatusRadio = document.querySelector('input[name="advance-status"]:checked');
+    const advanceStatus = advanceStatusRadio ? advanceStatusRadio.value : 'scheduled';
     
     return {
       date: dateField?.value || this._getTodayDateString(),
@@ -1955,13 +1953,13 @@ export class AdminActionService {
           name: 'ベーシックコース（年長〜小3）',
           time: '17:00-17:50',
           status: basicStatus,
-          message: basicMessageField?.value || ''
+          message: '' // コース別メッセージは不要
         },
         advance: {
           name: 'アドバンスコース（小4〜小6）',
           time: '18:00-18:50',
           status: advanceStatus,
-          message: advanceMessageField?.value || ''
+          message: '' // コース別メッセージは不要
         }
       }
     };
@@ -2039,15 +2037,9 @@ export class AdminActionService {
      const advanceRadio = document.querySelector('input[name="advance-status"][value="scheduled"]');
      if (advanceRadio) advanceRadio.checked = true;
      
-     // メッセージフィールドをクリア
+     // グローバルメッセージフィールドをクリア
      const globalMessageField = document.getElementById('global-message');
      if (globalMessageField) globalMessageField.value = '';
-     
-     const basicMessageField = document.getElementById('basic-message');
-     if (basicMessageField) basicMessageField.value = '';
-     
-     const advanceMessageField = document.getElementById('advance-message');
-     if (advanceMessageField) advanceMessageField.value = '';
    }
 
    /**
@@ -2095,7 +2087,12 @@ export class AdminActionService {
       
       if (previewContainer && previewContent) {
         previewContent.innerHTML = this._generateLessonStatusPreview(statusData);
-        previewContainer.style.display = 'block';
+        previewContainer.classList.remove('preview-hidden');
+        previewContainer.classList.add('preview-visible');
+        
+        // プレビューエリアまでスクロール
+        previewContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
         this._showFeedback('プレビューを表示しました', 'info');
       }
     } catch (error) {
@@ -2248,20 +2245,18 @@ export class AdminActionService {
         <div class="course-statuses">
           <h4>コース別状況</h4>
           <div class="course-status">
-            <h5>ベーシックコース</h5>
+            <h5>ベーシックコース (17:00-17:50)</h5>
             <div class="status-badge ${statusData.courses.basic.status}">
               <i class="${basicStatusDef.icon}"></i>
               ${basicStatusDef.displayText}
             </div>
-            ${statusData.courses.basic.message ? `<p class="course-message">${this.escapeHtml(statusData.courses.basic.message)}</p>` : ''}
           </div>
           <div class="course-status">
-            <h5>アドバンスコース</h5>
+            <h5>アドバンスコース (18:00-18:50)</h5>
             <div class="status-badge ${statusData.courses.advance.status}">
               <i class="${advanceStatusDef.icon}"></i>
               ${advanceStatusDef.displayText}
             </div>
-            ${statusData.courses.advance.message ? `<p class="course-message">${this.escapeHtml(statusData.courses.advance.message)}</p>` : ''}
           </div>
         </div>
       </div>
