@@ -2651,7 +2651,7 @@ export class AdminActionService {
     return true;
   }
 
-えす  // 削除済み: 古い_generateArticleListHTML - _generateUnifiedArticleListHTMLに統合
+  // 削除済み: 古い_generateArticleListHTML - _generateUnifiedArticleListHTMLに統合
 
   /**
    * ニュース一覧のレンダリング
@@ -3271,164 +3271,249 @@ export class AdminActionService {
     
     const categoryName = categoryNames[articleData.category] || articleData.category;
     const formattedDate = articleData.date ? 
-      new Date(articleData.date).toLocaleDateString('ja-JP') : 
-      new Date().toLocaleDateString('ja-JP');
+      new Date(articleData.date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' }) : 
+      new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
     
-    // news-detail.html完全再現モーダルHTMLを作成
+    // 記事のコンテンツをマークダウンからHTMLに変換
+    const htmlContent = this._formatMarkdown(articleData.content);
+    
+    // 美しい記事プレビューモーダルHTMLを作成
     const modalHTML = `
       <div id="news-preview-modal" class="modal news-detail-preview-modal">
+        <div class="modal-backdrop" onclick="this.closest('.modal').remove()"></div>
         <div class="modal-content news-detail-preview-content">
-          <!-- モーダルヘッダー -->
+          <!-- 洗練されたモーダルヘッダー -->
           <div class="modal-header news-detail-modal-header">
             <div class="modal-title-section">
-              <h2><i class="fas fa-eye"></i> 記事プレビュー</h2>
-              <p class="preview-note">実際の記事詳細ページと同じ表示です</p>
+              <div class="title-icon">
+                <i class="fas fa-eye"></i>
+              </div>
+              <div class="title-content">
+                <h2>記事プレビュー</h2>
+                <p class="preview-note">実際の記事ページと同じレイアウトです</p>
+              </div>
             </div>
             <div class="modal-controls">
-              <button class="modal-action-btn responsive-toggle" title="レスポンシブ表示切替">
-                <i class="fas fa-mobile-alt"></i>
+              <button class="modal-action-btn view-toggle" title="表示モード切替" data-view="desktop">
+                <i class="fas fa-desktop"></i>
+                <span class="btn-label">デスクトップ</span>
               </button>
-              <button class="modal-action-btn fullscreen-toggle" title="フルスクリーン">
+              <button class="modal-action-btn fullscreen-toggle" title="フルスクリーン表示">
                 <i class="fas fa-expand"></i>
               </button>
-              <button class="modal-close" onclick="this.closest('.modal').remove()">
+              <button class="modal-close" onclick="this.closest('.modal').remove()" title="閉じる">
                 <i class="fas fa-times"></i>
               </button>
             </div>
           </div>
           
-          <!-- プレビューコンテンツ（news-detail.html再現） -->
+          <!-- プレビューコンテンツ -->
           <div class="modal-body news-detail-preview-body">
             <div class="preview-viewport" id="preview-viewport">
-              <!-- news-detail.htmlの構造を完全再現 -->
               <div class="preview-container">
                 <!-- パンくずナビ -->
-                <nav class="breadcrumb preview-breadcrumb">
-                  <ul class="breadcrumb-list">
-                    <li>
-                      <a href="../pages/index.html">ホーム</a>
-                    </li>
-                    <li>
-                      <span class="breadcrumb-separator">></span>
-                    </li>
-                    <li>
-                      <a href="news.html">ニュース</a>
-                    </li>
-                    <li>
-                      <span class="breadcrumb-separator">></span>
-                    </li>
-                    <li>
-                      <span id="breadcrumb-title">記事詳細</span>
-                    </li>
-                  </ul>
+                <nav class="breadcrumb-nav">
+                  <div class="breadcrumb-items">
+                    <a href="#" class="breadcrumb-item">ホーム</a>
+                    <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+                    <a href="#" class="breadcrumb-item">ニュース</a>
+                    <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
+                    <span class="breadcrumb-current">記事詳細</span>
+                  </div>
                 </nav>
 
                 <!-- 記事ヘッダー -->
-                <header class="article-header preview-article-header">
-                  <div class="article-meta preview-article-meta">
-                    <span class="article-date preview-article-date">${formattedDate}</span>
-                    <span class="article-category preview-article-category ${articleData.category}">${categoryName}</span>
+                <header class="article-header">
+                  <div class="article-meta">
+                    <div class="meta-left">
+                      <span class="article-date">
+                        <i class="fas fa-calendar-alt"></i>
+                        ${formattedDate}
+                      </span>
+                      <span class="article-category ${articleData.category}">
+                        <i class="fas fa-tag"></i>
+                        ${categoryName}
+                      </span>
+                    </div>
+                    <div class="meta-right">
+                      <span class="reading-time">
+                        <i class="fas fa-clock"></i>
+                        約${Math.max(1, Math.ceil(articleData.content.length / 400))}分で読めます
+                      </span>
+                    </div>
                   </div>
-                  <h1 class="article-title preview-article-title">${this.escapeHtml(articleData.title)}</h1>
+                  
+                  <h1 class="article-title">${this.escapeHtml(articleData.title)}</h1>
+                  
                   ${articleData.summary ? `
-                    <div class="article-summary preview-article-summary">
-                      ${this.escapeHtml(articleData.summary)}
+                    <div class="article-summary">
+                      <div class="summary-content">
+                        ${this.escapeHtml(articleData.summary)}
+                      </div>
                     </div>
                   ` : ''}
+                  
+                  <div class="article-actions">
+                    <button class="action-btn share-btn" disabled>
+                      <i class="fas fa-share"></i>
+                      シェア
+                    </button>
+                    <button class="action-btn bookmark-btn" disabled>
+                      <i class="fas fa-bookmark"></i>
+                      ブックマーク
+                    </button>
+                    <button class="action-btn print-btn" onclick="window.print()">
+                      <i class="fas fa-print"></i>
+                      印刷
+                    </button>
+                  </div>
                 </header>
 
                 <!-- 記事本文 -->
-                <article class="article-content preview-article-content">
-                  ${this._convertMarkdownToHtml(articleData.content)}
+                <article class="article-content">
+                  ${htmlContent}
                 </article>
 
-                <!-- シェアセクション -->
-                <section class="share-section preview-share-section">
-                  <h3 class="share-title">この記事をシェア</h3>
-                  <div class="share-buttons preview-share-buttons">
+                <!-- ソーシャルシェア -->
+                <section class="share-section">
+                  <h3 class="section-title">
+                    <i class="fas fa-share-alt"></i>
+                    この記事をシェア
+                  </h3>
+                  <div class="share-buttons">
                     <button class="share-btn twitter" disabled>
-                      <i class="fab fa-twitter"></i> X
+                      <i class="fab fa-twitter"></i>
+                      <span>X (Twitter)</span>
                     </button>
                     <button class="share-btn facebook" disabled>
-                      <i class="fab fa-facebook"></i> Facebook
+                      <i class="fab fa-facebook-f"></i>
+                      <span>Facebook</span>
                     </button>
                     <button class="share-btn line" disabled>
-                      <i class="fab fa-line"></i> LINE
+                      <i class="fab fa-line"></i>
+                      <span>LINE</span>
                     </button>
-                    <button class="share-btn copy" disabled>
-                      <i class="fas fa-link"></i> URL をコピー
+                    <button class="share-btn linkedin" disabled>
+                      <i class="fab fa-linkedin-in"></i>
+                      <span>LinkedIn</span>
                     </button>
                   </div>
-                  <p class="preview-note-small">※ プレビューではシェア機能は無効です</p>
+                  <p class="preview-note">※ プレビューではシェア機能は無効です</p>
                 </section>
 
                 <!-- 関連記事 -->
-                <section class="related-articles preview-related-articles">
-                  <h3 class="related-title">関連記事</h3>
+                <section class="related-articles">
+                  <h3 class="section-title">
+                    <i class="fas fa-newspaper"></i>
+                    関連記事
+                  </h3>
                   <div class="related-grid">
-                    <div class="related-card preview-related-card">
-                      <div class="related-card-header">
-                        <div class="related-meta">
-                          <span class="related-date">2024.03.20</span>
-                          <span class="related-category event">体験会</span>
+                    <div class="related-card">
+                      <div class="card-image">
+                        <div class="placeholder-image">
+                          <i class="fas fa-image"></i>
                         </div>
                       </div>
-                      <div class="related-card-body">
-                        <h4 class="related-title-link">
-                          春の体験会のお知らせ（サンプル）
-                        </h4>
-                        <p class="related-excerpt">
-                          関連記事のサンプル表示です。実際のプレビューでは最新の関連記事が表示されます。
-                        </p>
+                      <div class="card-content">
+                        <div class="card-meta">
+                          <span class="date">2024.03.20</span>
+                          <span class="category event">体験会</span>
+                        </div>
+                        <h4 class="card-title">春の体験会のお知らせ（サンプル記事）</h4>
+                        <p class="card-excerpt">関連記事のサンプル表示です。実際のページでは最新の関連記事が自動で表示されます。</p>
                       </div>
                     </div>
-                    <div class="related-card preview-related-card">
-                      <div class="related-card-header">
-                        <div class="related-meta">
-                          <span class="related-date">2024.03.15</span>
-                          <span class="related-category announcement">お知らせ</span>
+                    <div class="related-card">
+                      <div class="card-image">
+                        <div class="placeholder-image">
+                          <i class="fas fa-image"></i>
                         </div>
                       </div>
-                      <div class="related-card-body">
-                        <h4 class="related-title-link">
-                          レッスンスケジュール更新（サンプル）
-                        </h4>
-                        <p class="related-excerpt">
-                          関連記事のサンプル表示です。実際のページでは動的に関連記事が表示されます。
-                        </p>
+                      <div class="card-content">
+                        <div class="card-meta">
+                          <span class="date">2024.03.15</span>
+                          <span class="category announcement">お知らせ</span>
+                        </div>
+                        <h4 class="card-title">レッスンスケジュール更新のお知らせ（サンプル記事）</h4>
+                        <p class="card-excerpt">関連記事のサンプル表示です。実際のページでは類似のカテゴリや内容の記事が表示されます。</p>
+                      </div>
+                    </div>
+                    <div class="related-card">
+                      <div class="card-image">
+                        <div class="placeholder-image">
+                          <i class="fas fa-image"></i>
+                        </div>
+                      </div>
+                      <div class="card-content">
+                        <div class="card-meta">
+                          <span class="date">2024.03.10</span>
+                          <span class="category media">メディア</span>
+                        </div>
+                        <h4 class="card-title">メディア掲載情報（サンプル記事）</h4>
+                        <p class="card-excerpt">関連記事のサンプル表示です。プレビューでは固定のサンプル記事が表示されています。</p>
                       </div>
                     </div>
                   </div>
-                  <p class="preview-note-small">※ プレビューでは関連記事はサンプル表示です</p>
+                  <p class="preview-note">※ プレビューでは固定のサンプル記事を表示しています</p>
                 </section>
 
-                <!-- 一覧に戻る -->
-                <div class="article-nav preview-article-nav">
-                  <a href="#" class="nav-btn" onclick="return false;">
-                    <i class="fas fa-arrow-left"></i> ニュース一覧に戻る
-                  </a>
-                  <p class="preview-note-small">※ プレビューでは機能しません</p>
-                </div>
+                <!-- ナビゲーション -->
+                <nav class="article-nav">
+                  <button class="nav-btn back-btn" onclick="return false;">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>ニュース一覧に戻る</span>
+                  </button>
+                  <button class="nav-btn top-btn" onclick="document.getElementById('preview-viewport').scrollTo({top: 0, behavior: 'smooth'})">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>記事の先頭へ</span>
+                  </button>
+                </nav>
               </div>
             </div>
           </div>
           
-          <!-- モーダルフッター -->
+          <!-- 改善されたフッター -->
           <div class="modal-footer news-detail-modal-footer">
-            <div class="modal-footer-left">
-              <button class="btn btn-info" onclick="this.parentElement.parentElement.parentElement.querySelector('.preview-viewport').classList.toggle('mobile-view')">
-                <i class="fas fa-mobile-alt"></i> モバイル表示
-              </button>
-              <button class="btn btn-secondary" onclick="this.parentElement.parentElement.parentElement.querySelector('.preview-viewport').classList.toggle('tablet-view')">
-                <i class="fas fa-tablet-alt"></i> タブレット表示
-              </button>
+            <div class="footer-left">
+              <div class="view-controls">
+                <button class="view-btn active" data-view="desktop" title="デスクトップ表示">
+                  <i class="fas fa-desktop"></i>
+                  <span>デスクトップ</span>
+                </button>
+                <button class="view-btn" data-view="tablet" title="タブレット表示">
+                  <i class="fas fa-tablet-alt"></i>
+                  <span>タブレット</span>
+                </button>
+                <button class="view-btn" data-view="mobile" title="モバイル表示">
+                  <i class="fas fa-mobile-alt"></i>
+                  <span>モバイル</span>
+                </button>
+              </div>
             </div>
-            <div class="modal-footer-right">
-              <button class="btn btn-outline" onclick="this.closest('.modal').remove()">
-                <i class="fas fa-times"></i> 閉じる
+            <div class="footer-center">
+              <div class="zoom-controls">
+                <button class="zoom-btn" data-zoom="0.8" title="縮小表示">
+                  <i class="fas fa-search-minus"></i>
+                  <span>80%</span>
+                </button>
+                <button class="zoom-btn active" data-zoom="1" title="通常表示">
+                  <i class="fas fa-search"></i>
+                  <span>100%</span>
+                </button>
+                <button class="zoom-btn" data-zoom="1.2" title="拡大表示">
+                  <i class="fas fa-search-plus"></i>
+                  <span>120%</span>
+                </button>
+              </div>
+            </div>
+            <div class="footer-right">
+              <button class="action-btn secondary" onclick="this.closest('.modal').remove()">
+                <i class="fas fa-times"></i>
+                <span>閉じる</span>
               </button>
-              <button class="btn btn-primary" onclick="window.open('news-detail.html?preview=true', '_blank')">
-                <i class="fas fa-external-link-alt"></i> 新しいタブで開く
+              <button class="action-btn primary" onclick="window.open('news-detail.html?preview=true', '_blank')">
+                <i class="fas fa-external-link-alt"></i>
+                <span>新しいタブで開く</span>
               </button>
             </div>
           </div>
@@ -3443,11 +3528,11 @@ export class AdminActionService {
     const modal = document.getElementById('news-preview-modal');
     modal.style.display = 'flex';
     
-    // news-detail.cssのスタイルを動的に適用
-    this._injectNewsDetailStyles();
+    // 改善されたスタイルを適用
+    this._injectEnhancedPreviewStyles();
     
     // モーダル機能を初期化
-    this._initializePreviewModal(modal);
+    this._initializeEnhancedPreviewModal(modal);
     
     // ESCキーでモーダルを閉じる
     const handleEscape = (e) => {
@@ -3458,19 +3543,901 @@ export class AdminActionService {
     };
     document.addEventListener('keydown', handleEscape);
     
-    // モーダル背景クリックで閉じる
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        modal.remove();
-        document.removeEventListener('keydown', handleEscape);
-      }
-    });
-    
-    console.log('👁️ 記事プレビュー表示完了（news-detail.html再現版）');
+    console.log('✨ 改善された記事プレビューを表示');
   }
 
   /**
-   * news-detail.cssのスタイルを動的に注入
+   * 改善されたプレビュースタイルを動的に注入
+   * @private
+   */
+  _injectEnhancedPreviewStyles() {
+    // 既存のプレビュースタイルがあれば削除
+    const existingStyle = document.getElementById('news-detail-preview-styles');
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+    
+    // 美しいプレビューモーダル用のスタイルを注入
+    const styleElement = document.createElement('style');
+    styleElement.id = 'news-detail-preview-styles';
+    styleElement.textContent = `
+      /* ==========================================================================
+         ✨ 改善された記事プレビューモーダルスタイル
+         ========================================================================== */
+
+      /* モーダル基本構造 */
+      .news-detail-preview-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        animation: modalFadeIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      .modal-backdrop {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
+        cursor: pointer;
+      }
+
+      .news-detail-preview-content {
+        position: relative;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 
+          0 25px 50px rgba(0, 0, 0, 0.25),
+          0 10px 30px rgba(0, 0, 0, 0.15);
+        width: 95%;
+        max-width: 1400px;
+        height: 90vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        animation: modalSlideUp 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      /* ヘッダースタイル */
+      .news-detail-modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .news-detail-modal-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 200%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        animation: headerShine 3s infinite;
+      }
+
+      .modal-title-section {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        z-index: 1;
+      }
+
+      .title-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        backdrop-filter: blur(10px);
+      }
+
+      .title-content h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .preview-note {
+        font-size: 0.875rem;
+        opacity: 0.9;
+        margin: 4px 0 0 0;
+        font-weight: 400;
+        line-height: 1.4;
+      }
+
+      .modal-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        z-index: 1;
+      }
+
+      .modal-action-btn {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 10px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        backdrop-filter: blur(10px);
+      }
+
+      .modal-action-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      }
+
+      .modal-close {
+        background: rgba(239, 68, 68, 0.2) !important;
+        border-color: rgba(239, 68, 68, 0.4) !important;
+      }
+
+      .modal-close:hover {
+        background: rgba(239, 68, 68, 0.3) !important;
+      }
+
+      /* プレビューボディ */
+      .news-detail-preview-body {
+        flex: 1;
+        overflow: hidden;
+        background: #f8fafc;
+        position: relative;
+      }
+
+      .preview-viewport {
+        height: 100%;
+        overflow: auto;
+        background: white;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        scroll-behavior: smooth;
+      }
+
+      .preview-viewport::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .preview-viewport::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+
+      .preview-viewport::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 4px;
+      }
+
+      .preview-viewport::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #5a67d8, #6b46c1);
+      }
+
+      .preview-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px;
+        min-height: 100%;
+        line-height: 1.7;
+      }
+
+      /* パンくずナビ */
+      .breadcrumb-nav {
+        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 30px;
+        border: 1px solid #e2e8f0;
+      }
+
+      .breadcrumb-items {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+
+      .breadcrumb-item {
+        color: #667eea;
+        text-decoration: none;
+        transition: color 0.3s ease;
+        padding: 4px 8px;
+        border-radius: 6px;
+      }
+
+      .breadcrumb-item:hover {
+        color: #5a67d8;
+        background: rgba(102, 126, 234, 0.1);
+      }
+
+      .breadcrumb-separator {
+        color: #94a3b8;
+        font-size: 0.75rem;
+      }
+
+      .breadcrumb-current {
+        color: #475569;
+        font-weight: 600;
+      }
+
+      /* 記事ヘッダー */
+      .article-header {
+        background: linear-gradient(135deg, #ffffff, #f8fafc);
+        border-radius: 20px;
+        padding: 40px;
+        margin-bottom: 40px;
+        box-shadow: 
+          0 10px 40px rgba(0, 0, 0, 0.08),
+          0 4px 20px rgba(0, 0, 0, 0.04);
+        border: 1px solid #e2e8f0;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .article-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #f5576c);
+        background-size: 200% 100%;
+        animation: gradientShift 4s ease-in-out infinite;
+      }
+
+      .article-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+
+      .meta-left, .meta-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .article-date, .article-category, .reading-time {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: white;
+      }
+
+      .article-date {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+      }
+
+      .article-category {
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.8rem;
+      }
+
+      .article-category.announcement {
+        background: linear-gradient(135deg, #4a90e2, #357abd);
+      }
+
+      .article-category.event {
+        background: linear-gradient(135deg, #50c8a3, #3da58a);
+      }
+
+      .article-category.media {
+        background: linear-gradient(135deg, #9b59b6, #8e44ad);
+      }
+
+      .article-category.important {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+      }
+
+      .reading-time {
+        background: linear-gradient(135deg, #94a3b8, #64748b);
+      }
+
+      .article-title {
+        font-size: clamp(1.75rem, 4vw, 2.5rem);
+        font-weight: 800;
+        color: #1e293b;
+        line-height: 1.2;
+        margin: 0 0 20px 0;
+        letter-spacing: -0.025em;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      .article-summary {
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+        border-left: 4px solid #667eea;
+      }
+
+      .summary-content {
+        color: #475569;
+        font-size: 1.125rem;
+        line-height: 1.6;
+        font-weight: 500;
+        margin: 0;
+      }
+
+      .article-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border: 1px solid #e2e8f0;
+        background: white;
+        color: #64748b;
+        border-radius: 10px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .action-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .action-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .share-btn {
+        border-color: #f59e0b;
+        color: #f59e0b;
+      }
+
+      .bookmark-btn {
+        border-color: #8b5cf6;
+        color: #8b5cf6;
+      }
+
+      .print-btn {
+        border-color: #10b981;
+        color: #10b981;
+      }
+
+      /* 記事コンテンツ */
+      .article-content {
+        background: white;
+        border-radius: 16px;
+        padding: 40px;
+        margin-bottom: 40px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f1f5f9;
+        color: #374151;
+        font-size: 1.1rem;
+        line-height: 1.8;
+      }
+
+      .article-content h1, .article-content h2, .article-content h3,
+      .article-content h4, .article-content h5, .article-content h6 {
+        color: #1e293b;
+        font-weight: 700;
+        margin: 2em 0 1em 0;
+        line-height: 1.3;
+      }
+
+      .article-content h2 {
+        font-size: 1.5rem;
+        padding-bottom: 0.5em;
+        border-bottom: 2px solid #e2e8f0;
+      }
+
+      .article-content h3 {
+        font-size: 1.25rem;
+        color: #475569;
+      }
+
+      .article-content p {
+        margin: 1.5em 0;
+      }
+
+      .article-content ul, .article-content ol {
+        margin: 1.5em 0;
+        padding-left: 1.5em;
+      }
+
+      .article-content li {
+        margin: 0.5em 0;
+      }
+
+      .article-content blockquote {
+        border-left: 4px solid #667eea;
+        background: #f8fafc;
+        padding: 1em 1.5em;
+        margin: 2em 0;
+        border-radius: 0 8px 8px 0;
+        font-style: italic;
+      }
+
+      .article-content code {
+        background: #f1f5f9;
+        color: #e53e3e;
+        padding: 0.2em 0.4em;
+        border-radius: 4px;
+        font-size: 0.9em;
+      }
+
+      .article-content pre {
+        background: #1e293b;
+        color: #f1f5f9;
+        padding: 1.5em;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 2em 0;
+      }
+
+      /* シェアセクション */
+      .share-section {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 40px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f1f5f9;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0 0 20px 0;
+      }
+
+      .share-buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+
+      .share-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.875rem;
+      }
+
+      .share-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .share-btn.twitter {
+        background: linear-gradient(135deg, #1da1f2, #0d8bd9);
+        color: white;
+      }
+
+      .share-btn.facebook {
+        background: linear-gradient(135deg, #4267b2, #365899);
+        color: white;
+      }
+
+      .share-btn.line {
+        background: linear-gradient(135deg, #00c300, #00a000);
+        color: white;
+      }
+
+      .share-btn.linkedin {
+        background: linear-gradient(135deg, #0077b5, #005885);
+        color: white;
+      }
+
+      /* 関連記事セクション */
+      .related-articles {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 40px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f1f5f9;
+      }
+
+      .related-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .related-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+
+      .related-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      }
+
+      .card-image {
+        height: 150px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .placeholder-image {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #94a3b8;
+        font-size: 2rem;
+      }
+
+      .card-content {
+        padding: 20px;
+      }
+
+      .card-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .card-meta .date {
+        color: #64748b;
+        font-size: 0.875rem;
+      }
+
+      .card-meta .category {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: white;
+        text-transform: uppercase;
+      }
+
+      .card-meta .category.announcement {
+        background: #4a90e2;
+      }
+
+      .card-meta .category.event {
+        background: #50c8a3;
+      }
+
+      .card-meta .category.media {
+        background: #9b59b6;
+      }
+
+      .card-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0 0 12px 0;
+        line-height: 1.4;
+      }
+
+      .card-excerpt {
+        color: #64748b;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        margin: 0;
+      }
+
+      /* ナビゲーション */
+      .article-nav {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .nav-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        color: #475569;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+      }
+
+      .nav-btn:hover {
+        border-color: #667eea;
+        color: #667eea;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      /* フッタースタイル */
+      .news-detail-modal-footer {
+        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        padding: 20px 30px;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .footer-left, .footer-center, .footer-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .view-controls, .zoom-controls {
+        display: flex;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .view-btn, .zoom-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border: none;
+        background: transparent;
+        color: #64748b;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-right: 1px solid #e2e8f0;
+      }
+
+      .view-btn:last-child, .zoom-btn:last-child {
+        border-right: none;
+      }
+
+      .view-btn.active, .zoom-btn.active {
+        background: #667eea;
+        color: white;
+      }
+
+      .view-btn:hover:not(.active), .zoom-btn:hover:not(.active) {
+        background: #f1f5f9;
+        color: #475569;
+      }
+
+      .action-btn.primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .action-btn.secondary {
+        background: white;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      /* レスポンシブ表示モード */
+      .preview-viewport.mobile-view {
+        max-width: 375px;
+        margin: 0 auto;
+        border-left: 3px solid #667eea;
+        border-right: 3px solid #667eea;
+        border-radius: 0 0 12px 12px;
+      }
+
+      .preview-viewport.tablet-view {
+        max-width: 768px;
+        margin: 0 auto;
+        border-left: 3px solid #764ba2;
+        border-right: 3px solid #764ba2;
+        border-radius: 0 0 12px 12px;
+      }
+
+      /* プレビューノート */
+      .preview-note {
+        color: #94a3b8;
+        font-size: 0.875rem;
+        font-style: italic;
+        text-align: center;
+        margin: 0;
+      }
+
+      /* アニメーション */
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes modalSlideUp {
+        from {
+          opacity: 0;
+          transform: translateY(50px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @keyframes headerShine {
+        0%, 100% {
+          transform: translateX(-100%);
+        }
+        50% {
+          transform: translateX(100%);
+        }
+      }
+
+      @keyframes gradientShift {
+        0%, 100% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+      }
+
+      /* レスポンシブデザイン */
+      @media (max-width: 768px) {
+        .news-detail-preview-content {
+          width: 98%;
+          height: 95vh;
+          border-radius: 12px;
+        }
+
+        .preview-container {
+          padding: 20px;
+        }
+
+        .article-header {
+          padding: 24px;
+        }
+
+        .article-content {
+          padding: 24px;
+        }
+
+        .article-meta {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .news-detail-modal-footer {
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .footer-left, .footer-center, .footer-right {
+          width: 100%;
+          justify-content: center;
+        }
+
+        .related-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .article-nav {
+          flex-direction: column;
+        }
+
+        .nav-btn {
+          justify-content: center;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .modal-controls {
+          gap: 8px;
+        }
+
+        .modal-action-btn {
+          padding: 8px;
+        }
+
+        .btn-label {
+          display: none;
+        }
+
+        .article-title {
+          font-size: 1.5rem;
+        }
+
+        .share-buttons {
+          justify-content: center;
+        }
+
+        .share-btn span {
+          display: none;
+        }
+      }
+    `;
+    
+    document.head.appendChild(styleElement);
+  }
+
+  /**
+   * news-detail.cssのスタイルを動的に注入（旧メソッド）
    * @private
    */
   _injectNewsDetailStyles() {
@@ -4189,7 +5156,117 @@ export class AdminActionService {
   }
 
   /**
-   * プレビューモーダルの機能を初期化
+   * 改善されたプレビューモーダルの機能を初期化
+   * @private
+   */
+  _initializeEnhancedPreviewModal(modal) {
+    const viewport = modal.querySelector('.preview-viewport');
+    
+    // 表示モード切替機能
+    const viewButtons = modal.querySelectorAll('.view-btn');
+    viewButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // アクティブ状態を更新
+        viewButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // 表示モードを適用
+        const view = btn.dataset.view;
+        viewport.className = 'preview-viewport';
+        if (view === 'mobile') {
+          viewport.classList.add('mobile-view');
+        } else if (view === 'tablet') {
+          viewport.classList.add('tablet-view');
+        }
+      });
+    });
+    
+    // ズーム機能
+    const zoomButtons = modal.querySelectorAll('.zoom-btn');
+    zoomButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // アクティブ状態を更新
+        zoomButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // ズームレベルを適用
+        const zoom = btn.dataset.zoom;
+        viewport.style.zoom = zoom;
+      });
+    });
+    
+    // フルスクリーン機能
+    const fullscreenBtn = modal.querySelector('.fullscreen-toggle');
+    if (fullscreenBtn) {
+      fullscreenBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          modal.requestFullscreen().catch(err => {
+            console.log('フルスクリーン表示に失敗しました:', err);
+          });
+        } else {
+          document.exitFullscreen();
+        }
+      });
+    }
+    
+    // フルスクリーン状態の変更を監視
+    document.addEventListener('fullscreenchange', () => {
+      const icon = fullscreenBtn?.querySelector('i');
+      if (icon) {
+        if (document.fullscreenElement) {
+          icon.className = 'fas fa-compress';
+        } else {
+          icon.className = 'fas fa-expand';
+        }
+      }
+    });
+    
+    // キーボードショートカット
+    const handleKeydown = (e) => {
+      if (e.target.closest('.modal') === modal) {
+        switch (e.key) {
+          case 'Escape':
+            modal.remove();
+            document.removeEventListener('keydown', handleKeydown);
+            break;
+          case 'F11':
+            e.preventDefault();
+            fullscreenBtn?.click();
+            break;
+          case '1':
+            if (e.ctrlKey) {
+              e.preventDefault();
+              viewButtons[0]?.click(); // デスクトップ
+            }
+            break;
+          case '2':
+            if (e.ctrlKey) {
+              e.preventDefault();
+              viewButtons[1]?.click(); // タブレット
+            }
+            break;
+          case '3':
+            if (e.ctrlKey) {
+              e.preventDefault();
+              viewButtons[2]?.click(); // モバイル
+            }
+            break;
+        }
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeydown);
+    
+    // スムーズアニメーション用のタイマー
+    setTimeout(() => {
+      modal.classList.add('loaded');
+    }, 100);
+    
+    console.log('✨ 改善されたプレビューモーダルの機能を初期化完了');
+  }
+
+  /**
+   * プレビューモーダルの機能を初期化（旧メソッド）
    * @private
    */
   _initializePreviewModal(modal) {
