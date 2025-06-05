@@ -3282,6 +3282,28 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
 .list-content {
   padding: 2rem;
   min-height: 400px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+/* 記事管理リストのスクロールバースタイル */
+.list-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.list-content::-webkit-scrollbar-track {
+  background: var(--admin-gray-100);
+  border-radius: 3px;
+}
+
+.list-content::-webkit-scrollbar-thumb {
+  background: var(--admin-gray-300);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.list-content::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-primary);
 }
 
 /* 記事アイテム */

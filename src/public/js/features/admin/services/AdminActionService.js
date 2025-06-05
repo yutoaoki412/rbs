@@ -1614,8 +1614,15 @@ export class AdminActionService {
       
       this._renderNewsList(filterValue);
       
+      // フィルター状態をビジュアルに反映
+      const filterSelect = document.getElementById('news-filter');
+      if (filterSelect && filterSelect.value !== filterValue) {
+        filterSelect.value = filterValue;
+      }
+      
     } catch (error) {
       console.error('❌ ニュース一覧フィルタリングエラー:', error);
+      this._showFeedback('フィルタリングに失敗しました', 'error');
     }
   }
 
@@ -1708,68 +1715,18 @@ export class AdminActionService {
       // HTML生成
       let html = '';
       
-      if (recentArticles.length === 0) {
-        html = `
-          <div class="empty-state">
-            <i class="fas fa-newspaper"></i>
-            <p>記事がまだありません</p>
-            <button class="btn btn-primary" data-action="new-news-article">
-              <i class="fas fa-plus"></i> 新規記事を作成
-            </button>
-          </div>
-        `;
-      } else {
-        html = recentArticles.map(article => {
-          const title = this.escapeHtml(article.title || '無題の記事');
-          const summary = article.summary ? 
-            this.escapeHtml(article.summary.length > 60 ? article.summary.substring(0, 60) + '...' : article.summary) : 
-            '概要なし';
-          const createdDate = new Date(article.createdAt || Date.now());
-          const formattedDate = createdDate.toLocaleDateString('ja-JP', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-          });
-          const statusText = article.status === 'published' ? '公開中' : '下書き';
-          const categoryName = this._getCategoryName(article.category || 'announcement');
-          
-          return `
-            <div class="recent-article-item" data-id="${article.id}">
-              <div class="recent-article-content">
-                <div class="recent-article-header">
-                  <div class="recent-article-main">
-                    <h3 class="recent-article-title">${title}</h3>
-                    <div class="recent-article-summary">${summary}</div>
-                  </div>
-                  <div class="recent-article-actions">
-                    <button class="action-btn-modern edit-btn" 
-                            data-action="edit-article" 
-                            data-article-id="${article.id}" 
-                            title="記事を編集"
-                            aria-label="記事「${title}」を編集">
-                      <i class="fas fa-edit"></i>
-                      <span class="action-text">編集</span>
-                    </button>
-                    <button class="action-btn-modern preview-btn" 
-                            data-action="preview-article" 
-                            data-article-id="${article.id}" 
-                            title="記事をプレビュー"
-                            aria-label="記事「${title}」をプレビュー">
-                      <i class="fas fa-eye"></i>
-                      <span class="action-text">プレビュー</span>
-                    </button>
-                  </div>
-                </div>
-                <div class="recent-article-meta">
-                  <span class="category-badge ${article.category || 'announcement'}">${categoryName}</span>
-                  <span class="status-badge ${article.status || 'draft'}">${statusText}</span>
-                  <span class="date-info">${formattedDate}</span>
-                </div>
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
+      // 統合されたメソッドを使用
+      html = this._generateUnifiedArticleListHTML(recentArticles, {
+        mode: 'recent',
+        showActions: true,
+        showMeta: true,
+        emptyMessage: '記事がまだありません',
+        emptyAction: {
+          action: 'new-news-article',
+          icon: 'fa-plus',
+          text: '新規記事を作成'
+        }
+      });
       
       recentContainer.innerHTML = html;
       console.log(`✅ 最近の記事更新完了 - ${recentArticles.length}件表示`);
@@ -2694,20 +2651,79 @@ export class AdminActionService {
     return true;
   }
 
+えす  // 削除済み: 古い_generateArticleListHTML - _generateUnifiedArticleListHTMLに統合
+
+  /**
+   * ニュース一覧のレンダリング
+   * @private
+   * @param {string} filter - フィルター
+   */
+  _renderNewsList(filter = 'all') {
+    try {
+      if (!this.articleDataService?.initialized) {
+        console.warn('ArticleDataServiceが初期化されていません');
+        return;
+      }
+
+      const articles = this.articleDataService.loadArticles();
+      const filteredArticles = this._filterArticles(articles, filter);
+      
+      const listContainer = document.getElementById('news-list');
+      if (listContainer) {
+        // 統合されたメソッドを使用（管理画面スタイル）
+        const html = this._generateUnifiedArticleListHTML(filteredArticles, {
+          mode: 'management',
+          showActions: true,
+          showMeta: true,
+          filter: filter,
+          emptyMessage: '記事がありません',
+          emptyAction: {
+            action: 'new-news-article',
+            icon: 'fa-plus',
+            text: '新規記事を作成'
+          }
+        });
+        
+        listContainer.innerHTML = html;
+        
+        console.log(`📋 記事一覧を表示: ${filteredArticles.length}件 (フィルター: ${filter})`);
+      } else {
+        console.warn('news-list要素が見つかりません');
+      }
+      
+    } catch (error) {
+      console.error('❌ ニュース一覧レンダリングエラー:', error);
+      
+      // エラー時の安全なフォールバック
+      const listContainer = document.getElementById('news-list');
+      if (listContainer) {
+        listContainer.innerHTML = `
+          <div class="error-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>記事一覧の読み込みに失敗しました</p>
+            <button class="btn btn-sm btn-outline" data-action="refresh-news-list">
+              <i class="fas fa-sync-alt"></i> 再試行
+            </button>
+          </div>
+        `;
+      }
+    }
+  }
+
   /**
    * 統合された記事一覧HTMLの生成
+   * ダッシュボードの最近の記事と記事管理で共通利用
    * @private
    * @param {Array} articles - 記事配列
    * @param {Object} options - 表示オプション
    * @returns {string}
    */
-  _generateArticleListHTML(articles, options = {}) {
+  _generateUnifiedArticleListHTML(articles, options = {}) {
     const {
-      mode = 'list', // 'recent' | 'list'
+      mode = 'recent', // 'recent' | 'management'
       showActions = true,
-      showStats = false,
       showMeta = true,
-      limit = null,
+      filter = 'all',
       emptyMessage = '記事がありません',
       emptyAction = null
     } = options;
@@ -2731,34 +2747,35 @@ export class AdminActionService {
       return emptyHTML;
     }
 
-    const displayArticles = limit ? articles.slice(0, limit) : articles;
-    
+    // 記事管理モードでは全記事表示、ダッシュボードでは最大5件
+    const displayArticles = mode === 'management' ? articles : articles.slice(0, 5);
+
     return displayArticles.map((article, index) => {
-      const createdDate = new Date(article.createdAt);
-      const updatedDate = new Date(article.updatedAt || article.createdAt);
-      const isRecent = (Date.now() - updatedDate.getTime()) < (24 * 60 * 60 * 1000); // 24時間以内
-      const categoryName = this._getCategoryName(article.category);
-      const title = this.escapeHtml(article.title); // タイトルを変数として定義
+      const title = this.escapeHtml(article.title || '無題の記事');
       const summary = article.summary ? 
-        (article.summary.length > 80 ? article.summary.substring(0, 80) + '...' : article.summary) : 
+        this.escapeHtml(article.summary.length > 60 ? article.summary.substring(0, 60) + '...' : article.summary) : 
         '概要なし';
-
-      // スタイル調整用のクラス
-      const containerClass = mode === 'recent' ? 'recent-article-item' : 'recent-article-item list-mode';
-      const animationDelay = mode === 'recent' ? `style="animation-delay: ${index * 0.1}s"` : '';
-
+      const createdDate = new Date(article.createdAt || Date.now());
+      const formattedDate = createdDate.toLocaleDateString('ja-JP', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+      const statusText = article.status === 'published' ? '公開中' : '下書き';
+      const categoryName = this._getCategoryName(article.category || 'announcement');
+      
+      // 記事管理モードの場合は追加クラスを適用
+      const itemClass = mode === 'management' ? 'recent-article-item list-mode' : 'recent-article-item';
+      
       return `
-        <div class="${containerClass}" data-id="${article.id}" ${animationDelay}>
+        <div class="${itemClass}" data-id="${article.id}">
           <div class="recent-article-content">
             <div class="recent-article-header">
               <div class="recent-article-main">
-                <h3 class="recent-article-title" title="${title}">
-                  ${title}
-                  ${isRecent ? '<span class="new-badge">NEW</span>' : ''}
-                </h3>
-                <div class="recent-article-summary">${this.escapeHtml(summary)}</div>
+                <h3 class="recent-article-title">${title}</h3>
+                <div class="recent-article-summary">${summary}</div>
               </div>
-              ${mode === 'recent' && showActions ? `
+              ${showActions ? `
                 <div class="recent-article-actions">
                   <button class="action-btn-modern edit-btn" 
                           data-action="edit-article" 
@@ -2776,80 +2793,30 @@ export class AdminActionService {
                     <i class="fas fa-eye"></i>
                     <span class="action-text">プレビュー</span>
                   </button>
+                  ${mode === 'management' ? `
+                    <button class="action-btn-modern delete-btn" 
+                            data-action="delete-article" 
+                            data-article-id="${article.id}" 
+                            title="記事を削除"
+                            aria-label="記事「${title}」を削除">
+                      <i class="fas fa-trash"></i>
+                      <span class="action-text">削除</span>
+                    </button>
+                  ` : ''}
                 </div>
               ` : ''}
             </div>
             ${showMeta ? `
               <div class="recent-article-meta">
-                <span class="category-badge ${article.category}">${categoryName}</span>
-                <span class="status-badge ${article.status}">${article.status === 'published' ? '公開中' : '下書き'}</span>
-                <span class="date-info">${createdDate.toLocaleDateString('ja-JP')}</span>
+                <span class="category-badge ${article.category || 'announcement'}">${categoryName}</span>
+                <span class="status-badge ${article.status || 'draft'}">${statusText}</span>
+                <span class="date-info">${formattedDate}</span>
               </div>
             ` : ''}
           </div>
         </div>
       `;
     }).join('');
-  }
-
-  /**
-   * ニュース一覧のレンダリング
-   * @private
-   * @param {string} filter - フィルター
-   */
-  _renderNewsList(filter = 'all') {
-    try {
-      if (!this.articleDataService?.initialized) {
-        console.warn('ArticleDataServiceが初期化されていません');
-        return;
-      }
-
-      const articles = this.articleDataService.loadArticles();
-      const filteredArticles = this._filterArticles(articles, filter);
-      
-      const listContainer = document.getElementById('news-list');
-      if (listContainer) {
-        // 統合されたメソッドを使用
-        const html = this._generateArticleListHTML(filteredArticles, {
-          mode: 'list',
-          showActions: true,
-          showStats: true,
-          showMeta: true,
-          emptyMessage: '記事がありません',
-          emptyAction: {
-            action: 'new-news-article',
-            icon: 'fa-plus',
-            text: '新規記事を作成'
-          }
-        });
-        
-        listContainer.innerHTML = html;
-        
-        // ドロップダウンメニューの初期化
-        this._initializeDropdownMenus(listContainer);
-      } else {
-        console.warn('news-list要素が見つかりません');
-      }
-      
-      console.log(`📋 記事一覧を表示: ${filteredArticles.length}件 (フィルター: ${filter})`);
-      
-    } catch (error) {
-      console.error('❌ ニュース一覧レンダリングエラー:', error);
-      
-      // エラー時の安全なフォールバック
-      const listContainer = document.getElementById('news-list');
-      if (listContainer) {
-        listContainer.innerHTML = `
-          <div class="error-state">
-            <i class="fas fa-exclamation-triangle"></i>
-            <p>記事一覧の読み込みに失敗しました</p>
-            <button class="btn btn-sm btn-outline" data-action="refresh-news-list">
-              <i class="fas fa-sync-alt"></i> 再試行
-            </button>
-          </div>
-        `;
-      }
-    }
   }
 
   /**
@@ -2952,82 +2919,9 @@ export class AdminActionService {
     }
   }
 
-  /**
-   * ニュース一覧HTMLの生成
-   * @private
-   * @param {Array} articles - 記事配列
-   * @returns {string}
-   */
-  _generateNewsListHTML(articles) {
-    if (articles.length === 0) {
-      return '<div class="empty-state">記事がありません</div>';
-    }
-    
-    return articles.map(article => `
-      <div class="news-item" data-id="${article.id}">
-        <div class="news-item-header">
-          <h3>${article.title}</h3>
-          <span class="status-badge ${article.status}">${article.status === 'published' ? '公開' : '下書き'}</span>
-        </div>
-        <div class="news-item-meta">
-          <span class="category">${this._getCategoryName(article.category)}</span>
-          <span class="date">${new Date(article.createdAt).toLocaleDateString('ja-JP')}</span>
-        </div>
-        <div class="news-item-actions">
-          <button class="btn btn-sm btn-outline" data-action="edit-article" data-article-id="${article.id}">編集</button>
-          <button class="btn btn-sm btn-danger" data-action="delete-article" data-article-id="${article.id}">削除</button>
-        </div>
-      </div>
-    `).join('');
-  }
+  // 削除済み: _generateNewsListHTML - _generateUnifiedArticleListHTMLに統合
 
-  /**
-   * 最近の記事HTMLの生成
-   * @private
-   * @param {Array} articles - 記事配列
-   * @returns {string}
-   */
-  _generateRecentArticlesHTML(articles) {
-    if (articles.length === 0) {
-      return `
-        <div class="empty-state">
-          <i class="fas fa-newspaper"></i>
-          <p>最近の記事がありません</p>
-          <button class="btn btn-sm btn-primary" data-action="new-news-article">
-            <i class="fas fa-plus"></i> 新規記事を作成
-          </button>
-        </div>
-      `;
-    }
-    
-    return articles.map((article, index) => {
-      const createdDate = new Date(article.createdAt);
-      const updatedDate = new Date(article.updatedAt || article.createdAt);
-      const isRecent = (Date.now() - updatedDate.getTime()) < (24 * 60 * 60 * 1000); // 24時間以内
-      const categoryName = this._getCategoryName(article.category);
-      const summary = article.summary ? 
-        (article.summary.length > 80 ? article.summary.substring(0, 80) + '...' : article.summary) : 
-        '概要なし';
-
-      return `
-        <div class="recent-article-item animation-delay-${Math.min(index + 1, 10)}" data-id="${article.id}">
-          <div class="article-image">
-            <img src="${article.image || this.getDefaultArticleImage()}" 
-                 alt="${article.title}" 
-                 loading="lazy">
-          </div>
-          <div class="article-content">
-            <h3 class="article-title">${article.title}</h3>
-            <p class="article-summary">${article.summary}</p>
-            <div class="article-meta">
-              <span class="article-date">${new Date(article.date).toLocaleDateString('ja-JP')}</span>
-              <span class="article-category">${article.category}</span>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
+  // 削除済み: _generateRecentArticlesHTML - _generateUnifiedArticleListHTMLに統合
 
   /**
    * カテゴリー名の取得
@@ -4401,56 +4295,7 @@ export class AdminActionService {
 
 
 
-  /**
-   * ニュース一覧をレンダリング
-   * @private
-   */
-  _renderNewsList(filterValue = '') {
-    const container = document.getElementById('news-list');
-    if (!container) {
-      console.warn('ニュース一覧コンテナが見つかりません');
-      return;
-    }
-    
-    const articles = this.articleDataService?.getAllArticles() || [];
-    const filteredArticles = filterValue 
-      ? articles.filter(article => 
-          article.title.toLowerCase().includes(filterValue.toLowerCase()) ||
-          article.content.toLowerCase().includes(filterValue.toLowerCase())
-        )
-      : articles;
-    
-    if (filteredArticles.length === 0) {
-      container.innerHTML = `
-        <div class="empty-state">
-          <i class="fas fa-newspaper"></i>
-          <h3>記事がありません</h3>
-          <p>新しい記事を作成してください</p>
-        </div>
-      `;
-      return;
-    }
-    
-    const html = filteredArticles.map(article => `
-      <div class="news-item" data-article-id="${article.id}">
-        <div class="news-item-header">
-          <h4>${article.title}</h4>
-          <span class="news-category">${this._getCategoryName(article.category)}</span>
-        </div>
-        <div class="news-item-meta">
-          <span class="news-date">${new Date(article.date).toLocaleDateString('ja-JP')}</span>
-          <span class="news-status ${article.status}">${article.status === 'published' ? '公開済み' : '下書き'}</span>
-        </div>
-        <div class="news-item-actions">
-          <button class="btn-sm" data-action="edit-article" data-article-id="${article.id}">編集</button>
-          <button class="btn-sm secondary" data-action="preview-article" data-article-id="${article.id}">プレビュー</button>
-          <button class="btn-sm danger" data-action="delete-article" data-article-id="${article.id}">削除</button>
-        </div>
-      </div>
-    `).join('');
-    
-    container.innerHTML = html;
-  }
+  // 削除済み: 重複した_renderNewsListメソッド - 統合された版を使用
 
   /**
    * カテゴリ名を取得
@@ -5758,161 +5603,7 @@ export class AdminActionService {
     );
   }
 
-  /**
-   * 記事リストHTMLを生成
-   * @private
-   */
-  _generateArticleListHTML(articles, options = {}) {
-    if (!articles || articles.length === 0) {
-      return `
-        <div class="empty-state">
-          <i class="fas fa-newspaper"></i>
-          <h3>記事がありません</h3>
-          <p>新しい記事を作成してください</p>
-        </div>
-      `;
-    }
-
-    return articles.map(article => {
-      const date = new Date(article.date);
-      const categoryName = this._getCategoryName(article.category);
-      
-      return `
-        <div class="article-item" data-article-id="${article.id}">
-          <div class="article-header">
-            <h4 class="article-title">${article.title}</h4>
-            <span class="article-category ${article.category}">${categoryName}</span>
-          </div>
-          <div class="article-meta">
-            <span class="article-date">${date.toLocaleDateString('ja-JP')}</span>
-            <span class="article-status ${article.status}">
-              ${article.status === 'published' ? '公開済み' : '下書き'}
-            </span>
-            <span class="article-words">${this._getWordCount(article)} 文字</span>
-          </div>
-          <div class="article-actions">
-            <button class="btn-sm" data-action="edit-article" data-article-id="${article.id}">
-              <i class="fas fa-edit"></i> 編集
-            </button>
-            <button class="btn-sm secondary" data-action="preview-article" data-article-id="${article.id}">
-              <i class="fas fa-eye"></i> プレビュー
-            </button>
-            <div class="dropdown">
-              <button class="btn-sm dropdown-toggle">
-                <i class="fas fa-ellipsis-v"></i>
-              </button>
-              <div class="dropdown-menu">
-                <button class="dropdown-item" data-action="duplicate-article" data-article-id="${article.id}">
-                  <i class="fas fa-copy"></i> 複製
-                </button>
-                <button class="dropdown-item danger" data-action="delete-article" data-article-id="${article.id}">
-                  <i class="fas fa-trash"></i> 削除
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  /**
-   * ドロップダウンメニューを初期化
-   * @private
-   */
-  _initializeDropdownMenus(container) {
-    const dropdowns = container.querySelectorAll('.dropdown');
-    
-    dropdowns.forEach(dropdown => {
-      const toggle = dropdown.querySelector('.dropdown-toggle');
-      const menu = dropdown.querySelector('.dropdown-menu');
-      
-      if (!toggle || !menu) return;
-      
-      toggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        
-        // 他のドロップダウンを閉じる
-        dropdowns.forEach(otherDropdown => {
-          if (otherDropdown !== dropdown) {
-            otherDropdown.classList.remove('active');
-          }
-        });
-        
-        // このドロップダウンをトグル
-        dropdown.classList.toggle('active');
-      });
-    });
-    
-    // 外部クリックで全てのドロップダウンを閉じる
-    document.addEventListener('click', () => {
-      dropdowns.forEach(dropdown => {
-        dropdown.classList.remove('active');
-      });
-    });
-  }
-
-  /**
-   * 記事をエディターに読み込み
-   * @private
-   */
-  _loadArticleToEditor(article, articleId) {
-    try {
-      // フォーム要素の取得
-      const titleField = document.getElementById('news-title');
-      const contentField = document.getElementById('news-content');
-      const categoryField = document.getElementById('news-category');
-      const priorityField = document.getElementById('news-priority');
-      const hiddenIdField = document.getElementById('edit-article-id');
-      
-      // フィールドが存在しない場合はエラー
-      if (!titleField || !contentField) {
-        throw new Error('エディターフォームが見つかりません');
-      }
-      
-      // 記事データを取得（詳細データが必要な場合）
-      const articleContent = this.articleDataService.getArticleContent(articleId);
-      
-      // フォームに値をセット
-      titleField.value = article.title || '';
-      contentField.value = articleContent || article.content || '';
-      
-      if (categoryField) {
-        categoryField.value = article.category || 'announcement';
-      }
-      
-      if (priorityField) {
-        priorityField.value = article.priority || 'normal';
-      }
-      
-      // 編集対象記事IDを保存（隠しフィールドまたはデータ属性）
-      if (hiddenIdField) {
-        hiddenIdField.value = articleId;
-      } else {
-        // 隠しフィールドがない場合は作成
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.id = 'edit-article-id';
-        hiddenInput.value = articleId;
-        titleField.parentNode.appendChild(hiddenInput);
-      }
-      
-      // エディターにフォーカス
-      if (titleField) {
-        titleField.focus();
-        titleField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      
-      // ニュースタブに切り替え
-      this.switchAdminTab('news');
-      
-      this._showFeedback(`記事「${article.title}」をエディターに読み込みました`);
-      
-    } catch (error) {
-      console.error('記事読み込みエラー:', error);
-      this._showFeedback('記事データの読み込みに失敗しました', 'error');
-    }
-  }
+  // 削除済み: 末尾の重複メソッド群 - 統合済みメソッドを使用
 
   /**
    * デバッグモーダル表示
@@ -5934,42 +5625,8 @@ export class AdminActionService {
         </div>
       </div>
     `;
-
-    // ... existing code ...
-
-    // アニメーション遅延を適用
-    return articles.map((article, index) => {
-      const animationClass = mode === 'recent' ? `animation-delay-${Math.min(index + 1, 10)}` : '';
-      
-      return `
-        <div class="recent-article-item ${animationClass}" data-id="${article.id}">
-          <div class="article-image">
-            <img src="${article.image || this.getDefaultArticleImage()}" 
-                 alt="${article.title}" 
-                 loading="lazy">
-          </div>
-          <div class="article-content">
-            <h3 class="article-title">${article.title}</h3>
-            <p class="article-summary">${article.summary}</p>
-            <div class="article-meta">
-              <span class="article-date">${new Date(article.date).toLocaleDateString('ja-JP')}</span>
-              <span class="article-category">${article.category}</span>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    // ... existing code ...
-
-    return `
-      <div class="instagram-post-placeholder">
-        <div class="instagram-gradient-bg flex-center">
-          <i class="fab fa-instagram"></i>
-        </div>
-        <p>Instagram投稿を読み込み中...</p>
-      </div>
-    `;
+    
+    document.body.insertAdjacentHTML('beforeend', debugModalHtml);
   }
 }
 

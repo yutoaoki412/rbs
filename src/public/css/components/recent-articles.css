@@ -178,6 +178,20 @@
   box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3);
 }
 
+/* 削除ボタン */
+.delete-btn {
+  color: #dc2626;
+  border-color: #dc2626;
+  background: rgba(220, 38, 38, 0.05);
+}
+
+.delete-btn:hover {
+  color: var(--admin-white);
+  background: #dc2626;
+  border-color: #dc2626;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);
+}
+
 /* メタ情報 */
 .recent-article-meta {
   display: flex;
@@ -320,12 +334,27 @@
   display: block;
 }
 
+/* 記事管理モードでの表示制限解除 */
+.recent-article-item.list-mode:nth-child(n+4) {
+  display: flex;
+}
+
 /* リストモード */
 .recent-article-item.list-mode {
-  background: var(--admin-gray-50);
-  border-color: var(--admin-gray-300);
-  margin-bottom: 0.5rem;
-  padding: 1rem;
+  opacity: 1;
+  transform: translateY(0);
+  animation: none;
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+  background: var(--admin-white);
+  border-color: var(--admin-gray-200);
+  
+  /* 記事管理モードでは全ての記事アクションボタンを常時表示 */
+}
+
+.recent-article-item.list-mode .recent-article-actions {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* スクロールバースタイル */
