@@ -3129,14 +3129,15 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--admin-primary), var(--admin-primary-dark));
+  background: var(--admin-primary);
   border-color: var(--admin-primary);
   color: white;
   box-shadow: 0 2px 4px rgba(74, 144, 226, 0.2);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, var(--admin-primary-dark), var(--admin-primary));
+  background: var(--admin-primary-dark);
+  border-color: var(--admin-primary-dark);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3);
 }
@@ -3154,7 +3155,7 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
 }
 
 .btn-success {
-  background: linear-gradient(135deg, var(--admin-success), #16a085);
+  background: var(--admin-success);
   border-color: var(--admin-success);
   color: white;
   box-shadow: 0 2px 4px rgba(39, 174, 96, 0.2);

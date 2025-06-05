@@ -947,7 +947,8 @@ export class AdminActionService {
         </div>
       `;
 
-      this._createModal('記事作成ガイド', guideContent, 'writing-guide-modal');
+      // モーダルを表示
+      this._showModal('記事作成ガイド', guideContent);
       
     } catch (error) {
       this.error('記事作成ガイド表示エラー:', error);
@@ -2227,16 +2228,19 @@ export class AdminActionService {
    * @private
    */
   _generateLessonStatusPreview(statusData) {
-    const globalStatusText = this._mapStatusKeyToJapanese(statusData.globalStatus);
+    const globalStatusDef = this.lessonStatusService.getStatusDefinition(statusData.globalStatus);
+    const basicStatusDef = this.lessonStatusService.getStatusDefinition(statusData.courses.basic.status);
+    const advanceStatusDef = this.lessonStatusService.getStatusDefinition(statusData.courses.advance.status);
     
     let html = `
       <div class="lesson-status-preview">
-        <h3>📅 ${statusData.date} のレッスン状況</h3>
+        <h3><i class="fas fa-calendar-check"></i> ${statusData.date} のレッスン状況</h3>
         
         <div class="global-status">
           <h4>全体開催ステータス</h4>
           <div class="status-badge ${statusData.globalStatus}">
-            ${globalStatusText}
+            <i class="${globalStatusDef.icon}"></i>
+            ${globalStatusDef.displayText}
           </div>
           ${statusData.globalMessage ? `<p class="global-message">${this.escapeHtml(statusData.globalMessage)}</p>` : ''}
         </div>
@@ -2246,14 +2250,16 @@ export class AdminActionService {
           <div class="course-status">
             <h5>ベーシックコース</h5>
             <div class="status-badge ${statusData.courses.basic.status}">
-              ${this._mapStatusKeyToJapanese(statusData.courses.basic.status)}
+              <i class="${basicStatusDef.icon}"></i>
+              ${basicStatusDef.displayText}
             </div>
             ${statusData.courses.basic.message ? `<p class="course-message">${this.escapeHtml(statusData.courses.basic.message)}</p>` : ''}
           </div>
           <div class="course-status">
             <h5>アドバンスコース</h5>
             <div class="status-badge ${statusData.courses.advance.status}">
-              ${this._mapStatusKeyToJapanese(statusData.courses.advance.status)}
+              <i class="${advanceStatusDef.icon}"></i>
+              ${advanceStatusDef.displayText}
             </div>
             ${statusData.courses.advance.message ? `<p class="course-message">${this.escapeHtml(statusData.courses.advance.message)}</p>` : ''}
           </div>
@@ -2765,6 +2771,37 @@ export class AdminActionService {
   }
 
   // === モーダル管理メソッド ===
+
+  /**
+   * モーダルを表示
+   * @private
+   */
+  _showModal(title, content) {
+    try {
+      const modal = document.getElementById('modal');
+      const modalTitle = document.getElementById('modal-title');
+      const modalBody = document.getElementById('modal-body');
+      
+      if (modal && modalTitle && modalBody) {
+        modalTitle.textContent = title;
+        modalBody.innerHTML = content;
+        
+        modal.classList.remove('modal-hidden');
+        modal.classList.add('show');
+        
+        // bodyのスクロールを無効化
+        document.body.style.overflow = 'hidden';
+        
+        this.debug('モーダル表示完了:', title);
+      } else {
+        this.error('モーダル要素が見つかりません');
+        this._showFeedback('モーダルの表示に失敗しました', 'error');
+      }
+    } catch (error) {
+      this.error('モーダル表示エラー:', error);
+      this._showFeedback('モーダルの表示に失敗しました', 'error');
+    }
+  }
 
   /**
    * モーダルを閉じる

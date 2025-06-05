@@ -1,1885 +1,712 @@
 /**
- * レッスン状況管理コンポーネント
- * UX改善版 - 直感的で効率的な管理画面
- * @version 3.1.0
+ * レッスン状況管理スタイル - 統一デザイン版
+ * 管理画面の統一性を保ちつつ、視認性と操作性を向上
  */
 
-/* ===== レッスン状況管理 - 統一デザインシステム ===== */
-.lesson-status-container {
+/* ========================================
+   現在の状況表示カード
+   ======================================== */
+.current-status-card {
   background: var(--admin-white);
+  border: 2px solid var(--admin-gray-200);
   border-radius: var(--admin-border-radius);
-  box-shadow: var(--admin-shadow);
-  animation: fadeInUp 0.4s ease-out;
-  margin-bottom: 2rem;
-  min-height: 600px;
-}
-
-/* ===== ヘッダー部分 ===== */
-.lesson-status-header {
-  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-dark) 100%);
-  color: var(--admin-white);
   padding: 2rem;
-  border-radius: var(--admin-border-radius) var(--admin-border-radius) 0 0;
-  position: relative;
+  margin-bottom: 2rem;
+  box-shadow: var(--admin-shadow);
+  transition: var(--admin-transition);
 }
 
-.lesson-status-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-  pointer-events: none;
-  border-radius: var(--admin-border-radius) var(--admin-border-radius) 0 0;
+.current-status-card:hover {
+  box-shadow: var(--admin-shadow-lg);
+  transform: translateY(-1px);
 }
 
-.lesson-status-header-content {
-  position: relative;
-  z-index: 2;
+.status-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 2rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--admin-gray-100);
 }
 
-.lesson-status-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem 0;
+.status-header h3 {
+  margin: 0;
+  color: var(--admin-gray-900);
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: var(--admin-white);
-}
-
-.lesson-status-title i {
   font-size: 1.25rem;
-}
-
-.lesson-status-subtitle {
-  font-size: 0.9rem;
-  opacity: 0.9;
-  margin: 0;
-  color: var(--admin-white);
-}
-
-.current-status-display {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: var(--admin-border-radius-sm);
-  padding: 1rem 1.25rem;
-  min-width: 200px;
-  text-align: center;
-}
-
-.current-status-label {
-  font-size: 0.75rem;
-  font-weight: 500;
-  opacity: 0.8;
-  margin: 0 0 0.5rem 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--admin-white);
-}
-
-.current-status-value {
-  font-size: 1.1rem;
   font-weight: 700;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  color: var(--admin-white);
 }
 
-/* ===== メインコンテンツ ===== */
-.lesson-status-main {
-  padding: 2rem;
+.status-header h3 i {
+  color: var(--admin-primary);
+  font-size: 1.125rem;
 }
 
-.lesson-status-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 2rem;
-  margin-bottom: 2rem;
-  padding: 1.5rem;
+.status-date {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--admin-primary);
   background: var(--admin-gray-50);
+  padding: 0.5rem 1rem;
   border-radius: var(--admin-border-radius-sm);
   border: 1px solid var(--admin-gray-200);
 }
 
-.date-control {
-  flex: 0 0 auto;
+.status-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
 }
 
-.date-control label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.status-icon {
+  font-size: 1.75rem;
+  color: var(--status-scheduled);
+}
+
+.status-text {
+  font-size: 1.25rem;
+  font-weight: 700;
   color: var(--admin-gray-900);
-  margin-bottom: 0.5rem;
 }
 
-.date-control input {
+.status-updated {
+  font-size: 0.875rem;
+  color: var(--admin-gray-600);
+  text-align: right;
+}
+
+/* ========================================
+   フォームコンテナ
+   ======================================== */
+.lesson-form-container {
+  background: var(--admin-white);
+  border: 2px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius);
+  padding: 2.5rem;
+  box-shadow: var(--admin-shadow);
+  transition: var(--admin-transition);
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--admin-gray-100);
+}
+
+.form-header h3 {
+  margin: 0;
+  color: var(--admin-gray-900);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.form-header h3 i {
+  color: var(--admin-primary);
+  font-size: 1.125rem;
+}
+
+.form-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.date-input {
   padding: 0.75rem 1rem;
-  border: 1px solid var(--admin-gray-300);
+  border: 2px solid var(--admin-gray-300);
   border-radius: var(--admin-border-radius-sm);
   font-size: 0.875rem;
-  transition: var(--admin-transition);
+  font-weight: 500;
   background: var(--admin-white);
   color: var(--admin-gray-900);
+  transition: var(--admin-transition);
+  min-width: 160px;
 }
 
-.date-control input:focus {
+.date-input:focus {
   outline: none;
   border-color: var(--admin-primary);
   box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
 }
 
-.quick-actions {
-  display: flex;
-  gap: 0.75rem;
+/* ========================================
+   フォームセクション
+   ======================================== */
+.form-section {
+  margin-bottom: 2.5rem;
 }
 
-.quick-action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: var(--admin-white);
-  border: 1px solid var(--admin-gray-300);
-  border-radius: var(--admin-border-radius-sm);
+.section-label {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: 700;
   color: var(--admin-gray-900);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--admin-transition);
-  text-decoration: none;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--admin-gray-200);
 }
 
-.quick-action-btn:hover {
+.section-label i {
+  color: var(--admin-primary);
+  font-size: 1rem;
+}
+
+/* ========================================
+   改善されたステータスオプション
+   ======================================== */
+.status-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.status-option {
+  position: relative;
+}
+
+.status-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.option-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.75rem 1.5rem;
+  border: 2px solid var(--admin-gray-300);
+  border-radius: var(--admin-border-radius);
+  background: var(--admin-white);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  min-height: 120px;
+  position: relative;
+  overflow: hidden;
+}
+
+.option-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.option-card:hover {
+  border-color: var(--admin-primary);
+  transform: translateY(-3px);
+  box-shadow: var(--admin-shadow);
+}
+
+.option-card i {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.option-card span {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--admin-gray-700);
+  transition: all 0.2s ease;
+}
+
+/* ステータス別スタイル - 統一されたアイコンと色 */
+.option-card.scheduled {
+  border-color: var(--status-scheduled);
+}
+
+.option-card.scheduled::before {
+  background: var(--status-scheduled);
+}
+
+.option-card.scheduled i {
+  color: var(--status-scheduled);
+}
+
+.option-card.cancelled {
+  border-color: var(--status-cancelled);
+}
+
+.option-card.cancelled::before {
+  background: var(--status-cancelled);
+}
+
+.option-card.cancelled i {
+  color: var(--status-cancelled);
+}
+
+.option-card.indoor {
+  border-color: var(--status-indoor);
+}
+
+.option-card.indoor::before {
+  background: var(--status-indoor);
+}
+
+.option-card.indoor i {
+  color: var(--status-indoor);
+}
+
+.option-card.postponed {
+  border-color: var(--status-postponed);
+}
+
+.option-card.postponed::before {
+  background: var(--status-postponed);
+}
+
+.option-card.postponed i {
+  color: var(--status-postponed);
+}
+
+/* 選択状態のスタイル */
+.status-option input[type="radio"]:checked + .option-card {
+  border-width: 3px;
+  box-shadow: var(--admin-shadow-lg);
+  transform: translateY(-2px);
+}
+
+.status-option input[type="radio"]:checked + .option-card.scheduled {
+  background: rgba(39, 174, 96, 0.05);
+  border-color: var(--status-scheduled);
+}
+
+.status-option input[type="radio"]:checked + .option-card.scheduled span {
+  color: var(--status-scheduled-dark);
+  font-weight: 700;
+}
+
+.status-option input[type="radio"]:checked + .option-card.cancelled {
+  background: rgba(231, 76, 60, 0.05);
+  border-color: var(--status-cancelled);
+}
+
+.status-option input[type="radio"]:checked + .option-card.cancelled span {
+  color: var(--status-cancelled-dark);
+  font-weight: 700;
+}
+
+.status-option input[type="radio"]:checked + .option-card.indoor {
+  background: rgba(243, 156, 18, 0.05);
+  border-color: var(--status-indoor);
+}
+
+.status-option input[type="radio"]:checked + .option-card.indoor span {
+  color: var(--status-indoor-dark);
+  font-weight: 700;
+}
+
+.status-option input[type="radio"]:checked + .option-card.postponed {
+  background: rgba(52, 152, 219, 0.05);
+  border-color: var(--status-postponed);
+}
+
+.status-option input[type="radio"]:checked + .option-card.postponed span {
+  color: var(--status-postponed-dark);
+  font-weight: 700;
+}
+
+/* ========================================
+   改善されたテキストエリア
+   ======================================== */
+textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid var(--admin-gray-300);
+  border-radius: var(--admin-border-radius-sm);
+  font-size: 0.875rem;
+  font-family: inherit;
+  font-weight: 500;
+  resize: vertical;
+  transition: var(--admin-transition);
+  background: var(--admin-white);
+  color: var(--admin-gray-900);
+  line-height: 1.5;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+textarea::placeholder {
+  color: var(--admin-gray-500);
+  font-style: italic;
+}
+
+/* ========================================
+   改善されたコース設定
+   ======================================== */
+.course-settings {
+  display: grid;
+  gap: 2rem;
+}
+
+.course-card {
   background: var(--admin-gray-50);
-  border-color: var(--admin-gray-400);
+  border: 2px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius);
+  padding: 2rem;
+  transition: var(--admin-transition);
+}
+
+.course-card:hover {
+  border-color: var(--admin-primary);
+  box-shadow: var(--admin-shadow);
+}
+
+.course-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--admin-gray-300);
+}
+
+.course-header h4 {
+  margin: 0;
+  color: var(--admin-gray-900);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.course-time {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--admin-primary);
+  background: var(--admin-white);
+  padding: 0.5rem 1rem;
+  border-radius: var(--admin-border-radius-sm);
+  border: 2px solid var(--admin-gray-300);
+}
+
+/* ========================================
+   改善されたコースオプション
+   ======================================== */
+.course-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.course-option {
+  position: relative;
+}
+
+.course-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.option-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  border-radius: var(--admin-border-radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  border: 2px solid transparent;
+  background: var(--admin-white);
+  color: var(--admin-gray-700);
+  min-height: 48px;
+}
+
+.option-text:hover {
   transform: translateY(-1px);
   box-shadow: var(--admin-shadow);
 }
 
-.quick-action-btn.primary {
+/* コースオプションのステータス別スタイル */
+.option-text.scheduled {
+  border-color: var(--status-scheduled);
+  color: var(--status-scheduled);
+}
+
+.option-text.scheduled:hover {
+  background: rgba(39, 174, 96, 0.1);
+}
+
+.option-text.cancelled {
+  border-color: var(--status-cancelled);
+  color: var(--status-cancelled);
+}
+
+.option-text.cancelled:hover {
+  background: rgba(231, 76, 60, 0.1);
+}
+
+.option-text.indoor {
+  border-color: var(--status-indoor);
+  color: var(--status-indoor);
+}
+
+.option-text.indoor:hover {
+  background: rgba(243, 156, 18, 0.1);
+}
+
+.option-text.postponed {
+  border-color: var(--status-postponed);
+  color: var(--status-postponed);
+}
+
+.option-text.postponed:hover {
+  background: rgba(52, 152, 219, 0.1);
+}
+
+/* 選択状態のコースオプション */
+.course-option input[type="radio"]:checked + .option-text {
+  color: var(--admin-white);
+  font-weight: 700;
+  transform: translateY(-1px);
+  box-shadow: var(--admin-shadow);
+}
+
+.course-option input[type="radio"]:checked + .option-text.scheduled {
+  background: var(--status-scheduled);
+  border-color: var(--status-scheduled);
+}
+
+.course-option input[type="radio"]:checked + .option-text.cancelled {
+  background: var(--status-cancelled);
+  border-color: var(--status-cancelled);
+}
+
+.course-option input[type="radio"]:checked + .option-text.indoor {
+  background: var(--status-indoor);
+  border-color: var(--status-indoor);
+}
+
+.course-option input[type="radio"]:checked + .option-text.postponed {
+  background: var(--status-postponed);
+  border-color: var(--status-postponed);
+}
+
+/* ========================================
+   改善されたアクションボタン
+   ======================================== */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 2rem;
+  border-top: 2px solid var(--admin-gray-100);
+}
+
+.form-actions .btn {
+  padding: 0.875rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: var(--admin-border-radius-sm);
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  min-width: 140px;
+}
+
+.form-actions .btn i {
+  margin-right: 0.5rem;
+}
+
+.form-actions .btn-outline {
+  background: var(--admin-white);
+  border-color: var(--admin-gray-400);
+  color: var(--admin-gray-700);
+}
+
+.form-actions .btn-outline:hover {
+  background: var(--admin-gray-50);
+  border-color: var(--admin-gray-600);
+  transform: translateY(-1px);
+  box-shadow: var(--admin-shadow);
+}
+
+.form-actions .btn-secondary {
+  background: var(--admin-gray-600);
+  border-color: var(--admin-gray-600);
+  color: var(--admin-white);
+}
+
+.form-actions .btn-secondary:hover {
+  background: var(--admin-gray-700);
+  border-color: var(--admin-gray-700);
+  transform: translateY(-1px);
+  box-shadow: var(--admin-shadow);
+}
+
+.form-actions .btn-primary {
   background: var(--admin-primary);
   border-color: var(--admin-primary);
   color: var(--admin-white);
 }
 
-.quick-action-btn.primary:hover {
+.form-actions .btn-primary:hover {
   background: var(--admin-primary-dark);
+  border-color: var(--admin-primary-dark);
+  transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
 }
 
-.lesson-status-panel {
-  background: var(--admin-white);
-  border: 1px solid var(--admin-gray-200);
-  border-radius: var(--admin-border-radius-sm);
-  margin-bottom: 1.5rem;
-}
-
-.panel-section {
-  border-bottom: 1px solid var(--admin-gray-200);
-}
-
-.panel-section:last-child {
-  border-bottom: none;
-}
-
-.section-header {
-  padding: 1.25rem 1.5rem;
-  background: var(--admin-gray-50);
-  border-bottom: 1px solid var(--admin-gray-200);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  transition: var(--admin-transition);
-}
-
-.section-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--admin-gray-900);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.section-title i {
-  color: var(--admin-primary);
-}
-
-.section-toggle {
-  background: none;
-  border: none;
-  color: var(--admin-gray-500);
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: var(--admin-border-radius-sm);
-  transition: var(--admin-transition);
-}
-
-.section-toggle:hover {
-  background: var(--admin-gray-100);
-  color: var(--admin-gray-700);
-}
-
-.section-content {
-  padding: 1.5rem;
-}
-
-.global-status-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.status-option-modern {
-  cursor: pointer;
-  display: block;
-}
-
-.status-option-modern input[type="radio"] {
-  display: none;
-}
-
-/* ===== 改善されたステータスカード - 最初から色付き ===== */
-.status-card {
+/* ========================================
+   改善されたプレビューコンテナ
+   ======================================== */
+.preview-container {
   background: var(--admin-white);
   border: 2px solid var(--admin-gray-200);
   border-radius: var(--admin-border-radius);
-  padding: 1.5rem;
-  text-align: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-  transform: translateY(0);
-}
-
-/* 開催予定のデフォルトスタイル */
-.status-option-modern.scheduled .status-card {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(34, 197, 94, 0.05) 100%);
-  border-color: rgba(34, 197, 94, 0.3);
-}
-
-.status-option-modern.scheduled .status-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: #22c55e;
-  border-radius: var(--admin-border-radius) var(--admin-border-radius) 0 0;
-}
-
-.status-option-modern.scheduled .status-icon-modern {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
-}
-
-.status-option-modern.scheduled .status-icon-modern i {
-  color: var(--admin-white);
-}
-
-.status-option-modern.scheduled .status-label {
-  color: #16a34a;
-  font-weight: 700;
-}
-
-/* 中止のデフォルトスタイル */
-.status-option-modern.cancelled .status-card {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.05) 100%);
-  border-color: rgba(239, 68, 68, 0.3);
-}
-
-.status-option-modern.cancelled .status-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: #ef4444;
-  border-radius: var(--admin-border-radius) var(--admin-border-radius) 0 0;
-}
-
-.status-option-modern.cancelled .status-icon-modern {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
-}
-
-.status-option-modern.cancelled .status-icon-modern i {
-  color: var(--admin-white);
-}
-
-.status-option-modern.cancelled .status-label {
-  color: #dc2626;
-  font-weight: 700;
-}
-
-/* 室内開催のデフォルトスタイル */
-.status-option-modern.indoor .status-card {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.05) 100%);
-  border-color: rgba(245, 158, 11, 0.3);
-}
-
-.status-option-modern.indoor .status-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: #f59e0b;
-  border-radius: var(--admin-border-radius) var(--admin-border-radius) 0 0;
-}
-
-.status-option-modern.indoor .status-icon-modern {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
-}
-
-.status-option-modern.indoor .status-icon-modern i {
-  color: var(--admin-white);
-}
-
-.status-option-modern.indoor .status-label {
-  color: #d97706;
-  font-weight: 700;
-}
-
-/* 延期のデフォルトスタイル */
-.status-option-modern.postponed .status-card {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%);
-  border-color: rgba(139, 92, 246, 0.3);
-}
-
-.status-option-modern.postponed .status-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: #8b5cf6;
-  border-radius: var(--admin-border-radius) var(--admin-border-radius) 0 0;
-}
-
-.status-option-modern.postponed .status-icon-modern {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
-}
-
-.status-option-modern.postponed .status-icon-modern i {
-  color: var(--admin-white);
-}
-
-.status-option-modern.postponed .status-label {
-  color: #7c3aed;
-  font-weight: 700;
-}
-
-/* ===== 美しいホバー効果 ===== */
-.status-card:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  border-color: currentColor;
-}
-
-.status-option-modern.scheduled .status-card:hover {
-  box-shadow: 0 8px 32px rgba(34, 197, 94, 0.25);
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.08) 100%);
-}
-
-.status-option-modern.cancelled .status-card:hover {
-  box-shadow: 0 8px 32px rgba(239, 68, 68, 0.25);
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.08) 100%);
-}
-
-.status-option-modern.indoor .status-card:hover {
-  box-shadow: 0 8px 32px rgba(245, 158, 11, 0.25);
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%);
-}
-
-.status-option-modern.postponed .status-card:hover {
-  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.25);
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.08) 100%);
-}
-
-.status-card:hover .status-icon-modern {
-  transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-}
-
-/* ===== 選択状態のスタイル（さらに強調） ===== */
-.status-option-modern.scheduled input:checked ~ .status-card {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  border-color: #22c55e;
-  color: var(--admin-white);
-  box-shadow: 0 8px 32px rgba(34, 197, 94, 0.4);
-  transform: translateY(-2px) scale(1.05);
-}
-
-.status-option-modern.scheduled input:checked ~ .status-card .status-label {
-  color: var(--admin-white);
-}
-
-.status-option-modern.cancelled input:checked ~ .status-card {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  border-color: #ef4444;
-  color: var(--admin-white);
-  box-shadow: 0 8px 32px rgba(239, 68, 68, 0.4);
-  transform: translateY(-2px) scale(1.05);
-}
-
-.status-option-modern.cancelled input:checked ~ .status-card .status-label {
-  color: var(--admin-white);
-}
-
-.status-option-modern.indoor input:checked ~ .status-card {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  border-color: #f59e0b;
-  color: var(--admin-white);
-  box-shadow: 0 8px 32px rgba(245, 158, 11, 0.4);
-  transform: translateY(-2px) scale(1.05);
-}
-
-.status-option-modern.indoor input:checked ~ .status-card .status-label {
-  color: var(--admin-white);
-}
-
-.status-option-modern.postponed input:checked ~ .status-card {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  border-color: #8b5cf6;
-  color: var(--admin-white);
-  box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4);
-  transform: translateY(-2px) scale(1.05);
-}
-
-.status-option-modern.postponed input:checked ~ .status-card .status-label {
-  color: var(--admin-white);
-}
-
-.status-icon-modern {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: var(--admin-gray-100);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1rem auto;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.status-icon-modern i {
-  font-size: 1.5rem;
-  color: var(--admin-gray-500);
-  transition: var(--admin-transition);
-}
-
-.status-label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--admin-gray-900);
-  margin: 0;
-}
-
-/* ===== コース設定 - 全体ステータスと統一 ===== */
-.courses-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.course-card {
-  background: var(--admin-white);
-  border: 1px solid var(--admin-gray-200);
-  border-radius: var(--admin-border-radius);
-  transition: var(--admin-transition);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-}
-
-.course-card:hover {
-  border-color: var(--admin-gray-300);
+  margin-top: 2rem;
   box-shadow: var(--admin-shadow);
-  transform: translateY(-1px);
-}
-
-.course-header {
-  padding: 1rem 1.25rem;
-  background: var(--admin-gray-50);
-  border-bottom: 1px solid var(--admin-gray-200);
-}
-
-.course-name {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--admin-gray-900);
-  margin: 0 0 0.25rem 0;
-}
-
-.course-time {
-  font-size: 0.8125rem;
-  color: var(--admin-gray-600);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.course-time::before {
-  content: '🕐';
-  font-size: 0.75rem;
-}
-
-.course-body {
-  padding: 1.25rem;
-}
-
-/* ===== コース別ステータス - 全体ステータスと同じスタイル ===== */
-.course-status-options {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.course-status-option {
-  cursor: pointer;
-  display: block;
-}
-
-.course-status-option input[type="radio"] {
-  display: none;
-}
-
-/* 開催予定 - コース用 */
-.course-status-option.scheduled .course-option-card {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(34, 197, 94, 0.05) 100%);
-  border-color: rgba(34, 197, 94, 0.3);
-}
-
-.course-status-option.scheduled .course-option-icon {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.25);
-}
-
-.course-status-option.scheduled .course-option-icon i {
-  color: var(--admin-white);
-}
-
-.course-status-option.scheduled .course-option-text {
-  color: #16a34a;
-  font-weight: 700;
-}
-
-/* 中止 - コース用 */
-.course-status-option.cancelled .course-option-card {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.05) 100%);
-  border-color: rgba(239, 68, 68, 0.3);
-}
-
-.course-status-option.cancelled .course-option-icon {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
-}
-
-.course-status-option.cancelled .course-option-icon i {
-  color: var(--admin-white);
-}
-
-.course-status-option.cancelled .course-option-text {
-  color: #dc2626;
-  font-weight: 700;
-}
-
-/* 室内開催 - コース用 */
-.course-status-option.indoor .course-option-card {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.05) 100%);
-  border-color: rgba(245, 158, 11, 0.3);
-}
-
-.course-status-option.indoor .course-option-icon {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
-}
-
-.course-status-option.indoor .course-option-icon i {
-  color: var(--admin-white);
-}
-
-.course-status-option.indoor .course-option-text {
-  color: #d97706;
-  font-weight: 700;
-}
-
-/* 延期 - コース用 */
-.course-status-option.postponed .course-option-card {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%);
-  border-color: rgba(139, 92, 246, 0.3);
-}
-
-.course-status-option.postponed .course-option-icon {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
-}
-
-.course-status-option.postponed .course-option-icon i {
-  color: var(--admin-white);
-}
-
-.course-status-option.postponed .course-option-text {
-  color: #7c3aed;
-  font-weight: 700;
-}
-
-.course-option-card {
-  background: var(--admin-white);
-  border: 1.5px solid var(--admin-gray-200);
-  border-radius: var(--admin-border-radius-sm);
-  padding: 0.75rem;
-  text-align: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  min-height: 50px;
-}
-
-.course-option-card:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-.course-status-option.scheduled .course-option-card:hover {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.08) 100%);
-  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.2);
-}
-
-.course-status-option.cancelled .course-option-card:hover {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.08) 100%);
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.2);
-}
-
-.course-status-option.indoor .course-option-card:hover {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%);
-  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2);
-}
-
-.course-status-option.postponed .course-option-card:hover {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.08) 100%);
-  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.2);
-}
-
-.course-option-icon {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--admin-gray-100);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: var(--admin-transition);
-}
-
-.course-option-icon i {
-  font-size: 0.75rem;
-  color: var(--admin-gray-500);
-  transition: var(--admin-transition);
-}
-
-.course-option-text {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--admin-gray-900);
-}
-
-/* ===== コース選択状態のスタイル ===== */
-.course-status-option.scheduled input:checked ~ .course-option-card {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  border-color: #22c55e;
-  color: var(--admin-white);
-  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.4);
-  transform: translateY(-1px) scale(1.05);
-}
-
-.course-status-option.scheduled input:checked ~ .course-option-card .course-option-text {
-  color: var(--admin-white);
-}
-
-.course-status-option.cancelled input:checked ~ .course-option-card {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  border-color: #ef4444;
-  color: var(--admin-white);
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
-  transform: translateY(-1px) scale(1.05);
-}
-
-.course-status-option.cancelled input:checked ~ .course-option-card .course-option-text {
-  color: var(--admin-white);
-}
-
-.course-status-option.indoor input:checked ~ .course-option-card {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  border-color: #f59e0b;
-  color: var(--admin-white);
-  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
-  transform: translateY(-1px) scale(1.05);
-}
-
-.course-status-option.indoor input:checked ~ .course-option-card .course-option-text {
-  color: var(--admin-white);
-}
-
-.course-status-option.postponed input:checked ~ .course-option-card {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-  border-color: #8b5cf6;
-  color: var(--admin-white);
-  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
-  transform: translateY(-1px) scale(1.05);
-}
-
-.course-status-option.postponed input:checked ~ .course-option-card .course-option-text {
-  color: var(--admin-white);
-}
-
-/* ===== メッセージ入力 ===== */
-.message-field {
-  margin-top: 1.5rem;
-}
-
-.message-field label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--admin-gray-900);
-  margin-bottom: 0.5rem;
-}
-
-.message-field textarea {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--admin-gray-300);
-  border-radius: var(--admin-border-radius-sm);
-  font-size: 0.875rem;
-  line-height: 1.5;
-  resize: vertical;
-  transition: var(--admin-transition);
-  background: var(--admin-white);
-  color: var(--admin-gray-900);
-}
-
-.message-field textarea:focus {
-  outline: none;
-  border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-}
-
-.message-help {
-  margin-top: 0.5rem;
-  font-size: 0.8125rem;
-  color: var(--admin-gray-500);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.message-help i {
-  color: var(--admin-primary);
-}
-
-/* ===== プレビューパネル ===== */
-.preview-panel {
-  background: var(--admin-white);
-  border: 1px solid var(--admin-gray-200);
-  border-radius: var(--admin-border-radius);
-  margin-bottom: 2rem;
-  box-shadow: var(--admin-shadow);
+  overflow: hidden;
 }
 
 .preview-header {
-  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
   background: var(--admin-gray-50);
-  border-bottom: 1px solid var(--admin-gray-200);
-  border-radius: var(--admin-border-radius) var(--admin-border-radius) 0 0;
+  border-bottom: 2px solid var(--admin-gray-200);
 }
 
-.preview-header h4 {
+.preview-header h3 {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
   color: var(--admin-gray-900);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 700;
 }
 
-.preview-header h4 i {
+.preview-header h3 i {
   color: var(--admin-primary);
 }
 
 .preview-content {
-  padding: 1.5rem;
-  min-height: 200px;
-  background: #f8fafc;
+  padding: 2rem;
 }
 
-/* LP側プレビューのスタイル */
-.lesson-status-display {
-  background: var(--admin-white);
-  border-radius: var(--admin-border-radius);
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.main-status {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--admin-gray-200);
-}
-
-.status-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: var(--admin-white);
-}
-
-.main-status.scheduled .status-icon {
-  background: #22c55e;
-}
-
-.main-status.cancelled .status-icon {
-  background: #ef4444;
-}
-
-.main-status.indoor .status-icon {
-  background: #f59e0b;
-}
-
-.main-status.postponed .status-icon {
-  background: #8b5cf6;
-}
-
-.status-text h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--admin-gray-900);
-}
-
-.status-indicator {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  border-radius: var(--admin-border-radius-sm);
-  font-weight: 600;
-  font-size: 0.875rem;
-  margin-bottom: 0.5rem;
-}
-
-.status-indicator.scheduled {
-  background: rgba(34, 197, 94, 0.1);
-  color: #16a34a;
-}
-
-.status-indicator.cancelled {
-  background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
-}
-
-.status-indicator.indoor {
-  background: rgba(245, 158, 11, 0.1);
-  color: #d97706;
-}
-
-.status-indicator.postponed {
-  background: rgba(139, 92, 246, 0.1);
-  color: #7c3aed;
-}
-
-.status-message {
-  color: var(--admin-gray-600);
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.courses-detail h4 {
-  margin: 0 0 1rem 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--admin-gray-900);
-}
-
-.courses-detail .courses-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.course-item {
-  background: var(--admin-gray-50);
-  border: 1px solid var(--admin-gray-200);
-  border-radius: var(--admin-border-radius-sm);
-  padding: 1rem;
-}
-
-.course-item .course-header h4 {
-  margin: 0 0 0.25rem 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--admin-gray-900);
-}
-
-.course-item .course-time {
-  font-size: 0.75rem;
-  color: var(--admin-gray-500);
-  margin-bottom: 0.75rem;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: var(--admin-border-radius-sm);
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.status-badge.scheduled {
-  background: rgba(34, 197, 94, 0.1);
-  color: #16a34a;
-}
-
-.status-badge.cancelled {
-  background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
-}
-
-.status-badge.indoor {
-  background: rgba(245, 158, 11, 0.1);
-  color: #d97706;
-}
-
-.status-badge.postponed {
-  background: rgba(139, 92, 246, 0.1);
-  color: #7c3aed;
-}
-
-.course-message {
-  font-size: 0.75rem;
-  color: var(--admin-gray-600);
-  line-height: 1.4;
-}
-
-/* ===== アクションボタン ===== */
-.lesson-status-actions {
-  padding: 1.5rem 2rem;
-  background: var(--admin-gray-50);
-  border-top: 1px solid var(--admin-gray-200);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  border-radius: 0 0 var(--admin-border-radius) var(--admin-border-radius);
-}
-
-.actions-left {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.actions-right {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.action-btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: var(--admin-primary);
-  color: var(--admin-white);
-  border: none;
-  border-radius: var(--admin-border-radius-sm);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--admin-transition);
-  text-decoration: none;
-  box-shadow: 0 2px 4px rgba(74, 144, 226, 0.2);
-}
-
-.action-btn-primary:hover {
-  background: var(--admin-primary-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
-}
-
-.action-btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: var(--admin-white);
-  color: var(--admin-gray-900);
-  border: 1px solid var(--admin-gray-300);
-  border-radius: var(--admin-border-radius-sm);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--admin-transition);
-  text-decoration: none;
-}
-
-.action-btn-secondary:hover {
-  background: var(--admin-gray-50);
-  border-color: var(--admin-gray-400);
-  transform: translateY(-1px);
-  box-shadow: var(--admin-shadow);
-}
-
-/* ===== レスポンシブデザイン ===== */
+/* ========================================
+   レスポンシブ対応
+   ======================================== */
 @media (max-width: 768px) {
-  .lesson-status-header-content {
-    flex-direction: column;
-    text-align: center;
-    gap: 1.5rem;
+  .current-status-card,
+  .lesson-form-container {
+    padding: 1.5rem;
   }
 
-  .current-status-display {
+  .status-display {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .form-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .form-controls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .date-input {
+    width: 100%;
+  }
+
+  .status-options {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .option-card {
+    padding: 1.25rem 1rem;
+    min-height: 100px;
+  }
+
+  .option-card i {
+    font-size: 1.5rem;
+  }
+
+  .course-options {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .form-actions .btn {
     width: 100%;
     min-width: auto;
   }
+}
 
-  .lesson-status-controls {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
+@media (max-width: 480px) {
+  .current-status-card,
+  .lesson-form-container {
+    padding: 1rem;
   }
 
-  .quick-actions {
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .global-status-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .status-options {
+    grid-template-columns: 1fr;
     gap: 0.75rem;
   }
 
-  .courses-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  .option-card {
+    padding: 1rem;
+    min-height: 80px;
   }
 
-  .course-status-options {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
+  .course-card {
+    padding: 1.5rem;
   }
 
-  .lesson-status-actions {
-    flex-direction: column;
-    gap: 1rem;
+  .course-options {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-header {
     padding: 1rem 1.5rem;
   }
 
-  .actions-left,
-  .actions-right {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .lesson-status-header {
-    padding: 1.5rem 1rem;
-  }
-
-  .lesson-status-main {
-    padding: 1rem;
-  }
-
-  .section-content {
-    padding: 1rem;
-  }
-
-  .global-status-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .quick-action-btn {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8125rem;
-  }
-}
-
-/* ===== アニメーション ===== */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.lesson-status-container {
-  animation: fadeInUp 0.4s ease-out;
-}
-
-/* ===== アクセシビリティ ===== */
-@media (prefers-reduced-motion: reduce) {
-  .lesson-status-container,
-  .status-card,
-  .course-option-card,
-  .quick-action-btn,
-  .action-btn-primary,
-  .action-btn-secondary {
-    animation: none;
-    transition: none;
-  }
-
-  .status-card:hover,
-  .course-option-card:hover {
-    transform: none;
-  }
-}
-
-/* フォーカス状態の改善 */
-.status-option-modern:focus-within .status-card,
-.course-status-option:focus-within .course-option-card {
-  border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-}
-
-/* ===== 統合通知システム ===== */
-
-/* 通知コンテナ */
-.notifications-container {
-  position: fixed;
-  top: 80px;
-  right: 20px;
-  z-index: 10000;
-  max-width: 400px;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-/* 通知要素 */
-.status-notification {
-  background: var(--admin-white);
-  border-radius: var(--admin-border-radius);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  margin-bottom: 1rem;
-  border-left: 4px solid var(--admin-gray-300);
-  position: relative;
-  transform: translateX(100%);
-  opacity: 0;
-  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  pointer-events: auto;
-  max-height: 0;
-  overflow: hidden;
-}
-
-.status-notification.show {
-  transform: translateX(0);
-  opacity: 1;
-  max-height: 200px;
-}
-
-.status-notification.removing {
-  transform: translateX(100%);
-  opacity: 0;
-  max-height: 0;
-  margin-bottom: 0;
-}
-
-/* 通知コンテンツ */
-.notification-content {
-  display: flex;
-  align-items: flex-start;
-  padding: 1.25rem;
-  gap: 1rem;
-}
-
-.notification-content i {
-  font-size: 1.25rem;
-  margin-top: 0.125rem;
-  flex-shrink: 0;
-}
-
-.notification-text {
-  flex: 1;
-  min-width: 0;
-}
-
-.notification-text strong {
-  display: block;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--admin-gray-900);
-  margin-bottom: 0.375rem;
-  line-height: 1.3;
-}
-
-.notification-text p {
-  font-size: 0.875rem;
-  color: var(--admin-gray-700);
-  margin: 0;
-  line-height: 1.4;
-}
-
-/* 閉じるボタン */
-.notification-close {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  background: none;
-  border: none;
-  color: var(--admin-gray-500);
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: var(--admin-border-radius-sm);
-  transition: all 0.2s ease;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.notification-close:hover {
-  background: var(--admin-gray-100);
-  color: var(--admin-gray-700);
-  transform: scale(1.1);
-}
-
-/* 通知タイプ別スタイル */
-.status-notification.success {
-  border-left-color: var(--admin-success);
-}
-
-.status-notification.success .notification-content i {
-  color: var(--admin-success);
-}
-
-.status-notification.error {
-  border-left-color: var(--admin-error);
-}
-
-.status-notification.error .notification-content i {
-  color: var(--admin-error);
-}
-
-.status-notification.warning {
-  border-left-color: var(--admin-warning);
-}
-
-.status-notification.warning .notification-content i {
-  color: var(--admin-warning);
-}
-
-.status-notification.info {
-  border-left-color: var(--admin-info);
-}
-
-.status-notification.info .notification-content i {
-  color: var(--admin-info);
-}
-
-/* プログレスバー（自動削除の視覚的フィードバック） */
-.status-notification::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 3px;
-  background: var(--admin-primary);
-  animation: notificationProgress 3s linear forwards;
-  border-radius: 0 0 var(--admin-border-radius) var(--admin-border-radius);
-}
-
-.status-notification.success::after {
-  background: var(--admin-success);
-}
-
-.status-notification.error::after {
-  background: var(--admin-error);
-  animation-duration: 8s;
-}
-
-.status-notification.warning::after {
-  background: var(--admin-warning);
-  animation-duration: 5s;
-}
-
-.status-notification.info::after {
-  background: var(--admin-info);
-}
-
-@keyframes notificationProgress {
-  0% {
-    width: 100%;
-  }
-  100% {
-    width: 0%;
-  }
-}
-
-/* 重複通知防止 - 同じタイプの通知が重なった場合の調整 */
-.notifications-container .status-notification + .status-notification {
-  margin-top: -0.5rem;
-  animation-delay: 0.1s;
-}
-
-/* レスポンシブ対応 */
-@media (max-width: 768px) {
-  .notifications-container {
-    top: 60px;
-    right: 10px;
-    left: 10px;
-    max-width: none;
-  }
-  
-  .status-notification {
-    margin-bottom: 0.75rem;
-  }
-  
-  .notification-content {
-    padding: 1rem;
-    gap: 0.75rem;
-  }
-  
-  .notification-text strong {
-    font-size: 0.85rem;
-  }
-  
-  .notification-text p {
-    font-size: 0.8rem;
-  }
-}
-
-/* ===== 管理画面の共通ユーティリティクラス ===== */
-/* インラインCSSからの移行 */
-
-/* 表示制御 */
-.hidden {
-  display: none !important;
-}
-
-.visible {
-  display: block !important;
-}
-
-/* ローディング状態 */
-.loading-spinner {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.loading-spinner i {
-  animation: spin 1s linear infinite;
-}
-
-/* モーダル共通スタイル */
-.modal-hidden {
-  display: none;
-}
-
-.modal-visible {
-  display: flex;
-}
-
-/* プレビューパネル */
-.preview-hidden {
-  display: none;
-}
-
-.preview-visible {
-  display: block;
-}
-
-/* 通知メッセージ */
-.notification-error {
-  background: var(--admin-error);
-  color: var(--admin-white);
-  padding: 1rem;
-  border-radius: var(--admin-border-radius-sm);
-  margin-bottom: 1.5rem;
-}
-
-.notification-success {
-  background: var(--admin-success);
-  color: var(--admin-white);
-  padding: 1rem;
-  border-radius: var(--admin-border-radius-sm);
-  margin-bottom: 1.5rem;
-}
-
-/* テスト結果表示 */
-.test-results {
-  margin-top: 10px;
-  padding: 1rem;
-  background: var(--admin-gray-50);
-  border-radius: var(--admin-border-radius-sm);
-  border: 1px solid var(--admin-gray-200);
-}
-
-/* ボタンローディング状態 */
-.btn-loading {
-  display: none;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.btn-loading.show {
-  display: inline-flex;
-}
-
-.btn-loading i {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* =================================
-   レッスン状況管理 - シンプル版
-   ================================= */
-
-/* 現在の状況表示カード */
-.current-status-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  border: 2px solid #e9ecef;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.current-status-card .status-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.current-status-card .status-header h3 {
-  margin: 0;
-  color: #495057;
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.current-status-card .status-date {
-  font-size: 0.9rem;
-  color: #6c757d;
-  background: #e9ecef;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-}
-
-.current-status-card .status-display {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.current-status-card .status-indicator {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.current-status-card .status-icon {
-  font-size: 1.5rem;
-  color: #28a745;
-}
-
-.current-status-card .status-text {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #495057;
-}
-
-.current-status-card .status-updated {
-  font-size: 0.85rem;
-  color: #6c757d;
-}
-
-/* フォームコンテナ */
-.lesson-form-container {
-  background: #ffffff;
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 2rem;
-}
-
-.lesson-form-container .form-header {
-  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-  color: white;
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.lesson-form-container .form-header h3 {
-  margin: 0;
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.lesson-form-container .form-controls {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.lesson-form-container .date-input {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  font-size: 0.9rem;
-}
-
-.lesson-form-container .date-input:focus {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* レッスンフォーム */
-.lesson-form {
-  padding: 2rem 1.5rem;
-}
-
-.lesson-form .form-section {
-  margin-bottom: 2rem;
-}
-
-.lesson-form .section-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  color: #495057;
-  margin-bottom: 1rem;
-  font-size: 1rem;
-}
-
-/* ステータス選択オプション */
-.status-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.status-option {
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.status-option:hover {
-  transform: translateY(-2px);
-}
-
-.status-option input[type="radio"] {
-  display: none;
-}
-
-.status-option .option-card {
-  background: #f8f9fa;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  padding: 1rem;
-  text-align: center;
-  transition: all 0.3s;
-}
-
-.status-option input[type="radio"]:checked + .option-card {
-  border-color: #4a90e2;
-  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-  color: white;
-}
-
-.status-option .option-card i {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
-  display: block;
-}
-
-.status-option .option-card span {
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-/* ステータス色別 */
-.option-card.scheduled { border-color: #28a745; }
-.option-card.cancelled { border-color: #dc3545; }
-.option-card.indoor { border-color: #fd7e14; }
-.option-card.postponed { border-color: #6c757d; }
-
-.status-option input[type="radio"]:checked + .option-card.scheduled {
-  background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
-}
-
-.status-option input[type="radio"]:checked + .option-card.cancelled {
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-}
-
-.status-option input[type="radio"]:checked + .option-card.indoor {
-  background: linear-gradient(135deg, #fd7e14 0%, #e85d04 100%);
-}
-
-.status-option input[type="radio"]:checked + .option-card.postponed {
-  background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
-}
-
-/* メッセージ入力エリア */
-.lesson-form textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #e9ecef;
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 0.9rem;
-  resize: vertical;
-  min-height: 80px;
-}
-
-.lesson-form textarea:focus {
-  outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-}
-
-/* コース設定 */
-.course-settings {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.course-card {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 1.25rem;
-}
-
-.course-card .course-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.course-card .course-header h4 {
-  margin: 0;
-  color: #495057;
-  font-size: 1rem;
-}
-
-.course-card .course-time {
-  font-size: 0.85rem;
-  color: #6c757d;
-  background: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-}
-
-.course-card .course-options {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.course-card .course-option {
-  cursor: pointer;
-}
-
-.course-card .course-option input[type="radio"] {
-  display: none;
-}
-
-.course-card .option-text {
-  display: block;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #e9ecef;
-  border-radius: 4px;
-  text-align: center;
-  font-size: 0.85rem;
-  font-weight: 500;
-  background: white;
-  transition: all 0.2s;
-}
-
-.course-card .course-option input[type="radio"]:checked + .option-text {
-  background: #4a90e2;
-  color: white;
-  border-color: #4a90e2;
-}
-
-.course-card .option-text.scheduled:checked {
-  background: #28a745;
-  border-color: #28a745;
-}
-
-.course-card .option-text.cancelled:checked {
-  background: #dc3545;
-  border-color: #dc3545;
-}
-
-.course-card .option-text.indoor:checked {
-  background: #fd7e14;
-  border-color: #fd7e14;
-}
-
-.course-card .option-text.postponed:checked {
-  background: #6c757d;
-  border-color: #6c757d;
-}
-
-.course-card textarea {
-  margin-top: 0.75rem;
-}
-
-/* アクションボタン */
-.form-actions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e9ecef;
-}
-
-/* プレビューコンテナ */
-.preview-container {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
-  overflow: hidden;
-  margin-top: 2rem;
-}
-
-.preview-container .preview-header {
-  background: #6c757d;
-  color: white;
-  padding: 1rem 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.preview-container .preview-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.preview-container .preview-content {
-  padding: 1.5rem;
-  background: white;
-}
-
-/* レスポンシブ対応 */
-@media (max-width: 768px) {
-  .current-status-card .status-display {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
-  }
-  
-  .lesson-form-container .form-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
-  }
-  
-  .lesson-form-container .form-controls {
-    width: 100%;
-    justify-content: stretch;
-  }
-  
-  .lesson-form-container .date-input {
-    flex: 1;
-  }
-  
-  .status-options {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .course-settings {
-    grid-template-columns: 1fr;
-  }
-  
-  .form-actions {
-    flex-direction: column;
-  }
-  
-  .form-actions .btn {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .lesson-form {
-    padding: 1.5rem 1rem;
-  }
-  
-  .current-status-card {
-    padding: 1rem;
-  }
-  
-  .status-options {
-    grid-template-columns: 1fr;
-  }
-  
-  .course-card .course-options {
-    grid-template-columns: 1fr;
+  .preview-content {
+    padding: 1.5rem;
   }
 } 

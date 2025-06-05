@@ -27,7 +27,7 @@ export class LessonStatusStorageService {
         adminText: '通常開催',
         color: '#27ae60',
         backgroundColor: 'var(--status-scheduled)',
-        icon: '✅',
+        icon: 'fas fa-check-circle',
         cssClass: 'scheduled'
       },
       'cancelled': {
@@ -36,7 +36,7 @@ export class LessonStatusStorageService {
         adminText: '中止',
         color: '#e74c3c',
         backgroundColor: 'var(--status-cancelled)',
-        icon: '❌',
+        icon: 'fas fa-times-circle',
         cssClass: 'cancelled'
       },
       'indoor': {
@@ -45,7 +45,7 @@ export class LessonStatusStorageService {
         adminText: '室内開催',
         color: '#f39c12',
         backgroundColor: 'var(--status-indoor)',
-        icon: '🏠',
+        icon: 'fas fa-home',
         cssClass: 'indoor'
       },
       'postponed': {
@@ -54,7 +54,7 @@ export class LessonStatusStorageService {
         adminText: '延期',
         color: '#3498db',
         backgroundColor: 'var(--status-postponed)',
-        icon: '⏰',
+        icon: 'fas fa-clock',
         cssClass: 'postponed'
       }
     };
