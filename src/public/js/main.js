@@ -7,8 +7,9 @@
 import Application from './core/Application.js';
 import { debugPaths } from './shared/constants/paths.js';
 import { CONFIG } from './shared/constants/config.js';
+import { log } from './shared/utils/logUtils.js';
 
-console.log('🏃‍♂️ RBS陸上教室 アプリケーション起動中...');
+log.info('Main', 'RBS陸上教室 アプリケーション起動中...');
 
 // パス設定のデバッグ（開発環境のみ）
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
@@ -46,7 +47,7 @@ window.showAuthStatus = function() {
   try {
     const authData = localStorage.getItem(CONFIG.storage.keys.adminAuth);
     if (!authData) {
-      console.log('🔐 認証状態: 未ログイン');
+      log.info('DevTools', '認証状態: 未ログイン');
       return;
     }
     
@@ -54,7 +55,7 @@ window.showAuthStatus = function() {
     const now = Date.now();
     const isValid = now < parsed.expires;
     
-    console.log('🔐 認証状態詳細:', {
+    log.info('DevTools', '認証状態詳細', {
       status: isValid ? '✅ 有効' : '❌ 期限切れ',
       token: parsed.token ? parsed.token.substring(0, 20) + '...' : 'なし',
       created: parsed.created ? new Date(parsed.created) : 'N/A',
@@ -64,7 +65,7 @@ window.showAuthStatus = function() {
       version: parsed.version || '不明'
     });
   } catch (error) {
-    console.error('❌ 認証データ取得エラー:', error);
+    log.error('DevTools', '認証データ取得エラー', error);
   }
 };
 
@@ -76,14 +77,14 @@ window.clearAuthData = function() {
     localStorage.removeItem(CONFIG.storage.keys.adminAuth);
     localStorage.removeItem(CONFIG.storage.keys.authAttempts);
     localStorage.removeItem(CONFIG.storage.keys.authLastAttempt);
-    console.log('🧹 認証データをクリアしました');
+    log.info('DevTools', '認証データをクリアしました');
     
     // 現在のページがadmin系の場合は警告
     if (window.location.pathname.includes('admin')) {
-      console.warn('⚠️ 管理画面から認証データをクリアしました。ページをリロードしてください。');
+      log.warn('DevTools', '管理画面から認証データをクリアしました。ページをリロードしてください。');
     }
   } catch (error) {
-    console.error('❌ 認証データクリアエラー:', error);
+    log.error('DevTools', '認証データクリアエラー', error);
   }
 };
 
@@ -102,12 +103,12 @@ window.createTestSession = function(durationHours = 24) {
     };
     
     localStorage.setItem(CONFIG.storage.keys.adminAuth, JSON.stringify(testAuthData));
-    console.log('🧪 テストセッションを作成しました:', {
+    log.info('DevTools', 'テストセッションを作成しました', {
       duration: durationHours + '時間',
       expires: new Date(testAuthData.expires)
     });
   } catch (error) {
-    console.error('❌ テストセッション作成エラー:', error);
+    log.error('DevTools', 'テストセッション作成エラー', error);
   }
 };
 
@@ -188,66 +189,129 @@ function showCriticalError(message) {
   document.body.appendChild(errorContainer);
 }
 
+/**
+ * 安全なエラーハンドラー設定
+ * ログシステム初期化後に設定
+ */
+function setupErrorHandlers() {
+  try {
+    // 改善されたグローバルエラーハンドラー
+    window.addEventListener('error', function(event) {
+      try {
+        // 外部スクリプト（Google関連など）のエラーを無視
+        if (event.filename && (
+          event.filename.includes('google') || 
+          event.filename.includes('search_impl') ||
+          event.filename.includes('common.js') ||
+          event.filename.includes('gstatic') ||
+          event.filename.includes('googleapi') ||
+          event.filename.includes('maps.googleapis') ||
+          event.filename.includes('chart') ||
+          event.filename.includes('analytics') ||
+          event.filename === '' // 外部スクリプトは空になることがある
+        )) {
+          // フォールバック: logが利用できない場合はconsole.debugを使用
+          if (typeof log !== 'undefined' && log.debug) {
+            log.debug('GlobalHandler', '外部スクリプトエラーを無視', event.filename || 'unknown');
+          } else {
+            console.debug('🔇 外部スクリプトエラーを無視:', event.filename || 'unknown');
+          }
+          return true; // エラーを処理済みとしてマーク
+        }
+        
+        // RBSアプリケーション内のエラーのみログ出力
+        if (event.filename && event.filename.includes('/js/')) {
+          const errorInfo = {
+            message: event.message,
+            filename: event.filename,
+            lineno: event.lineno,
+            colno: event.colno,
+            error: event.error
+          };
+          
+          if (typeof log !== 'undefined' && log.error) {
+            log.error('GlobalHandler', 'RBSアプリケーションエラー', errorInfo);
+          } else {
+            console.error('❌ RBSアプリケーションエラー:', errorInfo);
+          }
+          
+          if (event.error && event.error.message && event.error.message.includes('critical')) {
+            showCriticalError('重要なエラーが発生しました: ' + event.error.message);
+          }
+        }
+      } catch (handlerError) {
+        // エラーハンドラー自体でのエラーをフォールバック処理
+        console.error('🚨 エラーハンドラー内でエラー:', handlerError);
+      }
+    });
+
+    // 改善された未捕捉Promise拒否ハンドラー
+    window.addEventListener('unhandledrejection', function(event) {
+      try {
+        // RBSアプリケーション関連のPromise拒否のみ処理
+        if (event.reason && typeof event.reason === 'object' && event.reason.stack) {
+          // スタックトレースでRBSコードかどうか判定
+          if (event.reason.stack.includes('/js/')) {
+            const rejectInfo = {
+              reason: event.reason,
+              stack: event.reason.stack
+            };
+            
+            if (typeof log !== 'undefined' && log.error) {
+              log.error('GlobalHandler', 'RBS未捕捉Promise拒否', rejectInfo);
+            } else {
+              console.error('❌ RBS未捕捉Promise拒否:', rejectInfo);
+            }
+            
+            if (typeof event.reason === 'string' && event.reason.includes('critical')) {
+              showCriticalError('重要なPromiseエラーが発生しました: ' + event.reason);
+            }
+          }
+        } else if (typeof event.reason === 'string' && event.reason.includes('rbs')) {
+          if (typeof log !== 'undefined' && log.error) {
+            log.error('GlobalHandler', 'RBS未捕捉Promise拒否', event.reason);
+          } else {
+            console.error('❌ RBS未捕捉Promise拒否:', event.reason);
+          }
+        } else {
+          // 外部ライブラリのPromise拒否は無視
+          if (typeof log !== 'undefined' && log.debug) {
+            log.debug('GlobalHandler', '外部Promise拒否を無視', event.reason);
+          } else {
+            console.debug('🔇 外部Promise拒否を無視:', event.reason);
+          }
+        }
+      } catch (handlerError) {
+        // Promise拒否ハンドラー自体でのエラーをフォールバック処理
+        console.error('🚨 Promise拒否ハンドラー内でエラー:', handlerError);
+      }
+    });
+    
+  } catch (setupError) {
+    console.error('🚨 エラーハンドラー設定失敗:', setupError);
+  }
+}
+
 // アプリケーション開始
 app.init().catch(error => {
-  console.error('❌ アプリケーション初期化失敗:', error);
+  // フォールバック: logが利用できない場合
+  if (typeof log !== 'undefined' && log.critical) {
+    log.critical('Main', 'アプリケーション初期化失敗', error);
+  } else {
+    console.error('❌ アプリケーション初期化失敗:', error);
+  }
   showApplicationError('アプリケーションの初期化に失敗しました。', false);
 });
 
-// バナー制御の初期化
-document.addEventListener('DOMContentLoaded', setupBannerControl);
-
-// 改善されたグローバルエラーハンドラー
-window.addEventListener('error', function(event) {
-  // 外部スクリプト（Google関連など）のエラーを無視
-  if (event.filename && (
-    event.filename.includes('google') || 
-    event.filename.includes('search_impl') ||
-    event.filename.includes('common.js') ||
-    event.filename.includes('gstatic') ||
-    event.filename === '' // 外部スクリプトは空になることがある
-  )) {
-    console.debug('🔇 外部スクリプトエラーを無視:', event.filename);
-    return true; // エラーを処理済みとしてマーク
-  }
+// DOMContentLoaded後の安全な初期化
+document.addEventListener('DOMContentLoaded', function() {
+  // バナー制御の初期化
+  setupBannerControl();
   
-  // RBSアプリケーション内のエラーのみログ出力
-  if (event.filename && event.filename.includes('/js/')) {
-    console.error('🚨 RBSアプリケーションエラー:', {
-      message: event.message,
-      filename: event.filename,
-      lineno: event.lineno,
-      colno: event.colno,
-      error: event.error
-    });
-    
-    if (event.error && event.error.message.includes('critical')) {
-      showCriticalError('重要なエラーが発生しました: ' + event.error.message);
-    }
-  }
-});
-
-// 改善された未捕捉Promise拒否ハンドラー
-window.addEventListener('unhandledrejection', function(event) {
-  // RBSアプリケーション関連のPromise拒否のみ処理
-  if (event.reason && typeof event.reason === 'object' && event.reason.stack) {
-    // スタックトレースでRBSコードかどうか判定
-    if (event.reason.stack.includes('/js/')) {
-      console.error('🚨 RBS未捕捉Promise拒否:', {
-        reason: event.reason,
-        stack: event.reason.stack
-      });
-      
-      if (typeof event.reason === 'string' && event.reason.includes('critical')) {
-        showCriticalError('重要なPromiseエラーが発生しました: ' + event.reason);
-      }
-    }
-  } else if (typeof event.reason === 'string' && event.reason.includes('rbs')) {
-    console.error('🚨 RBS未捕捉Promise拒否:', event.reason);
-  } else {
-    // 外部ライブラリのPromise拒否は無視
-    console.debug('🔇 外部Promise拒否を無視:', event.reason);
-  }
+  // エラーハンドラーの設定（遅延実行）
+  setTimeout(() => {
+    setupErrorHandlers();
+  }, 100);
 });
 
 // 開発用ヘルパーのエクスポート
@@ -257,6 +321,15 @@ if (CONFIG.debug?.enabled) {
     clearAuthData,
     createTestSession,
     showApplicationError,
-    showCriticalError
+    showCriticalError,
+    // ログ管理ツール
+    logStatus: () => log.status(),
+    logHistory: () => log.history(),
+    logStats: () => log.stats(),
+    clearLogs: () => log.clear(),
+    // ストレージツール（既存）
+    storage: window.rbsStorage
   };
+  
+  log.info('Main', '開発者ツールが利用可能です: window.rbsDevTools');
 } 

@@ -11,6 +11,7 @@ import { getCurrentPageType } from '../shared/utils/urlUtils.js';
 import { initializeLayout, LayoutInitializer } from '../shared/components/layout/index.js';
 import { EventBus } from '../shared/services/EventBus.js';
 import { redirect } from '../shared/constants/paths.js';
+import { log } from '../shared/utils/logUtils.js';
 
 export default class Application {
   constructor() {
@@ -34,16 +35,16 @@ export default class Application {
    */
   async init() {
     if (this.initialized) {
-      console.log('⚠️ Application: 既に初期化済み');
+      log.warn('Application', '既に初期化済みです');
       return;
     }
 
-    console.log('🚀 RBS陸上教室 アプリケーション v2.1 初期化開始');
+    log.info('Application', 'RBS陸上教室 アプリケーション v2.2 初期化開始');
 
     try {
       // 1. 現在のページタイプを取得
       this.currentPage = getCurrentPageType();
-      console.log(`📄 現在のページ: ${this.currentPage}`);
+      log.info('Application', `現在のページ: ${this.currentPage}`);
 
       // 2. テンプレートとレイアウトの初期化（最優先）
       await this.initializeTemplateAndLayout();
@@ -58,7 +59,7 @@ export default class Application {
       this.setupGlobalEventHandlers();
 
       this.initialized = true;
-      console.log('✅ アプリケーション初期化完了');
+      log.info('Application', 'アプリケーション初期化完了');
 
       // 初期化完了イベントを発火
       this.emit('app:initialized', { 
@@ -68,7 +69,7 @@ export default class Application {
       });
 
     } catch (error) {
-      console.error('❌ アプリケーション初期化エラー:', error);
+      log.error('Application', 'アプリケーション初期化エラー', error);
       await this.handleInitializationError(error);
     }
   }
@@ -78,7 +79,7 @@ export default class Application {
    * @private
    */
   async initializeTemplateAndLayout() {
-    console.log('🎨 テンプレート・レイアウト初期化中...');
+    log.info('Application', 'テンプレート・レイアウト初期化中...');
     
     try {
       // ページタイプ別の設定
@@ -92,7 +93,7 @@ export default class Application {
       
       if (layoutResult.result.success) {
         this.templatesLoaded = true;
-        console.log('✅ テンプレート・レイアウト初期化完了');
+        log.info('Application', 'テンプレート・レイアウト初期化完了');
         
         // テンプレート読み込み完了イベント
         this.emit('app:templates:loaded', {
@@ -103,12 +104,12 @@ export default class Application {
         });
         
       } else {
-        console.warn('⚠️ テンプレート初期化でフォールバック動作:', layoutResult.result.error);
+        log.warn('Application', 'テンプレート初期化でフォールバック動作', layoutResult.result.error);
         this.templatesLoaded = false;
       }
       
     } catch (error) {
-      console.error('❌ テンプレート・レイアウト初期化エラー:', error);
+      log.error('Application', 'テンプレート・レイアウト初期化エラー', error);
       
       // フォールバック: 最低限のHTML構造を確保
       await this.ensureMinimalLayout();
