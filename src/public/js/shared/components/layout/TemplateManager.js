@@ -253,7 +253,7 @@ export class TemplateManager extends BaseService {
         return {
             base_path: PATHS.BASE,
             logoLink: '../pages/index.html',
-            newsLink: 'news.html',
+            newsLink: '../pages/index.html#news',
             currentYear: new Date().getFullYear(),
             siteName: 'RBS陸上教室',
             companyName: '合同会社VITA'
@@ -277,7 +277,7 @@ export class TemplateManager extends BaseService {
             isAdminPage: pageType === 'admin',
             currentPath: currentPath,
             logoLink: isHomePage ? '#hero' : '../pages/index.html',
-            newsLink: isHomePage ? 'news.html' : 'news.html'
+            newsLink: isHomePage ? '#news' : '../pages/index.html#news'
         };
     }
 
