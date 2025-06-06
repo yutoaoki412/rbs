@@ -328,31 +328,357 @@ export default class Application {
   async initializePageFeatures() {
     console.log(`🎯 ${this.currentPage} ページの機能初期化中...`);
 
-    switch (this.currentPage) {
-      case 'home':
-        await this.initializeHomeFeatures();
-        break;
-      
-      case 'news-detail':
-      case 'news-list':
-        await this.initializeNewsFeatures();
-        break;
-      
-      case 'admin':
-        await this.initializeAdminFeatures();
-        break;
-      
-      case 'admin-login':
-        await this.initializeAuthFeatures();
-        break;
-      
-      default:
-        console.log('📝 汎用ページとして初期化');
-        await this.initializeCommonFeatures();
-        break;
-    }
+    try {
+      switch (this.currentPage) {
+        case 'home':
+          await this.initializeHomeFeatures();
+          break;
+        
+        case 'news-detail':
+        case 'news-list':
+          await this.initializeNewsFeatures();
+          break;
+        
+        case 'admin':
+          await this.initializeAdminFeatures();
+          break;
+        
+        case 'admin-login':
+          await this.initializeAuthFeatures();
+          break;
+        
+        default:
+          console.log('📝 汎用ページとして初期化');
+          await this.initializeCommonFeatures();
+          break;
+      }
 
-    console.log(`✅ ${this.currentPage} ページの機能初期化完了`);
+      console.log(`✅ ${this.currentPage} ページの機能初期化完了`);
+      
+    } catch (error) {
+      console.error(`❌ ${this.currentPage} ページの機能初期化エラー:`, error);
+      
+      // ページタイプに応じた適切なエラーハンドリング
+      if (this.currentPage === 'home' && error.message?.includes('news')) {
+        // ホームページでニュース機能のエラーの場合は、他の機能は継続
+        console.warn('⚠️ ホームページ: ニュース機能のエラーを無視して他の機能を継続');
+        await this.initializeHomeFeaturesWithoutNews();
+      } else if (this.currentPage.includes('news')) {
+        // ニュース関連ページではエラー表示
+        this.showPageInitializationError(`${this.currentPage}ページの初期化に失敗しました。`);
+      } else {
+        // その他のページは通常のエラーハンドリング
+        this.showPageInitializationError(`ページの初期化中にエラーが発生しました。`);
+      }
+      
+      // 初期化エラーを記録
+      this.initializationErrors[`${this.currentPage}Features`] = error;
+    }
+  }
+  
+  /**
+   * ニュース機能なしでホームページ機能を初期化
+   * @private
+   */
+  async initializeHomeFeaturesWithoutNews() {
+    try {
+      console.log('🏠 ホームページ機能初期化（ニュース機能除く）');
+      
+      // ニュース以外の機能のみ初期化
+      await this.initializeLessonStatusFeatures();
+      
+      // FAQ機能の初期化
+      this.initializeFAQs();
+      
+      // ステータスバナー機能の初期化
+      this.initializeStatusBanner();
+      
+      console.log('✅ ホームページ機能初期化完了（ニュース機能除く）');
+      
+    } catch (error) {
+      console.error('❌ ホームページ機能初期化エラー（ニュース機能除く）:', error);
+    }
+  }
+
+  /**
+   * レッスン状況機能の初期化
+   * @private
+   */
+  async initializeLessonStatusFeatures() {
+    try {
+      console.log('🏃‍♂️ レッスン状況機能初期化開始');
+      
+      // 統合レッスン状況ストレージサービス初期化
+      const { getLessonStatusStorageService } = await import('../shared/services/LessonStatusStorageService.js');
+      const lessonStatusService = getLessonStatusStorageService();
+      
+      // サービス初期化
+      if (!lessonStatusService.initialized) {
+        await lessonStatusService.init();
+        console.log('🏃‍♂️ レッスンステータスストレージサービス初期化完了');
+      }
+      
+      // ページタイプに応じた初期化
+      if (this.currentPage === 'admin') {
+        await this.initializeAdminLessonStatus();
+      } else {
+        await this.initializeLPLessonStatus();
+      }
+      
+      console.log('✅ レッスン状況機能初期化完了');
+      
+    } catch (error) {
+      console.warn('⚠️ レッスン状況機能初期化エラー:', error);
+      // エラー時もアプリケーションは継続
+    }
+  }
+
+  /**
+   * 管理画面のレッスンステータス初期化
+   * @private
+   */
+  async initializeAdminLessonStatus() {
+    try {
+      const { default: LessonStatusAdminComponent } = await import('../features/admin/components/LessonStatusAdminComponent.js');
+      
+      // 管理画面用のコンテナを探す
+      let adminContainer = document.querySelector('#lesson-status-form, .lesson-status-admin, .admin-lesson-status, #lesson-status');
+      
+      if (!adminContainer) {
+        console.log('管理画面レッスンステータスコンテナが見つからないため、作成をスキップします');
+        return;
+      }
+      
+      const lessonStatusAdmin = new LessonStatusAdminComponent(adminContainer);
+      await lessonStatusAdmin.init();
+      
+      // グローバル参照設定
+      window.lessonStatusAdmin = lessonStatusAdmin;
+      console.log('✅ 管理画面レッスンステータス初期化完了');
+      
+    } catch (error) {
+      console.warn('⚠️ 管理画面レッスンステータス初期化エラー:', error);
+    }
+  }
+
+  /**
+   * LP側のレッスンステータス初期化
+   * @private
+   */
+  async initializeLPLessonStatus() {
+    try {
+      // ホームページまたはレッスン状況セクションがある場合は初期化を実行
+      if (this.currentPage === 'home' || this.hasLessonStatusSection()) {
+        console.log('レッスン状況セクションを検出、初期化を実行します');
+        await this.initializeLessonStatusDisplayComponent();
+      } else {
+        console.log('レッスン状況セクションが見つかりません、初期化をスキップします');
+      }
+      
+    } catch (error) {
+      console.warn('⚠️ LP側レッスンステータス初期化エラー:', error);
+    }
+  }
+
+  /**
+   * LessonStatusDisplayComponentの初期化
+   * @private
+   */
+  async initializeLessonStatusDisplayComponent() {
+    try {
+      const { default: LessonStatusDisplayComponent } = await import('../features/lesson/components/LessonStatusDisplayComponent.js');
+      
+      // レッスン状況表示用のコンテナを探す
+      let statusContainer = document.querySelector('#today-status, .status-banner, .lesson-status');
+      
+      if (!statusContainer) {
+        console.log('既存のステータスコンテナが見つからないため、新規作成します');
+        statusContainer = this.createStatusContainer();
+      } else {
+        console.log('既存のステータスコンテナを使用:', statusContainer.id || statusContainer.className);
+      }
+      
+      if (statusContainer) {
+        // 非表示クラスがあれば除去
+        statusContainer.classList.remove('status-banner-hidden');
+        statusContainer.classList.add('status-banner-visible');
+        
+        const lessonStatusDisplay = new LessonStatusDisplayComponent(statusContainer);
+        await lessonStatusDisplay.init();
+        
+        // グローバル参照設定
+        window.lessonStatusDisplay = lessonStatusDisplay;
+        
+        console.log('✅ LessonStatusDisplayComponent初期化完了');
+      } else {
+        console.warn('⚠️ ステータスコンテナの作成に失敗しました');
+      }
+      
+    } catch (error) {
+      console.warn('⚠️ LessonStatusDisplayComponent初期化エラー:', error);
+    }
+  }
+
+  /**
+   * ステータスコンテナを新規作成
+   * @private
+   * @returns {HTMLElement|null}
+   */
+  createStatusContainer() {
+    try {
+      // 適切な挿入位置を探す - ヒーローセクション直後を優先
+      const heroSection = document.querySelector('#hero');
+      const targetParent = heroSection?.parentNode || document.querySelector('main, #main-content, body');
+      
+      if (targetParent) {
+        const statusContainer = document.createElement('section');
+        statusContainer.id = 'today-status';
+        statusContainer.className = 'status-banner lesson-status';
+        statusContainer.innerHTML = `
+          <div class="container">
+            <div class="status-header status-header-clickable" data-action="toggle-status" aria-expanded="false">
+              <div class="status-info">
+                <span class="status-dot"></span>
+                <span class="status-text">本日のレッスン開催状況</span>
+                <span class="status-indicator" id="global-status-indicator">読み込み中...</span>
+              </div>
+              <span class="toggle-icon">▼</span>
+            </div>
+            <div class="status-content">
+              <div class="status-details" id="status-details">
+                <div class="loading-status">
+                  <p>レッスン状況を読み込み中...</p>
+                </div>
+              </div>
+              <div class="status-message status-message-hidden" id="global-status-message">
+                <div class="message-content">
+                  <i class="fas fa-info-circle"></i>
+                  <span id="global-message-text"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // ヒーローセクションの直後に挿入
+        if (heroSection && heroSection.nextSibling) {
+          targetParent.insertBefore(statusContainer, heroSection.nextSibling);
+          console.log('ステータスコンテナをヒーローセクション直後に動的作成しました');
+        } else if (heroSection) {
+          heroSection.insertAdjacentElement('afterend', statusContainer);
+          console.log('ステータスコンテナをヒーローセクション直後に動的作成しました（afterend）');
+        } else {
+          const headerContainer = document.querySelector('#header-container');
+          if (headerContainer) {
+            headerContainer.insertAdjacentElement('afterend', statusContainer);
+            console.log('ステータスコンテナをヘッダーコンテナ後に動的作成しました（フォールバック）');
+          } else {
+            targetParent.insertBefore(statusContainer, targetParent.firstChild);
+            console.log('ステータスコンテナをページ先頭に動的作成しました（最終フォールバック）');
+          }
+        }
+        
+        return statusContainer;
+      }
+      
+      return null;
+      
+    } catch (error) {
+      console.error('ステータスコンテナ作成エラー:', error);
+      return null;
+    }
+  }
+
+  /**
+   * レッスン状況セクションの存在確認
+   * @returns {boolean}
+   */
+  hasLessonStatusSection() {
+    return !!(
+      document.querySelector('#today-status, .status-banner, .lesson-status') ||
+      document.querySelector('[data-component="lesson-status"]')
+    );
+  }
+
+  /**
+   * FAQ機能の初期化
+   * @private
+   */
+  initializeFAQs() {
+    try {
+      console.log('❓ FAQ機能初期化開始');
+      
+      const faqItems = document.querySelectorAll('.faq-item');
+      
+      if (faqItems.length === 0) {
+        console.log('FAQセクションが見つかりません、初期化をスキップします');
+        return;
+      }
+      
+      faqItems.forEach((item, index) => {
+        const question = item.querySelector('.faq-question');
+        const answer = item.querySelector('.faq-answer');
+        const icon = item.querySelector('.faq-icon');
+        
+        if (question && answer) {
+          // アクセシビリティ属性を設定
+          question.setAttribute('id', `faq-question-${index + 1}`);
+          question.setAttribute('aria-controls', `faq-${index + 1}`);
+          question.setAttribute('role', 'button');
+          question.setAttribute('tabindex', '0');
+          
+          answer.setAttribute('id', `faq-${index + 1}`);
+          answer.setAttribute('aria-labelledby', `faq-question-${index + 1}`);
+          answer.setAttribute('role', 'region');
+          answer.setAttribute('aria-hidden', 'true');
+          
+          // 初期状態は閉じる
+          answer.style.display = 'none';
+          if (icon) icon.textContent = '+';
+          
+          // ActionManagerへの登録は既に行われているので、ここでは何もしない
+        }
+      });
+      
+      console.log(`✅ FAQ機能初期化完了 (${faqItems.length}件)`);
+      
+    } catch (error) {
+      console.warn('⚠️ FAQ機能初期化エラー:', error);
+    }
+  }
+
+  /**
+   * ステータスバナー機能の初期化
+   * @private
+   */
+  initializeStatusBanner() {
+    try {
+      console.log('📢 ステータスバナー機能初期化開始');
+      
+      const statusSection = document.querySelector('#today-status, .status-banner');
+      
+      if (!statusSection) {
+        console.log('ステータスバナーセクションが見つかりません、初期化をスキップします');
+        return;
+      }
+      
+      // ActionManagerに既に登録されているので、追加の設定は不要
+      console.log('✅ ステータスバナー機能初期化完了');
+      
+    } catch (error) {
+      console.warn('⚠️ ステータスバナー機能初期化エラー:', error);
+    }
+  }
+  
+  /**
+   * ページ初期化エラー表示
+   * @private
+   */
+  showPageInitializationError(message) {
+    console.error('🚨 ページ初期化エラー:', message);
+    
+    // 必要に応じてユーザーにエラーメッセージを表示
+    // （現在はコンソールログのみ）
   }
 
   /**
@@ -360,17 +686,22 @@ export default class Application {
    * @private
    */
   async initializeHomeFeatures() {
-    // レッスン状況表示などの基本機能
     console.log('🏠 ホームページ機能を初期化中...');
     
-    // 必要に応じてレッスン状況管理などを初期化
     try {
-      if (typeof window.initializeLessonStatus === 'function') {
-        await window.initializeLessonStatus();
-        console.log('✅ レッスン状況機能を初期化');
-      }
+      // レッスン状況機能の初期化
+      await this.initializeLessonStatusFeatures();
+      
+      // FAQ機能の初期化
+      this.initializeFAQs();
+      
+      // ステータスバナー機能の初期化
+      this.initializeStatusBanner();
+      
+      console.log('✅ ホームページ機能初期化完了');
+      
     } catch (error) {
-      console.warn('⚠️ レッスン状況機能の初期化をスキップ:', error.message);
+      console.warn('⚠️ ホームページ機能の初期化エラー:', error.message);
     }
   }
 
@@ -379,8 +710,60 @@ export default class Application {
    * @private
    */
   async initializeNewsFeatures() {
-    await initNewsFeature();
-    this.features.set('news', true);
+    try {
+      console.log('🚀 ニュース機能初期化開始 (core/Application)');
+      
+      await initNewsFeature();
+      this.features.set('news', true);
+      
+      console.log('✅ ニュース機能初期化完了 (core/Application)');
+      
+    } catch (error) {
+      console.error('❌ ニュース機能初期化エラー (core/Application):', error);
+      console.error('📋 エラー詳細:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      
+      // エラーレポートに記録
+      window.lastNewsInitError = {
+        error,
+        timestamp: new Date().toISOString(),
+        location: 'core/Application.initializeNewsFeatures'
+      };
+      
+      // 基本的なエラー表示
+      this.showNewsInitializationError(error);
+      
+      throw error; // 重要：エラーを再スローして初期化の失敗を明確に
+    }
+  }
+  
+  /**
+   * ニュース初期化エラー表示
+   * @private
+   */
+  showNewsInitializationError(error) {
+    const newsContainer = document.getElementById('news-list');
+    const loadingStatus = document.getElementById('news-loading-status');
+    
+    if (loadingStatus) {
+      loadingStatus.style.display = 'none';
+    }
+    
+    if (newsContainer) {
+      newsContainer.innerHTML = `
+        <div class="news-init-error">
+          <h3>⚠️ ニュース機能の初期化に失敗しました</h3>
+          <p>エラー: ${error.message}</p>
+          <div class="error-actions">
+            <button onclick="location.reload()" class="btn btn-primary">ページを再読み込み</button>
+            <button onclick="window.debugNewsSystem && window.debugNewsSystem()" class="btn btn-outline">デバッグ情報表示</button>
+          </div>
+        </div>
+      `;
+    }
   }
 
   /**

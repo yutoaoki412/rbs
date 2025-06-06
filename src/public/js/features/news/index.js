@@ -17,6 +17,9 @@ export async function initUnifiedNewsSystem() {
   try {
     console.log('🚀 統合ニュースシステム初期化開始');
     
+    // エラーレポート機能を追加
+    window.lastNewsError = null;
+    
     // デバッグ: LocalStorageの直接確認
     console.group('🔍 LocalStorage デバッグ情報');
     try {
@@ -50,16 +53,21 @@ export async function initUnifiedNewsSystem() {
       
     } catch (error) {
       console.error('❌ LocalStorage確認エラー:', error);
+      window.lastNewsError = error;
     }
     console.groupEnd();
     
     // 1. メインサービス初期化
+    console.log('🔧 統合ニュースサービス初期化中...');
     const newsService = getUnifiedNewsService();
     await newsService.init();
+    console.log('✅ 統合ニュースサービス初期化完了');
     
     // 2. ページレンダラー初期化
+    console.log('🎨 ページレンダラー初期化中...');
     const pageRenderer = new NewsPageRenderer(newsService);
     await pageRenderer.initializePage();
+    console.log('✅ ページレンダラー初期化完了');
     
     // 3. グローバルアクセス設定
     window.UnifiedNewsService = newsService;
@@ -86,6 +94,40 @@ export async function initUnifiedNewsSystem() {
     
   } catch (error) {
     console.error('❌ 統合ニュースシステム初期化エラー:', error);
+    console.error('📋 エラー詳細:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    
+    // エラーレポートに記録
+    window.lastNewsError = {
+      error,
+      timestamp: new Date().toISOString(),
+      location: 'initUnifiedNewsSystem'
+    };
+    
+    // フォールバック: 基本的なニュース表示機能を提供
+    const newsContainer = document.getElementById('news-list');
+    const loadingStatus = document.getElementById('news-loading-status');
+    
+    if (loadingStatus) {
+      loadingStatus.style.display = 'none';
+    }
+    
+    if (newsContainer) {
+      newsContainer.innerHTML = `
+        <div class="news-error">
+          <h3>⚠️ ニュースの読み込みに失敗しました</h3>
+          <p>システムの初期化中にエラーが発生しました。</p>
+          <div class="error-actions">
+            <button onclick="location.reload()" class="btn btn-primary">再読み込み</button>
+            <button onclick="window.debugNewsSystem && window.debugNewsSystem()" class="btn btn-outline">デバッグ情報表示</button>
+          </div>
+        </div>
+      `;
+    }
+    
     throw error;
   }
 }
