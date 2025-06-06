@@ -691,6 +691,15 @@ export default class Application {
     console.log('🏠 ホームページ機能を初期化中...');
     
     try {
+      // ニュース機能の初期化（ホームページ用）
+      try {
+        await this.initializeNewsFeatures();
+        console.log('✅ ホームページ：ニュース機能初期化完了');
+      } catch (newsError) {
+        console.warn('⚠️ ホームページ：ニュース機能初期化エラー、他の機能は継続します:', newsError.message);
+        // ニュース機能のエラーがあっても、他の機能は継続
+      }
+      
       // レッスン状況機能の初期化
       await this.initializeLessonStatusFeatures();
       
@@ -738,7 +747,12 @@ export default class Application {
       // 基本的なエラー表示
       this.showNewsInitializationError(error);
       
-      throw error; // 重要：エラーを再スローして初期化の失敗を明確に
+      // ホームページでは例外をスローせず、ニュース専用ページでのみスロー
+      if (this.currentPage === 'news-detail' || this.currentPage === 'news-list') {
+        throw error; // ニュース専用ページでは致命的エラーとして扱う
+      } else {
+        console.warn('⚠️ ホームページでのニュース機能エラーは非致命的として処理');
+      }
     }
   }
   

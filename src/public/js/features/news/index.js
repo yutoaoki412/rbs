@@ -10,6 +10,22 @@ import { getUnifiedNewsService } from './services/UnifiedNewsService.js';
 import NewsPageRenderer from './components/NewsPageRenderer.js';
 
 /**
+ * localStorage可用性チェック
+ * @returns {boolean} localStorageが使用可能かどうか
+ */
+function isLocalStorageAvailable() {
+  try {
+    const test = '__localStorage_test__';
+    localStorage.setItem(test, test);
+    localStorage.removeItem(test);
+    return true;
+  } catch (e) {
+    console.warn('⚠️ localStorage is not available:', e.message);
+    return false;
+  }
+}
+
+/**
  * 統合ニュースシステムの初期化
  * @returns {Promise<Object>} 初期化されたサービスとコンポーネント
  */
@@ -19,6 +35,17 @@ export async function initUnifiedNewsSystem() {
     
     // エラーレポート機能を追加
     window.lastNewsError = null;
+    
+    // localStorage可用性チェック
+    if (!isLocalStorageAvailable()) {
+      const storageError = new Error('localStorage is not available. This may be due to browser privacy settings or incognito mode.');
+      window.lastNewsError = {
+        error: storageError,
+        timestamp: new Date().toISOString(),
+        location: 'initUnifiedNewsSystem:storageCheck'
+      };
+      throw storageError;
+    }
     
     // デバッグ: LocalStorageの直接確認
     console.group('🔍 LocalStorage デバッグ情報');
@@ -120,9 +147,18 @@ export async function initUnifiedNewsSystem() {
         <div class="news-error">
           <h3>⚠️ ニュースの読み込みに失敗しました</h3>
           <p>システムの初期化中にエラーが発生しました。</p>
+          <div class="error-details">
+            <details>
+              <summary>エラー詳細</summary>
+              <pre>${error.message}</pre>
+              <p><strong>場所:</strong> ${window.lastNewsError?.location || 'unknown'}</p>
+              <p><strong>時刻:</strong> ${window.lastNewsError?.timestamp || new Date().toISOString()}</p>
+            </details>
+          </div>
           <div class="error-actions">
             <button onclick="location.reload()" class="btn btn-primary">再読み込み</button>
             <button onclick="window.debugNewsSystem && window.debugNewsSystem()" class="btn btn-outline">デバッグ情報表示</button>
+            <button onclick="window.manualDebugNews && window.manualDebugNews()" class="btn btn-secondary">詳細診断</button>
           </div>
         </div>
       `;
