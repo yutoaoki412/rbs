@@ -4,7 +4,7 @@
  * @version 3.0.0 - 統合アクション管理システム
  */
 
-import { actionManager } from '../../../core/ActionManager.js';
+import { actionManager } from '../../../app/ActionManager.js';
 import { EventBus } from '../../../shared/services/EventBus.js';
 import { CONFIG } from '../../../shared/constants/config.js';
 import { dataExportService } from '../../../shared/services/DataExportService.js';

@@ -4,7 +4,7 @@
  * @version 1.0.0
  */
 
-import { BaseService } from '../base/BaseService.js';
+import { BaseService } from '../../lib/base/BaseService.js';
 import { EventBus } from './EventBus.js';
 import { CONFIG } from '../constants/config.js';
 

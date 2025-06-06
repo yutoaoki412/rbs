@@ -4,7 +4,7 @@
  * @version 2.1.0 - アニメーション・レイアウト修正
  */
 
-import { Component } from '../../../shared/base/Component.js';
+import { Component } from '../../../lib/base/Component.js';
 import { getLessonStatusStorageService } from '../../../shared/services/LessonStatusStorageService.js';
 import { EventBus } from '../../../shared/services/EventBus.js';
 

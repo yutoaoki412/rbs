@@ -1,5 +1,6 @@
-import { BaseService } from '../../base/BaseService.js';
+import { BaseService } from '../../../lib/base/BaseService.js';
 import { HttpService } from '../../services/HttpService.js';
+import { PATHS } from '../../constants/paths.js';
 
 /**
  * 統合テンプレート管理サービス
@@ -25,7 +26,7 @@ export class TemplateManager extends BaseService {
         this.currentPageConfig = null;
         
         /** @type {string} テンプレートベースパス */
-        this.templateBasePath = '../js/shared/templates/';
+        this.templateBasePath = `${PATHS.BASE}/js/lib/templates/`;
         
         /** @type {boolean} 初期化フラグ */
         this.isInitialized = false;
@@ -250,6 +251,7 @@ export class TemplateManager extends BaseService {
      */
     getDefaultTemplateVariables() {
         return {
+            base_path: PATHS.BASE,
             logoLink: '../pages/index.html',
             newsLink: 'news.html',
             currentYear: new Date().getFullYear(),

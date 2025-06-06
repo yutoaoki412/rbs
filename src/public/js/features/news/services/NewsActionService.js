@@ -4,7 +4,7 @@
  * @version 2.0.0
  */
 
-import { actionManager } from '../../../core/ActionManager.js';
+import { actionManager } from '../../../app/ActionManager.js';
 import ShareService from './ShareService.js';
 
 export class NewsActionService {

@@ -4,7 +4,7 @@
  * @version 2.0.0
  */
 
-import { BaseService } from '../base/BaseService.js';
+import { BaseService } from '../../lib/base/BaseService.js';
 
 export class HttpService extends BaseService {
   constructor() {

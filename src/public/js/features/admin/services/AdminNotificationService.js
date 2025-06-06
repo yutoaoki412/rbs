@@ -5,7 +5,7 @@
  */
 
 import { UnifiedNotificationService, getUnifiedNotificationService } from '../../../shared/services/UnifiedNotificationService.js';
-import { Component } from '../../../shared/base/Component.js';
+import { Component } from '../../../lib/base/Component.js';
 
 export class AdminNotificationService extends Component {
   constructor() {

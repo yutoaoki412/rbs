@@ -5,7 +5,7 @@
  */
 
 import { EventBus } from '../../../shared/services/EventBus.js';
-import { actionManager } from '../../../core/ActionManager.js';
+import { actionManager } from '../../../app/ActionManager.js';
 import { querySelector, show, hide, setValue, getValue } from '../../../shared/utils/domUtils.js';
 import { formatDate, escapeHtml, truncate } from '../../../shared/utils/stringUtils.js';
 import { debounce } from '../../../shared/utils/FunctionUtils.js';

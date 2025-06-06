@@ -5,7 +5,7 @@
  * @version 3.1.0 - 新アーキテクチャ対応
  */
 
-import { Component } from '../../base/Component.js';
+import { Component } from '../../../lib/base/Component.js';
 import { EventBus } from '../../services/EventBus.js';
 import { getArticleStorageService } from '../../services/ArticleStorageService.js';
 import { escapeHtml } from '../../utils/stringUtils.js';

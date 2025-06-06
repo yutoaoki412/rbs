@@ -5,6 +5,7 @@
  */
 
 import { log } from './logUtils.js';
+import { PATHS } from '../constants/paths.js';
 
 /**
  * アプリケーションエラー表示
@@ -80,7 +81,7 @@ export function showCriticalError(message) {
         <button onclick="window.location.reload()" class="critical-error-btn critical-error-btn-primary">
           🔄 ページを再読み込み
         </button>
-        <button onclick="window.location.href='/'" class="critical-error-btn critical-error-btn-secondary">
+        <button onclick="window.location.href='${PATHS.PAGES.HOME}'" class="critical-error-btn critical-error-btn-secondary">
           🏠 トップページに戻る
         </button>
       </div>

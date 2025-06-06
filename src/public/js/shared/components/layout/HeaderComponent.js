@@ -1,4 +1,4 @@
-import { Component } from '../../base/Component.js';
+import { Component } from '../../../lib/base/Component.js';
 import { EventBus } from '../../services/EventBus.js';
 import { CONFIG } from '../../constants/config.js';
 

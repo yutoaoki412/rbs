@@ -13,7 +13,7 @@ import { StyleUtils } from '../../../shared/utils/StyleUtils.js';
 import { createErrorHtml } from '../../../shared/utils/htmlUtils.js';
 import { ERROR_MESSAGES } from '../../../shared/constants/newsConstants.js';
 import { EventBus } from '../../../shared/services/EventBus.js';
-import { actionManager } from '../../../core/ActionManager.js';
+import { actionManager } from '../../../app/ActionManager.js';
 import { CONFIG } from '../../../shared/constants/config.js';
 import ArticleDisplay from '../components/ArticleDisplay.js';
 import RelatedArticles from '../components/RelatedArticles.js';

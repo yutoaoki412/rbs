@@ -3,7 +3,7 @@
  * @version 1.0.0
  */
 
-import { Component } from '../../../shared/base/Component.js';
+import { Component } from '../../../lib/base/Component.js';
 import { CONFIG } from '../../../shared/constants/config.js';
 import { setVisible, setHTML } from '../../../shared/utils/domUtils.js';
 import { createCard } from '../../../shared/utils/htmlUtils.js';

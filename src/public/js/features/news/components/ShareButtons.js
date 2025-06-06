@@ -4,7 +4,7 @@
  * @version 1.0.0
  */
 
-import { Component } from '../../../shared/base/Component.js';
+import { Component } from '../../../lib/base/Component.js';
 import { EventBus } from '../../../shared/services/EventBus.js';
 import { setVisible, querySelectorAll } from '../../../shared/utils/domUtils.js';
 import ShareService from '../services/ShareService.js';
