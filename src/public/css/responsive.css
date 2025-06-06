@@ -167,15 +167,7 @@
     padding: 10px 24px;
   }
 
-  .cta-message {
-    font-size: 20px;
-    margin-bottom: 28px;
-  }
 
-  .cta-features {
-    flex-direction: column;
-    gap: 15px;
-  }
 
   .news-item {
     flex-direction: column;
@@ -361,15 +353,7 @@
     margin-bottom: 20px;
   }
 
-  .cta-message {
-    font-size: 16px;
-    margin-bottom: 20px;
-  }
 
-  .cta-features {
-    flex-direction: column;
-    gap: 12px;
-  }
 
   /* 天候情報 */
   .weather-info {
