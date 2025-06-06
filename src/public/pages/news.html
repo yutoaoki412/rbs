@@ -24,37 +24,38 @@
   <div id="header-container"></div>
 
   <main>
-    <div class="container">
-      <!-- ページヘッダー -->
-      <div class="news-section-header">
-        <h2>NEWS</h2>
-        <p class="news-page-description">RBS陸上教室の最新情報をお届けします</p>
-      </div>
+    <section id="news">
+      <div class="container">
+        <!-- ページヘッダー -->
+        <div class="news-section-header">
+          <h2>NEWS</h2>
+        </div>
 
-      <!-- フィルター -->
-      <div class="news-filters">
-        <div class="filter-title">カテゴリーで絞り込み</div>
-        <div class="filter-buttons">
-          <a href="news.html" class="filter-btn" data-category="all">すべて</a>
-          <a href="news.html?category=announcement" class="filter-btn" data-category="announcement">お知らせ</a>
-          <a href="news.html?category=event" class="filter-btn" data-category="event">体験会</a>
-          <a href="news.html?category=media" class="filter-btn" data-category="media">メディア</a>
-          <a href="news.html?category=important" class="filter-btn" data-category="important">重要</a>
+        <!-- フィルター -->
+        <div class="news-filters">
+          <div class="filter-title">カテゴリーで絞り込み</div>
+          <div class="filter-buttons">
+            <a href="news.html" class="filter-btn" data-category="all">すべて</a>
+            <a href="news.html?category=announcement" class="filter-btn" data-category="announcement">お知らせ</a>
+            <a href="news.html?category=event" class="filter-btn" data-category="event">体験会</a>
+            <a href="news.html?category=media" class="filter-btn" data-category="media">メディア</a>
+            <a href="news.html?category=important" class="filter-btn" data-category="important">重要</a>
+          </div>
+        </div>
+
+        <!-- 検索結果表示 -->
+        <div class="search-results hidden-section" id="search-results">
+          <div class="search-results-text">
+            <span id="search-count">0</span>件の記事が見つかりました
+          </div>
+        </div>
+
+        <!-- ニュース一覧 -->
+        <div class="news-grid" id="news-grid">
+          <!-- 記事がここに動的に生成されます -->
         </div>
       </div>
-
-      <!-- 検索結果表示 -->
-      <div class="search-results hidden-section" id="search-results">
-        <div class="search-results-text">
-          <span id="search-count">0</span>件の記事が見つかりました
-        </div>
-      </div>
-
-      <!-- ニュース一覧 -->
-      <div class="news-grid" id="news-grid">
-        <!-- 記事がここに動的に生成されます -->
-      </div>
-    </div>
+    </section>
   </main>
 
   <!-- フッターコンテナ（新アーキテクチャ対応） -->
