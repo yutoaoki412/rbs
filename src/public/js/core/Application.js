@@ -633,8 +633,9 @@ export default class Application {
           answer.setAttribute('role', 'region');
           answer.setAttribute('aria-hidden', 'true');
           
-          // 初期状態は閉じる
-          answer.style.display = 'none';
+          // 初期状態は閉じる（CSSアニメーションに対応）
+          answer.style.maxHeight = '0';
+          answer.style.opacity = '0';
           if (icon) icon.textContent = '+';
           
           // ActionManagerへの登録は既に行われているので、ここでは何もしない

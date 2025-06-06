@@ -245,21 +245,20 @@ export class ActionManager {
             // 一時的にactiveクラスを追加して高さを測定
             faqItem.classList.add('active');
             
-            // nextTickでDOM更新を待つ
-            requestAnimationFrame(() => {
-              const scrollHeight = faqAnswer.scrollHeight;
-              console.log(`📏 測定されたscrollHeight: ${scrollHeight}px`);
-              
-              // CSSから初期状態に戻してからアニメーション開始
-              faqAnswer.style.maxHeight = '0';
-              faqAnswer.style.opacity = '0';
-              
-              // 次のフレームでアニメーション開始
-              requestAnimationFrame(() => {
-                faqAnswer.style.maxHeight = `${scrollHeight + 20}px`;
-                faqAnswer.style.opacity = '1';
-              });
-            });
+            // 高さを測定するために一時的に自動高さに設定
+            faqAnswer.style.maxHeight = 'none';
+            const scrollHeight = faqAnswer.scrollHeight;
+            console.log(`📏 測定されたscrollHeight: ${scrollHeight}px`);
+            
+            // 初期状態に戻してからアニメーション開始
+            faqAnswer.style.maxHeight = '0';
+            faqAnswer.style.opacity = '0';
+            
+                         // 次のフレームでアニメーション開始
+             requestAnimationFrame(() => {
+               faqAnswer.style.maxHeight = `${scrollHeight + 40}px`;
+               faqAnswer.style.opacity = '1';
+             });
           }
           
           console.log(`🎨 activeクラス切り替え: ${faqItem.classList.contains('active') ? '追加' : '削除'}`);

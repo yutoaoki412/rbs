@@ -443,7 +443,7 @@
 }
 
 .faq-item.active .faq-answer {
-  padding: 25px 30px 30px 75px;
+  padding: 25px 30px 35px 75px;
   opacity: 1;
   /* max-heightはJavaScriptで動的に設定 */
 }
@@ -453,7 +453,11 @@
   color: var(--navy-dark);
   font-size: 15px;
   font-weight: 500;
-  margin: 0;
+  margin: 0 0 10px 0;
+}
+
+.faq-answer p:last-child {
+  margin-bottom: 0;
 }
 
 /* ニュース */
