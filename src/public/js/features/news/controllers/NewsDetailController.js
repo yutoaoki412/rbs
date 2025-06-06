@@ -237,29 +237,7 @@ export default class NewsDetailController {
     }
   }
 
-  /**
-   * デバッグ情報を表示
-   */
-  showDebugInfo() {
-    const debugInfo = {
-      currentUrl: window.location.href,
-      articleId: this.getArticleId(),
-      currentArticle: this.currentArticle,
-      articleServiceStatus: window.articleService ? 'loaded' : 'not loaded',
-      articleServiceInitialized: window.articleService ? window.articleService.isInitialized : false,
-      availableArticles: window.articleService ? window.articleService.getAllArticles().length : 0,
-      components: Array.from(this.components.keys()),
-      timestamp: new Date().toISOString()
-    };
-    
-    console.log('🐛 デバッグ情報:', debugInfo);
-    
-    const debugText = Object.entries(debugInfo)
-      .map(([key, value]) => `${key}: ${JSON.stringify(value, null, 2)}`)
-      .join('\n');
-    
-    alert(`デバッグ情報:\n\n${debugText}\n\n詳細はコンソールを確認してください。`);
-  }
+
 
   /**
    * ArticleServiceの手動初期化
@@ -366,5 +344,4 @@ export async function initNewsDetailPage() {
 }
 
 // グローバル関数（後方互換性のため）
-window.showDebugInfo = () => newsDetailController?.showDebugInfo();
 window.initializeArticleServiceManually = () => newsDetailController?.initializeArticleServiceManually(); 

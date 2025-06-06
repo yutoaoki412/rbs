@@ -100,10 +100,7 @@ export async function initUnifiedNewsSystem() {
     window.UnifiedNewsService = newsService;
     window.NewsPageRenderer = pageRenderer;
     
-    // 4. 開発環境での管理画面リンク表示
-    if (CONFIG.debug.enabled) {
-      showAdminLinksIfDev();
-    }
+
     
     console.log('✅ 統合ニュースシステム初期化完了');
     
@@ -157,8 +154,7 @@ export async function initUnifiedNewsSystem() {
           </div>
           <div class="error-actions">
             <button onclick="location.reload()" class="btn btn-primary">再読み込み</button>
-            <button onclick="window.debugNewsSystem && window.debugNewsSystem()" class="btn btn-outline">デバッグ情報表示</button>
-            <button onclick="window.manualDebugNews && window.manualDebugNews()" class="btn btn-secondary">詳細診断</button>
+
           </div>
         </div>
       `;
@@ -168,37 +164,7 @@ export async function initUnifiedNewsSystem() {
   }
 }
 
-/**
- * 開発環境での管理画面リンク表示
- * @private
- */
-function showAdminLinksIfDev() {
-  try {
-    const adminLinks = document.querySelectorAll(
-      '#news-admin-link, #admin-link, #admin-controls, [data-dev="admin-link"]'
-    );
-    
-    adminLinks.forEach(link => {
-      if (link) {
-        link.style.display = 'block';
-        link.style.opacity = '0.8';
-        
-        // 開発環境表示の明示
-        if (!link.hasAttribute('data-dev-marked')) {
-          link.title = '開発環境でのみ表示';
-          link.setAttribute('data-dev-marked', 'true');
-        }
-      }
-    });
-    
-    if (adminLinks.length > 0) {
-      console.log('🔧 開発環境: 管理画面リンクを表示しました');
-    }
-    
-  } catch (error) {
-    console.warn('⚠️ 管理画面リンク表示エラー:', error);
-  }
-}
+
 
 /**
  * ニュースシステムのリフレッシュ

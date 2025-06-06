@@ -168,19 +168,7 @@
   margin-bottom: 0;
 }
 
-/* 管理機能 */
-.admin-controls {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid var(--gray-border);
-}
 
-.admin-controls .btn {
-  font-size: 12px;
-  padding: 8px 16px;
-}
 
 /* 記事本文 */
 .article-content {

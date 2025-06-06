@@ -656,7 +656,3 @@
   min-height: 500px;
 }
 
-/* 管理リンク非表示 */
-.admin-link-hidden {
-  display: none;
-}

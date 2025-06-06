@@ -587,50 +587,7 @@
    06. ボタンコンポーネント
    ========================================================================== */
 
-/* 管理画面リンク */
-.admin-link {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 20px;
-}
 
-.admin-link .btn {
-  padding: 10px 20px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 14px;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 2px solid transparent;
-}
-
-.admin-link .btn-outline {
-  background: white;
-  color: var(--primary-blue);
-  border-color: var(--primary-blue);
-}
-
-.admin-link .btn-outline:hover {
-  background: var(--primary-blue);
-  color: white;
-  transform: translateY(-1px);
-}
-
-.admin-link .btn-info {
-  background: var(--primary-teal);
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-.admin-link .btn-info:hover {
-  background: var(--primary-dark);
-  transform: translateY(-1px);
-}
 
 /* 汎用ボタン */
 .btn {
@@ -670,16 +627,7 @@
   box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3);
 }
 
-.btn-debug {
-  background: var(--gray-light);
-  color: var(--gray-dark);
-}
 
-.btn-debug:hover {
-  background: var(--gray-medium);
-  color: white;
-  transform: translateY(-2px);
-}
 
 /* ==========================================================================
    07. アニメーション
@@ -974,11 +922,7 @@
   }
 
   /* 管理機能 */
-  .admin-link {
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-  }
+
 }
 
 /* モバイル小 (480px以下) */

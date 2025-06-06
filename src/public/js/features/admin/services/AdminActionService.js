@@ -69,7 +69,7 @@ export class AdminActionService {
       'preview-article', 'duplicate-article', 'load-lesson-status', 'update-lesson-status',
       'wizard-prev', 'wizard-next',
       'toggle-notification-mode', 'export-data', 'clear-all-data', 'test-site-connection',
-      'reset-local-storage', 'show-debug-info', 'show-news-debug', 'close-modal',
+      'reset-local-storage', 'close-modal',
       'open-external', 'toggle-mobile-menu', 'logout',
       'switch-instagram-tab', 'add-instagram-post', 'save-instagram-post', 'refresh-instagram-posts', 'save-instagram-settings', 'close-instagram-modal', 'edit-instagram-post', 'toggle-instagram-post', 'delete-instagram-post'
     ];
@@ -416,8 +416,7 @@ export class AdminActionService {
           this.resetLocalStorage();
         }
       },
-      'show-debug-info': () => this.showDebugInfo(),
-      'show-news-debug': () => this.showNewsDebug(),
+
       'close-modal': () => this.closeModal(),
       'open-external': (element, params) => this.openExternalUrl(params.url),
 
@@ -2627,142 +2626,7 @@ export class AdminActionService {
     }
   }
 
-  /**
-   * デバッグ情報表示
-   */
-  showDebugInfo() {
-    try {
-      console.log('DEBUG デバッグ情報表示');
-      
-      const debugInfo = {
-        currentTab: this.currentTab,
-        initialized: this.initialized,
-        articleService: this.articleDataService?.getStatus(),
-        instagramService: this.instagramDataService.getStatus(),
-        lessonService: this.lessonStatusService.getStatus(),
-        uiManager: this.uiManagerService.getStatus(),
-        browser: {
-          userAgent: navigator.userAgent,
-          language: navigator.language,
-          cookieEnabled: navigator.cookieEnabled
-        },
-        storage: {
-          localStorageAvailable: !!window.localStorage,
-          sessionStorageAvailable: !!window.sessionStorage
-        }
-      };
-      
-      console.table(debugInfo);
-      
-      // デバッグコンテンツHTML生成
-      const debugContent = `
-        <div class="debug-info">
-          <h4>システム情報</h4>
-          <table class="debug-table">
-            <tr><td>現在のタブ</td><td>${debugInfo.currentTab}</td></tr>
-            <tr><td>初期化状態</td><td>${debugInfo.initialized ? 'SUCCESS' : 'ERROR'}</td></tr>
-          </table>
-          
-          <h4>サービス状態</h4>
-          <table class="debug-table">
-            <tr><td>記事サービス</td><td>${debugInfo.articleService?.initialized ? 'SUCCESS' : 'ERROR'}</td></tr>
-            <tr><td>レッスンサービス</td><td>${debugInfo.lessonService?.initialized ? 'SUCCESS' : 'ERROR'}</td></tr>
-            <tr><td>UIマネージャー</td><td>${debugInfo.uiManager?.initialized ? 'SUCCESS' : 'ERROR'}</td></tr>
-          </table>
-          
-          <h4>ブラウザ情報</h4>
-          <table class="debug-table">
-            <tr><td>言語</td><td>${debugInfo.browser.language}</td></tr>
-            <tr><td>Cookie有効</td><td>${debugInfo.browser.cookieEnabled ? 'SUCCESS' : 'ERROR'}</td></tr>
-            <tr><td>LocalStorage</td><td>${debugInfo.storage.localStorageAvailable ? 'SUCCESS' : 'ERROR'}</td></tr>
-          </table>
-          
-          <style>
-            .debug-table { width: 100%; margin-bottom: 1rem; border-collapse: collapse; }
-            .debug-table td { padding: 0.5rem; border: 1px solid #ddd; }
-            .debug-table td:first-child { font-weight: bold; background: #f5f5f5; }
-          </style>
-        </div>
-      `;
-      
-      this._createDebugModal('システムデバッグ情報', debugContent);
-      
-    } catch (error) {
-      console.error('ERROR デバッグ情報表示エラー:', error);
-      this._showFeedback('デバッグ情報の表示に失敗しました', 'error');
-    }
-  }
 
-  /**
-   * デバッグモーダルを作成
-   * @private
-   * @param {string} title - モーダルのタイトル
-   * @param {string} content - モーダルの内容
-   */
-  _createDebugModal(title, content) {
-    const modalHTML = `
-      <div id="debug-modal" class="modal" style="display: flex;">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3>${title}</h3>
-            <button class="modal-close" onclick="this.closest('.modal').remove(); document.body.classList.remove('modal-open');">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-          <div class="modal-body">
-            ${content}
-          </div>
-        </div>
-      </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    document.body.classList.add('modal-open');
-  }
-
-  /**
-   * 接続テスト結果の生成
-   * @private
-   * @param {Object} testResults - テスト結果
-   * @returns {string}
-   */
-  _generateConnectionTestResults(testResults) {
-    return Object.entries(testResults).map(([page, result]) => 
-      `<div class="test-result ${result ? 'success' : 'error'}">
-        ${page}: ${result ? 'SUCCESS 正常' : 'ERROR エラー'}
-      </div>`
-    ).join('');
-  }
-
-  /**
-   * LP ニュースデバッグ
-   */
-  showNewsDebug() {
-    try {
-      console.log('DEBUG LP ニュースデバッグ');
-      
-      // ArticleStorageServiceの状態確認
-      const articles = this.articleDataService.getPublishedArticles({ limit: 10 });
-      
-      const debugData = {
-        publishedArticles: articles.length,
-        articles: articles.map(article => ({
-          id: article.id,
-          title: article.title,
-          status: article.status,
-          publishedAt: article.publishedAt,
-          category: article.category
-        }))
-      };
-      
-      console.log('📰 LP表示用記事データ:', debugData);
-      this._showFeedback(`LP表示用記事: ${articles.length}件`);
-      
-    } catch (error) {
-      console.error('ERROR LP ニュースデバッグエラー:', error);
-      this._showFeedback('ニュースデバッグに失敗しました', 'error');
-    }
-  }
 
   // === モーダル管理メソッド ===
 

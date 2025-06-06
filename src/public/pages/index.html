@@ -677,15 +677,7 @@
   <!-- NEWS -->
   <section id="news" data-news-dynamic="true">
     <div class="container">
-      <!-- 管理画面リンク（開発時のみ表示） -->
-      <div class="admin-link admin-link-hidden" id="news-admin-link">
-        <a href="admin.html" class="btn btn-outline" target="_blank">
-          <i class="fas fa-cog"></i> 管理画面
-        </a>
-        <button class="btn btn-info" data-action="show-news-debug">
-          <i class="fas fa-bug"></i> デバッグ
-        </button>
-      </div>
+
       
       <div class="news-section-header">
         <h2>NEWS</h2>
@@ -710,86 +702,7 @@
         </a>
       </div>
       
-      <!-- デバッグ用スクリプト：本番環境では削除 -->
-      <script>
-        // 開発環境でのデバッグ機能
-        if (typeof CONFIG !== 'undefined' && CONFIG.debug?.enabled) {
-          
-          // ニュースデバッグ関数を追加
-          window.debugNewsSystem = function() {
-            console.group('🔍 ニュースシステム詳細デバッグ');
-            
-            // 1. LocalStorageの確認
-            console.log('💾 LocalStorage確認:');
-            const articlesKey = 'rbs_articles';
-            const rawData = localStorage.getItem(articlesKey);
-            console.log('  - キー:', articlesKey);
-            console.log('  - データ有無:', !!rawData);
-            console.log('  - データ長:', rawData ? rawData.length : 0);
-            
-            if (rawData) {
-              try {
-                const parsedData = JSON.parse(rawData);
-                console.log('  - 記事数:', Array.isArray(parsedData) ? parsedData.length : 'N/A');
-                console.log('  - データサンプル:', Array.isArray(parsedData) && parsedData.length > 0 ? 
-                  parsedData.slice(0, 2).map(a => ({
-                    id: a?.id,
-                    title: a?.title?.substring(0, 30),
-                    status: a?.status,
-                    category: a?.category
-                  })) : 'データなし');
-              } catch (e) {
-                console.error('  - パースエラー:', e);
-              }
-            }
-            
-            // 2. サービス状況
-            console.log('\n🔧 サービス状況:');
-            console.log('  - UnifiedNewsService:', !!window.UnifiedNewsService);
-            console.log('  - articleService:', !!window.articleService);
-            console.log('  - NewsPageRenderer:', !!window.NewsPageRenderer);
-            
-            if (window.UnifiedNewsService) {
-              console.log('  - 初期化済み:', window.UnifiedNewsService.initialized);
-              console.log('  - 記事数:', window.UnifiedNewsService.articles?.length || 0);
-            }
-            
-            // 3. DOM要素確認
-            console.log('\n🎯 DOM要素確認:');
-            const elements = {
-              'news-list': document.getElementById('news-list'),
-              'news-loading-status': document.getElementById('news-loading-status'),
-              'news-status-text': document.getElementById('news-status-text')
-            };
-            
-            Object.entries(elements).forEach(([name, element]) => {
-              console.log(`  - ${name}:`, element ? '✅ 存在' : '❌ 未発見');
-              if (element) {
-                console.log(`    可視性: ${element.offsetHeight > 0 ? '可視' : '非可視'}`);
-                console.log(`    内容: ${element.textContent?.substring(0, 50)}...`);
-              }
-            });
-            
-            // 4. エラー状況
-            console.log('\n❌ エラー状況:');
-            if (window.lastNewsError) {
-              console.log('  - 最後のエラー:', window.lastNewsError);
-            } else {
-              console.log('  - 記録されたエラーなし');
-            }
-            
-            console.groupEnd();
-          };
-          
-          // 5秒後に自動デバッグ実行
-          setTimeout(() => {
-            if (document.getElementById('news-list')?.textContent.includes('読み込み中')) {
-              console.log('🔍 ニュースの読み込みが完了していません。デバッグ情報を表示します...');
-              window.debugNewsSystem();
-            }
-          }, 5000);
-        }
-      </script>
+
     </div>
   </section>
 

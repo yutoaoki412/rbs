@@ -177,11 +177,7 @@ export class NewsDisplayComponent extends Component {
       EventBus.on('articleStorage:dataChanged', this.handleDataChanged.bind(this));
       EventBus.on('articleStorage:refreshed', this.handleDataRefreshed.bind(this));
       
-      // デバッグボタンのイベント
-      const debugButton = this.safeQuerySelector('[data-action="show-news-debug"]');
-      if (debugButton) {
-        this.addEventListenerToChild(debugButton, 'click', this.showDebugInfo.bind(this));
-      }
+
       
       this.debug('イベントリスナー設定完了');
       
@@ -449,39 +445,7 @@ export class NewsDisplayComponent extends Component {
     }
   }
 
-  /**
-   * デバッグ情報の表示
-   * @private
-   */
-  showDebugInfo() {
-    if (!this.debugMode) return;
-    
-    const status = this.articleStorage.getStatus();
-    const debugInfo = {
-      component: this.getStatus(),
-      storage: status,
-      displayed: this.displayedArticles.length,
-      category: this.currentCategory
-    };
-    
-    console.group('📰 NewsDisplayComponent Debug Info');
-    console.log('Component Status:', debugInfo.component);
-    console.log('Storage Status:', debugInfo.storage);
-    console.log('Displayed Articles:', this.displayedArticles);
-    console.log('Current Category:', this.currentCategory);
-    console.groupEnd();
-    
-    // アラートでも表示
-    alert(`記事表示コンポーネント デバッグ情報
-    
-    総記事数: ${status.totalArticles}件
-    公開記事数: ${status.publishedArticles}件
-    下書き記事数: ${status.draftArticles}件
-    表示中記事数: ${this.displayedArticles.length}件
-    現在のカテゴリー: ${this.currentCategory}
-    
-    詳細はコンソールをご確認ください。`);
-  }
+
 
   // イベントハンドラー
 
@@ -595,31 +559,7 @@ export class NewsDisplayComponent extends Component {
     }
   }
   
-  /**
-   * 開発環境での管理画面リンク表示
-   * @private
-   */
-  setupAdminLinks() {
-    if (!this.debugMode) return;
-    
-    try {
-      // 管理画面リンクの表示
-      const adminLink = this.safeQuerySelector('#news-admin-link', this.container);
-      if (adminLink) {
-        adminLink.style.display = 'block';
-        this.debug('管理画面リンクを表示しました');
-      }
-      
-      // デバッグボタンがある場合は表示
-      const debugButton = this.safeQuerySelector('[data-action="show-news-debug"]', this.container);
-      if (debugButton) {
-        debugButton.style.display = 'inline-block';
-      }
-      
-    } catch (error) {
-      this.error('管理画面リンク設定エラー:', error);
-    }
-  }
+
 
   /**
    * ニュースリストの表示状態を切り替え
@@ -661,9 +601,8 @@ export class NewsDisplayComponent extends Component {
       return `
         <div class="no-articles-dev">
           <div class="dev-message">
-            <h3>📝 記事がありません（開発モード）</h3>
-            <p>管理画面から記事を作成してください。</p>
-            <a href="admin.html" class="admin-create-link">管理画面で記事を作成</a>
+            <h3>📝 記事がありません</h3>
+            <p>記事が作成されるまでお待ちください。</p>
           </div>
         </div>
       `;
