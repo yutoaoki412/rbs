@@ -84,7 +84,18 @@ export async function initializeAdminFeatures() {
     if (!adminActionService) {
       adminActionService = new AdminActionService();
     }
-    await adminActionService.init();
+    
+    // ActionManagerの初期化をより確実に
+    try {
+      await adminActionService.init();
+    } catch (error) {
+      console.error('❌ AdminActionService初期化エラー:', error);
+      console.log('🔄 再初期化を試行中...');
+      
+      // 再初期化を試行
+      adminActionService = new AdminActionService();
+      await adminActionService.init();
+    }
     
     if (!adminSystemService) {
       adminSystemService = new AdminSystemService();

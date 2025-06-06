@@ -157,8 +157,12 @@ export class AdminActionService {
     try {
       this.debug('🔧 依存サービス初期化開始');
 
-      // アクションマネージャーを設定
+      // アクションマネージャーを設定・初期化
       this.actionManager = actionManager;
+      if (!this.actionManager.initialized) {
+        this.actionManager.init();
+        this.debug('✅ ActionManager初期化完了');
+      }
 
       // 必須サービス: UIManagerService（最優先）
       await this._initUIManagerService();
@@ -296,15 +300,32 @@ export class AdminActionService {
     console.log('SETUP 管理画面アクション登録開始');
     
     if (!this.actionManager) {
-      this.error('ActionManagerが初期化されていません');
+      this.error('ActionManagerが初期化されていません。再初期化を試行します。');
+      this.actionManager = actionManager;
+      if (!this.actionManager.initialized) {
+        this.actionManager.init();
+      }
+    }
+    
+    if (!this.actionManager.initialized) {
+      this.error('ActionManagerの初期化に失敗しました');
       return;
     }
 
     // ActionManagerの状態確認
-    console.log('🔍 ActionManager状態:', {
-      initialized: this.actionManager.initialized,
-      actionsCount: this.actionManager._actions?.size || 0
-    });
+    try {
+      console.log('🔍 ActionManager状態:', {
+        initialized: this.actionManager.initialized,
+        actionsCount: this.actionManager._actions?.size || 0
+      });
+    } catch (error) {
+      this.error('ActionManager状態確認エラー:', error);
+      // ActionManagerを再取得・再初期化
+      this.actionManager = actionManager;
+      if (!this.actionManager.initialized) {
+        this.actionManager.init();
+      }
+    }
 
     const adminActions = {
       // 認証関連はAuthManagerで処理（責任の分離）
@@ -459,6 +480,10 @@ export class AdminActionService {
 
     // アクションを登録
     try {
+      if (!this.actionManager || !this.actionManager.registerMultiple) {
+        throw new Error('ActionManagerまたはregisterMultipleメソッドが利用できません');
+      }
+      
       this.actionManager.registerMultiple(adminActions);
       console.log('SUCCESS 管理画面アクション登録完了');
       console.log('🔍 登録されたアクション数:', Object.keys(adminActions).length);
@@ -467,9 +492,28 @@ export class AdminActionService {
       const registeredActions = Array.from(this.actionManager._actions?.keys() || []);
       console.log('🔍 ActionManagerに登録済みのアクション:', registeredActions);
       
+      // 重要なアクションの登録確認
+      const criticalActions = ['switch-admin-tab', 'new-news-article', 'preview-news'];
+      const missingActions = criticalActions.filter(action => !registeredActions.includes(action));
+      
+      if (missingActions.length > 0) {
+        this.warn('重要なアクションが登録されていません:', missingActions);
+      } else {
+        console.log('✅ 重要なアクションはすべて登録済み');
+      }
+      
     } catch (error) {
-      console.error('ERROR 管理画面アクション登録エラー:', error);
-      this.error('管理画面アクション登録に失敗しました:', error);
+      this.error('管理画面アクション登録エラー:', error);
+      
+      // デバッグ情報を追加
+      console.error('🔍 デバッグ情報:', {
+        actionManager: !!this.actionManager,
+        initialized: this.actionManager?.initialized,
+        registerMultiple: typeof this.actionManager?.registerMultiple,
+        actionsSize: this.actionManager?._actions?.size
+      });
+      
+      throw error; // エラーを上位に伝播
     }
   }
 
@@ -513,13 +557,23 @@ export class AdminActionService {
     try {
       this.debug('🎯 管理画面UI設定開始');
       
-      // ActionManagerの初期化確認
+      // ActionManagerの初期化確認・再初期化
       if (!this.actionManager || !this.actionManager.initialized) {
         this.error('ActionManagerが初期化されていません。再初期化を試行します。');
-        this.actionManager = actionManager;
+        
+        // インポートから再取得
+        const { actionManager: freshActionManager } = await import('../../../app/ActionManager.js');
+        this.actionManager = freshActionManager;
+        
         if (!this.actionManager.initialized) {
           this.actionManager.init();
+          this.debug('✅ ActionManager再初期化完了');
         }
+      }
+      
+      // 最終確認
+      if (!this.actionManager.initialized) {
+        throw new Error('ActionManagerの初期化に失敗しました');
       }
       
       // アクション登録（コア機能）
