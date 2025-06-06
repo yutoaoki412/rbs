@@ -608,38 +608,7 @@
   color: var(--primary-blue);
 }
 
-/* 予約システムプレースホルダー */
-.reservation-placeholder {
-  background: var(--gray-light);
-  padding: 50px;
-  border-radius: 15px;
-  color: var(--gray-medium);
-  text-align: center;
-}
 
-.reservation-placeholder-title {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.reservation-placeholder-description {
-  font-size: 16px;
-  margin-top: 25px;
-  color: var(--primary-blue);
-}
-
-/* 予約フォームヘッダー */
-.reservation-form-header {
-  color: var(--navy-dark);
-  margin-bottom: 25px;
-  font-size: 28px;
-}
-
-.reservation-form-description {
-  font-size: 20px;
-  margin-bottom: 25px;
-  font-weight: 600;
-}
 
 /* 事業内容見出し */
 .business-content-heading {
