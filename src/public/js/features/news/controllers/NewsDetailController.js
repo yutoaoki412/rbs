@@ -6,9 +6,9 @@
 import { getUrlParameter } from '../../../shared/utils/urlUtils.js';
 import { querySelector, setText, createElement, show, hide } from '../../../shared/utils/domUtils.js';
 import { scrollToTop, addClass, removeClass, toggleClass } from '../../../shared/utils/domUtils.js';
-import { formatDate, escapeHtml } from '../../../shared/utils/stringUtils.js';
+import { formatDate, escapeHtml, isEmpty } from '../../../shared/utils/stringUtils.js';
 import { debounce } from '../../../shared/utils/FunctionUtils.js';
-import { isValidDate, isEmptyString } from '../../../shared/utils/validationUtils.js';
+import { isValidDate } from '../../../shared/utils/dateUtils.js';
 import { StyleUtils } from '../../../shared/utils/StyleUtils.js';
 import { createErrorHtml } from '../../../shared/utils/htmlUtils.js';
 import { ERROR_MESSAGES } from '../../../shared/constants/newsConstants.js';

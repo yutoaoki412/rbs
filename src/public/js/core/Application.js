@@ -12,6 +12,7 @@ import { initializeLayout, LayoutInitializer } from '../shared/components/layout
 import { EventBus } from '../shared/services/EventBus.js';
 import { redirect } from '../shared/constants/paths.js';
 import { log } from '../shared/utils/logUtils.js';
+import { showInitializationError, reportError } from '../shared/utils/errorUtils.js';
 
 export default class Application {
   constructor() {
@@ -818,7 +819,7 @@ export default class Application {
           }, 1000);
         } else {
           // その他のエラーはコンソールにログ出力のみ
-          this.showInitializationError('管理画面の初期化に失敗しました。ページを再読み込みしてください。');
+          showInitializationError('管理画面の初期化に失敗しました。ページを再読み込みしてください。');
         }
       }
     }
@@ -914,7 +915,7 @@ export default class Application {
     console.error('🚨 グローバルエラー:', event.error);
     
     // エラー報告などの処理
-    this.reportError(event.error, 'global');
+    reportError(event.error, 'global');
   }
 
   /**
@@ -926,7 +927,7 @@ export default class Application {
     console.error('🚨 未処理のPromise拒否:', event.reason);
     
     // エラー報告などの処理
-    this.reportError(event.reason, 'promise');
+    reportError(event.reason, 'promise');
   }
 
   /**
@@ -951,10 +952,10 @@ export default class Application {
     this.ensureBasicDomStructure();
     
     // エラー情報をユーザーに表示
-    this.showInitializationError(error.message);
+          showInitializationError(error.message);
     
     // エラー報告
-    this.reportError(error, 'initialization');
+          reportError(error, 'initialization');
     
     // EventBusでエラーイベントを発火
     try {
@@ -968,34 +969,7 @@ export default class Application {
     }
   }
 
-  /**
-   * 初期化エラーの表示
-   * @private
-   * @param {string} message - エラーメッセージ
-   */
-  showInitializationError(message) {
-    // エラーメッセージを表示するためのHTML構造を作成
-    const errorContainer = document.createElement('div');
-    errorContainer.className = 'app-init-error-container';
-    errorContainer.innerHTML = `
-      <h3 class="app-init-error-title">⚠️ アプリケーション初期化エラー</h3>
-      <p class="app-init-error-text">${message}</p>
-      <div class="app-init-error-actions">
-        <button onclick="window.location.reload()" class="app-init-error-btn app-init-error-btn-primary">
-          ページを再読み込み
-        </button>
-      </div>
-    `;
-    
-    document.body.appendChild(errorContainer);
-    
-    // 10秒後に自動で閉じる
-    setTimeout(() => {
-      if (errorContainer.parentNode) {
-        errorContainer.parentNode.removeChild(errorContainer);
-      }
-    }, 10000);
-  }
+  // showInitializationErrorは shared/utils/errorUtils.js に統合されました
 
   /**
    * 基本的なDOM構造を確保
@@ -1022,26 +996,7 @@ export default class Application {
     }
   }
 
-  /**
-   * エラー報告
-   * @private
-   * @param {Error} error - エラー
-   * @param {string} context - コンテキスト
-   */
-  reportError(error, context) {
-    // 開発環境ではコンソールにログ出力
-    console.group(`🚨 エラー報告 [${context}]`);
-    console.error('エラー:', error);
-    console.error('スタック:', error.stack);
-    console.error('コンテキスト:', context);
-    console.error('ページ:', this.currentPage);
-    console.error('初期化状態:', {
-      initialized: this.initialized,
-      templatesLoaded: this.templatesLoaded,
-      servicesCount: this.services.size
-    });
-    console.groupEnd();
-  }
+  // reportErrorは shared/utils/errorUtils.js に統合されました
 
   /**
    * サービス取得
