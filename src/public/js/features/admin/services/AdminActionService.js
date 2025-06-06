@@ -256,11 +256,41 @@ export class AdminActionService {
       
       if (this.newsFormManager && !this.newsFormManager.initialized) {
         this.newsFormManager.init();
+        console.log('✅ NewsFormManager初期化完了');
       }
+      
+      // イベント連携を設定
+      this._setupNewsFormIntegration();
+      
       this.debug('✅ NewsFormManager初期化完了');
     } catch (error) {
       this.warn('NewsFormManager初期化失敗:', error.message);
     }
+  }
+
+  /**
+   * NewsFormManagerとの連携設定
+   * @private
+   */
+  _setupNewsFormIntegration() {
+    if (!this.newsFormManager) return;
+
+    // 記事保存要求の処理
+    EventBus.on('article:save:request', async (data) => {
+      try {
+        const { articleData, isPublish } = data;
+        
+        if (isPublish) {
+          await this.publishNews();
+        } else {
+          await this.saveNews();
+        }
+      } catch (error) {
+        console.error('記事保存処理エラー:', error);
+      }
+    });
+
+    console.log('🔗 NewsFormManagerとの連携を設定');
   }
 
   /**
@@ -1496,11 +1526,22 @@ export class AdminActionService {
   // === 記事管理関連メソッド ===
 
   /**
-   * 記事エディターをクリア
+   * 記事エディターをクリア（NewsFormManagerとの統合版）
+   * @param {boolean} showNotification - 通知を表示するかどうか（デフォルト: true）
    */
-  clearNewsEditor() {
+  clearNewsEditor(showNotification = true) {
     try {
-      // フォームフィールドをクリア
+      // NewsFormManagerが利用可能な場合はそちらを使用
+      if (this.newsFormManager && this.newsFormManager.initialized) {
+        this.newsFormManager.clearForm();
+        if (showNotification) {
+          this._showFeedback('記事エディターをクリアしました');
+        }
+        console.log('📝 記事エディターをクリア（NewsFormManager使用）');
+        return;
+      }
+
+      // NewsFormManagerが利用できない場合は直接操作
       const titleField = document.getElementById('news-title');
       const categoryField = document.getElementById('news-category');
       const dateField = document.getElementById('news-date');
@@ -1525,9 +1566,19 @@ export class AdminActionService {
         editorTitle.textContent = '新規記事作成';
       }
 
-      // ユーザーアクションなので通知を表示
-      this._showFeedback('記事エディターをクリアしました');
-      console.log('📝 記事エディターをクリア');
+      // 自動保存データを削除
+      try {
+        localStorage.removeItem('rbs-news-draft');
+      } catch (error) {
+        console.warn('自動保存データの削除に失敗:', error);
+      }
+
+      // 手動実行時のみ通知を表示
+      if (showNotification) {
+        this._showFeedback('記事エディターをクリアしました');
+      }
+      
+      console.log('📝 記事エディターをクリア（直接操作）');
 
     } catch (error) {
       console.error('ERROR 記事エディタークリアエラー:', error);
@@ -1536,14 +1587,22 @@ export class AdminActionService {
   }
 
   /**
-   * 記事プレビュー
+   * 記事プレビュー（NewsFormManagerとの統合版）
    */
   async previewNews() {
     try {
       console.log('👁️ 記事プレビュー開始');
       
-      // フォームデータを取得
-      const formData = this._getNewsFormData();
+      // NewsFormManagerからフォームデータを取得
+      let formData;
+      if (this.newsFormManager && this.newsFormManager.initialized) {
+        formData = this.newsFormManager.getFormData();
+        console.log('📝 NewsFormManagerからデータを取得');
+      } else {
+        // フォールバック: 直接フォームからデータを取得
+        formData = this._getArticleDataFromForm();
+        console.log('📝 直接フォームからデータを取得');
+      }
       
       if (!formData.title.trim()) {
         this._showFeedback('タイトルが入力されていません', 'error');
@@ -1618,18 +1677,18 @@ export class AdminActionService {
       const result = await this.articleDataService.saveArticle(articleData, true);
       
       if (result.success) {
-        // フォームに記事IDを設定
-        const idField = document.getElementById('news-id');
-        if (idField && result.id) {
-          idField.value = result.id;
-        }
-
-        // ステータスフィールドを更新
-        const statusField = document.getElementById('news-status');
-        if (statusField) {
-          statusField.value = 'published';
-        }
-
+        // 公開成功時の処理
+        this._showFeedback(`記事「${articleData.title}」を公開しました`, 'success');
+        
+        // フォームをクリア（通知なし）
+        this.clearNewsEditor(false);
+        
+        // ダッシュボードタブに移動
+        await this.switchAdminTab('dashboard');
+        
+        // ダッシュボードの統計を更新
+        this.updateDashboardStats();
+        
         // ボタンアクション用のイベントを発行（通知表示用）
         EventBus.emit('button:article:published', { 
           title: articleData.title,
@@ -3182,7 +3241,7 @@ export class AdminActionService {
   }
 
   /**
-   * 記事データをエディターに読み込み
+   * 記事データをエディターに読み込み（NewsFormManagerとの統合版）
    * @private
    * @param {Object} article - 記事データ
    * @param {string} articleId - 記事ID
@@ -3191,65 +3250,77 @@ export class AdminActionService {
     try {
       console.log('📝 記事データをエディターに読み込み中:', article.title);
       
-      // フォーム要素を取得
-      const elements = {
-        id: document.getElementById('news-id'),
-        title: document.getElementById('news-title'),
-        category: document.getElementById('news-category'),
-        date: document.getElementById('news-date'),
-        status: document.getElementById('news-status'),
-        summary: document.getElementById('news-summary'),
-        content: document.getElementById('news-content'),
-        featured: document.getElementById('news-featured')
-      };
+      // 記事本文を取得
+      const content = this.articleDataService?.getArticleContent?.(articleId) || article.content || '';
       
-      // 各要素が存在するかチェック
-      const missingElements = Object.keys(elements).filter(key => !elements[key]);
-      if (missingElements.length > 0) {
-        console.warn('WARN 一部のフォーム要素が見つかりません:', missingElements);
+      // NewsFormManagerが利用可能な場合はそちらを使用
+      if (this.newsFormManager && this.newsFormManager.initialized) {
+        // データをNewsFormManagerの形式に合わせる
+        const formattedArticle = {
+          id: articleId,
+          title: article.title || '',
+          category: article.category || 'announcement',
+          date: this._formatDateForInput(article.date || article.createdAt),
+          status: article.status || 'draft',
+          excerpt: article.summary || article.excerpt || '',
+          content: content,
+          featured: article.featured || false
+        };
         
-        // 重要な要素（title, content）が見つからない場合はエラー
-        if (missingElements.includes('title') || missingElements.includes('content')) {
-          throw new Error(`必須フォーム要素が見つかりません: ${missingElements.join(', ')}`);
-        }
-      }
-      
-      // フォームに記事データを設定
-      if (elements.id) elements.id.value = articleId;
-      if (elements.title) elements.title.value = article.title || '';
-      if (elements.category) elements.category.value = article.category || 'announcement';
-      if (elements.date) {
-        const dateValue = article.date || article.createdAt || '';
-        // 日付形式を正規化（YYYY-MM-DD形式にする）
-        if (dateValue) {
-          const date = new Date(dateValue);
-          if (!isNaN(date.getTime())) {
-            elements.date.value = date.toISOString().split('T')[0];
+        this.newsFormManager.populateForm(formattedArticle);
+        console.log('📝 NewsFormManagerで記事を読み込み');
+      } else {
+        // フォールバック: 直接フォームに値を設定
+        const elements = {
+          id: document.getElementById('news-id'),
+          title: document.getElementById('news-title'),
+          category: document.getElementById('news-category'),
+          date: document.getElementById('news-date'),
+          status: document.getElementById('news-status'),
+          summary: document.getElementById('news-summary'),
+          content: document.getElementById('news-content'),
+          featured: document.getElementById('news-featured')
+        };
+        
+        // 各要素が存在するかチェック
+        const missingElements = Object.keys(elements).filter(key => !elements[key]);
+        if (missingElements.length > 0) {
+          console.warn('WARN 一部のフォーム要素が見つかりません:', missingElements);
+          
+          // 重要な要素（title, content）が見つからない場合はエラー
+          if (missingElements.includes('title') || missingElements.includes('content')) {
+            throw new Error(`必須フォーム要素が見つかりません: ${missingElements.join(', ')}`);
           }
         }
+        
+        // フォームに記事データを設定
+        if (elements.id) elements.id.value = articleId;
+        if (elements.title) elements.title.value = article.title || '';
+        if (elements.category) elements.category.value = article.category || 'announcement';
+        if (elements.date) {
+          elements.date.value = this._formatDateForInput(article.date || article.createdAt);
+        }
+        if (elements.status) elements.status.value = article.status || 'draft';
+        if (elements.summary) elements.summary.value = article.summary || article.excerpt || '';
+        if (elements.content) elements.content.value = content;
+        if (elements.featured) elements.featured.checked = article.featured || false;
+        
+        // エディタータイトルを更新
+        const editorTitle = document.getElementById('editor-title');
+        if (editorTitle) {
+          editorTitle.textContent = `記事編集: ${article.title}`;
+        }
+        
+        // タイトルフィールドにフォーカス
+        if (elements.title) {
+          elements.title.focus();
+          elements.title.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        console.log('📝 直接フォームに記事を読み込み');
       }
-      if (elements.status) elements.status.value = article.status || 'draft';
-      if (elements.summary) elements.summary.value = article.summary || article.excerpt || '';
-      if (elements.featured) elements.featured.checked = article.featured || false;
       
-      // 記事本文を取得して設定
-      if (elements.content) {
-        const content = this.articleDataService.getArticleContent(articleId);
-        elements.content.value = content || article.content || '';
-        console.log('📄 記事本文を読み込み:', content ? `${content.length}文字` : '本文なし');
-      }
-      
-      // エディタータイトルを更新
-      const editorTitle = document.getElementById('editor-title');
-      if (editorTitle) {
-        editorTitle.textContent = `記事編集: ${article.title}`;
-      }
-      
-      // タイトルフィールドにフォーカス
-      if (elements.title) {
-        elements.title.focus();
-        elements.title.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      console.log('📄 記事本文を読み込み:', content ? `${content.length}文字` : '本文なし');
       
       this._showFeedback(`記事「${article.title}」をエディターに読み込みました`);
       console.log('SUCCESS 記事データの読み込み完了');
@@ -3258,6 +3329,27 @@ export class AdminActionService {
       console.error('ERROR 記事データ読み込みエラー:', error);
       this._showFeedback('記事データの読み込みに失敗しました', 'error');
     }
+  }
+
+  /**
+   * 日付をフォーム入力用にフォーマット
+   * @private
+   * @param {string} dateValue - 日付文字列
+   * @returns {string} YYYY-MM-DD形式の日付
+   */
+  _formatDateForInput(dateValue) {
+    if (!dateValue) return '';
+    
+    try {
+      const date = new Date(dateValue);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().split('T')[0];
+      }
+    } catch (error) {
+      console.warn('日付フォーマットエラー:', error);
+    }
+    
+    return '';
   }
 
   /**
@@ -3632,8 +3724,8 @@ export class AdminActionService {
                       </div>
                     </div>
                   </div>
-                </div>
-              </section>
+                </section>
+              </div>
             </div>
           </div>
         </div>
@@ -3662,6 +3754,15 @@ export class AdminActionService {
     const styles = `
       .news-detail-preview-modal {
         z-index: 10000;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.5);
       }
       
       .news-detail-preview-content {
@@ -3669,6 +3770,80 @@ export class AdminActionService {
         max-height: 90vh;
         width: 1200px;
         height: 800px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      
+      .news-detail-modal-header {
+        background: #2c3e50;
+        color: white;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #34495e;
+      }
+      
+      .modal-title-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      
+      .title-icon {
+        color: #3498db;
+        font-size: 1.5rem;
+      }
+      
+      .title-content h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+      }
+      
+      .preview-note {
+        margin: 0;
+        font-size: 0.875rem;
+        opacity: 0.8;
+      }
+      
+      .modal-controls {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      
+      .modal-action-btn, .modal-close {
+        background: none;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        transition: background-color 0.2s;
+      }
+      
+      .modal-action-btn:hover, .modal-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      
+      .news-detail-preview-body {
+        flex: 1;
+        overflow-y: auto;
+        background: #f8f9fa;
+      }
+      
+      .preview-viewport {
+        height: 100%;
+        overflow-y: auto;
       }
       
       .preview-container {
@@ -3679,6 +3854,33 @@ export class AdminActionService {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         line-height: 1.6;
         color: #333;
+      }
+      
+      .breadcrumb-nav {
+        margin-bottom: 2rem;
+        font-size: 0.875rem;
+      }
+      
+      .breadcrumb-items {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #666;
+      }
+      
+      .breadcrumb-item {
+        color: #007bff;
+        text-decoration: none;
+      }
+      
+      .breadcrumb-separator {
+        color: #999;
+        font-size: 0.75rem;
+      }
+      
+      .breadcrumb-current {
+        color: #333;
+        font-weight: 500;
       }
       
       .article-header {
@@ -3694,25 +3896,112 @@ export class AdminActionService {
         margin-bottom: 1rem;
         font-size: 0.9rem;
         color: #666;
+        flex-wrap: wrap;
+        gap: 1rem;
       }
+      
+      .meta-left, .meta-right {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+      }
+      
+      .article-date, .article-category, .reading-time {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      
+      .article-category {
+        background: #007bff;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+      }
+      
+      .article-category.announcement { background: #6c757d; }
+      .article-category.event { background: #28a745; }
+      .article-category.media { background: #6f42c1; }
+      .article-category.important { background: #dc3545; }
       
       .article-title {
         font-size: 2rem;
         font-weight: 700;
-        margin: 0;
+        margin: 0 0 1rem 0;
         color: #2c3e50;
+        line-height: 1.3;
+      }
+      
+      .article-summary {
+        background: #f8f9fa;
+        padding: 1rem 1.5rem;
+        border-left: 4px solid #007bff;
+        margin: 1rem 0;
+        border-radius: 0 4px 4px 0;
+      }
+      
+      .summary-content {
+        font-size: 1.1rem;
+        color: #555;
+        font-style: italic;
+      }
+      
+      .article-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      
+      .action-btn {
+        background: none;
+        border: 1px solid #dee2e6;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #495057;
+        transition: all 0.2s;
+      }
+      
+      .action-btn:not(:disabled):hover {
+        background: #f8f9fa;
+        border-color: #adb5bd;
+      }
+      
+      .action-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
       }
       
       .article-content {
         font-size: 1.1rem;
         line-height: 1.8;
+        margin: 2rem 0;
       }
       
       .article-content h1, 
       .article-content h2, 
-      .article-content h3 {
+      .article-content h3,
+      .article-content h4,
+      .article-content h5,
+      .article-content h6 {
         margin: 2rem 0 1rem;
         color: #2c3e50;
+        font-weight: 600;
+      }
+      
+      .article-content h2 {
+        font-size: 1.5rem;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 0.5rem;
+      }
+      
+      .article-content h3 {
+        font-size: 1.25rem;
       }
       
       .article-content p {
@@ -3725,12 +4014,161 @@ export class AdminActionService {
         padding-left: 2rem;
       }
       
+      .article-content li {
+        margin: 0.5rem 0;
+      }
+      
       .article-content blockquote {
         margin: 1.5rem 0;
         padding: 1rem 1.5rem;
         background: #f8f9fa;
         border-left: 4px solid #007bff;
         font-style: italic;
+        color: #555;
+      }
+      
+      .article-content strong {
+        font-weight: 600;
+        color: #2c3e50;
+      }
+      
+      .article-content a {
+        color: #007bff;
+        text-decoration: none;
+      }
+      
+      .article-content a:hover {
+        text-decoration: underline;
+      }
+      
+      .share-section, .related-articles {
+        margin: 3rem 0;
+        padding: 2rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+      }
+      
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0 0 1.5rem 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+      
+      .share-buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+      }
+      
+      .share-btn {
+        background: white;
+        border: 1px solid #dee2e6;
+        padding: 0.75rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+      }
+      
+      .share-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      
+      .share-btn.twitter { border-color: #1da1f2; color: #1da1f2; }
+      .share-btn.facebook { border-color: #4267b2; color: #4267b2; }
+      .share-btn.line { border-color: #00c300; color: #00c300; }
+      .share-btn.linkedin { border-color: #0077b5; color: #0077b5; }
+      
+      .related-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+      }
+      
+      .related-card {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+      }
+      
+      .related-card:hover {
+        transform: translateY(-2px);
+      }
+      
+      .card-image {
+        height: 120px;
+        background: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .placeholder-image {
+        color: #adb5bd;
+        font-size: 2rem;
+      }
+      
+      .card-content {
+        padding: 1rem;
+      }
+      
+      .card-meta {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.8rem;
+      }
+      
+      .card-meta .date {
+        color: #666;
+      }
+      
+      .card-meta .category {
+        background: #007bff;
+        color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: 10px;
+      }
+      
+      .card-meta .category.event { background: #28a745; }
+      .card-meta .category.announcement { background: #6c757d; }
+      .card-meta .category.media { background: #6f42c1; }
+      
+      .card-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+        color: #2c3e50;
+        line-height: 1.4;
+      }
+      
+      .card-excerpt {
+        font-size: 0.875rem;
+        color: #666;
+        line-height: 1.5;
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      
+      .preview-note {
+        font-size: 0.875rem;
+        color: #666;
+        font-style: italic;
+        margin-top: 1rem;
       }
     `;
 
