@@ -386,13 +386,13 @@ body.header-loaded #hero {
 }
 
 .company-philosophy {
-  background: var(--primary-purple);
+  background: var(--primary-blue);
   color: white;
   padding: 30px;
   border-radius: 20px;
   margin: 40px 0;
   text-align: center;
-  box-shadow: 0 8px 40px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 8px 40px rgba(74, 144, 226, 0.3);
 }
 
 .company-philosophy h4 {
