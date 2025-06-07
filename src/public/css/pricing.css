@@ -221,13 +221,13 @@
 .entry-fees h4::after {
   content: '';
   position: absolute;
-  bottom: -4px;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 40px;
-  height: 2px;
-  background: var(--primary-orange);
-  border-radius: 2px;
+  width: 120px;
+  height: 8px;
+  background: var(--primary-blue);
+  border-radius: var(--radius-xs);
 }
 
 /* 費用アイテムコンテナ - 横並び用 */

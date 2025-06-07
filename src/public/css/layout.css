@@ -975,11 +975,11 @@ footer p {
 .features-title::after {
   content: '';
   position: absolute;
-  bottom: -15px;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 100px;
-  height: 6px;
+  width: 120px;
+  height: 8px;
   background: var(--primary-blue);
   border-radius: var(--radius-xs);
 } 

@@ -445,17 +445,7 @@
     padding: 12px !important;
   }
 
-  #coach {
-    padding: 50px 0;
-  }
 
-  .coach-grid > div:last-child {
-    padding: 20px 15px;
-  }
-
-  .coach-grid {
-    gap: 0;
-  }
 
   .faq-item {
     margin-bottom: 15px;

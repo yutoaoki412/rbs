@@ -245,12 +245,7 @@ main {
   padding: var(--spacing-lg);
 }
 
-.coach-grid {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: var(--spacing-xl);
-  align-items: center;
-}
+
 
 /* アニメーション */
 .fade-in {
@@ -341,10 +336,7 @@ main {
     padding-top: 100px;
   }
 
-  .coach-grid {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
-  }
+
 }
 
 @media (max-width: 480px) {
