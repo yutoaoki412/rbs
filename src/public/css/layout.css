@@ -553,7 +553,7 @@ footer p {
 }
 
 .footer-info .company-info strong {
-  color: var(--primary-teal);
+  color: var(--primary-blue);
   font-weight: var(--font-weight-bold);
   display: block;
   margin-bottom: 8px;
@@ -573,7 +573,7 @@ footer p {
 }
 
 .copyright-year {
-  color: var(--primary-teal);
+  color: white;
   font-weight: var(--font-weight-bold);
 }
 

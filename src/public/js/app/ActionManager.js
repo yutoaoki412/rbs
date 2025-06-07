@@ -240,23 +240,30 @@ export class ActionManager {
             faqItem.classList.remove('active');
             faqAnswer.style.maxHeight = '0';
             faqAnswer.style.opacity = '0';
-          } else {
+                    } else {
             // 展開する場合 - 正確な高さを計算
             // 一時的にactiveクラスを追加して高さを測定
             faqItem.classList.add('active');
             
-            // 高さを測定するために一時的に自動高さに設定
+            // 高さを測定するために一時的に自動高さに設定して可視化
             faqAnswer.style.maxHeight = 'none';
+            faqAnswer.style.opacity = '1';
+            faqAnswer.style.position = 'absolute';
+            faqAnswer.style.visibility = 'hidden';
+            
+            // 正確な高さを測定
             const scrollHeight = faqAnswer.scrollHeight;
             console.log(`📏 測定されたscrollHeight: ${scrollHeight}px`);
             
-            // 初期状態に戻してからアニメーション開始
+            // 測定後に初期状態に戻す
+            faqAnswer.style.position = '';
+            faqAnswer.style.visibility = '';
             faqAnswer.style.maxHeight = '0';
             faqAnswer.style.opacity = '0';
             
-                         // 次のフレームでアニメーション開始
+            // 次のフレームでアニメーション開始（適切なマージンを追加）
              requestAnimationFrame(() => {
-               faqAnswer.style.maxHeight = `${scrollHeight + 40}px`;
+               faqAnswer.style.maxHeight = `${scrollHeight + 60}px`;
                faqAnswer.style.opacity = '1';
              });
           }
