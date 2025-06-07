@@ -421,10 +421,15 @@ body.header-loaded #hero {
 }
 
 .business-list li::before {
-  content: '🔸';
+  content: '';
   position: absolute;
   left: 0;
-  font-size: 16px;
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
+  width: 8px;
+  height: 8px;
+  background: var(--primary-blue);
+  border-radius: 2px;
 }
 
 /* Footer */
