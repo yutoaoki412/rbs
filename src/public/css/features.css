@@ -93,7 +93,7 @@
 
 /* 特徴タイトル */
 .feature-card h3 {
-  font-size: 20px;
+  font-size: 18px;
   margin-bottom: 20px;
   color: var(--navy-dark);
   line-height: 1.4;
@@ -179,7 +179,7 @@
   }
 
   .feature-card h3 {
-    font-size: 24px;
+    font-size: 22px;
     margin-bottom: 25px;
   }
 
@@ -223,7 +223,7 @@
   }
 
   .feature-card h3 {
-    font-size: 28px;
+    font-size: 26px;
     margin-bottom: 30px;
   }
 
@@ -256,7 +256,7 @@
   }
 
   .feature-card h3 {
-    font-size: 18px;
+    font-size: 16px;
     margin-bottom: 15px;
     line-height: 1.3;
   }
