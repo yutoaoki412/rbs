@@ -38,11 +38,11 @@
 }
 
 .feature-card:nth-child(2)::before {
-  background: var(--primary-teal);
+  background: var(--primary-blue);
 }
 
 .feature-card:nth-child(3)::before {
-  background: var(--primary-orange);
+  background: var(--primary-blue);
 }
 
 .feature-card:hover {
@@ -73,11 +73,11 @@
 }
 
 .feature-card:nth-child(2) .feature-number {
-  background: var(--primary-teal);
+  background: var(--primary-blue);
 }
 
 .feature-card:nth-child(3) .feature-number {
-  background: var(--primary-orange);
+  background: var(--primary-blue);
 }
 
 .feature-number::before {

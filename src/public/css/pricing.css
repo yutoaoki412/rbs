@@ -17,7 +17,7 @@
   right: -15%;
   width: 400px;
   height: 400px;
-  background: var(--primary-orange);
+  background: var(--primary-blue);
   border-radius: 50%;
   opacity: 0.06;
   animation: float 20s ease-in-out infinite;
@@ -30,7 +30,7 @@
   left: -10%;
   width: 300px;
   height: 300px;
-  background: var(--primary-teal);
+  background: var(--primary-blue);
   border-radius: 50%;
   opacity: 0.08;
   animation: float 15s ease-in-out infinite reverse;
@@ -68,11 +68,11 @@
 }
 
 .price-card:nth-child(1)::before {
-  background: var(--primary-teal);
+  background: var(--primary-blue);
 }
 
 .price-card:nth-child(2)::before {
-  background: var(--primary-orange);
+  background: var(--primary-blue);
 }
 
 .price-card:hover {
@@ -90,11 +90,11 @@
 }
 
 .price-card:nth-child(1) .price-header {
-  background: var(--primary-teal);
+  background: var(--primary-blue);
 }
 
 .price-card:nth-child(2) .price-header {
-  background: var(--primary-orange);
+  background: var(--primary-blue);
 }
 
 .price-header::before {
@@ -205,7 +205,7 @@
   content: '';
   position: absolute;
   inset: -4px;
-  background: var(--primary-orange);
+  background: var(--primary-blue);
   border-radius: 25px;
   z-index: -1;
 }

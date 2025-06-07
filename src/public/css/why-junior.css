@@ -66,17 +66,17 @@
 }
 
 .reason-item:nth-child(2)::before {
-  background: var(--primary-teal);
+  background: var(--primary-blue);
   opacity: 0.15;
 }
 
 .reason-item:nth-child(3)::before {
-  background: var(--primary-orange);
+  background: var(--primary-blue);
   opacity: 0.15;
 }
 
 .reason-item:nth-child(4)::before {
-  background: var(--primary-purple);
+  background: var(--primary-blue);
   opacity: 0.15;
 }
 
@@ -101,15 +101,15 @@
 }
 
 .reason-item:nth-child(2)::after {
-  background: var(--primary-teal);
+  background: var(--primary-blue);
 }
 
 .reason-item:nth-child(3)::after {
-  background: var(--primary-orange);
+  background: var(--primary-blue);
 }
 
 .reason-item:nth-child(4)::after {
-  background: var(--primary-purple);
+  background: var(--primary-blue);
 }
 
 /* 理由タイトル */

@@ -684,7 +684,7 @@ footer p {
   border-radius: 25px;
   overflow: hidden;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  border: 3px solid var(--primary-teal);
+  border: 3px solid var(--primary-blue);
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -699,10 +699,10 @@ footer p {
 }
 
 /* カラーテーマ */
-.video-card:nth-child(1) { border-color: var(--primary-teal); }
-.video-card:nth-child(2) { border-color: var(--primary-orange); }
+.video-card:nth-child(1) { border-color: var(--primary-blue); }
+.video-card:nth-child(2) { border-color: var(--primary-blue); }
 .video-card:nth-child(3) { border-color: var(--primary-blue); }
-.video-card:nth-child(4) { border-color: var(--primary-purple); }
+.video-card:nth-child(4) { border-color: var(--primary-blue); }
 
 .video-card-media {
   height: 160px;

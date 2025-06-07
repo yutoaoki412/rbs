@@ -74,7 +74,7 @@
   flex-shrink: 0;
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #4a90e2, #63b3ed);
+  background: var(--primary-blue);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -98,7 +98,7 @@
 .contact-email a {
   font-size: 1.3rem;
   font-weight: 600;
-  color: #4a90e2;
+  color: var(--primary-blue);
   text-decoration: none;
   transition: all 0.3s ease;
   border-bottom: 2px solid transparent;
@@ -106,8 +106,8 @@
 }
 
 .contact-email a:hover {
-  color: #2d5aa0;
-  border-bottom-color: #4a90e2;
+  color: var(--primary-blue-dark);
+  border-bottom-color: var(--primary-blue);
 }
 
 .contact-note {
@@ -118,7 +118,7 @@
 }
 
 .contact-cta {
-  background: linear-gradient(135deg, #4a90e2 0%, #63b3ed 100%);
+  background: var(--primary-blue);
   border-radius: 16px;
   padding: 2.5rem;
   text-align: center;
@@ -148,7 +148,7 @@
 
 .contact-cta .btn-primary {
   background: #ffffff;
-  color: #4a90e2;
+  color: var(--primary-blue);
   font-weight: 600;
   font-size: 1.1rem;
   padding: 0.8rem 2rem;

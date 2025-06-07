@@ -27,13 +27,13 @@
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-  border: 3px solid var(--primary-teal);
+  border: 3px solid var(--primary-blue);
   transition: all 0.3s ease;
   position: relative;
 }
 
 .program-card.advanced {
-  border-color: var(--primary-orange);
+  border-color: var(--primary-blue);
 }
 
 .program-card:hover {
@@ -46,13 +46,13 @@
   padding: 25px 20px;
   text-align: center;
   color: white;
-  background: var(--primary-teal);
+  background: var(--primary-blue);
   position: relative;
   overflow: hidden;
 }
 
 .program-card.advanced .program-header {
-  background: var(--primary-orange);
+  background: var(--primary-blue);
 }
 
 .program-header::before {
@@ -118,13 +118,13 @@
   content: '✓';
   position: absolute;
   left: 0;
-  color: var(--primary-teal);
+  color: var(--primary-blue);
   font-weight: 700;
   font-size: 16px;
 }
 
 .program-card.advanced .program-body li::before {
-  color: var(--primary-orange);
+  color: var(--primary-blue);
 }
 
 /* 1日の流れ */
@@ -151,12 +151,12 @@
 
 .schedule-time {
   font-weight: 700;
-  color: var(--primary-teal);
+  color: var(--primary-blue);
   font-size: 14px;
 }
 
 .program-card.advanced .schedule-time {
-  color: var(--primary-orange);
+  color: var(--primary-blue);
 }
 
 .schedule-content {
@@ -192,7 +192,7 @@
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  border: 3px solid var(--primary-teal);
+  border: 3px solid var(--primary-blue);
   transition: all 0.3s ease;
 }
 
@@ -201,7 +201,7 @@
 }
 
 .common-program-card:nth-child(3) {
-  border-color: var(--primary-orange);
+  border-color: var(--primary-blue);
 }
 
 .common-program-card:hover {
