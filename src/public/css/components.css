@@ -145,8 +145,8 @@
 .btn-primary {
   display: inline-block;
   padding: 18px 45px; /* 要求されたサイズ */
-  background: var(--primary-orange); /* オレンジ色に変更 */
-  color: var(--white);
+  background: var(--primary-orange) !important; /* オレンジ色を強制適用 */
+  color: var(--white) !important;
   text-decoration: none;
   border-radius: var(--radius-full);
   font-size: 18px; /* 要求されたサイズ */
@@ -176,7 +176,7 @@
 
 .btn-primary:hover {
   transform: translateY(-3px) scale(1.02);
-  background: #e6941f; /* より濃いオレンジ */
+  background: #e6941f !important; /* より濃いオレンジを強制適用 */
   box-shadow: 
     0 18px 35px rgba(245, 167, 35, 0.5),
     0 10px 20px rgba(0, 0, 0, 0.2);

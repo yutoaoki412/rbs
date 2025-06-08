@@ -144,8 +144,8 @@
     --status-postponed-dark: #2980b9;
 
     /* セクション統一設定 */
-    --section-padding: 80px; /* 全セクション統一のpadding値 */
-    --section-padding-mobile: 60px; /* モバイル用のpadding値 */
+    --section-padding: 30px; /* 全セクション統一のpadding値（80px→30px） */
+    --section-padding-mobile: 20px; /* モバイル用のpadding値（60px→20px） */
   }
   
   /* ベーススタイル */
