@@ -71,6 +71,10 @@
           <i class="fas fa-calendar-check"></i>
           <span>レッスン状況</span>
         </div>
+        <div class="nav-item" data-tab="instagram-management" data-action="switch-admin-tab">
+          <i class="fab fa-instagram"></i>
+          <span>Instagram管理</span>
+        </div>
         <div class="nav-item" data-tab="settings" data-action="switch-admin-tab">
           <i class="fas fa-cog"></i>
           <span>設定</span>
@@ -542,6 +546,163 @@
           </div>
           <div class="preview-content" id="preview-content">
             <!-- プレビュー内容 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Instagram管理タブ -->
+      <div class="admin-section" id="instagram-management">
+        <div class="section-header">
+          <h1><i class="fab fa-instagram"></i> Instagram管理</h1>
+        </div>
+        
+        <!-- Instagram管理用のタブナビゲーション -->
+        <div class="sub-nav">
+          <div class="sub-nav-item active" data-action="switch-instagram-tab" data-tab="posts">
+            <i class="fas fa-images"></i>
+            投稿管理
+          </div>
+          <div class="sub-nav-item" data-action="switch-instagram-tab" data-tab="settings">
+            <i class="fas fa-cog"></i>
+            Instagram設定
+          </div>
+        </div>
+        
+        <!-- 投稿管理タブ -->
+        <div id="instagram-posts-tab" class="instagram-tab-content active">
+          <div class="instagram-simple-layout">
+            <!-- 投稿追加フォーム -->
+            <div class="instagram-add-form">
+              <div class="form-header">
+                <h2><i class="fab fa-instagram"></i> Instagram投稿を追加</h2>
+                <p>Instagram投稿のURLを入力して、表示設定を行ってください</p>
+              </div>
+              
+              <form class="simple-form" id="instagram-post-form">
+                <input type="hidden" id="instagram-post-id">
+                
+                <div class="url-input-group">
+                  <input type="url" 
+                         id="instagram-url" 
+                         class="url-input" 
+                         placeholder="https://www.instagram.com/p/..." 
+                         required>
+                  <button type="button" class="add-btn" data-action="save-instagram-post">
+                    <i class="fas fa-plus"></i>
+                    追加
+                  </button>
+                </div>
+                
+                <div class="settings-row">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="instagram-status" checked>
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-label">表示する</span>
+                  </label>
+                  
+                  <label class="featured-checkbox">
+                    <input type="checkbox" id="instagram-featured">
+                    <span class="checkmark"></span>
+                    <span class="featured-label">
+                      <i class="fas fa-star"></i>
+                      注目投稿
+                    </span>
+                  </label>
+                </div>
+              </form>
+            </div>
+
+            <!-- 投稿一覧 -->
+            <div class="instagram-posts-container">
+              <div class="posts-header">
+                <h3><i class="fas fa-images"></i> 登録済み投稿</h3>
+                <div class="posts-actions">
+                  <select id="instagram-filter" class="filter-select" data-action="filter-instagram-list">
+                    <option value="all">すべて</option>
+                    <option value="active">表示中</option>
+                    <option value="inactive">非表示</option>
+                    <option value="featured">注目投稿</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div id="instagram-posts-list" class="posts-grid">
+                <div class="loading-state">
+                  <i class="fas fa-spinner fa-spin"></i>
+                  Instagram投稿を読み込み中...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Instagram設定タブ -->
+        <div id="instagram-settings-tab" class="instagram-tab-content">
+          <div class="instagram-simple-layout">
+            
+            <!-- 統計情報 -->
+            <div class="stats-overview">
+              <h2><i class="fas fa-chart-line"></i> Instagram投稿統計</h2>
+              <div class="stats-cards" id="instagram-stats">
+                <div class="stat-card">
+                  <div class="stat-icon total">
+                    <i class="fab fa-instagram"></i>
+                  </div>
+                  <div class="stat-info">
+                    <div class="stat-number" id="total-posts">0</div>
+                    <div class="stat-label">総投稿数</div>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon active">
+                    <i class="fas fa-eye"></i>
+                  </div>
+                  <div class="stat-info">
+                    <div class="stat-number" id="active-posts">0</div>
+                    <div class="stat-label">表示中</div>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon featured">
+                    <i class="fas fa-star"></i>
+                  </div>
+                  <div class="stat-info">
+                    <div class="stat-number" id="featured-posts">0</div>
+                    <div class="stat-label">注目投稿</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 表示設定 -->
+            <div class="display-settings">
+              <h3><i class="fas fa-cog"></i> 表示設定</h3>
+              <form class="settings-form" id="instagram-settings-form">
+                <div class="setting-row">
+                  <label class="setting-label">最大表示件数</label>
+                  <select id="max-posts-display" class="setting-select">
+                    <option value="3">3件</option>
+                    <option value="6" selected>6件</option>
+                    <option value="9">9件</option>
+                    <option value="12">12件</option>
+                  </select>
+                </div>
+
+                <div class="setting-row">
+                  <label class="setting-label">新しいタブで開く</label>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="open-new-tab" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <button type="button" class="save-settings-btn" data-action="save-instagram-settings">
+                  <i class="fas fa-save"></i>
+                  設定を保存
+                </button>
+              </form>
+            </div>
+
           </div>
         </div>
       </div>

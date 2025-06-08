@@ -392,6 +392,74 @@ export class InstagramDataService {
   }
 
   /**
+   * すべての投稿を取得
+   * @returns {Array} 投稿配列
+   */
+  getAllPosts() {
+    return [...this.posts].sort((a, b) => {
+      // まず order でソート、次に updatedAt でソート
+      const orderDiff = (a.order || 0) - (b.order || 0);
+      if (orderDiff !== 0) return orderDiff;
+      
+      const dateA = new Date(a.updatedAt || a.createdAt || 0);
+      const dateB = new Date(b.updatedAt || b.createdAt || 0);
+      return dateB - dateA;
+    });
+  }
+
+  /**
+   * 投稿のステータスを切り替え
+   * @param {string} id - 投稿ID
+   * @returns {Promise<{success: boolean, message?: string}>}
+   */
+  async togglePostStatus(id) {
+    try {
+      const index = this.posts.findIndex(p => p.id === id);
+      
+      if (index === -1) {
+        return {
+          success: false,
+          message: '投稿が見つかりませんでした'
+        };
+      }
+      
+      const post = this.posts[index];
+      const newStatus = post.status === 'active' ? 'inactive' : 'active';
+      
+      this.posts[index] = {
+        ...post,
+        status: newStatus,
+        updatedAt: new Date().toISOString()
+      };
+      
+      await this.saveToStorage();
+      
+      const message = newStatus === 'active' 
+        ? 'Instagram投稿を表示状態にしました'
+        : 'Instagram投稿を非表示状態にしました';
+      
+      EventBus.emit('instagram:statusToggled', { 
+        post: this.posts[index], 
+        newStatus 
+      });
+      
+      console.log(`🔄 Instagram投稿ステータス切り替え: ${id} -> ${newStatus}`);
+      
+      return {
+        success: true,
+        message
+      };
+      
+    } catch (error) {
+      console.error('❌ Instagram投稿ステータス切り替えエラー:', error);
+      return {
+        success: false,
+        message: 'ステータスの切り替えに失敗しました'
+      };
+    }
+  }
+
+  /**
    * エクスポート用データ取得
    * @returns {Object}
    */
