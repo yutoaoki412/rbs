@@ -3780,12 +3780,16 @@ export class AdminActionService {
       
       .news-detail-modal-header {
         background: #2c3e50;
-        color: white;
+        color: white !important;
         padding: 1rem 1.5rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
         border-bottom: 1px solid #34495e;
+      }
+      
+      .news-detail-modal-header * {
+        color: white !important;
       }
       
       .modal-title-section {
@@ -3795,7 +3799,7 @@ export class AdminActionService {
       }
       
       .title-icon {
-        color: #3498db;
+        color: #3498db !important;
         font-size: 1.5rem;
       }
       
@@ -3805,10 +3809,11 @@ export class AdminActionService {
         font-weight: 600;
       }
       
-      .preview-note {
+      .news-detail-modal-header .preview-note {
         margin: 0;
         font-size: 0.875rem;
         opacity: 0.8;
+        color: white !important;
       }
       
       .modal-controls {
@@ -3929,7 +3934,7 @@ export class AdminActionService {
         font-size: 2rem;
         font-weight: 700;
         margin: 0 0 1rem 0;
-        color: #2c3e50;
+        color: #000000;
         line-height: 1.3;
       }
       
@@ -4164,7 +4169,7 @@ export class AdminActionService {
         overflow: hidden;
       }
       
-      .preview-note {
+      .share-section .preview-note {
         font-size: 0.875rem;
         color: #666;
         font-style: italic;
