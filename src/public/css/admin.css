@@ -639,7 +639,7 @@
 }
 
 .stat-icon.instagram-visible {
-  background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+  background: #E4405F;
 }
 
 .stat-icon.instagram-hidden {
@@ -4973,10 +4973,11 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   background: white;
   border: 1px solid var(--admin-gray-200);
   border-radius: 12px;
-  padding: 0.75rem; /* 1remから縮小 */
+  padding: 1.5rem; /* さらに拡大 */
+  min-height: 80px; /* 最小高さを設定 */
   display: flex;
   align-items: center;
-  gap: 0.75rem; /* 1remから縮小 */
+  gap: 1rem; /* 0.75remから拡大 */
   transition: all 0.2s ease;
   cursor: pointer;
   text-align: left;
@@ -4990,14 +4991,14 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
 }
 
 .action-icon {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: white;
 }
 
@@ -5008,16 +5009,16 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
 .action-title {
   display: block;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--admin-gray-900);
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.3rem;
 }
 
 .action-desc {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--admin-gray-500);
-  line-height: 1.3;
+  line-height: 1.4;
 }
 
 /* アクションボタンの色分け */
@@ -5044,21 +5045,22 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
   }
   
   .action-btn.compact {
-    padding: 0.625rem; /* 0.75remからさらに縮小 */
+    padding: 1.25rem; /* 余白を維持 */
+    min-height: 70px; /* モバイルでは少し小さく */
   }
   
   .action-icon {
-    width: 32px; /* 35pxから縮小 */
-    height: 32px; /* 35pxから縮小 */
-    font-size: 0.9rem; /* 1remから縮小 */
+    width: 36px; /* 少し小さく */
+    height: 36px; /* 少し小さく */
+    font-size: 1rem; /* フォントサイズ調整 */
   }
   
   .action-title {
-    font-size: 0.8rem; /* 0.85remから縮小 */
+    font-size: 0.85rem; /* フォントサイズ調整 */
   }
   
   .action-desc {
-    font-size: 0.65rem; /* 0.7remから縮小 */
+    font-size: 0.7rem; /* フォントサイズ調整 */
   }
   
   .widget {
@@ -5068,14 +5070,15 @@ input[id*="status-postponed"]:checked + .global-status-btn::before {
 
 @media (max-width: 480px) {
   .action-btn.compact {
-    padding: 0.5rem;
-    gap: 0.75rem;
+    padding: 1rem;
+    gap: 0.875rem;
+    min-height: 65px; /* 小さい画面でも適度な高さを確保 */
   }
   
   .action-icon {
-    width: 30px;
-    height: 30px;
-    font-size: 0.9rem;
+    width: 32px;
+    height: 32px;
+    font-size: 0.95rem;
   }
 }
 
