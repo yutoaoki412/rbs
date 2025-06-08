@@ -16,7 +16,9 @@ export class InstagramDataService {
     
     // ストレージキー（CONFIG統一）
     this.storageKeys = {
-      instagram: CONFIG.storage.keys.instagram
+      posts: CONFIG.storage.keys.instagramPosts,
+      settings: CONFIG.storage.keys.instagramSettings,
+      backup: CONFIG.storage.keys.instagramBackup
     };
     
     // データ格納
@@ -24,9 +26,9 @@ export class InstagramDataService {
     this.unsavedChanges = new Set();
     this.lastSaved = null;
     
-    // 自動保存間隔（5分）
+    // 自動保存間隔（設定から取得）
     this.autoSaveInterval = null;
-    this.autoSaveDelay = 5 * 60 * 1000;
+    this.autoSaveDelay = CONFIG.instagram.posts.autoSaveInterval;
   }
 
   /**
@@ -52,17 +54,13 @@ export class InstagramDataService {
    */
   loadPosts() {
     try {
-      const data = localStorage.getItem(this.storageKeys.instagram);
+      const data = localStorage.getItem(this.storageKeys.posts);
       this.posts = data ? JSON.parse(data) : [];
       
-      // データの整合性チェック
-      this.posts = this.posts.filter(post => 
-        post && 
-        typeof post === 'object' && 
-        post.id &&
-        post.createdAt &&
-        post.url
-      );
+      // データの整合性チェック（設定ベース）
+      if (CONFIG.instagram.data.integrity.validateOnLoad) {
+        this.posts = this.validateAndRepairPosts(this.posts);
+      }
       
       EventBus.emit('instagram:loaded', { count: this.posts.length });
       console.log(`📷 Instagram投稿データを読み込み: ${this.posts.length}件`);
@@ -73,6 +71,56 @@ export class InstagramDataService {
       this.posts = [];
       return [];
     }
+  }
+
+  /**
+   * 投稿データの検証と修復（新バージョン最適化）
+   * @param {Array} posts - 投稿データ配列
+   * @returns {Array} 修復された投稿データ
+   */
+  validateAndRepairPosts(posts) {
+    if (!Array.isArray(posts)) {
+      console.warn('🔧 Instagram投稿データが配列ではありません。空配列で初期化します。');
+      return [];
+    }
+
+    const requiredFields = CONFIG.instagram.posts.schema.required;
+    const defaults = CONFIG.instagram.posts.schema.defaults;
+    
+    return posts.filter(post => {
+      if (!post || typeof post !== 'object') {
+        if (CONFIG.instagram.data.integrity.logErrors) {
+          console.warn('🔧 無効な投稿データを除外:', post);
+        }
+        return false;
+      }
+
+      // 必須フィールドチェック
+      const missingFields = requiredFields.filter(field => !post[field]);
+      if (missingFields.length > 0) {
+        if (CONFIG.instagram.data.integrity.autoRepair && missingFields.includes('createdAt') && post.id && post.url) {
+          // 基本情報があればcreatedAtを自動補完
+          post.createdAt = new Date().toISOString();
+          console.warn('🔧 createdAtを自動補完:', post.id);
+        } else {
+          if (CONFIG.instagram.data.integrity.logErrors) {
+            console.warn('🔧 必須フィールドが不足している投稿を除外:', { id: post.id, missing: missingFields });
+          }
+          return false;
+        }
+      }
+
+      // デフォルト値の補完（新バージョン最適化）
+      if (CONFIG.instagram.data.integrity.autoRepair) {
+        Object.keys(defaults).forEach(key => {
+          if (post[key] === undefined || post[key] === null) {
+            post[key] = defaults[key];
+          }
+        });
+      }
+
+      return true;
+    });
   }
 
   /**
@@ -114,14 +162,13 @@ export class InstagramDataService {
         
         this.posts[index] = post;
       } else {
-        // 新規投稿の作成
+        // 新規投稿の作成（設定ベースのデフォルト値適用）
         post = {
+          ...CONFIG.instagram.posts.schema.defaults,
           ...postData,
           id: this.generateId(),
           createdAt: now.toISOString(),
-          updatedAt: now.toISOString(),
-          likes: 0,
-          comments: 0
+          updatedAt: now.toISOString()
         };
         
         this.posts.unshift(post); // 新しい投稿を先頭に追加
@@ -142,14 +189,14 @@ export class InstagramDataService {
       return {
         success: true,
         id: post.id,
-        message: 'Instagram投稿を保存しました'
+        message: postData.id ? CONFIG.instagram.ui.successMessages.updated : CONFIG.instagram.ui.successMessages.saved
       };
       
     } catch (error) {
       console.error('❌ Instagram投稿保存エラー:', error);
       return {
         success: false,
-        message: 'Instagram投稿の保存に失敗しました'
+        message: CONFIG.instagram.ui.errorMessages.saveError
       };
     }
   }
@@ -181,14 +228,14 @@ export class InstagramDataService {
       
       return {
         success: true,
-        message: 'Instagram投稿を削除しました'
+        message: CONFIG.instagram.ui.successMessages.deleted
       };
       
     } catch (error) {
       console.error('❌ Instagram投稿削除エラー:', error);
       return {
         success: false,
-        message: 'Instagram投稿の削除に失敗しました'
+        message: CONFIG.instagram.ui.errorMessages.deleteError
       };
     }
   }
@@ -266,25 +313,66 @@ export class InstagramDataService {
    */
   validatePost(data) {
     const errors = [];
+    const validation = CONFIG.instagram.posts.validation;
     
-    if (!data.url || data.url.trim().length === 0) {
-      errors.push('Instagram URLは必須です');
-    } else if (!this.isValidInstagramUrl(data.url)) {
-      errors.push('有効なInstagram URLを入力してください');
-    }
-    
-    if (data.caption && data.caption.length > 2200) {
-      errors.push('キャプションは2200文字以内で入力してください');
-    }
-    
-    if (data.hashtags && Array.isArray(data.hashtags)) {
-      if (data.hashtags.length > 30) {
-        errors.push('ハッシュタグは30個以内で設定してください');
+    // 各フィールドの検証
+    Object.keys(validation).forEach(fieldName => {
+      const fieldConfig = validation[fieldName];
+      const value = data[fieldName];
+      
+      // 必須チェック
+      if (fieldConfig.required && (value === undefined || value === null || value === '')) {
+        errors.push(`${fieldName}は必須です`);
+        return;
       }
-    }
+      
+      // 値が存在する場合のみ以下の検証を実行
+      if (value !== undefined && value !== null && value !== '') {
+        
+        // 型チェック
+        if (fieldConfig.type) {
+          const actualType = typeof value;
+          if (actualType !== fieldConfig.type) {
+            errors.push(`${fieldName}は${fieldConfig.type}型である必要があります（現在: ${actualType}）`);
+            return;
+          }
+        }
+        
+        // 文字列長チェック
+        if (fieldConfig.type === 'string') {
+          if (fieldConfig.minLength && value.length < fieldConfig.minLength) {
+            errors.push(`${fieldName}は${fieldConfig.minLength}文字以上である必要があります`);
+          }
+          if (fieldConfig.maxLength && value.length > fieldConfig.maxLength) {
+            errors.push(`${fieldName}は${fieldConfig.maxLength}文字以下である必要があります`);
+          }
+          
+          // パターンチェック
+          if (fieldConfig.pattern && !fieldConfig.pattern.test(value)) {
+            errors.push(`${fieldName}の形式が正しくありません`);
+          }
+        }
+        
+        // 数値範囲チェック
+        if (fieldConfig.type === 'number') {
+          if (fieldConfig.min !== undefined && value < fieldConfig.min) {
+            errors.push(`${fieldName}は${fieldConfig.min}以上である必要があります`);
+          }
+          if (fieldConfig.max !== undefined && value > fieldConfig.max) {
+            errors.push(`${fieldName}は${fieldConfig.max}以下である必要があります`);
+          }
+        }
+        
+        // 列挙値チェック
+        if (fieldConfig.enum && !fieldConfig.enum.includes(value)) {
+          errors.push(`${fieldName}は次のいずれかである必要があります: ${fieldConfig.enum.join(', ')}`);
+        }
+      }
+    });
     
-    if (data.postedAt && !isValidDate(data.postedAt)) {
-      errors.push('投稿日時の形式が正しくありません');
+    // Instagram URL特別チェック
+    if (data.url && !this.isValidInstagramUrl(data.url)) {
+      errors.push('有効なInstagram URLを入力してください');
     }
     
     return {
@@ -299,8 +387,10 @@ export class InstagramDataService {
    * @returns {boolean}
    */
   isValidInstagramUrl(url) {
-    const instagramPattern = /^https?:\/\/(www\.)?instagram\.com\/(p|reel)\/[A-Za-z0-9_-]+\/?(\?.*)?$/;
-    return instagramPattern.test(url);
+    if (!url || url.length > CONFIG.instagram.validation.maxUrlLength) {
+      return false;
+    }
+    return CONFIG.instagram.validation.urlPattern.test(url);
   }
 
   /**
@@ -309,11 +399,60 @@ export class InstagramDataService {
    */
   async saveToStorage() {
     try {
-      localStorage.setItem(this.storageKeys.instagram, JSON.stringify(this.posts));
+      // メインデータ保存
+      localStorage.setItem(this.storageKeys.posts, JSON.stringify(this.posts));
+      
+      // バックアップ作成（設定で有効な場合）
+      if (CONFIG.instagram.data.backup.enabled && CONFIG.instagram.data.backup.autoBackup) {
+        this.createBackup();
+      }
+      
       this.lastSaved = new Date();
     } catch (error) {
       console.error('❌ ストレージ保存エラー:', error);
       throw error;
+    }
+  }
+
+  /**
+   * バックアップ作成
+   * @private
+   */
+  createBackup() {
+    try {
+      const backupData = {
+        posts: this.posts,
+        timestamp: new Date().toISOString(),
+        version: CONFIG.instagram.data.version.current
+      };
+      
+      const existingBackups = this.getBackups();
+      existingBackups.unshift(backupData);
+      
+      // 最大バックアップ数を超えた場合は古いものを削除
+      const maxBackups = CONFIG.instagram.data.backup.maxBackups;
+      if (existingBackups.length > maxBackups) {
+        existingBackups.splice(maxBackups);
+      }
+      
+      localStorage.setItem(this.storageKeys.backup, JSON.stringify(existingBackups));
+      console.log('💾 Instagram投稿バックアップ作成完了');
+    } catch (error) {
+      console.warn('⚠️ バックアップ作成失敗:', error);
+    }
+  }
+
+  /**
+   * バックアップ一覧取得
+   * @returns {Array}
+   */
+  getBackups() {
+    try {
+      const data = localStorage.getItem(this.storageKeys.backup);
+      return data ? JSON.parse(data) : [];
+    } catch (error) {
+      console.warn('⚠️ バックアップ読み込み失敗:', error);
+      return [];
     }
   }
 
@@ -434,9 +573,7 @@ export class InstagramDataService {
       
       await this.saveToStorage();
       
-      const message = newStatus === 'active' 
-        ? 'Instagram投稿を表示状態にしました'
-        : 'Instagram投稿を非表示状態にしました';
+      const message = CONFIG.instagram.ui.successMessages.statusChanged;
       
       EventBus.emit('instagram:statusToggled', { 
         post: this.posts[index], 

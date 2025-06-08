@@ -665,6 +665,9 @@ export class AdminActionService {
     try {
       this.debug('📸 Instagram管理初期化開始');
       
+      // UIの初期化
+      this.initializeInstagramUI();
+      
       // Instagram設定を読み込み
       this.loadInstagramSettings();
       
@@ -678,6 +681,28 @@ export class AdminActionService {
     } catch (error) {
       this.warn('Instagram管理初期化で軽微なエラー:', error.message);
       // 続行
+    }
+  }
+
+  /**
+   * Instagram UIの初期化
+   */
+  initializeInstagramUI() {
+    // プレースホルダーを設定
+    const urlInput = document.getElementById('instagram-url');
+    if (urlInput) {
+      urlInput.placeholder = CONFIG.instagram.validation.urlExample;
+    }
+    
+    // ローディング状態の初期化
+    const postsContainer = document.getElementById('instagram-posts-list');
+    if (postsContainer) {
+      postsContainer.innerHTML = `
+        <div class="loading-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          ${CONFIG.instagram.ui.loadingMessage}
+        </div>
+      `;
     }
   }
 
@@ -4299,12 +4324,12 @@ export class AdminActionService {
       const formData = this.getInstagramFormData();
       
       if (!formData.url) {
-        this._showFeedback('Instagram URLを入力してください', 'error');
+        this._showFeedback(CONFIG.instagram.ui.errorMessages.urlRequired, 'error');
         return;
       }
       
       if (!this.validateInstagramUrl(formData.url)) {
-        this._showFeedback('有効なInstagram URLを入力してください', 'error');
+        this._showFeedback(CONFIG.instagram.ui.errorMessages.invalidUrl, 'error');
         return;
       }
       
@@ -4316,7 +4341,10 @@ export class AdminActionService {
       const result = await this.instagramDataService.savePost(formData);
       
       if (result.success) {
-        this._showFeedback(result.message, 'success');
+        this._showFeedback(
+          result.message || CONFIG.instagram.ui.successMessages.saved, 
+          'success'
+        );
         this.clearInstagramForm();
         this.refreshInstagramPosts();
         
@@ -4328,7 +4356,7 @@ export class AdminActionService {
       
     } catch (error) {
       this.error('Instagram投稿保存エラー:', error);
-      this._showFeedback('Instagram投稿の保存に失敗しました', 'error');
+      this._showFeedback(CONFIG.instagram.ui.errorMessages.saveError, 'error');
     }
   }
 
@@ -4346,10 +4374,10 @@ export class AdminActionService {
       const posts = this.instagramDataService.getAllPosts();
       this.renderInstagramPosts(posts);
       
-      this._showFeedback('Instagram投稿一覧を更新しました', 'success');
+      // 成功メッセージは表示しない（頻繁な更新のため）
     } catch (error) {
       this.error('Instagram投稿更新エラー:', error);
-      this._showFeedback('Instagram投稿の更新に失敗しました', 'error');
+      this._showFeedback(CONFIG.instagram.ui.errorMessages.loadError, 'error');
     }
   }
 
@@ -4365,10 +4393,10 @@ export class AdminActionService {
       // 設定をローカルストレージに保存
       localStorage.setItem(CONFIG.storage.keys.instagramSettings, JSON.stringify(settings));
       
-      this._showFeedback('Instagram設定を保存しました', 'success');
+      this._showFeedback(CONFIG.instagram.ui.successMessages.settingsSaved, 'success');
     } catch (error) {
       this.error('Instagram設定保存エラー:', error);
-      this._showFeedback('Instagram設定の保存に失敗しました', 'error');
+      this._showFeedback(CONFIG.instagram.ui.errorMessages.saveError, 'error');
     }
   }
 
@@ -4422,7 +4450,10 @@ export class AdminActionService {
       const result = await this.instagramDataService.togglePostStatus(postId);
       
       if (result.success) {
-        this._showFeedback(result.message, 'success');
+        this._showFeedback(
+          result.message || CONFIG.instagram.ui.successMessages.statusChanged, 
+          'success'
+        );
         this.refreshInstagramPosts();
         this.updateInstagramStats();
       } else {
@@ -4430,7 +4461,7 @@ export class AdminActionService {
       }
     } catch (error) {
       this.error('Instagram投稿ステータス切り替えエラー:', error);
-      this._showFeedback('ステータスの切り替えに失敗しました', 'error');
+      this._showFeedback(CONFIG.instagram.ui.errorMessages.saveError, 'error');
     }
   }
 
@@ -4449,7 +4480,10 @@ export class AdminActionService {
       const result = await this.instagramDataService.deletePost(postId);
       
       if (result.success) {
-        this._showFeedback(result.message, 'success');
+        this._showFeedback(
+          result.message || CONFIG.instagram.ui.successMessages.deleted, 
+          'success'
+        );
         this.refreshInstagramPosts();
         this.updateInstagramStats();
       } else {
@@ -4457,7 +4491,7 @@ export class AdminActionService {
       }
     } catch (error) {
       this.error('Instagram投稿削除エラー:', error);
-      this._showFeedback('投稿の削除に失敗しました', 'error');
+      this._showFeedback(CONFIG.instagram.ui.errorMessages.deleteError, 'error');
     }
   }
 
@@ -4470,7 +4504,7 @@ export class AdminActionService {
       id: document.getElementById('instagram-post-id').value || undefined,
       url: document.getElementById('instagram-url').value.trim(),
       status: document.getElementById('instagram-status').checked ? 'active' : 'inactive',
-      featured: document.getElementById('instagram-featured').checked
+      featured: document.getElementById('instagram-featured').checked || CONFIG.instagram.posts.defaultFeatured
     };
   }
 
@@ -4480,8 +4514,8 @@ export class AdminActionService {
    */
   getInstagramSettingsData() {
     return {
-      maxPostsDisplay: parseInt(document.getElementById('max-posts-display').value) || 6,
-      openNewTab: document.getElementById('open-new-tab').checked
+      maxPostsDisplay: parseInt(document.getElementById('max-posts-display').value) || CONFIG.instagram.posts.defaultDisplayPosts,
+      openNewTab: document.getElementById('open-new-tab').checked !== false // デフォルトはtrue
     };
   }
 
@@ -4502,8 +4536,8 @@ export class AdminActionService {
   clearInstagramForm() {
     document.getElementById('instagram-post-form').reset();
     document.getElementById('instagram-post-id').value = '';
-    document.getElementById('instagram-status').checked = true; // デフォルトで表示ON
-    document.getElementById('instagram-featured').checked = false; // デフォルトで注目投稿OFF
+    document.getElementById('instagram-status').checked = CONFIG.instagram.posts.defaultStatus === 'active';
+    document.getElementById('instagram-featured').checked = CONFIG.instagram.posts.defaultFeatured;
   }
 
   /**
@@ -4517,8 +4551,8 @@ export class AdminActionService {
     if (!posts || posts.length === 0) {
       container.innerHTML = `
         <div class="empty-state">
-          <i class="fab fa-instagram" style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;"></i>
-          <h3 style="color: var(--admin-gray-700); margin-bottom: 0.5rem;">Instagram投稿がまだ登録されていません</h3>
+          <i class="fab fa-instagram" style="font-size: 3rem; color: var(--admin-primary); margin-bottom: 1rem;"></i>
+          <h3 style="color: var(--admin-gray-700); margin-bottom: 0.5rem;">${CONFIG.instagram.ui.emptyStateMessage}</h3>
           <p style="color: var(--admin-gray-500); margin-bottom: 1.5rem;">上のフォームから最初の投稿を追加してください</p>
         </div>
       `;
@@ -4583,16 +4617,41 @@ export class AdminActionService {
    */
   loadInstagramSettings() {
     try {
+      // 表示件数選択肢を動的に生成
+      this.populateDisplayOptions();
+      
       const settingsData = localStorage.getItem(CONFIG.storage.keys.instagramSettings);
       const settings = settingsData ? JSON.parse(settingsData) : {};
       
-      document.getElementById('max-posts-display').value = settings.maxPostsDisplay || 6;
+      document.getElementById('max-posts-display').value = settings.maxPostsDisplay || CONFIG.instagram.posts.defaultDisplayPosts;
       document.getElementById('open-new-tab').checked = settings.openNewTab !== false;
       
       this.updateInstagramStats();
     } catch (error) {
       this.error('Instagram設定読み込みエラー:', error);
     }
+  }
+
+  /**
+   * 表示件数選択肢を動的に生成
+   */
+  populateDisplayOptions() {
+    const selectElement = document.getElementById('max-posts-display');
+    if (!selectElement) return;
+    
+    selectElement.innerHTML = '';
+    
+    CONFIG.instagram.posts.displayOptions.forEach(option => {
+      const optionElement = document.createElement('option');
+      optionElement.value = option;
+      optionElement.textContent = `${option}件`;
+      
+      if (option === CONFIG.instagram.posts.defaultDisplayPosts) {
+        optionElement.selected = true;
+      }
+      
+      selectElement.appendChild(optionElement);
+    });
   }
 
   /**
@@ -4627,8 +4686,10 @@ export class AdminActionService {
    * @returns {boolean} 妥当かどうか
    */
   validateInstagramUrl(url) {
-    const instagramUrlPattern = /^https:\/\/(www\.)?instagram\.com\/p\/[A-Za-z0-9_-]+\/?$/;
-    return instagramUrlPattern.test(url);
+    if (!url || url.length > CONFIG.instagram.validation.maxUrlLength) {
+      return false;
+    }
+    return CONFIG.instagram.validation.urlPattern.test(url);
   }
 
   // === ウィザード関連メソッド（スタブ） ===

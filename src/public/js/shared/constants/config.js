@@ -46,9 +46,9 @@ const config = {
       exportHistory: 'rbs_export_history',
       
       // Instagram連携
-      instagram: 'rbs_instagram_data',
-      instagramPosts: 'rbs_instagram_posts',
-      instagramSettings: 'rbs_instagram_settings',
+      instagramPosts: 'rbs_instagram_posts',  // 投稿データ
+      instagramSettings: 'rbs_instagram_settings', // 設定データ
+      instagramBackup: 'rbs_instagram_backup', // バックアップデータ
       
       // 認証関連
       authAttempts: 'rbs_auth_attempts',
@@ -76,6 +76,156 @@ const config = {
       'event': { name: '体験会', color: '#38b2ac', priority: 2 },
       'media': { name: 'メディア', color: '#805ad5', priority: 3 },
       'important': { name: '重要', color: '#e53e3e', priority: 0 }
+    }
+  },
+
+  // Instagram管理設定
+  instagram: {
+    // 投稿管理
+    posts: {
+      maxPosts: 100,           // 最大保存投稿数
+      maxDisplayPosts: 12,     // LP側最大表示数
+      defaultDisplayPosts: 6,  // LP側デフォルト表示数
+      displayOptions: [3, 6, 9, 12], // 表示数選択肢
+      autoSaveInterval: 5000,  // 自動保存間隔（5秒）
+      defaultStatus: 'active', // デフォルトステータス
+      defaultFeatured: false,  // デフォルト注目投稿設定
+      
+      // データ構造定義（新バージョン最適化）
+      schema: {
+        required: ['id', 'url', 'status', 'createdAt'], // 必須フィールド
+        defaults: {
+          status: 'active',        // デフォルトステータス
+          featured: false,         // 注目投稿フラグ
+          order: 0                 // 表示順序（将来用）
+        }
+      },
+      
+      // データバリデーション
+      validation: {
+        id: {
+          type: 'string',
+          minLength: 1,
+          maxLength: 50,
+          pattern: /^[a-zA-Z0-9_-]+$/
+        },
+        url: {
+          type: 'string',
+          required: true,
+          maxLength: 200
+        },
+        status: {
+          type: 'string',
+          enum: ['active', 'inactive'],
+          default: 'active'
+        },
+        featured: {
+          type: 'boolean',
+          default: false
+        },
+        order: {
+          type: 'number',
+          min: 0,
+          max: 9999,
+          default: 0
+        }
+      }
+    },
+    
+    // URL検証
+    validation: {
+      urlPattern: /^https:\/\/(www\.)?instagram\.com\/p\/[A-Za-z0-9_-]+\/?$/,
+      urlExample: 'https://www.instagram.com/p/ABC123DEF456/',
+      maxUrlLength: 200
+    },
+    
+    // LP側表示設定
+    display: {
+      openNewTab: true,        // 新しいタブで開くかのデフォルト
+      showCaptions: false,     // キャプション表示（将来用）
+      showDates: false,        // 日付表示（将来用）
+      layout: 'grid',          // レイアウト（将来用）
+      responsive: {
+        mobile: { columns: 1 },
+        tablet: { columns: 2 },
+        desktop: { columns: 3 }
+      }
+    },
+    
+    // 統計・分析
+    analytics: {
+      trackClicks: true,       // クリック追跡
+      trackViews: true,        // 表示追跡
+      retentionDays: 30        // データ保持期間
+    },
+    
+    // UI設定
+    ui: {
+      emptyStateMessage: 'Instagram投稿がまだ登録されていません',
+      loadingMessage: 'Instagram投稿を読み込み中...',
+      successMessages: {
+        saved: 'Instagram投稿を保存しました',
+        updated: 'Instagram投稿を更新しました',
+        deleted: 'Instagram投稿を削除しました',
+        statusChanged: 'ステータスを変更しました',
+        settingsSaved: 'Instagram設定を保存しました'
+      },
+      errorMessages: {
+        saveError: 'Instagram投稿の保存に失敗しました',
+        loadError: 'Instagram投稿の読み込みに失敗しました',
+        deleteError: 'Instagram投稿の削除に失敗しました',
+        invalidUrl: '正しいInstagram投稿URLを入力してください',
+        urlRequired: 'Instagram投稿URLを入力してください',
+        networkError: 'ネットワークエラーが発生しました'
+      },
+      notifications: {
+        duration: 3000,          // 通知表示時間
+        position: 'top-right'    // 通知位置
+      }
+    },
+    
+    // データ管理（新バージョン最適化）
+    data: {
+      // ストレージ設定
+      storage: {
+        type: 'localStorage',         // ストレージタイプ
+        key: 'rbs_instagram_posts'    // メインストレージキー
+      },
+      
+      // バックアップ設定
+      backup: {
+        enabled: true,               // バックアップ有効
+        maxBackups: 7,               // 最大バックアップ数
+        autoBackup: true             // 自動バックアップ
+      },
+      
+      // データ整合性
+      integrity: {
+        validateOnLoad: true,        // 読み込み時バリデーション
+        autoRepair: true,            // 自動修復
+        logErrors: true              // エラーログ出力
+      },
+      
+      // バージョン管理
+      version: {
+        current: '1.0.0'             // 現在のデータバージョン
+      }
+    },
+    
+    // パフォーマンス設定
+    performance: {
+      lazyLoad: true,          // 遅延読み込み
+      cacheTimeout: 5 * 60 * 1000, // キャッシュタイムアウト（5分）
+      debounceTime: 300,       // 検索デバウンス時間
+      maxConcurrentRequests: 3  // 最大同時リクエスト数
+    },
+    
+    // セキュリティ設定
+    security: {
+      sanitizeUrls: true,      // URL サニタイズ
+      validateOrigin: true,    // オリジン検証
+      rateLimitPerMinute: 60,  // 分あたりのリクエスト制限
+      maxRetries: 3            // 最大リトライ回数
     }
   },
 
