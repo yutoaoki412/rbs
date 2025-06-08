@@ -212,12 +212,15 @@ const config = {
       }
     },
     
-    // パフォーマンス設定
+    // パフォーマンス設定（2024年最適化）
     performance: {
       lazyLoad: true,          // 遅延読み込み
-      cacheTimeout: 5 * 60 * 1000, // キャッシュタイムアウト（5分）
-      debounceTime: 300,       // 検索デバウンス時間
-      maxConcurrentRequests: 3  // 最大同時リクエスト数
+      cacheTimeout: 3 * 60 * 1000, // キャッシュタイムアウト（3分に短縮）
+      debounceTime: 200,       // 検索デバウンス時間（短縮）
+      maxConcurrentRequests: 5, // 最大同時リクエスト数（増加）
+      embedRetryInterval: 300, // 埋め込みリトライ間隔
+      embedMaxRetries: 15,     // 埋め込み最大リトライ回数
+      scriptLoadTimeout: 10000 // スクリプト読み込みタイムアウト
     },
     
     // セキュリティ設定
@@ -252,9 +255,9 @@ const config = {
 
   // デバッグ設定
   debug: {
-    enabled: false,
-    verbose: false,
-    logLevel: 'info' // 'debug', 'info', 'warn', 'error'
+    enabled: true,  // デバッグを有効化
+    verbose: true,  // 詳細ログを有効化
+    logLevel: 'debug' // 'debug', 'info', 'warn', 'error'
   },
 
   // パフォーマンス設定

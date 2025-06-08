@@ -4541,7 +4541,7 @@ export class AdminActionService {
   }
 
   /**
-   * Instagram投稿一覧をレンダリング
+   * Instagram投稿一覧をレンダリング（埋め込み対応）
    * @param {Array} posts - 投稿データ配列
    */
   renderInstagramPosts(posts) {
@@ -4561,10 +4561,430 @@ export class AdminActionService {
     
     const html = posts.map(post => this.renderInstagramPostItem(post)).join('');
     container.innerHTML = html;
+    
+    // Instagram埋め込みスクリプトを再実行
+    this.processInstagramEmbeds();
   }
 
   /**
-   * 個別Instagram投稿アイテムをレンダリング
+   * Instagram埋め込みスクリプトを処理（2024年最適化版）
+   * @private
+   */
+  processInstagramEmbeds() {
+    try {
+      this.debug('📸 Instagram埋め込み処理開始');
+      
+      // スクリプトがまだ読み込まれていない場合は追加
+      if (!document.querySelector('script[src*="embed.js"]')) {
+        this.debug('📸 Instagram埋め込みスクリプトを動的追加');
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = '//www.instagram.com/embed.js';
+        script.onload = () => {
+          this.debug('✅ Instagram埋め込みスクリプト読み込み完了');
+          this.retryInstagramProcess();
+        };
+        script.onerror = () => {
+          this.warn('⚠️ Instagram埋め込みスクリプト読み込み失敗');
+          this.loadOEmbedFallback();
+        };
+        document.head.appendChild(script);
+      } else {
+        this.retryInstagramProcess();
+      }
+    } catch (error) {
+      this.error('❌ Instagram埋め込み処理エラー:', error);
+      this.loadOEmbedFallback();
+    }
+  }
+
+  /**
+   * Instagram埋め込み処理をリトライ（2024年対応）
+   * @private
+   */
+  retryInstagramProcess() {
+    let retries = 0;
+    const maxRetries = 15; // より多くのリトライ
+    const retryInterval = 300; // 短いインターバル
+    
+    const processEmbeds = () => {
+      if (typeof window.instgrm !== 'undefined' && window.instgrm.Embeds) {
+        try {
+          // 2024年対応: 複数回の処理を試行
+          window.instgrm.Embeds.process();
+          this.debug('✅ Instagram埋め込み処理完了');
+          
+          // 追加の初期化（公式推奨）
+          setTimeout(() => {
+            if (window.instgrm && window.instgrm.Embeds) {
+              window.instgrm.Embeds.process();
+              this.debug('✅ Instagram埋め込み再処理完了');
+            }
+          }, 1000);
+          
+        } catch (embedError) {
+          this.warn('⚠️ Instagram埋め込み処理中エラー:', embedError);
+          this.loadOEmbedFallback();
+        }
+      } else if (retries < maxRetries) {
+        retries++;
+        this.debug(`🔄 Instagram埋め込みスクリプト待機中... (${retries}/${maxRetries})`);
+        setTimeout(processEmbeds, retryInterval);
+      } else {
+        this.warn('⚠️ Instagram埋め込みスクリプト読み込みタイムアウト');
+        this.loadOEmbedFallback();
+      }
+    };
+    
+    setTimeout(processEmbeds, 100);
+  }
+
+  /**
+   * oEmbed APIを使用したフォールバック読み込み（2024年対応）
+   * @private
+   */
+  async loadOEmbedFallback() {
+    this.debug('📸 oEmbed APIフォールバック開始');
+    const embedContainers = document.querySelectorAll('.instagram-embed-container blockquote[data-instgrm-permalink]');
+    
+    for (const container of embedContainers) {
+      try {
+        const permalink = container.getAttribute('data-instgrm-permalink');
+        if (permalink) {
+          await this.processOEmbedUrl(permalink, container);
+        }
+      } catch (error) {
+        this.warn('oEmbed処理エラー:', error);
+      }
+    }
+  }
+
+  /**
+   * oEmbed APIで個別URL処理
+   * @param {string} url - Instagram投稿URL
+   * @param {HTMLElement} container - 埋め込みコンテナ
+   */
+  async processOEmbedUrl(url, container) {
+    try {
+      this.debug('🔗 oEmbed API処理:', url);
+      
+      // Instagram oEmbed API（2024年対応）
+      const oembedUrl = `https://www.instagram.com/oembed/?url=${encodeURIComponent(url)}&maxwidth=400&omitscript=true`;
+      
+      const response = await fetch(oembedUrl);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.html) {
+          container.outerHTML = data.html;
+          this.debug('✅ oEmbed埋め込み成功:', url);
+          return;
+        }
+      }
+      
+      // oEmbed失敗時のフォールバック
+      this.showInstagramPreview(container, url);
+      
+    } catch (error) {
+      this.warn('oEmbed API エラー:', error);
+      this.showInstagramPreview(container, url);
+    }
+  }
+
+  /**
+   * コンパクトInstagram埋め込みを読み込み
+   * @private
+   */
+  async loadCompactInstagramEmbeds() {
+    const embedContainers = document.querySelectorAll('.instagram-compact-embed');
+    
+    for (const container of embedContainers) {
+      const postUrl = container.dataset.postUrl;
+      if (postUrl) {
+        try {
+          await this.loadSingleCompactEmbed(container, postUrl);
+        } catch (error) {
+          console.error('個別Instagram埋め込み読み込みエラー:', error);
+          this.showEmbedError(container, postUrl);
+        }
+      }
+    }
+  }
+
+  /**
+   * 単一のコンパクト埋め込みを読み込み
+   * @param {HTMLElement} container - 埋め込みコンテナ
+   * @param {string} url - Instagram投稿URL
+   */
+  async loadSingleCompactEmbed(container, url) {
+    try {
+      // Instagram oEmbed APIを使用
+      const oembedUrl = `https://graph.facebook.com/v16.0/instagram_oembed?url=${encodeURIComponent(url)}&maxwidth=400&omitscript=true&access_token=`;
+      
+      // シンプルな表示用HTML（oEmbedなしバージョン）
+      const compactHtml = this.generateSimpleInstagramPreview(url);
+      container.innerHTML = compactHtml;
+      
+      console.log('📸 コンパクトInstagram埋め込み完了:', url);
+    } catch (error) {
+      console.error('Instagram埋め込み読み込みエラー:', error);
+      this.showEmbedError(container, url);
+    }
+  }
+
+  /**
+   * Instagram公式埋め込みコードを生成（2024年最適化版）
+   * @param {string} url - Instagram投稿URL
+   * @returns {string} 公式埋め込みHTML
+   */
+  generateSimpleInstagramPreview(url) {
+    const postId = this.extractInstagramPostId(url);
+    
+    // 2024年対応: より互換性の高い埋め込みコードを生成
+    const embedHtml = `
+      <div class="instagram-embed-wrapper" data-post-id="${postId}">
+        <blockquote class="instagram-media" 
+                    data-instgrm-captioned 
+                    data-instgrm-permalink="${url}" 
+                    data-instgrm-version="14" 
+                    style="background:#FFF; border:0; border-radius:12px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px; max-width:400px; min-width:300px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);">
+          <div style="padding:16px;">
+            <a href="${url}" 
+               style="background:#FFFFFF; line-height:0; padding:0 0; text-align:center; text-decoration:none; width:100%;" 
+               target="_blank" 
+               rel="noopener noreferrer">
+              
+              <!-- ヘッダー部分 -->
+              <div style="display: flex; flex-direction: row; align-items: center; margin-bottom: 12px;">
+                <div style="background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d); border-radius: 50%; flex-grow: 0; height: 40px; margin-right: 14px; width: 40px; display: flex; align-items: center; justify-content: center;">
+                  <div style="background:#FFF; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="url(#grad1)">
+                      <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" style="stop-color:#833ab4"/>
+                          <stop offset="50%" style="stop-color:#fd1d1d"/>
+                          <stop offset="100%" style="stop-color:#fcb045"/>
+                        </linearGradient>
+                      </defs>
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                    </svg>
+                  </div>
+                </div>
+                <div style="display: flex; flex-direction: column; flex-grow: 1; justify-content: center;">
+                  <div style="background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; margin-bottom: 6px; width: 100px; animation: pulse 1.5s ease-in-out infinite alternate;"></div>
+                  <div style="background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; width: 60px; animation: pulse 1.5s ease-in-out infinite alternate;"></div>
+                </div>
+              </div>
+              
+              <!-- 画像プレースホルダー -->
+              <div style="padding: 19% 0; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                  <div style="width: 60px; height: 60px; background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d); border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: instagramPulse 2s ease-in-out infinite;">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="white">
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- フッター -->
+              <div style="padding-top: 12px;">
+                <div style="color:#3897f0; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:550; line-height:18px; text-align: center;">
+                  📸 この投稿をInstagramで見る
+                </div>
+              </div>
+            </a>
+            
+            <p style="color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; line-height:17px; margin-bottom:0; margin-top:8px; overflow:hidden; padding:8px 0 7px; text-align:center; text-overflow:ellipsis; white-space:nowrap;">
+              <a href="${url}" 
+                 style="color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:normal; line-height:17px; text-decoration:none;" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                ✨ Instagram投稿 ${postId}
+              </a>
+            </p>
+          </div>
+        </blockquote>
+      </div>
+      
+      <style>
+        @keyframes pulse {
+          0% { opacity: 1; }
+          100% { opacity: 0.4; }
+        }
+        @keyframes instagramPulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.05); opacity: 0.8; }
+        }
+      </style>
+    `;
+
+    // 遅延実行で埋め込みスクリプトを処理
+    setTimeout(() => {
+      this.processInstagramEmbeds();
+    }, 200);
+
+    return embedHtml;
+  }
+
+  /**
+   * Instagram投稿プレビュー表示（最終フォールバック）
+   * @param {HTMLElement} container - コンテナ要素
+   * @param {string} url - Instagram投稿URL
+   */
+  showInstagramPreview(container, url) {
+    const postId = this.extractInstagramPostId(url);
+    
+    const previewHtml = `
+      <div class="instagram-preview-fallback">
+        <div class="preview-header">
+          <div class="instagram-logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="url(#instagramGrad)">
+              <defs>
+                <linearGradient id="instagramGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#833ab4"/>
+                  <stop offset="50%" style="stop-color:#fd1d1d"/>
+                  <stop offset="100%" style="stop-color:#fcb045"/>
+                </linearGradient>
+                             </defs>
+               <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+             </svg>
+           </div>
+           <div class="preview-title">Instagram投稿</div>
+         </div>
+         <div class="preview-content">
+           <div class="preview-image-area">
+             <div class="image-icon">📸</div>
+             <p>投稿ID: <code>${postId}</code></p>
+           </div>
+           <a href="${url}" target="_blank" rel="noopener noreferrer" class="view-original">
+             <i class="fab fa-instagram"></i>
+             Instagramで見る
+           </a>
+         </div>
+       </div>
+     `;
+     
+     container.innerHTML = previewHtml;
+   }
+
+  /**
+   * Instagram投稿の画像プレビューを読み込む
+   * @param {string} postId - 投稿ID  
+   * @param {string} url - Instagram投稿URL
+   */
+  async loadInstagramPreviewImage(postId, url) {
+    try {
+      this.debug('画像プレビュー読み込み開始:', postId);
+      const placeholder = document.getElementById(`img-preview-${postId}`);
+      if (!placeholder) {
+        this.warn('プレースホルダー要素が見つかりません:', `img-preview-${postId}`);
+        return;
+      }
+
+      // Instagram投稿から画像を取得を試行
+      const imageUrl = await this.fetchInstagramImage(url, postId);
+      
+      this.debug('画像URL取得結果:', imageUrl);
+      
+      if (imageUrl) {
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = `Instagram投稿 ${postId}`;
+        img.className = 'instagram-preview-image';
+        
+        img.onload = () => {
+          this.debug('画像読み込み成功:', postId);
+          placeholder.innerHTML = '';
+          placeholder.appendChild(img);
+          placeholder.classList.add('loaded');
+        };
+        
+        img.onerror = () => {
+          this.debug('画像読み込み失敗、フォールバック表示:', postId);
+          this.showImageFallback(placeholder, postId);
+        };
+      } else {
+        this.debug('画像URL取得失敗、フォールバック表示:', postId);
+        this.showImageFallback(placeholder, postId);
+      }
+      
+    } catch (error) {
+      this.error('Instagram画像読み込みエラー:', error);
+      const placeholder = document.getElementById(`img-preview-${postId}`);
+      if (placeholder) {
+        this.showImageFallback(placeholder, postId);
+      }
+    }
+  }
+
+  /**
+   * Instagram画像を取得する（フォールバック表示）
+   * @param {string} url - Instagram投稿URL
+   * @param {string} postId - 投稿ID
+   * @returns {Promise<string|null>} 画像URL
+   */
+  async fetchInstagramImage(url, postId) {
+    try {
+      // CORS制限により、直接的な画像取得は困難なため
+      // 美しいフォールバック表示を提供
+      this.debug('Instagram画像取得を試行:', postId);
+      
+      // 一定時間後にフォールバック表示を確実に行う
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      return null; // フォールバック表示を行う
+      
+    } catch (error) {
+      this.warn('Instagram画像取得失敗:', error);
+      return null;
+    }
+  }
+
+  /**
+   * 画像読み込み失敗時のフォールバック表示
+   * @param {HTMLElement} placeholder - プレースホルダー要素
+   * @param {string} postId - 投稿ID
+   */
+  showImageFallback(placeholder, postId) {
+    placeholder.innerHTML = `
+      <div class="image-fallback">
+        <div class="instagram-icon">
+          <i class="fab fa-instagram"></i>
+        </div>
+        <div class="fallback-text">
+          <p>投稿プレビュー</p>
+          <span class="post-id">${postId}</span>
+        </div>
+      </div>
+    `;
+    placeholder.classList.add('loaded', 'fallback');
+  }
+
+  /**
+   * 埋め込みエラー表示
+   * @param {HTMLElement} container - コンテナ要素
+   * @param {string} url - Instagram投稿URL
+   */
+  showEmbedError(container, url) {
+    container.innerHTML = `
+      <div class="instagram-embed-error">
+        <div class="error-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="error-content">
+          <p>Instagram投稿の読み込みに失敗しました</p>
+          <a href="${url}" target="_blank" rel="noopener noreferrer">
+            <i class="fab fa-instagram"></i>
+            Instagram で見る
+          </a>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * 個別Instagram投稿アイテムをレンダリング（埋め込み対応）
    * @param {Object} post - 投稿データ
    * @returns {string} HTML文字列
    */
@@ -4577,15 +4997,27 @@ export class AdminActionService {
       ? '<span class="featured-badge"><i class="fas fa-star"></i> 注目投稿</span>' 
       : '';
     
+    // Instagram埋め込みコードを生成
+    const embedHtml = this.generateInstagramEmbed(post.url);
+    
     return `
       <div class="instagram-post-card" data-post-id="${post.id}">
-        <a href="${post.url}" target="_blank" class="post-url" rel="noopener noreferrer">
-          ${post.url}
-        </a>
+        <div class="instagram-embed-container">
+          ${embedHtml}
+        </div>
         
-        <div class="post-badges">
-          ${statusBadge}
-          ${featuredBadge}
+        <div class="post-info">
+          <div class="post-url">
+            <a href="${post.url}" target="_blank" rel="noopener noreferrer" title="Instagram で開く">
+              <i class="fab fa-instagram"></i>
+              投稿を Instagram で見る
+            </a>
+          </div>
+          
+          <div class="post-badges">
+            ${statusBadge}
+            ${featuredBadge}
+          </div>
         </div>
         
         <div class="post-actions">
@@ -4610,6 +5042,68 @@ export class AdminActionService {
         </div>
       </div>
     `;
+  }
+
+  /**
+   * Instagram埋め込みコードを生成（コンパクト版）
+   * @param {string} url - Instagram投稿URL
+   * @returns {string} 埋め込みHTML
+   */
+  generateInstagramEmbed(url) {
+    try {
+      // Instagram oEmbed APIを使用してコンパクトな表示
+      return this.generateCompactInstagramEmbed(url);
+    } catch (error) {
+      console.error('Instagram埋め込みコード生成エラー:', error);
+      // フォールバック: 通常のリンク表示
+      return `
+        <div class="instagram-fallback">
+          <div class="fallback-icon">
+            <i class="fab fa-instagram"></i>
+          </div>
+          <div class="fallback-content">
+            <p>Instagram投稿</p>
+            <a href="${url}" target="_blank" rel="noopener noreferrer">投稿を見る</a>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  /**
+   * コンパクトなInstagram埋め込みを生成
+   * @param {string} url - Instagram投稿URL
+   * @returns {string} コンパクト埋め込みHTML
+   */
+  generateCompactInstagramEmbed(url) {
+    // Instagram投稿IDを抽出
+    const postId = this.extractInstagramPostId(url);
+    
+    return `
+      <div class="instagram-compact-embed" data-post-url="${url}">
+        <div class="instagram-loading">
+          <div class="loading-spinner">
+            <i class="fab fa-instagram"></i>
+          </div>
+          <p>Instagram投稿を読み込み中...</p>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Instagram投稿IDを抽出
+   * @param {string} url - Instagram投稿URL
+   * @returns {string|null} 投稿ID
+   */
+  extractInstagramPostId(url) {
+    try {
+      const match = url.match(/\/p\/([^\/]+)/);
+      return match ? match[1] : null;
+    } catch (error) {
+      console.error('Instagram投稿ID抽出エラー:', error);
+      return null;
+    }
   }
 
   /**

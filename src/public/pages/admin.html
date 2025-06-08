@@ -986,5 +986,92 @@
       })));
     };
   </script>
+
+  <!-- Instagram埋め込みスクリプト（2024年最適化） -->
+  <script>
+    // Instagram埋め込みスクリプトの高度な読み込み管理
+    (function() {
+      let instagramScriptLoaded = false;
+      let instagramScriptLoading = false;
+      let loadAttempts = 0;
+      const maxAttempts = 3;
+      
+      function loadInstagramScript() {
+        if (instagramScriptLoaded || instagramScriptLoading) return;
+        
+        instagramScriptLoading = true;
+        loadAttempts++;
+        
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = '//www.instagram.com/embed.js';
+        
+        script.onload = function() {
+          instagramScriptLoaded = true;
+          instagramScriptLoading = false;
+          console.log('✅ Instagram埋め込みスクリプト読み込み完了');
+          
+          // 既存の埋め込みを処理
+          if (window.instgrm && window.instgrm.Embeds) {
+            setTimeout(() => {
+              window.instgrm.Embeds.process();
+            }, 100);
+          }
+        };
+        
+        script.onerror = function() {
+          instagramScriptLoading = false;
+          console.warn('⚠️ Instagram埋め込みスクリプト読み込み失敗');
+          
+          // リトライ
+          if (loadAttempts < maxAttempts) {
+            setTimeout(loadInstagramScript, 2000 * loadAttempts);
+          }
+        };
+        
+        // 既存のスクリプトを削除して新しく追加
+        const existingScript = document.querySelector('script[src*="embed.js"]');
+        if (existingScript) {
+          existingScript.remove();
+        }
+        
+        document.head.appendChild(script);
+      }
+      
+      // 初回読み込み
+      loadInstagramScript();
+      
+      // グローバル関数として公開
+      window.reloadInstagramScript = loadInstagramScript;
+      
+      // DOM変更を監視してInstagram埋め込みを自動処理
+      if (window.MutationObserver) {
+        const observer = new MutationObserver(function(mutations) {
+          let hasInstagramElements = false;
+          
+          mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+              if (node.nodeType === Node.ELEMENT_NODE) {
+                if (node.querySelector && node.querySelector('.instagram-media, .instagram-embed-wrapper')) {
+                  hasInstagramElements = true;
+                }
+              }
+            });
+          });
+          
+          if (hasInstagramElements && window.instgrm && window.instgrm.Embeds) {
+            setTimeout(() => {
+              window.instgrm.Embeds.process();
+            }, 100);
+          }
+        });
+        
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
