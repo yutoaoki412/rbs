@@ -91,9 +91,9 @@ const config = {
       defaultStatus: 'active', // デフォルトステータス
       defaultFeatured: false,  // デフォルト注目投稿設定
       
-      // データ構造定義（新バージョン最適化）
+      // データ構造定義（埋め込みコード対応）
       schema: {
-        required: ['id', 'url', 'status', 'createdAt'], // 必須フィールド
+        required: ['id', 'embedCode', 'status', 'createdAt'], // 必須フィールド（urlからembedCodeに変更）
         defaults: {
           status: 'active',        // デフォルトステータス
           featured: false,         // 注目投稿フラグ
@@ -101,7 +101,7 @@ const config = {
         }
       },
       
-      // データバリデーション
+      // データバリデーション（埋め込みコード対応）
       validation: {
         id: {
           type: 'string',
@@ -109,10 +109,11 @@ const config = {
           maxLength: 50,
           pattern: /^[a-zA-Z0-9_-]+$/
         },
-        url: {
+        embedCode: {
           type: 'string',
           required: true,
-          maxLength: 200
+          minLength: 50,           // 埋め込みコードは最低50文字
+          maxLength: 10000         // 最大10KB
         },
         status: {
           type: 'string',
@@ -132,11 +133,23 @@ const config = {
       }
     },
     
-    // URL検証
+    // 埋め込みコード検証（シンプル版）
     validation: {
-      urlPattern: /^https:\/\/(www\.)?instagram\.com\/p\/[A-Za-z0-9_-]+\/?$/,
-      urlExample: 'https://www.instagram.com/p/ABC123DEF456/',
-      maxUrlLength: 200
+      // 埋め込みコードの基本チェック
+      embedPattern: /<blockquote[^>]*class="instagram-media"[^>]*>/,
+      
+      // 埋め込みコードの例
+      embedExample: `<blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/ABC123/">...</blockquote>
+<script async src="//www.instagram.com/embed.js"></script>`,
+      
+      // 最大埋め込みコード長
+      maxEmbedLength: 15000,
+      
+      // 必須要素チェック（最小限）
+      requiredElements: [
+        'blockquote',
+        'instagram-media'
+      ]
     },
     
     // LP側表示設定
@@ -159,7 +172,7 @@ const config = {
       retentionDays: 30        // データ保持期間
     },
     
-    // UI設定
+    // UI設定（埋め込みコード対応）
     ui: {
       emptyStateMessage: 'Instagram投稿がまだ登録されていません',
       loadingMessage: 'Instagram投稿を読み込み中...',
@@ -174,9 +187,20 @@ const config = {
         saveError: 'Instagram投稿の保存に失敗しました',
         loadError: 'Instagram投稿の読み込みに失敗しました',
         deleteError: 'Instagram投稿の削除に失敗しました',
-        invalidUrl: '正しいInstagram投稿URLを入力してください',
-        urlRequired: 'Instagram投稿URLを入力してください',
+        invalidEmbed: '正しいInstagram埋め込みコードを入力してください',
+        embedRequired: 'Instagram埋め込みコードを入力してください',
+        embedTooLong: '埋め込みコードが長すぎます',
+        missingElements: '必須要素が不足している埋め込みコードです',
+        noPermalink: 'Instagram投稿のpermalinkが見つかりません',
         networkError: 'ネットワークエラーが発生しました'
+      },
+      placeholders: {
+        embedCode: 'Instagramの埋め込みコードをここに貼り付けてください...',
+        embedExample: `例：
+<blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/ABC123/">
+  <!-- Instagram埋め込み内容 -->
+</blockquote>
+<script async src="//www.instagram.com/embed.js"></script>`
       },
       notifications: {
         duration: 3000,          // 通知表示時間
@@ -208,7 +232,7 @@ const config = {
       
       // バージョン管理
       version: {
-        current: '1.0.0'             // 現在のデータバージョン
+        current: '2.0.0'             // 埋め込みコード対応バージョン
       }
     },
     
@@ -223,10 +247,14 @@ const config = {
       scriptLoadTimeout: 10000 // スクリプト読み込みタイムアウト
     },
     
-    // セキュリティ設定
+    // セキュリティ設定（埋め込みコード対応）
     security: {
-      sanitizeUrls: true,      // URL サニタイズ
+      sanitizeEmbeds: true,    // 埋め込みコード サニタイズ
       validateOrigin: true,    // オリジン検証
+      allowedDomains: [        // 許可されたドメイン
+        'instagram.com',
+        'www.instagram.com'
+      ],
       rateLimitPerMinute: 60,  // 分あたりのリクエスト制限
       maxRetries: 3            // 最大リトライ回数
     }

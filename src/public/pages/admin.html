@@ -575,18 +575,22 @@
             <div class="instagram-add-form">
               <div class="form-header">
                 <h2><i class="fab fa-instagram"></i> Instagram投稿を追加</h2>
-                <p>Instagram投稿のURLを入力して、表示設定を行ってください</p>
+                <p>Instagram投稿の埋め込みコードを貼り付けて、表示設定を行ってください</p>
               </div>
               
               <form class="simple-form" id="instagram-post-form">
                 <input type="hidden" id="instagram-post-id">
                 
-                <div class="url-input-group">
-                  <input type="url" 
-                         id="instagram-url" 
-                         class="url-input" 
-                         placeholder="" 
-                         required>
+                <div class="embed-input-group">
+                  <textarea id="instagram-embed-code" 
+                           class="embed-textarea" 
+                           placeholder="" 
+                           rows="8"
+                           required></textarea>
+                  <div class="embed-hint">
+                    <i class="fas fa-info-circle"></i>
+                    Instagram投稿ページで「埋め込み」を選択してコードをコピーし、上記に貼り付けてください
+                  </div>
                   <button type="button" class="add-btn" data-action="save-instagram-post">
                     <i class="fas fa-plus"></i>
                     追加

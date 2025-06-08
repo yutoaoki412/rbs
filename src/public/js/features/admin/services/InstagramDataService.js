@@ -307,7 +307,7 @@ export class InstagramDataService {
   }
 
   /**
-   * Instagram投稿のバリデーション
+   * Instagram投稿のバリデーション（埋め込みコード対応）
    * @param {Object} data - 投稿データ
    * @returns {{isValid: boolean, errors: Array}}
    */
@@ -370,9 +370,9 @@ export class InstagramDataService {
       }
     });
     
-    // Instagram URL特別チェック
-    if (data.url && !this.isValidInstagramUrl(data.url)) {
-      errors.push('有効なInstagram URLを入力してください');
+    // Instagram埋め込みコード特別チェック
+    if (data.embedCode && !this.isValidInstagramEmbed(data.embedCode)) {
+      errors.push('有効なInstagram埋め込みコードを入力してください');
     }
     
     return {
@@ -382,15 +382,29 @@ export class InstagramDataService {
   }
 
   /**
-   * Instagram URLの有効性チェック
-   * @param {string} url - チェックするURL
+   * Instagram埋め込みコードの有効性チェック（シンプル版）
+   * @param {string} embedCode - チェックする埋め込みコード
    * @returns {boolean}
    */
-  isValidInstagramUrl(url) {
-    if (!url || url.length > CONFIG.instagram.validation.maxUrlLength) {
+  isValidInstagramEmbed(embedCode) {
+    if (!embedCode || embedCode.length > CONFIG.instagram.validation.maxEmbedLength) {
       return false;
     }
-    return CONFIG.instagram.validation.urlPattern.test(url);
+    
+    // 基本パターンチェック
+    if (!CONFIG.instagram.validation.embedPattern.test(embedCode)) {
+      return false;
+    }
+    
+    // 必須要素チェック（最小限）
+    const requiredElements = CONFIG.instagram.validation.requiredElements;
+    for (const element of requiredElements) {
+      if (!embedCode.includes(element)) {
+        return false;
+      }
+    }
+    
+    return true;
   }
 
   /**
@@ -707,6 +721,111 @@ export class InstagramDataService {
    */
   error(...args) {
     console.error('❌ InstagramDataService:', ...args);
+  }
+
+  /**
+   * LP側表示用の投稿データを取得（統一ストレージ使用）
+   * @param {Object} options - 取得オプション
+   * @param {number} options.limit - 最大取得数
+   * @param {boolean} options.includeInactive - 非アクティブも含めるか
+   * @param {boolean} options.featuredFirst - 注目投稿を先頭に
+   * @returns {Array} LP表示用投稿データ
+   */
+  getPostsForLP(options = {}) {
+    const {
+      limit = CONFIG.instagram.posts.defaultDisplayPosts,
+      includeInactive = false,
+      featuredFirst = true
+    } = options;
+
+    let posts = [...this.posts];
+
+    // アクティブな投稿のみフィルタリング（LP用）
+    if (!includeInactive) {
+      posts = posts.filter(post => post.status === 'active');
+    }
+
+    // ソート: 注目投稿を先頭に、その後は更新日順
+    posts.sort((a, b) => {
+      if (featuredFirst) {
+        // 注目投稿を先頭に
+        if (a.featured && !b.featured) return -1;
+        if (!a.featured && b.featured) return 1;
+      }
+
+      // 表示順序でソート（数値が小さいほど先頭）
+      const orderDiff = (a.order || 999) - (b.order || 999);
+      if (orderDiff !== 0) return orderDiff;
+
+      // 最終的に更新日時でソート（新しいものが先頭）
+      const dateA = new Date(a.updatedAt || a.createdAt || 0);
+      const dateB = new Date(b.updatedAt || b.createdAt || 0);
+      return dateB - dateA;
+    });
+
+    // 指定された数まで制限
+    return posts.slice(0, limit);
+  }
+
+  /**
+   * LP側でInstagramデータを簡単に取得するための静的メソッド
+   * （ページ初期化時にInstagramDataServiceのインスタンスを作らずに使用可能）
+   * @param {Object} options - 取得オプション
+   * @returns {Array} LP表示用投稿データ
+   */
+  static getInstagramPostsForLP(options = {}) {
+    try {
+      // CONFIG統一キーを使用してデータを直接取得
+      const storageKey = CONFIG.storage.keys.instagramPosts;
+      const data = localStorage.getItem(storageKey);
+      
+      if (!data) {
+        console.log('📷 Instagram投稿データが見つかりません');
+        return [];
+      }
+
+      const posts = JSON.parse(data);
+      
+      if (!Array.isArray(posts)) {
+        console.warn('📷 Instagram投稿データの形式が正しくありません');
+        return [];
+      }
+
+      const {
+        limit = CONFIG.instagram.posts.defaultDisplayPosts,
+        includeInactive = false,
+        featuredFirst = true
+      } = options;
+
+      let filteredPosts = [...posts];
+
+      // アクティブな投稿のみ（LP用）
+      if (!includeInactive) {
+        filteredPosts = filteredPosts.filter(post => post.status === 'active');
+      }
+
+      // ソート処理
+      filteredPosts.sort((a, b) => {
+        if (featuredFirst) {
+          if (a.featured && !b.featured) return -1;
+          if (!a.featured && b.featured) return 1;
+        }
+
+        const orderDiff = (a.order || 999) - (b.order || 999);
+        if (orderDiff !== 0) return orderDiff;
+
+        const dateA = new Date(a.updatedAt || a.createdAt || 0);
+        const dateB = new Date(b.updatedAt || b.createdAt || 0);
+        return dateB - dateA;
+      });
+
+      console.log(`📷 LP用Instagram投稿データ取得: ${filteredPosts.length}件 (全${posts.length}件中)`);
+      return filteredPosts.slice(0, limit);
+
+    } catch (error) {
+      console.error('❌ LP用Instagram投稿データ取得エラー:', error);
+      return [];
+    }
   }
 }
 

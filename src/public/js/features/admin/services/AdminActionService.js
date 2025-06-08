@@ -71,7 +71,7 @@ export class AdminActionService {
       'toggle-notification-mode', 'export-data', 'clear-all-data', 'test-site-connection',
       'reset-local-storage', 'close-modal',
       'open-external', 'toggle-mobile-menu', 'logout',
-      'switch-instagram-tab', 'add-instagram-post', 'save-instagram-post', 'refresh-instagram-posts', 'save-instagram-settings', 'close-instagram-modal', 'edit-instagram-post', 'toggle-instagram-post', 'delete-instagram-post'
+      'switch-instagram-tab', 'add-instagram-post', 'save-instagram-post', 'refresh-instagram-posts', 'save-instagram-settings', 'close-instagram-modal', 'edit-instagram-post', 'toggle-instagram-post', 'delete-instagram-post', 'filter-instagram-list'
     ];
     
     // 初期化済みフラグ
@@ -506,7 +506,8 @@ export class AdminActionService {
         if (postId && confirm('この投稿を削除しますか？')) {
           await this.deleteInstagramPost(postId);
         }
-      }
+      },
+      'filter-instagram-list': () => this.filterInstagramList()
     };
 
     // アクションを登録
@@ -685,13 +686,13 @@ export class AdminActionService {
   }
 
   /**
-   * Instagram UIの初期化
+   * Instagram UIの初期化（埋め込みコード対応）
    */
   initializeInstagramUI() {
     // プレースホルダーを設定
-    const urlInput = document.getElementById('instagram-url');
-    if (urlInput) {
-      urlInput.placeholder = CONFIG.instagram.validation.urlExample;
+    const embedInput = document.getElementById('instagram-embed-code');
+    if (embedInput) {
+      embedInput.placeholder = CONFIG.instagram.ui.placeholders.embedCode;
     }
     
     // ローディング状態の初期化
@@ -4315,23 +4316,25 @@ export class AdminActionService {
   }
 
   /**
-   * Instagram投稿保存
+   * Instagram投稿保存（埋め込みコード対応）
    */
   async saveInstagramPost() {
-    this.debug('Instagram投稿保存');
+    this.debug('Instagram投稿保存（埋め込みコード）');
     
     try {
       const formData = this.getInstagramFormData();
       
-      if (!formData.url) {
-        this._showFeedback(CONFIG.instagram.ui.errorMessages.urlRequired, 'error');
+      if (!formData.embedCode) {
+        this._showFeedback(CONFIG.instagram.ui.errorMessages.embedRequired, 'error');
         return;
       }
       
-      if (!this.validateInstagramUrl(formData.url)) {
-        this._showFeedback(CONFIG.instagram.ui.errorMessages.invalidUrl, 'error');
+      if (!this.validateInstagramEmbed(formData.embedCode)) {
+        this._showFeedback(CONFIG.instagram.ui.errorMessages.invalidEmbed, 'error');
         return;
       }
+      
+      // 埋め込みコードをそのまま使用（URL抽出不要）
       
       // InstagramDataServiceを使用して保存
       if (!this.instagramDataService) {
@@ -4374,10 +4377,32 @@ export class AdminActionService {
       const posts = this.instagramDataService.getAllPosts();
       this.renderInstagramPosts(posts);
       
+      // 保存されたフィルタ状態を復元
+      this.restoreInstagramFilter();
+      
       // 成功メッセージは表示しない（頻繁な更新のため）
     } catch (error) {
       this.error('Instagram投稿更新エラー:', error);
       this._showFeedback(CONFIG.instagram.ui.errorMessages.loadError, 'error');
+    }
+  }
+
+  /**
+   * Instagram投稿フィルタ状態を復元
+   */
+  restoreInstagramFilter() {
+    try {
+      const savedFilter = localStorage.getItem('rbs_instagram_filter');
+      if (savedFilter) {
+        const filterSelect = document.getElementById('instagram-filter');
+        if (filterSelect) {
+          filterSelect.value = savedFilter;
+          // フィルタを適用
+          this.filterInstagramList();
+        }
+      }
+    } catch (error) {
+      this.warn('Instagram投稿フィルタ状態復元エラー:', error);
     }
   }
 
@@ -4496,13 +4521,13 @@ export class AdminActionService {
   }
 
   /**
-   * フォームからInstagram投稿データを取得
+   * フォームからInstagram投稿データを取得（埋め込みコード対応）
    * @returns {Object} フォームデータ
    */
   getInstagramFormData() {
     return {
       id: document.getElementById('instagram-post-id').value || undefined,
-      url: document.getElementById('instagram-url').value.trim(),
+      embedCode: document.getElementById('instagram-embed-code').value.trim(),
       status: document.getElementById('instagram-status').checked ? 'active' : 'inactive',
       featured: document.getElementById('instagram-featured').checked || CONFIG.instagram.posts.defaultFeatured
     };
@@ -4520,28 +4545,29 @@ export class AdminActionService {
   }
 
   /**
-   * Instagram投稿をフォームに読み込み
+   * Instagram投稿をフォームに読み込み（埋め込みコード対応）
    * @param {Object} post - 投稿データ
    */
   loadInstagramPostToForm(post) {
     document.getElementById('instagram-post-id').value = post.id;
-    document.getElementById('instagram-url').value = post.url;
+    document.getElementById('instagram-embed-code').value = post.embedCode || '';
     document.getElementById('instagram-status').checked = post.status === 'active';
     document.getElementById('instagram-featured').checked = post.featured || false;
   }
 
   /**
-   * Instagramフォームをクリア
+   * Instagramフォームをクリア（埋め込みコード対応）
    */
   clearInstagramForm() {
     document.getElementById('instagram-post-form').reset();
     document.getElementById('instagram-post-id').value = '';
+    document.getElementById('instagram-embed-code').value = '';
     document.getElementById('instagram-status').checked = CONFIG.instagram.posts.defaultStatus === 'active';
     document.getElementById('instagram-featured').checked = CONFIG.instagram.posts.defaultFeatured;
   }
 
   /**
-   * Instagram投稿一覧をレンダリング（埋め込み対応）
+   * Instagram投稿一覧をレンダリング（埋め込みコード対応）
    * @param {Array} posts - 投稿データ配列
    */
   renderInstagramPosts(posts) {
@@ -4997,21 +5023,26 @@ export class AdminActionService {
       ? '<span class="featured-badge"><i class="fas fa-star"></i> 注目投稿</span>' 
       : '';
     
-    // Instagram埋め込みコードを生成
-    const embedHtml = this.generateInstagramEmbed(post.url);
+    const createdDate = new Date(post.createdAt).toLocaleDateString('ja-JP');
+    
+    // Instagram埋め込みコードをそのまま表示
+    const embedHtml = this.generateInstagramEmbedFromCode(post.embedCode);
     
     return `
       <div class="instagram-post-card" data-post-id="${post.id}">
+        <!-- Instagram投稿埋め込み -->
         <div class="instagram-embed-container">
           ${embedHtml}
         </div>
         
+        <!-- 投稿情報 -->
         <div class="post-info">
-          <div class="post-url">
-            <a href="${post.url}" target="_blank" rel="noopener noreferrer" title="Instagram で開く">
-              <i class="fab fa-instagram"></i>
-              投稿を Instagram で見る
-            </a>
+          <div class="post-meta">
+            <span class="post-date">
+              <i class="fas fa-calendar-alt"></i>
+              ${createdDate}
+            </span>
+            ${post.featured ? '<span class="featured-indicator"><i class="fas fa-star"></i></span>' : ''}
           </div>
           
           <div class="post-badges">
@@ -5020,14 +5051,15 @@ export class AdminActionService {
           </div>
         </div>
         
+        <!-- アクションボタン -->
         <div class="post-actions">
           <button class="action-btn edit" 
                   data-action="edit-instagram-post" 
                   data-post-id="${post.id}"
-                  title="編集">
+                  title="投稿を編集">
             <i class="fas fa-edit"></i>
           </button>
-          <button class="action-btn" 
+          <button class="action-btn toggle" 
                   data-action="toggle-instagram-post" 
                   data-post-id="${post.id}"
                   title="${post.status === 'active' ? '非表示にする' : '表示する'}">
@@ -5036,7 +5068,7 @@ export class AdminActionService {
           <button class="action-btn delete" 
                   data-action="delete-instagram-post" 
                   data-post-id="${post.id}"
-                  title="削除">
+                  title="投稿を削除">
             <i class="fas fa-trash"></i>
           </button>
         </div>
@@ -5045,29 +5077,41 @@ export class AdminActionService {
   }
 
   /**
-   * Instagram埋め込みコードを生成（コンパクト版）
-   * @param {string} url - Instagram投稿URL
+   * 埋め込みコードから直接Instagram埋め込みを生成（シンプル版）
+   * @param {string} embedCode - Instagram埋め込みコード
    * @returns {string} 埋め込みHTML
    */
-  generateInstagramEmbed(url) {
-    try {
-      // Instagram oEmbed APIを使用してコンパクトな表示
-      return this.generateCompactInstagramEmbed(url);
-    } catch (error) {
-      console.error('Instagram埋め込みコード生成エラー:', error);
-      // フォールバック: 通常のリンク表示
-      return `
-        <div class="instagram-fallback">
-          <div class="fallback-icon">
-            <i class="fab fa-instagram"></i>
-          </div>
-          <div class="fallback-content">
-            <p>Instagram投稿</p>
-            <a href="${url}" target="_blank" rel="noopener noreferrer">投稿を見る</a>
-          </div>
-        </div>
-      `;
+  generateInstagramEmbedFromCode(embedCode) {
+    if (!embedCode) {
+      return this.generateInstagramFallback();
     }
+    
+    // 埋め込みコードをそのまま使用
+    return `
+      <div class="instagram-embed-wrapper">
+        ${embedCode}
+      </div>
+    `;
+  }
+
+
+
+  /**
+   * Instagramフォールバック表示を生成（シンプル版）
+   * @returns {string} フォールバックHTML
+   */
+  generateInstagramFallback() {
+    return `
+      <div class="instagram-fallback">
+        <div class="fallback-icon">
+          <i class="fab fa-instagram"></i>
+        </div>
+        <div class="fallback-content">
+          <p>Instagram投稿</p>
+          <span>埋め込みコードが無効です</span>
+        </div>
+      </div>
+    `;
   }
 
   /**
@@ -5091,8 +5135,10 @@ export class AdminActionService {
     `;
   }
 
+
+
   /**
-   * Instagram投稿IDを抽出
+   * Instagram投稿IDを抽出（URL直接）
    * @param {string} url - Instagram投稿URL
    * @returns {string|null} 投稿ID
    */
@@ -5175,15 +5221,29 @@ export class AdminActionService {
   }
 
   /**
-   * Instagram URLの妥当性チェック
-   * @param {string} url - チェックするURL
+   * Instagram埋め込みコードの妥当性チェック
+   * @param {string} embedCode - チェックする埋め込みコード
    * @returns {boolean} 妥当かどうか
    */
-  validateInstagramUrl(url) {
-    if (!url || url.length > CONFIG.instagram.validation.maxUrlLength) {
+  validateInstagramEmbed(embedCode) {
+    if (!embedCode || embedCode.length > CONFIG.instagram.validation.maxEmbedLength) {
       return false;
     }
-    return CONFIG.instagram.validation.urlPattern.test(url);
+    
+    // 基本パターンチェック
+    if (!CONFIG.instagram.validation.embedPattern.test(embedCode)) {
+      return false;
+    }
+    
+    // 必須要素チェック
+    const requiredElements = CONFIG.instagram.validation.requiredElements;
+    for (const element of requiredElements) {
+      if (!embedCode.includes(element)) {
+        return false;
+      }
+    }
+    
+    return true;
   }
 
   // === ウィザード関連メソッド（スタブ） ===
@@ -5196,6 +5256,53 @@ export class AdminActionService {
   wizardNextStep() {
     this.debug('ウィザード次のステップ');
     this._showFeedback('ウィザード機能は開発中です', 'info');
+  }
+
+  /**
+   * Instagram投稿リストのフィルタリング
+   */
+  filterInstagramList() {
+    try {
+      const filterSelect = document.getElementById('instagram-filter');
+      if (!filterSelect) {
+        this.warn('フィルタセレクトボックスが見つかりません');
+        return;
+      }
+
+      const filterValue = filterSelect.value;
+      const posts = this.instagramDataService?.getAllPosts() || [];
+      
+      let filteredPosts = [];
+
+      switch (filterValue) {
+        case 'all':
+          filteredPosts = posts;
+          break;
+        case 'active':
+          filteredPosts = posts.filter(post => post.status === 'active');
+          break;
+        case 'inactive':
+          filteredPosts = posts.filter(post => post.status === 'inactive');
+          break;
+        case 'featured':
+          filteredPosts = posts.filter(post => post.featured);
+          break;
+        default:
+          filteredPosts = posts;
+      }
+
+      this.debug(`Instagram投稿フィルタリング: ${filterValue} (${filteredPosts.length}件)`);
+      
+      // フィルタリング結果を表示
+      this.renderInstagramPosts(filteredPosts);
+      
+      // フィルタ状態をローカルストレージに保存
+      localStorage.setItem('rbs_instagram_filter', filterValue);
+
+    } catch (error) {
+      this.error('Instagram投稿フィルタリングエラー:', error);
+      this.uiManagerService?.showNotification('error', 'フィルタリングに失敗しました');
+    }
   }
 }
 
