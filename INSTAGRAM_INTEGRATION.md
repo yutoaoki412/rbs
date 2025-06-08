@@ -65,6 +65,11 @@ const html = generateInstagramHTML(posts, {
 });
 
 document.getElementById('my-container').innerHTML = html;
+
+// Instagram埋め込みスクリプトの処理（カスタム表示時は手動で呼ぶ）
+if (window.instgrm) {
+  window.instgrm.Embeds.process();
+}
 </script>
 ```
 
@@ -160,14 +165,14 @@ import { embedInstagramPosts, getInstagramStats } from './js/shared/utils/Instag
 
 // 統計情報を確認
 const stats = getInstagramStats();
-console.log(`Instagram投稿統計: アクティブ${stats.active}件 / 全${stats.total}件`);
+console.log(`Instagram投稿統計: アクティブ${stats.active}件, 非表示${stats.inactive}件 / 全${stats.total}件`);
 
 // 投稿が存在する場合のみ表示
 if (stats.active > 0) {
   embedInstagramPosts('#instagram-container');
 } else {
   document.getElementById('instagram-container').innerHTML = 
-    '<p>Instagram投稿は準備中です</p>';
+    '<div class="instagram-empty">Instagram投稿は準備中です</div>';
 }
 ```
 
@@ -194,7 +199,9 @@ if (stats.active > 0) {
 // デバッグ情報の表示
 import { getInstagramPosts, getInstagramStats } from './js/shared/utils/InstagramUtils.js';
 
-console.log('Instagram統計:', getInstagramStats());
+const stats = getInstagramStats();
+console.log('Instagram統計:', stats);
+console.log(`アクティブ投稿: ${stats.active}件, 非表示投稿: ${stats.inactive}件, 注目投稿: ${stats.featured}件`);
 console.log('取得可能投稿:', getInstagramPosts({ limit: 100 }));
 console.log('ストレージキー:', window.CONFIG.storage.keys.instagramPosts);
 console.log('ストレージデータ:', localStorage.getItem(window.CONFIG.storage.keys.instagramPosts));

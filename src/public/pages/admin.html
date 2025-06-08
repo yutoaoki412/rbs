@@ -111,12 +111,21 @@
             </div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon current-month">
-              <i class="fas fa-calendar-alt"></i>
+            <div class="stat-icon instagram-visible">
+              <i class="fab fa-instagram"></i>
             </div>
             <div class="stat-content">
-              <div class="stat-number" id="stat-current-month">0</div>
-              <div class="stat-label">今月の記事</div>
+              <div class="stat-number" id="stat-instagram-visible">0</div>
+              <div class="stat-label">Instagram表示記事</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon instagram-hidden">
+              <i class="fas fa-eye-slash"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number" id="stat-instagram-hidden">0</div>
+              <div class="stat-label">非表示記事</div>
             </div>
           </div>
         </div>
@@ -989,6 +998,104 @@
         active: section.classList.contains('active')
       })));
     };
+
+    // 統計情報更新機能
+    window.updateDashboardStats = function() {
+      try {
+        // config.jsで定義されているlocal storageキーを使用
+        const articlesKey = 'rbs_articles';
+        const instagramKey = 'rbs_instagram_posts';
+        
+        // 記事データの取得
+        let articles = [];
+        let publishedCount = 0;
+        let draftCount = 0;
+        
+        try {
+          const articlesData = localStorage.getItem(articlesKey);
+          if (articlesData) {
+            articles = JSON.parse(articlesData);
+            if (Array.isArray(articles)) {
+              publishedCount = articles.filter(article => article.status === 'published').length;
+              draftCount = articles.filter(article => article.status === 'draft').length;
+            }
+          }
+        } catch (error) {
+          console.warn('記事データの読み込みエラー:', error);
+        }
+        
+        // Instagram投稿データの取得
+        let instagramPosts = [];
+        let instagramVisibleCount = 0;
+        let instagramHiddenCount = 0;
+        
+        try {
+          const instagramData = localStorage.getItem(instagramKey);
+          if (instagramData) {
+            instagramPosts = JSON.parse(instagramData);
+            if (Array.isArray(instagramPosts)) {
+              instagramVisibleCount = instagramPosts.filter(post => post.status === 'active').length;
+              instagramHiddenCount = instagramPosts.filter(post => post.status === 'inactive').length;
+            }
+          }
+        } catch (error) {
+          console.warn('Instagram投稿データの読み込みエラー:', error);
+        }
+        
+        // 統計カードの更新
+        const updateStatCard = (id, value) => {
+          const element = document.getElementById(id);
+          if (element) {
+            // アニメーション付きで数値を更新
+            const currentValue = parseInt(element.textContent) || 0;
+            if (currentValue !== value) {
+              element.style.transform = 'scale(1.1)';
+              element.style.transition = 'transform 0.2s ease';
+              setTimeout(() => {
+                element.textContent = value;
+                element.style.transform = 'scale(1)';
+              }, 100);
+            } else {
+              element.textContent = value;
+            }
+          }
+        };
+        
+        // 各統計カードを更新
+        updateStatCard('stat-published', publishedCount);
+        updateStatCard('stat-drafts', draftCount);
+        updateStatCard('stat-instagram-visible', instagramVisibleCount);
+        updateStatCard('stat-instagram-hidden', instagramHiddenCount);
+        
+        console.log('📊 統計情報更新完了:', {
+          公開記事: publishedCount,
+          下書き: draftCount,
+          Instagram表示: instagramVisibleCount,
+          Instagram非表示: instagramHiddenCount
+        });
+        
+      } catch (error) {
+        console.error('統計情報更新エラー:', error);
+      }
+    };
+    
+    // 定期的な統計更新（5秒間隔）
+    setInterval(window.updateDashboardStats, 5000);
+    
+    // 初回統計更新（ページ読み込み時）
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(window.updateDashboardStats, 1000);
+    });
+    
+    // storage変更時の統計更新
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'rbs_articles' || e.key === 'rbs_instagram_posts') {
+        setTimeout(window.updateDashboardStats, 100);
+      }
+    });
+    
+    // 手動更新機能
+    window.refreshStats = window.updateDashboardStats;
   </script>
 
   <!-- Instagram埋め込みスクリプト（2024年最適化） -->
