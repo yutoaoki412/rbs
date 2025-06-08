@@ -5,9 +5,10 @@
 /* 料金セクション全体 */
 #price {
   background: var(--gray-light);
-  padding: 60px 0;
+  padding: var(--section-padding) 0 !important;
   position: relative;
   overflow: hidden;
+  scroll-margin-top: var(--scroll-offset) !important;
 }
 
 #price::before {
@@ -281,7 +282,8 @@
 /* タブレット以上 (768px以上) */
 @media (min-width: 768px) {
   #price {
-    padding: 80px 0;
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
   }
 
   .price-tables {
@@ -405,7 +407,8 @@
 /* デスクトップ (1200px以上) */
 @media (min-width: 1200px) {
   #price {
-    padding: 100px 0;
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
   }
 
   .price-tables {
@@ -455,7 +458,8 @@
 /* モバイル（480px以下） */
 @media (max-width: 480px) {
   #price {
-    padding: 50px 0;
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
   }
 
   .price-tables {

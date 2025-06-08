@@ -5,9 +5,10 @@
 /* ジュニア期セクション全体 */
 #why-junior {
   background: var(--white);
-  padding: 80px 0;
+  padding: var(--section-padding) 0 !important;
   position: relative;
   overflow: hidden;
+  scroll-margin-top: var(--scroll-offset) !important;
 }
 
 #why-junior::before {
@@ -192,7 +193,8 @@
 /* タブレット以上 (768px以上) */
 @media (min-width: 768px) {
   #why-junior {
-    padding: 100px 0;
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
   }
 
   #why-junior::before {
@@ -243,7 +245,8 @@
 /* デスクトップ (1200px以上) */
 @media (min-width: 1200px) {
   #why-junior {
-    padding: 120px 0;
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
   }
 
   .reason-list {
@@ -287,7 +290,8 @@
 /* モバイル（480px以下） */
 @media (max-width: 480px) {
   #why-junior {
-    padding: 60px 0;
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
   }
 
   #why-junior::before {

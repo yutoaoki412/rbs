@@ -657,7 +657,7 @@ class HeaderComponent extends Component {
     }
 
     /**
-     * セクションへのスムーススクロール
+     * セクションへのスムーススクロール（CSS + 追加オフセットで確実に）
      * @param {string} href - ターゲットセクションのハッシュ
      */
     smoothScrollToSection(href) {
@@ -669,21 +669,26 @@ class HeaderComponent extends Component {
                 return;
             }
             
-            // ヘッダーの高さを考慮したオフセット
-            const headerHeight = this.container.offsetHeight;
-            const targetPosition = targetElement.offsetTop - headerHeight - 20;
+            // 確実なオフセット計算（CSSと併用）
+            const headerHeight = this.container?.offsetHeight || 124;
+            const additionalOffset = 20; // 追加の安全余白
+            const totalOffset = headerHeight + additionalOffset;
+            
+            const targetPosition = targetElement.offsetTop - totalOffset;
             
             window.scrollTo({
-                top: targetPosition,
+                top: Math.max(0, targetPosition),
                 behavior: 'smooth'
             });
             
-            this.log(`スムーススクロール実行: ${href}`);
+            this.log(`確実なスムーススクロール実行: ${href}, オフセット: ${totalOffset}px`);
             
             // イベント発火
             EventBus.emit('header:scroll:smooth', {
                 targetId: href,
-                targetElement: targetElement
+                targetElement: targetElement,
+                offset: totalOffset,
+                method: 'enhanced-offset'
             });
         } catch (error) {
             this.error('スムーススクロールエラー:', error);

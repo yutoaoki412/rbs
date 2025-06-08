@@ -7,7 +7,8 @@
   background: var(--white);
   position: relative;
   overflow: hidden;
-  padding: 60px 0; /* 縮小して調整 */
+  padding: var(--section-padding) 0 !important; /* 統一値を使用 */
+  scroll-margin-top: var(--scroll-offset) !important; /* 明示的に強制適用 */
 }
 
 #location::before {
@@ -277,7 +278,8 @@
 /* レスポンシブ対応 - タブレット */
 @media (max-width: 1024px) {
   #location {
-    padding: 50px 0; /* パディングをさらに縮小 */
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
   }
   
   .location-content {
@@ -300,7 +302,8 @@
 /* レスポンシブ対応 - モバイル */
 @media (max-width: 768px) {
   #location {
-    padding: 40px 0; /* モバイルでさらに縮小 */
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
   }
   
   .location-content {

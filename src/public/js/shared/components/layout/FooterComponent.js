@@ -253,6 +253,12 @@ class FooterComponent extends Component {
         const href = link.getAttribute('href');
         const text = link.textContent.trim();
         
+        // アンカーリンクの場合はスムーススクロール処理
+        if (href && href.startsWith('#')) {
+            event.preventDefault();
+            this.smoothScrollToSection(href);
+        }
+        
         // イベント発火
         EventBus.emit('footer:link:click', {
             href: href,
@@ -261,6 +267,38 @@ class FooterComponent extends Component {
         });
         
         this.log(`フッターリンククリック: ${text} (${href})`);
+    }
+
+    /**
+     * セクションへのスムーススクロール（フッター用・CSSベース）
+     * @param {string} href - ターゲットセクションのハッシュ
+     */
+    smoothScrollToSection(href) {
+        try {
+            const targetElement = document.querySelector(href);
+            
+            if (!targetElement) {
+                this.warn(`ターゲットセクションが見つかりません: ${href}`);
+                return;
+            }
+            
+            // CSSのscroll-margin-topに完全に依存
+            targetElement.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+            
+            this.log(`フッターからCSSベーススムーススクロール実行: ${href}`);
+            
+            // イベント発火
+            EventBus.emit('footer:scroll:smooth', {
+                targetId: href,
+                targetElement: targetElement,
+                method: 'css-based'
+            });
+        } catch (error) {
+            this.error('フッタースムーススクロールエラー:', error);
+        }
     }
 
     /**

@@ -150,12 +150,11 @@
 
 #news {
   background: var(--gray-light);
-  padding: 30px 0;
+  padding: var(--section-padding) 0 !important;
   position: relative;
   overflow: hidden;
+  scroll-margin-top: var(--scroll-offset) !important; /* 明示的に強制適用 */
 }
-
-
 
 #news::after {
   content: '';
@@ -184,8 +183,6 @@
   gap: 15px;
   margin-bottom: 30px;
 }
-
-
 
 /* ニュース一覧ボタン */
 .news-list-button {
@@ -560,8 +557,6 @@
    06. ボタンコンポーネント
    ========================================================================== */
 
-
-
 /* 汎用ボタン */
 .btn {
   display: inline-flex;
@@ -600,8 +595,6 @@
   box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3);
 }
 
-
-
 /* ==========================================================================
    07. アニメーション
    ========================================================================== */
@@ -639,7 +632,8 @@
 @media (min-width: 768px) {
   /* LPニュースセクション */
   #news {
-    padding: 40px 0;
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
   }
 
   #news::after {
@@ -650,10 +644,6 @@
   .news-section-header {
     margin-bottom: 35px;
   }
-
-
-
-
 
   .news-loading-status {
     padding: 30px;
@@ -712,16 +702,13 @@
 /* デスクトップ (1200px以上) */
 @media (min-width: 1200px) {
   #news {
-    padding: 50px 0;
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
   }
 
   .news-section-header {
     margin-bottom: 40px;
   }
-
-
-
-
 
   .news-card {
     border-radius: 20px;
@@ -847,7 +834,8 @@
 
   /* LPセクション */
   #news {
-    padding: 30px 0;
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
   }
 
   #news::after {
@@ -882,9 +870,6 @@
     min-width: 120px;
     justify-content: center;
   }
-
-  /* 管理機能 */
-
 }
 
 /* モバイル小 (480px以下) */
@@ -933,7 +918,8 @@
 
   /* LPセクション */
   #news {
-    padding: 25px 0;
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
   }
 
   #news::after {
@@ -942,10 +928,6 @@
     top: -10%;
     right: -10%;
   }
-
-
-
-
 
   .news-loading-status {
     padding: 20px 15px;

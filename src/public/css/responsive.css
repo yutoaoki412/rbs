@@ -13,6 +13,27 @@
 
 /* タブレット以下 (768px以下) */
 @media (max-width: 768px) {
+  /* CSS変数調整 - モバイル */
+  :root {
+    --header-height: 80px;
+    --status-banner-height: 15px;
+    --scroll-offset: calc(var(--header-height) + var(--status-banner-height)); /* 95px */
+  }
+
+  /* モバイルでのセクション強制適用 */
+  section,
+  #location,
+  #news,
+  #about,
+  #why-junior,
+  #program,
+  #price,
+  #faq,
+  #company,
+  #contact {
+    scroll-margin-top: var(--scroll-offset) !important;
+  }
+
   /* レイアウト */
   .container-wide,
   .container {
@@ -262,6 +283,27 @@
 
 /* 小さなモバイル (480px以下) */
 @media (max-width: 480px) {
+  /* CSS変数調整 - 小さなモバイル */
+  :root {
+    --header-height: 70px;
+    --status-banner-height: 10px;
+    --scroll-offset: calc(var(--header-height) + var(--status-banner-height)); /* 80px */
+  }
+
+  /* 小さなモバイルでのセクション強制適用 */
+  section,
+  #location,
+  #news,
+  #about,
+  #why-junior,
+  #program,
+  #price,
+  #faq,
+  #company,
+  #contact {
+    scroll-margin-top: var(--scroll-offset) !important;
+  }
+
   /* 極小画面でのヘッダー調整 */
   .header {
     padding: 6px 0;

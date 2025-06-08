@@ -5,9 +5,10 @@
 /* プログラムセクション全体 */
 #program {
   background: var(--white);
-  padding: 80px 0;
+  padding: var(--section-padding) 0 !important;
   position: relative;
   overflow: hidden;
+  scroll-margin-top: var(--scroll-offset) !important;
 }
 
 /* プログラムグリッド - モバイルファーストアプローチ */
@@ -249,7 +250,8 @@
 /* タブレット以上 (768px以上) */
 @media (min-width: 768px) {
   #program {
-    padding: 100px 0;
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
   }
 
   .program-grid {

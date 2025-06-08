@@ -90,6 +90,16 @@ const config = {
     }
   },
 
+  // スクロール設定
+  scroll: {
+    headerOffset: 120,
+    statusBannerOffset: -75,
+    additionalOffset: -75,
+    mobileAdditionalOffset: -45,
+    smallMobileAdditionalOffset: -50,
+    smoothScrollDuration: 800
+  },
+
   // デバッグ設定
   debug: {
     enabled: false,

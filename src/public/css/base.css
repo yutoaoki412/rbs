@@ -66,6 +66,10 @@
     --logo-height: 100px; /* ロゴの高さ */
     --logo-height-medium: 80px; /* 中間画面サイズでのロゴ高さ */
     --logo-height-mobile: 60px; /* モバイル時のロゴ高さ */
+
+    /* スクロールオフセット関連 */
+    --status-banner-height: 20px; /* 追加の余白を設定 */
+    --scroll-offset: calc(var(--header-height) + var(--status-banner-height)); /* 合計スクロールオフセット: 144px */
   
     /* フォント */
     /* --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif; */
@@ -138,6 +142,10 @@
     --status-postponed: #3498db;      /* 延期 - 青 */
     --status-postponed-light: #5dade2;
     --status-postponed-dark: #2980b9;
+
+    /* セクション統一設定 */
+    --section-padding: 80px; /* 全セクション統一のpadding値 */
+    --section-padding-mobile: 60px; /* モバイル用のpadding値 */
   }
   
   /* ベーススタイル */
@@ -171,14 +179,40 @@
     padding: 0 60px;
   }
   
-  /* セクション共通 */
+    /* セクション共通 */
   section {
-    padding: 120px 0;
+    padding: var(--section-padding) 0;
     width: 100%;
     position: relative;
+    scroll-margin-top: var(--scroll-offset) !important;
+  }
+
+  /* 特定セクションへの強制適用 - 最高優先度で統一padding */
+  section#location,
+  section#news,
+  section#about,
+  section#why-junior,
+  section#program,
+  section#price,
+  section#faq,
+  section#company,
+  section#contact {
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
+  }
+
+  /* セクション内のタイトル要素への強制適用 */
+  section h1,
+  section h2,
+  section h3 {
+    scroll-margin-top: var(--scroll-offset) !important;
+  }
+
+  /* タイポグラフィ */
+  h1, h2, h3, h4, h5, h6 {
+    scroll-margin-top: var(--scroll-offset) !important;
   }
   
-  /* タイポグラフィ */
   h1 {
     font-size: clamp(36px, 7vw, 56px);
     line-height: 1.2;
@@ -608,9 +642,26 @@
 /* 強調テキスト（青色） */
 .text-blue-emphasis {
   color: var(--primary-blue);
+  font-weight: var(--font-weight-heavy);
+  text-shadow: 0 2px 4px rgba(74, 144, 226, 0.2);
 }
 
-
+/* レスポンシブ対応: モバイルでは小さなpadding */
+@media (max-width: 768px) {
+  /* 全セクションのモバイル対応 */
+  section,
+  section#location,
+  section#news,
+  section#about,
+  section#why-junior,
+  section#program,
+  section#price,
+  section#faq,
+  section#company,
+  section#contact {
+    padding: var(--section-padding-mobile) 0 !important;
+  }
+}
 
 /* 事業内容見出し */
 .business-content-heading {

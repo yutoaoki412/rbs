@@ -179,7 +179,7 @@ class UIInteractionManager extends Component {
       }
     };
 
-    // アンカーリンクのスムーススクロール
+    // アンカーリンクのスムーススクロール（CSSベース）
     const anchorLinks = this.safeQuerySelectorAll('a[href^="#"]');
     this.safeForEach(anchorLinks, (anchor) => {
       this.addEventListenerToChild(anchor, 'click', (e) => {
@@ -190,31 +190,19 @@ class UIInteractionManager extends Component {
         const targetElement = this.safeQuerySelector(targetId);
         
         if (targetElement) {
-          const totalOffset = this.calculateScrollOffset();
-          
-          window.scrollTo({
-            top: targetElement.offsetTop - totalOffset,
-            behavior: 'smooth'
+          // CSSのscroll-margin-topに完全に依存
+          targetElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
           });
           
-          EventBus.emit('ui:scrolledToAnchor', { target: targetId });
+          EventBus.emit('ui:scrolledToAnchor', { target: targetId, method: 'css-based' });
         }
       });
     });
   }
 
-  /**
-   * スクロールオフセットを計算
-   */
-  calculateScrollOffset() {
-    const header = this.safeQuerySelector('header');
-    const statusBanner = this.safeQuerySelector('.status-banner');
-    
-    const headerHeight = header?.offsetHeight || this.config.scroll.headerOffset;
-    const bannerHeight = statusBanner?.offsetHeight || this.config.scroll.bannerOffset;
-    
-    return headerHeight + bannerHeight + this.config.scroll.additionalOffset;
-  }
+
 
   /**
    * スクロールアニメーションのセットアップ

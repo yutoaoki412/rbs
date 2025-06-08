@@ -171,9 +171,10 @@ body.header-loaded #hero {
 #about {
   background: var(--gray-light);
   margin-top: 0;
-  padding-top: 100px;
+  padding: var(--section-padding) 0 !important; /* 統一値を使用 */
   position: relative;
   overflow: hidden;
+  scroll-margin-top: var(--scroll-offset) !important;
 }
 
 #about::before {
@@ -295,6 +296,7 @@ body.header-loaded #hero {
   background: var(--white);
   position: relative;
   overflow: hidden;
+  scroll-margin-top: var(--scroll-offset) !important;
 }
 
 #faq::before {
@@ -345,6 +347,7 @@ body.header-loaded #hero {
 /* Company セクション */
 #company {
   background: var(--white);
+  scroll-margin-top: var(--scroll-offset) !important;
 }
 
 .company-info {
