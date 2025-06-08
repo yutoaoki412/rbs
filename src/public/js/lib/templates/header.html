@@ -8,6 +8,7 @@
     </div>
     <ul class="nav-links" id="nav-links">
       {{#isHomePage}}
+      <li><a href="#news" data-section="news">NEWS</a></li>
       <li><a href="#about" data-section="about">RBS陸上教室とは</a></li>
       <li><a href="#program" data-section="program">プログラム</a></li>
 
@@ -17,6 +18,7 @@
       {{/isHomePage}}
       {{#isNotHomePage}}
       <li><a href="../pages/index.html" data-navigate="home">ホーム</a></li>
+      <li><a href="{{newsLink}}" class="nav-link" data-page="news" data-section="news">NEWS</a></li>
       <li><a href="../pages/index.html#about" data-navigate="home" data-section="about">RBS陸上教室とは</a></li>
       <li><a href="../pages/index.html#program" data-navigate="home" data-section="program">プログラム</a></li>
 
@@ -24,7 +26,6 @@
       <li><a href="../pages/index.html#price" data-navigate="home" data-section="price">料金</a></li>
       <li><a href="../pages/index.html#faq" data-navigate="home" data-section="faq">よくある質問</a></li>
       {{/isNotHomePage}}
-      <li><a href="{{newsLink}}" class="nav-link" data-page="news" data-section="news">NEWS</a></li>
       <li><a href="https://vita-health.hacomono.jp/home" class="login-btn" target="_blank" rel="noopener noreferrer">会員ログイン</a></li>
     </ul>
     <button class="mobile-menu-btn" aria-expanded="false" aria-controls="nav-links" data-action="toggle-mobile-menu" aria-label="メニューを開く">
