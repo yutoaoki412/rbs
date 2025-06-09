@@ -1817,8 +1817,8 @@
 }
 
 .btn-preview:hover {
-  background: #5a6c7d;
-  border-color: #5a6c7d;
+  background: var(--admin-secondary-dark);
+  border-color: var(--admin-secondary-dark);
 }
 
 .btn-save {

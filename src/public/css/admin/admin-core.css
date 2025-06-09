@@ -12,6 +12,7 @@
   --admin-primary: var(--color-primary-blue);
   --admin-primary-dark: #3a7bc8;
   --admin-secondary: var(--color-primary-teal);
+  --admin-secondary-dark: #3d9b7a;
   --admin-success: var(--color-success);
   --admin-warning: var(--color-warning);
   --admin-error: var(--color-error);
