@@ -447,11 +447,9 @@ export class AdminActionService {
           if (articleId) {
             await this.previewArticleById(articleId);
           }
-        },
+                 },
 
-        
-
-        // Instagram関連
+         // Instagram関連
         'switch-instagram-tab': (element, params) => {
           const tabName = params.tab || element.getAttribute('data-tab');
           if (tabName) {

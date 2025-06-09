@@ -245,10 +245,12 @@ export class LessonStatusManagerModule extends Component {
       
       // レッスン状況関連のアクションのみ処理
       if (action && action.includes('lesson-status')) {
-        event.preventDefault(); // 他のハンドラーが実行されないように
+        event.preventDefault(); // デフォルト動作を停止
+        event.stopImmediatePropagation(); // 他のすべてのハンドラーを停止
+        this.log(`🛑 レッスン状況アクション専用処理: ${action}`);
         this.handleAction(action, button);
       }
-    });
+    }, true); // キャプチャフェーズで実行して最優先にする
     
     // フォーム変更監視（自動保存用）
     container.addEventListener('change', (event) => {
@@ -288,6 +290,8 @@ export class LessonStatusManagerModule extends Component {
     
     this.log('✅ レッスン状況専用イベントリスナー設定完了');
   }
+
+
 
   /**
    * 初期データ読み込み
