@@ -279,11 +279,7 @@
   flex-wrap: wrap;
 }
 
-.main-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-left: auto;
-}
+
 
 .editor-form {
   padding: 2rem;
@@ -1676,15 +1672,7 @@
     gap: 0.5rem;
   }
   
-  .main-actions {
-    margin-left: 0;
-    width: 100%;
-    justify-content: stretch;
-  }
-  
-  .main-actions .btn {
-    flex: 1;
-  }
+
   
   .help-content {
     flex-direction: column;
@@ -1757,5 +1745,123 @@
   
   .setting-actions {
     flex-direction: column;
+  }
+}
+
+/* =============================================================================
+ * 記事エディター専用ボタンシステム（統一デザイン）
+ * ============================================================================= */
+
+/* 基本ボタンクラス */
+.btn-editor {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  background: var(--admin-white);
+  font-family: inherit;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 共通のホバー・アクティブ効果 */
+.btn-editor:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-editor:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-editor:focus {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 2px;
+}
+
+.btn-editor:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
+  box-shadow: none;
+}
+
+/* 色別バリエーション */
+.btn-clear {
+  background: var(--admin-gray-100);
+  color: var(--admin-gray-700);
+  border-color: var(--admin-gray-300);
+}
+
+.btn-clear:hover {
+  background: var(--admin-gray-200);
+  color: var(--admin-gray-800);
+  border-color: var(--admin-gray-400);
+}
+
+.btn-preview {
+  background: var(--admin-secondary);
+  color: var(--admin-white);
+  border-color: var(--admin-secondary);
+}
+
+.btn-preview:hover {
+  background: #5a6c7d;
+  border-color: #5a6c7d;
+}
+
+.btn-save {
+  background: var(--admin-primary);
+  color: var(--admin-white);
+  border-color: var(--admin-primary);
+}
+
+.btn-save:hover {
+  background: var(--admin-primary-dark);
+  border-color: var(--admin-primary-dark);
+}
+
+.btn-publish {
+  background: var(--admin-success);
+  color: var(--admin-white);
+  border-color: var(--admin-success);
+}
+
+.btn-publish:hover {
+  background: #22c55e;
+  border-color: #22c55e;
+}
+
+/* パネルアクション内のレイアウト調整 */
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .panel-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  
+  .btn-editor {
+    padding: 0.625rem 1rem;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-editor {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.75rem;
   }
 } 
