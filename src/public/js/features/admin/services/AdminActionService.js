@@ -449,22 +449,7 @@ export class AdminActionService {
           }
         },
 
-        // レッスン状況関連（ActionManager用）
-        'preview-lesson-status': (element, params) => {
-          // EventBusで配信してLessonStatusManagerModuleに処理を委譲
-          this.debug('ActionManager: プレビューアクション受信 - EventBusに配信');
-          EventBus.emit('action:preview-lesson-status', { element, params });
-        },
-        'save-draft-lesson-status': (element, params) => {
-          // EventBusで配信してLessonStatusManagerModuleに処理を委譲
-          this.debug('ActionManager: 下書き保存アクション受信 - EventBusに配信');
-          EventBus.emit('action:save-draft-lesson-status', { element, params });
-        },
-        'update-lesson-status': (element, params) => {
-          // EventBusで配信してLessonStatusManagerModuleに処理を委譲
-          this.debug('ActionManager: 更新アクション受信 - EventBusに配信');
-          EventBus.emit('action:update-lesson-status', { element, params });
-        },
+        
 
         // Instagram関連
         'switch-instagram-tab': (element, params) => {

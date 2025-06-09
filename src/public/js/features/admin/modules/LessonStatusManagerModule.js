@@ -229,19 +229,25 @@ export class LessonStatusManagerModule extends Component {
   }
 
   /**
-   * イベントリスナー設定（統合版）
+   * イベントリスナー設定（レッスン状況専用・最適化版）
+   * レッスン状況関連のアクションのみを処理し、他のActionManagerとの重複を避ける
    */
   setupEventListeners() {
     const container = this.formContainer || this.form;
     if (!container) return;
     
-    // アクションボタンイベント
+    // アクションボタンイベント（レッスン状況のみ処理）
     container.addEventListener('click', (event) => {
       const button = event.target.closest('[data-action]');
       if (!button) return;
       
       const action = button.getAttribute('data-action');
-      this.handleAction(action, button);
+      
+      // レッスン状況関連のアクションのみ処理
+      if (action && action.includes('lesson-status')) {
+        event.preventDefault(); // 他のハンドラーが実行されないように
+        this.handleAction(action, button);
+      }
     });
     
     // フォーム変更監視（自動保存用）
@@ -269,21 +275,7 @@ export class LessonStatusManagerModule extends Component {
       this.handleStorageUpdate(data);
     });
 
-    // EventBusからのアクション配信を受信（ActionManagerから配信）
-    EventBus.on('action:preview-lesson-status', (data) => {
-      this.log('EventBus経由でプレビューアクションを受信');
-      this.handleAction('preview-lesson-status', data.element);
-    });
 
-    EventBus.on('action:save-draft-lesson-status', (data) => {
-      this.log('EventBus経由で下書き保存アクションを受信');
-      this.handleAction('save-draft-lesson-status', data.element);
-    });
-
-    EventBus.on('action:update-lesson-status', (data) => {
-      this.log('EventBus経由で更新アクションを受信');
-      this.handleAction('update-lesson-status', data.element);
-    });
     
     // ページ離脱時の確認
     window.addEventListener('beforeunload', (event) => {
@@ -294,7 +286,7 @@ export class LessonStatusManagerModule extends Component {
       }
     });
     
-    this.log('✅ イベントリスナー設定完了');
+    this.log('✅ レッスン状況専用イベントリスナー設定完了');
   }
 
   /**
@@ -350,10 +342,11 @@ export class LessonStatusManagerModule extends Component {
   }
 
   /**
-   * アクション処理（統合版）
+   * アクション処理（レッスン状況専用・最適化版）
    */
   async handleAction(action, button) {
     try {
+      this.log(`🎯 レッスン状況アクション実行: ${action}`);
       this.incrementActionCount(action);
       this.setButtonLoading(button, true);
       this.setLoading(true);
@@ -840,7 +833,7 @@ export class LessonStatusManagerModule extends Component {
     return `
       <div class="lesson-status-preview">
         <div class="preview-header">
-          <h3>${data.date} のレッスン状況プレビュー</h3>
+          <h3 style="color: white !important;">${data.date} のレッスン状況プレビュー</h3>
         </div>
         
         <div class="global-status-section">
