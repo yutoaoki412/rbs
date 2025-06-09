@@ -1579,4 +1579,100 @@
   font-family: monospace;
   font-size: 0.875rem;
   white-space: pre-wrap;
-} 
+}
+
+/* =============================================================================
+ * アクション専用通知スタイル
+ * ============================================================================= */
+
+/* アクション通知専用の強化スタイル */
+.notification-item.action-notification {
+  border-left: 4px solid var(--notification-accent, var(--admin-primary));
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15), 0 6px 20px rgba(0, 0, 0, 0.1);
+  animation: action-notification-enter 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notification-item.preview-notification {
+  --notification-accent: var(--admin-info);
+}
+
+.notification-item.save-notification {
+  --notification-accent: var(--admin-success);
+}
+
+.notification-item.publish-notification {
+  --notification-accent: var(--admin-warning);
+}
+
+.notification-item.action-notification.error {
+  --notification-accent: var(--admin-error);
+}
+
+/* アクション通知のアニメーション */
+@keyframes action-notification-enter {
+  0% {
+    transform: translateX(100%) scale(0.9);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(-10px) scale(1.02);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* プレビューアクション専用アイコンスタイル */
+.preview-notification .notification-avatar {
+  background: linear-gradient(135deg, #3b82f6, #1e40af);
+  animation: preview-pulse 2s infinite;
+}
+
+/* 保存アクション専用アイコンスタイル */
+.save-notification .notification-avatar {
+  background: linear-gradient(135deg, #10b981, #047857);
+  animation: save-bounce 0.6s ease-out;
+}
+
+/* 公開アクション専用アイコンスタイル */
+.publish-notification .notification-avatar {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  animation: publish-glow 1.5s ease-out;
+}
+
+/* エラーアクション専用アイコンスタイル */
+.action-notification.error .notification-avatar {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  animation: error-shake 0.5s ease-out;
+}
+
+/* アクション通知専用アニメーション */
+@keyframes preview-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes save-bounce {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes publish-glow {
+  0% { 
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  }
+  50% { 
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+  }
+  100% { 
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+  }
+}
+
+@keyframes error-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}

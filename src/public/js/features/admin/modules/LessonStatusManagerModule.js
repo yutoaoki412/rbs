@@ -297,7 +297,7 @@ export class LessonStatusManagerModule {
       // プレビュー表示
       this.showPreview(previewHTML);
       
-      this.showNotification('info', 'プレビューを表示しました');
+      this.showNotification('info', 'レッスン状況のプレビューを表示しました');
       
     } catch (error) {
       this.error('プレビュー生成エラー:', error);
@@ -328,7 +328,7 @@ export class LessonStatusManagerModule {
       if (result.success) {
         this.currentData = formData;
         this.hasUnsavedChanges = false;
-        this.showNotification('success', '下書きを保存しました');
+        this.showNotification('success', 'レッスン状況を下書きとして保存しました');
         
         // 統計更新
         this.updateDashboardStats();
@@ -385,7 +385,7 @@ export class LessonStatusManagerModule {
           date: formData.date 
         });
         
-        this.showNotification('success', 'レッスン状況を公開しました');
+        this.showNotification('success', 'レッスン状況を保存して公開しました');
         
         // 統計更新
         this.updateDashboardStats();

@@ -326,6 +326,59 @@ export class AdminActionService {
       console.log(`Feedback: ${message} (${type})`);
     }
   }
+
+  /**
+   * アクション専用通知表示（右上ポップアップ）
+   * @private
+   */
+  _showActionNotification(message, type = 'success', actionType = 'action') {
+    // AdminNotificationServiceを使用
+    if (window.showNotification) {
+      const iconMap = {
+        preview: type === 'error' ? 'fas fa-exclamation-triangle' : 'fas fa-eye',
+        save: type === 'error' ? 'fas fa-exclamation-triangle' : 'fas fa-save', 
+        publish: type === 'error' ? 'fas fa-exclamation-triangle' : 'fas fa-globe',
+        action: type === 'error' ? 'fas fa-exclamation-triangle' : 'fas fa-check'
+      };
+      
+      const options = {
+        title: this._getActionTitle(actionType, type),
+        icon: iconMap[actionType] || iconMap.action,
+        duration: type === 'error' ? 6000 : 4000, // エラーは長めに表示
+        className: `action-notification ${actionType}-notification ${type === 'error' ? 'error' : ''}`
+      };
+      
+      window.showNotification(type, message, options.duration, options);
+    } else {
+      // フォールバック
+      this._showFeedback(message, type);
+    }
+  }
+
+  /**
+   * アクション種別に応じたタイトル取得
+   * @private
+   */
+  _getActionTitle(actionType, type = 'success') {
+    if (type === 'error') {
+      const errorTitleMap = {
+        preview: 'プレビューエラー',
+        save: '保存エラー',
+        publish: '公開エラー',
+        action: '操作エラー'
+      };
+      return errorTitleMap[actionType] || errorTitleMap.action;
+    }
+    
+    const titleMap = {
+      preview: 'プレビュー',
+      save: '保存完了',
+      publish: '公開完了',
+      action: '操作完了'
+    };
+    
+    return titleMap[actionType] || titleMap.action;
+  }
   _registerAdminActions() {
     console.log('SETUP 管理画面アクション登録開始');
     
@@ -389,9 +442,41 @@ export class AdminActionService {
         }
       },
       'new-news-article': () => this.startNewArticle(),
-      'preview-news': () => this.previewNews(),
-      'save-news': () => this.saveNews(),
-      'publish-news': () => this.publishNews(),
+      'preview-news': async () => {
+        try {
+          await this.previewNews();
+          this._showActionNotification('記事のプレビューを表示しました', 'info', 'preview');
+        } catch (error) {
+          this._showActionNotification('プレビューの表示に失敗しました', 'error', 'preview');
+          console.error('プレビューエラー:', error);
+        }
+      },
+      'save-news': async () => {
+        try {
+          const result = await this.saveNews();
+          if (result !== false) {
+            this._showActionNotification('記事を下書きとして保存しました', 'success', 'save');
+          } else {
+            this._showActionNotification('下書き保存に失敗しました', 'error', 'save');
+          }
+        } catch (error) {
+          this._showActionNotification('下書き保存中にエラーが発生しました', 'error', 'save');
+          console.error('下書き保存エラー:', error);
+        }
+      },
+      'publish-news': async () => {
+        try {
+          const result = await this.publishNews();
+          if (result !== false) {
+            this._showActionNotification('記事を公開しました', 'success', 'publish');
+          } else {
+            this._showActionNotification('記事の公開に失敗しました', 'error', 'publish');
+          }
+        } catch (error) {
+          this._showActionNotification('公開中にエラーが発生しました', 'error', 'publish');
+          console.error('記事公開エラー:', error);
+        }
+      },
       'test-article-service': () => this.testArticleService(),
       'filter-news-list': (element, params) => this.filterNewsList(element, params),
       'refresh-news-list': () => this.refreshNewsList(),
@@ -477,7 +562,19 @@ export class AdminActionService {
       // Instagram管理
       'switch-instagram-tab': (element, params) => this.switchInstagramTab(params.tab),
       'add-instagram-post': () => this.addInstagramPost(),
-      'save-instagram-post': () => this.saveInstagramPost(),
+      'save-instagram-post': async () => {
+        try {
+          const result = await this.saveInstagramPost();
+          if (result !== false) {
+            this._showActionNotification('Instagram投稿を保存しました', 'success', 'save');
+          } else {
+            this._showActionNotification('Instagram投稿の保存に失敗しました', 'error', 'save');
+          }
+        } catch (error) {
+          this._showActionNotification('Instagram投稿保存中にエラーが発生しました', 'error', 'save');
+          console.error('Instagram保存エラー:', error);
+        }
+      },
       'refresh-instagram-posts': () => this.refreshInstagramPosts(),
       'save-instagram-settings': () => this.saveInstagramSettings(),
       'close-instagram-modal': () => this.closeInstagramModal(),
@@ -1659,12 +1756,12 @@ export class AdminActionService {
       
       if (!formData.title.trim()) {
         this._showFeedback('タイトルが入力されていません', 'error');
-        return;
+        throw new Error('タイトルが入力されていません');
       }
       
       if (!formData.content.trim()) {
         this._showFeedback('本文が入力されていません', 'error');
-        return;
+        throw new Error('本文が入力されていません');
       }
       
       // プレビューモーダルを作成・表示
@@ -1683,36 +1780,32 @@ export class AdminActionService {
    * 記事保存
    */
   async saveNews() {
-    try {
-      const articleData = this._getArticleDataFromForm();
-      
-      if (!this._validateArticleData(articleData)) {
-        return;
+    const articleData = this._getArticleDataFromForm();
+    
+    if (!this._validateArticleData(articleData)) {
+      throw new Error('記事データの検証に失敗しました');
+    }
+
+    const result = await this.articleDataService.saveArticle(articleData, false);
+    
+    if (result.success) {
+      // フォームに記事IDを設定
+      const idField = document.getElementById('news-id');
+      if (idField && result.id) {
+        idField.value = result.id;
       }
 
-      const result = await this.articleDataService.saveArticle(articleData, false);
+      // ボタンアクション用のイベントを発行（通知表示用）
+      EventBus.emit('button:article:saved', { 
+        title: articleData.title,
+        id: result.id 
+      });
       
-      if (result.success) {
-        // フォームに記事IDを設定
-        const idField = document.getElementById('news-id');
-        if (idField && result.id) {
-          idField.value = result.id;
-        }
-
-        // ボタンアクション用のイベントを発行（通知表示用）
-        EventBus.emit('button:article:saved', { 
-          title: articleData.title,
-          id: result.id 
-        });
-        
-        console.log('SAVE 記事を保存:', result);
-      } else {
-        this._showFeedback(result.message || '保存に失敗しました', 'error');
-      }
-
-    } catch (error) {
-      console.error('ERROR 記事保存エラー:', error);
-      this._showFeedback('記事の保存中にエラーが発生しました', 'error');
+      console.log('SAVE 記事を保存:', result);
+      return result;
+    } else {
+      this._showFeedback(result.message || '保存に失敗しました', 'error');
+      throw new Error(result.message || '保存に失敗しました');
     }
   }
 
@@ -1720,42 +1813,38 @@ export class AdminActionService {
    * 記事公開
    */
   async publishNews() {
-    try {
-      const articleData = this._getArticleDataFromForm();
-      
-      if (!this._validateArticleData(articleData)) {
-        return;
-      }
+    const articleData = this._getArticleDataFromForm();
+    
+    if (!this._validateArticleData(articleData)) {
+      throw new Error('記事データの検証に失敗しました');
+    }
 
-      const result = await this.articleDataService.saveArticle(articleData, true);
+    const result = await this.articleDataService.saveArticle(articleData, true);
+    
+    if (result.success) {
+      // 公開成功時の処理
+      this._showFeedback(`記事「${articleData.title}」を公開しました`, 'success');
       
-      if (result.success) {
-        // 公開成功時の処理
-        this._showFeedback(`記事「${articleData.title}」を公開しました`, 'success');
-        
-        // フォームをクリア（通知なし）
-        this.clearNewsEditor(false);
-        
-        // ダッシュボードタブに移動
-        await this.switchAdminTab('dashboard');
-        
-        // ダッシュボードの統計を更新
-        this.updateDashboardStats();
-        
-        // ボタンアクション用のイベントを発行（通知表示用）
-        EventBus.emit('button:article:published', { 
-          title: articleData.title,
-          id: result.id 
-        });
-        
-        console.log('OUT 記事を公開:', result);
-      } else {
-        this._showFeedback(result.message || '公開に失敗しました', 'error');
-      }
-
-    } catch (error) {
-      console.error('ERROR 記事公開エラー:', error);
-      this._showFeedback('記事の公開中にエラーが発生しました', 'error');
+      // フォームをクリア（通知なし）
+      this.clearNewsEditor(false);
+      
+      // ダッシュボードタブに移動
+      await this.switchAdminTab('dashboard');
+      
+      // ダッシュボードの統計を更新
+      this.updateDashboardStats();
+      
+      // ボタンアクション用のイベントを発行（通知表示用）
+      EventBus.emit('button:article:published', { 
+        title: articleData.title,
+        id: result.id 
+      });
+      
+      console.log('OUT 記事を公開:', result);
+      return result;
+    } else {
+      this._showFeedback(result.message || '公開に失敗しました', 'error');
+      throw new Error(result.message || '公開に失敗しました');
     }
   }
 
@@ -4311,45 +4400,39 @@ export class AdminActionService {
   async saveInstagramPost() {
     this.debug('Instagram投稿保存（埋め込みコード）');
     
-    try {
-      const formData = this.getInstagramFormData();
+    const formData = this.getInstagramFormData();
+    
+    if (!formData.embedCode) {
+      this._showFeedback(CONFIG.instagram.ui.errorMessages.embedRequired, 'error');
+      throw new Error('埋め込みコードが入力されていません');
+    }
+    
+    if (!this.validateInstagramEmbed(formData.embedCode)) {
+      this._showFeedback(CONFIG.instagram.ui.errorMessages.invalidEmbed, 'error');
+      throw new Error('無効な埋め込みコードです');
+    }
+    
+    // InstagramDataServiceを使用して保存
+    if (!this.instagramDataService) {
+      throw new Error('InstagramDataServiceが初期化されていません');
+    }
+    
+    const result = await this.instagramDataService.savePost(formData);
+    
+    if (result.success) {
+      this._showFeedback(
+        result.message || CONFIG.instagram.ui.successMessages.saved, 
+        'success'
+      );
+      this.clearInstagramForm();
+      this.refreshInstagramPosts();
       
-      if (!formData.embedCode) {
-        this._showFeedback(CONFIG.instagram.ui.errorMessages.embedRequired, 'error');
-        return;
-      }
-      
-      if (!this.validateInstagramEmbed(formData.embedCode)) {
-        this._showFeedback(CONFIG.instagram.ui.errorMessages.invalidEmbed, 'error');
-        return;
-      }
-      
-      // 埋め込みコードをそのまま使用（URL抽出不要）
-      
-      // InstagramDataServiceを使用して保存
-      if (!this.instagramDataService) {
-        throw new Error('InstagramDataServiceが初期化されていません');
-      }
-      
-      const result = await this.instagramDataService.savePost(formData);
-      
-      if (result.success) {
-        this._showFeedback(
-          result.message || CONFIG.instagram.ui.successMessages.saved, 
-          'success'
-        );
-        this.clearInstagramForm();
-        this.refreshInstagramPosts();
-        
-        // 統計を更新
-        this.updateInstagramStats();
-      } else {
-        this._showFeedback(result.message, 'error');
-      }
-      
-    } catch (error) {
-      this.error('Instagram投稿保存エラー:', error);
-      this._showFeedback(CONFIG.instagram.ui.errorMessages.saveError, 'error');
+      // 統計を更新
+      this.updateInstagramStats();
+      return result;
+    } else {
+      this._showFeedback(result.message, 'error');
+      throw new Error(result.message || 'Instagram投稿の保存に失敗しました');
     }
   }
 
