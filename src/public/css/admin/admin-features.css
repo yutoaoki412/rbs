@@ -519,9 +519,10 @@
 
 /* シンプルレイアウト */
 .instagram-simple-layout {
-  max-width: 900px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   padding: 2rem 0;
+  width: 100%;
 }
 
 /* フォームセクション */
@@ -919,16 +920,7 @@
   color: var(--admin-orange);
 }
 
-.post-actions {
-  display: flex;
-  gap: 0.25rem;
-  opacity: 0;
-  transition: var(--admin-transition);
-}
-
-.instagram-post-card:hover .post-actions {
-  opacity: 1;
-}
+/* Instagram投稿アクションボタンはadmin-components.cssで管理 */
 
 /* 統計概要 */
 .stats-overview {
@@ -1696,6 +1688,8 @@
   
   .instagram-simple-layout {
     padding: 1rem 0;
+    max-width: none;
+    width: 100%;
   }
   
   .instagram-add-form,

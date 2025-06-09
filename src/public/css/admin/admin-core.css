@@ -288,6 +288,17 @@
   padding: 1.5rem;
   min-height: calc(100vh - var(--admin-header-height));
   overflow-y: auto;
+  max-width: calc(100vw - var(--admin-sidebar-width));
+}
+
+/* Instagram管理タブ専用レイアウト */
+.admin-section#instagram-management {
+  max-width: none;
+}
+
+.admin-section#instagram-management .instagram-simple-layout {
+  max-width: none;
+  width: 100%;
 }
 
 /* セクション */
