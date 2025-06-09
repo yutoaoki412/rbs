@@ -242,22 +242,37 @@ export class AdminSystemService {
   }
 
   /**
-   * レッスン状況をフォームに読み込み
+   * レッスン状況をフォームに読み込み（統一モジュールにデリゲート）
    */
   async loadLessonStatusToForm() {
     try {
+      console.log('📅 レッスン状況読み込み（統一モジュール使用）');
+      
+      // 統一レッスン状況管理モジュールが利用可能な場合はそれを使用
+      if (window.adminCore) {
+        const lessonStatusManager = window.adminCore.getModule('lessonStatusManagerModule');
+        if (lessonStatusManager && lessonStatusManager.isInitialized) {
+          const today = new Date().toISOString().slice(0, 10);
+          await lessonStatusManager.loadStatusByDate(today);
+          return;
+        }
+      }
+      
+      // フォールバック（従来の方法）
       const today = new Date().toISOString().slice(0, 10);
       const status = getLessonStatusStorageService().getStatusByDate(today);
       
       if (status) {
-        console.log('📅 本日のレッスン状況を読み込み:', status);
+        console.log('📅 本日のレッスン状況を読み込み（フォールバック）:', status);
         EventBus.emit('lessonStatus:formLoaded', status);
       } else {
         console.log('📅 本日のレッスン状況は設定されていません');
       }
     } catch (error) {
       console.error('❌ レッスン状況読み込みエラー:', error);
-      uiManagerService.showNotification('error', 'レッスン状況の読み込みに失敗しました');
+      if (typeof uiManagerService !== 'undefined') {
+        uiManagerService.showNotification('error', 'レッスン状況の読み込みに失敗しました');
+      }
     }
   }
 

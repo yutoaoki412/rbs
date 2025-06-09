@@ -1,39 +1,63 @@
 /**
- * レッスン状況管理モジュール
- * レッスン状況タブの全機能を統合管理
- * @version 1.0.0 - 統合リファクタリング版
+ * レッスン状況管理モジュール - 完全統合版
+ * LessonStatusManagerModule + LessonStatusAdminComponent + LessonStatusModernService を統合
+ * @version 3.1.0 - LessonStatusModernService統合完了版
  */
 
+import { Component } from '../../../lib/base/Component.js';
 import { getLessonStatusStorageService } from '../../../shared/services/LessonStatusStorageService.js';
 import { getUnifiedNotificationService } from '../../../shared/services/UnifiedNotificationService.js';
 import { EventBus } from '../../../shared/services/EventBus.js';
 
-export class LessonStatusManagerModule {
-  constructor() {
+export class LessonStatusManagerModule extends Component {
+  constructor(element = '#lesson-form, #lesson-status-admin, .lesson-status-admin') {
+    super({ autoInit: false });
+    
+    this.componentName = 'LessonStatusManagerModule';
     this.moduleName = 'LessonStatusManagerModule';
+    
+    // DOM要素の設定
+    if (typeof element === 'string') {
+      this.element = document.querySelector(element);
+    } else {
+      this.element = element;
+    }
     
     // サービス参照
     this.storageService = null;
-    this.notificationService = getUnifiedNotificationService();
+    this.notificationService = null;
+    this.lessonStatusService = null; // 互換性のため
     
     // DOM要素
     this.form = null;
+    this.formContainer = null;
     this.dateInput = null;
+    this.globalStatusInputs = null;
+    this.globalMessageInput = null;
+    this.courseInputs = {};
+    this.actionButtons = {};
     this.previewContainer = null;
     this.previewContent = null;
     this.currentStatusDisplay = null;
     
     // 状態管理
     this.currentData = null;
+    this.currentFormData = null; // 互換性のため
     this.hasUnsavedChanges = false;
     this.isInitialized = false;
+    this.isLoading = false;
     this.autoSaveTimeout = null;
+    this.initializationPromise = null; // 重複初期化防止
+    
+    // コース定義（デフォルト値を設定）
+    this.courses = ['basic', 'advance'];
     
     // 設定
     this.config = {
-      autoSaveDelay: 3000, // 3秒後に自動保存
+      autoSaveDelay: 3000,
       animationDuration: 300,
-      maxMessageLength: 500
+      maxMessageLength: 500,
+      maxCourseMessageLength: 200
     };
     
     // パフォーマンス監視
@@ -43,17 +67,37 @@ export class LessonStatusManagerModule {
       errors: []
     };
     
-    this.log('LessonStatusManagerModule 初期化開始');
+    this.log('レッスン状況管理モジュール（統合版）初期化開始');
   }
 
   /**
-   * モジュール初期化
+   * モジュール初期化（重複防止付き）
    */
   async initialize() {
+    // 既に初期化中または完了している場合は重複を防ぐ
+    if (this.isInitialized) {
+      this.warn('既に初期化済みです');
+      return { success: true };
+    }
+    
+    if (this.initializationPromise) {
+      this.warn('初期化中です - 完了を待機します');
+      return await this.initializationPromise;
+    }
+    
+    this.initializationPromise = this._performInitialization();
+    return await this.initializationPromise;
+  }
+
+  /**
+   * 実際の初期化処理
+   * @private
+   */
+  async _performInitialization() {
     const startTime = performance.now();
     
     try {
-      this.log('レッスン状況管理モジュール初期化開始');
+      this.log('レッスン状況管理モジュール（統合版）初期化開始');
       
       // サービス初期化
       await this.initializeServices();
@@ -73,17 +117,20 @@ export class LessonStatusManagerModule {
       this.isInitialized = true;
       this.metrics.initTime = performance.now() - startTime;
       
-      this.log(`✅ レッスン状況管理モジュール初期化完了 (${this.metrics.initTime.toFixed(2)}ms)`);
+      this.log(`✅ レッスン状況管理モジュール（統合版）初期化完了 (${this.metrics.initTime.toFixed(2)}ms)`);
       
       return { success: true };
       
     } catch (error) {
-      this.error('❌ レッスン状況管理モジュール初期化エラー:', error);
+      this.error('❌ レッスン状況管理モジュール（統合版）初期化エラー:', error);
       this.metrics.errors.push({
         type: 'initialization',
         error: error.message,
         timestamp: new Date().toISOString()
       });
+      
+      this.isInitialized = false;
+      this.initializationPromise = null;
       
       return { success: false, error: error.message };
     }
@@ -94,63 +141,102 @@ export class LessonStatusManagerModule {
    */
   async initializeServices() {
     try {
-      // ストレージサービス取得
+      // ストレージサービス初期化
       this.storageService = getLessonStatusStorageService();
-      await this.storageService.initialize();
+      await this.storageService.init();
       
-      // 通知サービス取得（安全に）
+      // 通知サービス初期化（複数の通知システムに対応）
       try {
-        const { getAdminNotificationService } = await import('../../../shared/services/AdminNotificationService.js');
-        this.notificationService = getAdminNotificationService();
+        this.notificationService = getUnifiedNotificationService();
+        this.log('✅ 統一通知サービス初期化完了');
       } catch (error) {
-        this.warn('通知サービスの取得に失敗:', error.message);
-        this.notificationService = null;
+        this.warn('統一通知サービスの初期化に失敗:', error);
+        // フォールバックとして他の通知システムを確認
+        if (typeof window.showNotification === 'function') {
+          this.log('✅ グローバル通知関数を使用');
+        } else if (typeof window.adminNotify === 'function') {
+          this.log('✅ 管理画面通知関数を使用');
+        } else {
+          this.warn('⚠️ 利用可能な通知システムが見つかりません');
+        }
       }
       
-      this.log('✅ レッスン状況ストレージサービス初期化完了');
+      this.log('✅ サービス初期化完了');
       
     } catch (error) {
-      this.error('❌ サービス初期化エラー:', error);
+      this.error('サービス初期化エラー:', error);
       throw error;
     }
   }
 
   /**
-   * DOM要素取得
+   * DOM要素取得（統合版）
    */
   findDOMElements() {
-    // フォーム要素
+    // フォーム要素（複数パターンに対応）
     this.form = document.querySelector('#lesson-form');
-    this.dateInput = document.querySelector('#lesson-date');
+    this.formContainer = document.querySelector('#lesson-status .lesson-form, .lesson-status-form') || this.form;
+    
+    if (!this.form && !this.formContainer) {
+      this.warn('⚠️ レッスン状況フォームが見つかりません');
+      return;
+    }
+    
+    const container = this.formContainer || this.form;
+    
+    // 日付入力
+    this.dateInput = container.querySelector('#lesson-date, input[name="lesson-date"]');
+    
+    // グローバルステータス
+    this.globalStatusInputs = container.querySelectorAll('input[name="global-status"]');
+    
+    // グローバルメッセージ
+    this.globalMessageInput = container.querySelector('#global-message, textarea[name="global-message"]');
+    
+    // コース別入力
+    this.courses.forEach(course => {
+      this.courseInputs[course] = {
+        status: container.querySelectorAll(`input[name="${course}-status"], input[name="${course}-lesson"]`),
+        message: container.querySelector(`#${course}-message, #${course}-lesson-note, textarea[name="${course}-note"]`)
+      };
+    });
+    
+    // アクションボタン
+    this.actionButtons = {
+      load: container.querySelector('button[data-action="load-lesson-status"]'),
+      preview: container.querySelector('button[data-action="preview-lesson-status"]'),
+      saveDraft: container.querySelector('button[data-action="save-draft-lesson-status"]'),
+      save: container.querySelector('button[data-action="update-lesson-status"]')
+    };
     
     // プレビュー関連
-    this.previewContainer = document.querySelector('#preview-container');
+    this.previewContainer = document.querySelector('#preview-container, .lesson-status-preview, #lesson-status-preview');
     this.previewContent = document.querySelector('#preview-content');
     
     // 現在の状況表示
     this.currentStatusDisplay = document.querySelector('#current-status-display');
     
-    // バリデーション
-    if (!this.form) {
-      this.warn('⚠️ レッスン状況フォームが見つかりません');
-    }
-    
     this.log('✅ DOM要素取得完了', {
       form: !!this.form,
+      formContainer: !!this.formContainer,
       dateInput: !!this.dateInput,
+      globalStatusInputs: this.globalStatusInputs?.length || 0,
+      globalMessageInput: !!this.globalMessageInput,
+      actionButtons: Object.keys(this.actionButtons).filter(key => this.actionButtons[key]).length,
       previewContainer: !!this.previewContainer,
       currentStatusDisplay: !!this.currentStatusDisplay
     });
   }
 
   /**
-   * イベントリスナー設定
+   * イベントリスナー設定（統合版）
    */
   setupEventListeners() {
-    if (!this.form) return;
+    const container = this.formContainer || this.form;
+    if (!container) return;
     
     // アクションボタンイベント
-    this.form.addEventListener('click', (event) => {
+    container.addEventListener('click', (event) => {
       const button = event.target.closest('[data-action]');
       if (!button) return;
       
@@ -159,21 +245,53 @@ export class LessonStatusManagerModule {
     });
     
     // フォーム変更監視（自動保存用）
-    this.form.addEventListener('change', () => {
-      this.markAsChanged();
-      this.scheduleAutoSave();
+    container.addEventListener('change', (event) => {
+      this.handleFormChange(event);
+    });
+    
+    // フォーム入力監視（リアルタイムバリデーション）
+    container.addEventListener('input', (event) => {
+      this.handleFormInput(event);
     });
     
     // 日付変更イベント
     if (this.dateInput) {
       this.dateInput.addEventListener('change', () => {
-        this.loadStatusByDate(this.dateInput.value);
+        const date = this.dateInput.value;
+        if (date) {
+          this.loadStatusByDate(date);
+        }
       });
     }
     
     // ストレージ更新イベント
     EventBus.on('lessonStatus:updated', (data) => {
       this.handleStorageUpdate(data);
+    });
+
+    // EventBusからのアクション配信を受信（ActionManagerから配信）
+    EventBus.on('action:preview-lesson-status', (data) => {
+      this.log('EventBus経由でプレビューアクションを受信');
+      this.handleAction('preview-lesson-status', data.element);
+    });
+
+    EventBus.on('action:save-draft-lesson-status', (data) => {
+      this.log('EventBus経由で下書き保存アクションを受信');
+      this.handleAction('save-draft-lesson-status', data.element);
+    });
+
+    EventBus.on('action:update-lesson-status', (data) => {
+      this.log('EventBus経由で更新アクションを受信');
+      this.handleAction('update-lesson-status', data.element);
+    });
+    
+    // ページ離脱時の確認
+    window.addEventListener('beforeunload', (event) => {
+      if (this.hasUnsavedChanges) {
+        event.preventDefault();
+        event.returnValue = '未保存の変更があります。ページを離れますか？';
+        return event.returnValue;
+      }
     });
     
     this.log('✅ イベントリスナー設定完了');
@@ -186,7 +304,7 @@ export class LessonStatusManagerModule {
     try {
       // 今日の日付を設定
       const today = this.getTodayDate();
-      if (this.dateInput) {
+      if (this.dateInput && !this.dateInput.value) {
         this.dateInput.value = today;
       }
       
@@ -203,22 +321,42 @@ export class LessonStatusManagerModule {
    * 自動保存設定
    */
   setupAutoSave() {
-    // ページ離脱時の確認
-    window.addEventListener('beforeunload', (event) => {
-      if (this.hasUnsavedChanges) {
-        event.preventDefault();
-        event.returnValue = '未保存の変更があります。ページを離れますか？';
-      }
-    });
+    // 既に設定済みの場合はスキップ
+    if (this.autoSaveSetup) return;
+    this.autoSaveSetup = true;
   }
 
   /**
-   * アクション処理
+   * フォーム変更ハンドラ（統合版）
+   */
+  handleFormChange(event) {
+    this.hasUnsavedChanges = true;
+    this.markAsChanged();
+    this.scheduleAutoSave();
+    this.updateFormValidation();
+    this.debug('フォーム変更検出:', event.target.name || event.target.id);
+  }
+
+  /**
+   * フォーム入力ハンドラ（リアルタイムバリデーション）
+   */
+  handleFormInput(event) {
+    this.hasUnsavedChanges = true;
+    
+    // リアルタイムバリデーション
+    if (event.target.type === 'textarea' || event.target.tagName === 'TEXTAREA') {
+      this.validateTextLength(event.target);
+    }
+  }
+
+  /**
+   * アクション処理（統合版）
    */
   async handleAction(action, button) {
     try {
       this.incrementActionCount(action);
       this.setButtonLoading(button, true);
+      this.setLoading(true);
       
       switch (action) {
         case 'load-lesson-status':
@@ -239,7 +377,7 @@ export class LessonStatusManagerModule {
       
     } catch (error) {
       this.error(`アクション実行エラー (${action}):`, error);
-      this.showNotification('error', `${action}の実行に失敗しました`);
+      this.showNotification('error', `${action}の実行に失敗しました: ${error.message}`);
       
       this.metrics.errors.push({
         type: 'action',
@@ -250,6 +388,7 @@ export class LessonStatusManagerModule {
       
     } finally {
       this.setButtonLoading(button, false);
+      this.setLoading(false);
     }
   }
 
@@ -262,7 +401,7 @@ export class LessonStatusManagerModule {
   }
 
   /**
-   * 指定日のレッスン状況読み込み
+   * 指定日のレッスン状況読み込み（統合版）
    */
   async loadStatusByDate(date) {
     try {
@@ -271,12 +410,14 @@ export class LessonStatusManagerModule {
       const statusData = this.storageService.getStatusByDate(date);
       
       if (statusData) {
-        this.populateForm(statusData);
+        await this.populateForm(statusData);
         this.currentData = statusData;
+        this.currentFormData = statusData; // 互換性のため
         this.updateCurrentStatusDisplay(statusData);
+        this.updateUIWithLessonStatus(statusData);
         this.showNotification('success', `${date} のレッスン状況を読み込みました`);
       } else {
-        this.setDefaultForm(date);
+        await this.setDefaultForm(date);
         this.showNotification('info', `${date} の新規レッスン状況を作成します`);
       }
       
@@ -289,14 +430,18 @@ export class LessonStatusManagerModule {
   }
 
   /**
-   * レッスン状況プレビュー
+   * レッスン状況プレビュー（改善版）
    */
   async previewLessonStatus() {
     try {
+      this.log('プレビュー生成開始');
+      
       const formData = this.getFormData();
+      this.debug('プレビュー用フォームデータ:', formData);
       
       // バリデーション
       if (!this.validateFormData(formData)) {
+        this.warn('プレビュー: バリデーションエラー');
         return;
       }
       
@@ -304,51 +449,170 @@ export class LessonStatusManagerModule {
       const previewHTML = this.generatePreviewHTML(formData);
       
       // プレビュー表示
-      this.showPreview(previewHTML);
+      const displayResult = this.showPreview(previewHTML);
       
-      this.showNotification('info', 'レッスン状況のプレビューを表示しました');
+      if (displayResult) {
+        this.showNotification('success', 'レッスン状況のプレビューを表示しました');
+        this.log('✅ プレビュー表示成功');
+      } else {
+        this.showNotification('warning', 'プレビューを表示しましたが、一部機能が制限されています');
+        this.warn('⚠️ プレビュー表示: 制限モード');
+      }
       
     } catch (error) {
       this.error('プレビュー生成エラー:', error);
-      this.showNotification('error', 'プレビューの生成に失敗しました');
+      this.showNotification('error', `プレビューの生成に失敗しました: ${error.message}`);
+      
+      // エラー詳細をデバッグ用に出力
+      this.debug('プレビューエラー詳細:', {
+        error: error.message,
+        stack: error.stack,
+        formState: this.getDebugInfo()
+      });
     }
   }
 
   /**
-   * 下書き保存
+   * 下書き保存（改善版）
    */
   async saveDraftLessonStatus() {
     try {
+      this.log('下書き保存開始');
+      
       const formData = this.getFormData();
+      this.debug('下書き保存用フォームデータ:', formData);
       
       // バリデーション（下書きは緩い検証）
       if (!formData.date) {
         this.showNotification('error', '日付を選択してください');
+        this.warn('下書き保存: 日付が未選択');
+        return;
+      }
+      
+      // 日付形式の基本チェック
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(formData.date)) {
+        this.showNotification('error', '正しい日付形式で入力してください');
+        this.warn('下書き保存: 日付形式が不正');
         return;
       }
       
       // 下書きフラグを設定
       formData.isDraft = true;
       formData.lastModified = new Date().toISOString();
+      formData.savedAt = new Date().toISOString();
+      
+      this.debug('下書き保存実行:', formData);
       
       // 保存実行
-      const result = await this.storageService.saveStatus(formData);
+      let result;
+      if (this.storageService && typeof this.storageService.saveStatus === 'function') {
+        result = await this.storageService.saveStatus(formData);
+      } else {
+        // フォールバック：ローカルストレージに直接保存
+        this.warn('ストレージサービスが利用できません。ローカルストレージに保存します。');
+        result = this.saveDraftToLocalStorage(formData);
+      }
       
-      if (result.success) {
+      if (result && result.success) {
         this.currentData = formData;
         this.hasUnsavedChanges = false;
-        this.showNotification('success', 'レッスン状況を下書きとして保存しました');
+        this.showNotification('success', `下書きを保存しました (${formData.date})`);
+        this.log('✅ 下書き保存成功');
         
         // 統計更新
-        this.updateDashboardStats();
+        try {
+          this.updateDashboardStats();
+        } catch (statsError) {
+          this.warn('統計更新エラー:', statsError);
+        }
+        
+        // 保存成功の視覚的フィードバック
+        this.highlightSaveSuccess();
         
       } else {
-        this.showNotification('error', result.error || '下書き保存に失敗しました');
+        const errorMsg = result?.error || '下書き保存に失敗しました';
+        this.showNotification('error', errorMsg);
+        this.error('下書き保存失敗:', result);
       }
       
     } catch (error) {
       this.error('下書き保存エラー:', error);
-      this.showNotification('error', '下書き保存中にエラーが発生しました');
+      this.showNotification('error', `下書き保存中にエラーが発生しました: ${error.message}`);
+      
+      // エラー詳細をデバッグ用に出力
+      this.debug('下書き保存エラー詳細:', {
+        error: error.message,
+        stack: error.stack,
+        formState: this.getDebugInfo()
+      });
+    }
+  }
+
+  /**
+   * ローカルストレージへの下書き保存（フォールバック）
+   */
+  saveDraftToLocalStorage(formData) {
+    try {
+      const draftKey = `rbs_lesson_draft_${formData.date}`;
+      const draftData = {
+        ...formData,
+        savedAt: new Date().toISOString(),
+        source: 'fallback'
+      };
+      
+      localStorage.setItem(draftKey, JSON.stringify(draftData));
+      
+      this.log(`ローカルストレージに下書き保存: ${draftKey}`);
+      
+      return {
+        success: true,
+        data: draftData
+      };
+      
+    } catch (error) {
+      this.error('ローカルストレージ保存エラー:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * 保存成功の視覚的フィードバック
+   */
+  highlightSaveSuccess() {
+    try {
+      // 保存ボタンに一時的なスタイルを適用
+      const saveButton = this.actionButtons.saveDraft;
+      if (saveButton) {
+        const originalStyle = saveButton.style.cssText;
+        saveButton.style.cssText += `
+          background-color: #28a745 !important;
+          color: white !important;
+          transform: scale(1.05);
+          transition: all 0.3s ease;
+        `;
+        
+        setTimeout(() => {
+          saveButton.style.cssText = originalStyle;
+        }, 1500);
+      }
+      
+      // フォーム全体に成功の境界線を一時的に表示
+      const form = this.form || this.formContainer;
+      if (form) {
+        const originalBorder = form.style.border;
+        form.style.border = '2px solid #28a745';
+        form.style.transition = 'border 0.3s ease';
+        
+        setTimeout(() => {
+          form.style.border = originalBorder;
+        }, 2000);
+      }
+      
+    } catch (error) {
+      this.warn('視覚的フィードバック表示エラー:', error);
     }
   }
 
@@ -410,28 +674,11 @@ export class LessonStatusManagerModule {
   }
 
   /**
-   * フォームデータ取得
+   * フォームデータ取得（統合版）
    */
   getFormData() {
-    if (!this.form) return null;
-    
-    const formData = {
-      date: this.dateInput?.value || this.getTodayDate(),
-      globalStatus: this.getSelectedValue('global-status'),
-      globalMessage: this.getInputValue('global-message'),
-      courses: {
-        basic: {
-          status: this.getSelectedValue('basic-status'),
-          message: this.getInputValue('basic-message') || ''
-        },
-        advance: {
-          status: this.getSelectedValue('advance-status'),
-          message: this.getInputValue('advance-message') || ''
-        }
-      }
-    };
-    
-    return formData;
+    // 統合版のcollectFormDataを使用
+    return this.collectFormData();
   }
 
   /**
@@ -473,8 +720,8 @@ export class LessonStatusManagerModule {
     
     // コースメッセージ長チェック
     for (const [courseKey, courseData] of Object.entries(data.courses)) {
-      if (courseData.message && courseData.message.length > this.config.maxMessageLength) {
-        this.showNotification('error', `${courseKey}コースメッセージは${this.config.maxMessageLength}文字以内で入力してください`);
+      if (courseData.message && courseData.message.length > this.config.maxCourseMessageLength) {
+        this.showNotification('error', `${courseKey}コースメッセージは${this.config.maxCourseMessageLength}文字以内で入力してください`);
         return false;
       }
     }
@@ -483,48 +730,96 @@ export class LessonStatusManagerModule {
   }
 
   /**
-   * フォームにデータを設定
+   * フォームにデータを設定（統合版）
    */
-  populateForm(data) {
-    if (!this.form || !data) return;
+  async populateForm(data) {
+    if (!data) return;
     
-    // 日付設定
-    if (this.dateInput) {
-      this.dateInput.value = data.date;
-    }
-    
-    // グローバルステータス設定
-    this.setSelectedValue('global-status', data.globalStatus);
-    
-    // グローバルメッセージ設定
-    this.setInputValue('global-message', data.globalMessage || '');
-    
-    // コース別設定
-    if (data.courses) {
-      this.setSelectedValue('basic-status', data.courses.basic?.status || 'scheduled');
-      this.setInputValue('basic-message', data.courses.basic?.message || '');
+    try {
+      // 日付設定
+      if (this.dateInput) {
+        this.dateInput.value = data.date;
+      }
       
-      this.setSelectedValue('advance-status', data.courses.advance?.status || 'scheduled');
-      this.setInputValue('advance-message', data.courses.advance?.message || '');
+      // グローバルステータス設定（複数パターンに対応）
+      if (this.globalStatusInputs && this.globalStatusInputs.length > 0) {
+        const globalInput = Array.from(this.globalStatusInputs).find(input => input.value === data.globalStatus);
+        if (globalInput) {
+          globalInput.checked = true;
+        }
+      } else {
+        // フォールバック
+        this.setSelectedValue('global-status', data.globalStatus);
+      }
+      
+      // グローバルメッセージ設定
+      if (this.globalMessageInput) {
+        this.globalMessageInput.value = data.globalMessage || '';
+      } else {
+        this.setInputValue('global-message', data.globalMessage || '');
+      }
+      
+      // コース別設定（統合版）
+      if (data.courses) {
+        this.courses.forEach(courseKey => {
+          const courseData = data.courses[courseKey];
+          if (courseData) {
+            // ステータス設定
+            if (this.courseInputs[courseKey]?.status) {
+              const statusInput = Array.from(this.courseInputs[courseKey].status).find(input => 
+                input.value === courseData.status || input.value === this.mapStatusToAdmin(courseData.status)
+              );
+              if (statusInput) {
+                statusInput.checked = true;
+              }
+            } else {
+              // フォールバック
+              this.setSelectedValue(`${courseKey}-status`, courseData.status);
+            }
+            
+            // メッセージ設定
+            if (this.courseInputs[courseKey]?.message) {
+              this.courseInputs[courseKey].message.value = courseData.message || '';
+            } else {
+              // フォールバック
+              this.setInputValue(`${courseKey}-message`, courseData.message || '');
+            }
+          }
+        });
+      }
+      
+      this.debug('フォームデータ設定完了');
+      
+    } catch (error) {
+      this.error('フォームデータ設定エラー:', error);
     }
   }
 
   /**
-   * デフォルトフォーム設定
+   * デフォルトフォーム設定（統合版）
    */
-  setDefaultForm(date) {
-    const defaultData = {
-      date: date,
-      globalStatus: 'scheduled',
-      globalMessage: '',
-      courses: {
-        basic: { status: 'scheduled', message: '' },
-        advance: { status: 'scheduled', message: '' }
-      }
-    };
-    
-    this.populateForm(defaultData);
-    this.currentData = defaultData;
+  async setDefaultForm(date) {
+    try {
+      const defaultData = {
+        date: date,
+        globalStatus: 'scheduled',
+        globalMessage: '',
+        courses: {
+          basic: { status: 'scheduled', message: '' },
+          advance: { status: 'scheduled', message: '' }
+        }
+      };
+      
+      await this.populateForm(defaultData);
+      this.currentData = defaultData;
+      this.currentFormData = defaultData; // 互換性のため
+      this.hasUnsavedChanges = false;
+      
+      this.debug('デフォルトフォーム設定完了');
+      
+    } catch (error) {
+      this.error('デフォルトフォーム設定エラー:', error);
+    }
   }
 
   /**
@@ -607,20 +902,167 @@ export class LessonStatusManagerModule {
   }
 
   /**
-   * プレビュー表示
+   * プレビュー表示（改善版）
    */
   showPreview(html) {
-    if (!this.previewContainer || !this.previewContent) return;
-    
-    this.previewContent.innerHTML = html;
-    
-    // プレビューコンテナの表示/非表示切り替え
-    if (this.previewContainer.classList.contains('preview-hidden')) {
-      this.previewContainer.classList.remove('preview-hidden');
-      this.previewContainer.classList.add('preview-visible');
-    } else {
-      this.previewContainer.classList.add('preview-hidden');
-      this.previewContainer.classList.remove('preview-visible');
+    try {
+      // プレビューコンテナとコンテンツを取得
+      let previewContainer = this.previewContainer || document.querySelector('#preview-container, .lesson-status-preview, #lesson-status-preview');
+      let previewContent = this.previewContent || document.querySelector('#preview-content, .preview-content');
+      
+      // プレビューコンテナが見つからない場合の処理
+      if (!previewContainer) {
+        this.warn('プレビューコンテナが見つかりません。フォールバック処理を実行します。');
+        return this.createFallbackPreview(html);
+      }
+      
+      // プレビューコンテンツが見つからない場合
+      if (!previewContent) {
+        this.warn('プレビューコンテンツエリアが見つかりません。コンテナ内に作成します。');
+        previewContent = document.createElement('div');
+        previewContent.className = 'preview-content';
+        previewContent.id = 'preview-content';
+        previewContainer.appendChild(previewContent);
+      }
+      
+      // プレビュー内容を設定
+      previewContent.innerHTML = html;
+      
+      // プレビューコンテナの表示/非表示切り替え
+      if (previewContainer.classList.contains('preview-hidden')) {
+        previewContainer.classList.remove('preview-hidden');
+        previewContainer.classList.add('preview-visible');
+        this.log('✅ プレビューを表示しました');
+      } else {
+        // 既に表示されている場合は更新のみ
+        this.log('✅ プレビューを更新しました');
+      }
+      
+      // スムーズスクロール
+      try {
+        previewContainer.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      } catch (scrollError) {
+        this.warn('スクロールに失敗しました:', scrollError);
+      }
+      
+      return true;
+      
+    } catch (error) {
+      this.error('プレビュー表示エラー:', error);
+      return this.createFallbackPreview(html);
+    }
+  }
+
+  /**
+   * フォールバックプレビュー作成
+   */
+  createFallbackPreview(html) {
+    try {
+      this.log('フォールバックプレビューを作成します');
+      
+      // 既存のフォールバックプレビューを削除
+      const existingFallback = document.querySelector('#fallback-preview');
+      if (existingFallback) {
+        existingFallback.remove();
+      }
+      
+      // フォールバックプレビューコンテナを作成
+      const fallbackContainer = document.createElement('div');
+      fallbackContainer.id = 'fallback-preview';
+      fallbackContainer.style.cssText = `
+        position: fixed;
+        top: 10%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 800px;
+        max-height: 80vh;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        z-index: 10000;
+        overflow: hidden;
+        border: 1px solid #ddd;
+      `;
+      
+      // ヘッダー作成
+      const header = document.createElement('div');
+      header.style.cssText = `
+        background: linear-gradient(135deg, #4a90e2, #357abd);
+        color: white;
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: bold;
+        font-size: 16px;
+      `;
+      header.innerHTML = `
+        <span><i class="fas fa-eye"></i> レッスン状況プレビュー</span>
+        <button onclick="this.closest('#fallback-preview').remove()" 
+                style="background:none;border:none;color:white;cursor:pointer;font-size:18px;padding:4px 8px;border-radius:4px;" 
+                onmouseover="this.style.backgroundColor='rgba(255,255,255,0.2)'" 
+                onmouseout="this.style.backgroundColor='transparent'">×</button>
+      `;
+      
+      // コンテンツエリア作成
+      const content = document.createElement('div');
+      content.style.cssText = `
+        padding: 20px;
+        overflow-y: auto;
+        max-height: calc(80vh - 80px);
+        background: #f8f9fa;
+      `;
+      content.innerHTML = html;
+      
+      // 組み立て
+      fallbackContainer.appendChild(header);
+      fallbackContainer.appendChild(content);
+      
+      // ページに追加
+      document.body.appendChild(fallbackContainer);
+      
+      // フェードイン効果
+      fallbackContainer.style.opacity = '0';
+      setTimeout(() => {
+        fallbackContainer.style.transition = 'opacity 0.3s ease';
+        fallbackContainer.style.opacity = '1';
+      }, 10);
+      
+      this.log('✅ フォールバックプレビューを表示しました');
+      return false; // 制限モードとして false を返す
+      
+    } catch (error) {
+      this.error('フォールバックプレビュー作成エラー:', error);
+      
+      // 最終フォールバック：新しいウィンドウで表示
+      try {
+        const newWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes');
+        newWindow.document.write(`
+          <html>
+            <head>
+              <title>レッスン状況プレビュー</title>
+              <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; background: #f8f9fa; }
+                .lesson-status-preview { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+              </style>
+            </head>
+            <body>${html}</body>
+          </html>
+        `);
+        newWindow.document.close();
+        this.log('✅ 新しいウィンドウでプレビューを表示しました');
+        return false;
+      } catch (windowError) {
+        this.error('新しいウィンドウでの表示も失敗しました:', windowError);
+        // コンソールにHTMLを出力（デバッグ用）
+        console.log('プレビューHTML:', html);
+        alert('プレビューの表示に失敗しました。ブラウザのコンソールを確認してください。');
+        return false;
+      }
     }
   }
 
@@ -770,22 +1212,159 @@ export class LessonStatusManagerModule {
   }
 
   /**
-   * 通知表示
+   * 通知表示（改善版）
    */
   showNotification(type, message) {
-    if (this.notificationService) {
-      this.notificationService.show({
-        type,
-        message,
-        duration: 4000,
-        category: 'lesson-status'
-      });
-    } else if (window.adminNotificationService) {
-      window.adminNotificationService.show({ type, message, duration: 4000 });
-    } else {
-      // フォールバック
-      console.log(`[${type}] ${message}`);
+    try {
+      this.log(`通知表示: [${type}] ${message}`);
+      
+      // 1. 統一通知サービスを使用
+      if (this.notificationService && typeof this.notificationService.show === 'function') {
+        this.notificationService.show({
+          type,
+          message,
+          duration: 4000,
+          category: 'lesson-status'
+        });
+        this.log('✅ 統一通知サービスで表示');
+        return true;
+      }
+      
+      // 2. グローバル通知関数を使用
+      if (typeof window.showNotification === 'function') {
+        window.showNotification(type, message, 4000);
+        this.log('✅ グローバル通知関数で表示');
+        return true;
+      }
+      
+      // 3. 管理画面通知関数を使用
+      if (typeof window.adminNotify === 'function') {
+        window.adminNotify({ type, message, duration: 4000 });
+        this.log('✅ 管理画面通知関数で表示');
+        return true;
+      }
+      
+      // 4. UIManagerServiceを使用
+      if (window.uiManagerService && typeof window.uiManagerService.showNotification === 'function') {
+        window.uiManagerService.showNotification(type, message);
+        this.log('✅ UIManagerServiceで表示');
+        return true;
+      }
+      
+      // 5. 簡易通知作成（最終フォールバック）
+      this.createSimpleNotification(type, message);
+      this.log('✅ 簡易通知で表示');
+      return true;
+      
+    } catch (error) {
+      // 通知表示でエラーが発生した場合のフォールバック
+      this.error('通知表示エラー:', error);
+      const typeEmoji = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+      };
+      console.log(`${typeEmoji[type] || 'ℹ️'} [${type.toUpperCase()}] ${message}`);
+      
+      // アラートとしても表示
+      alert(`[${type.toUpperCase()}] ${message}`);
+      return false;
     }
+  }
+
+  /**
+   * 簡易通知作成（最終フォールバック）
+   */
+  createSimpleNotification(type, message) {
+    // 既存の通知コンテナを取得または作成
+    let container = document.querySelector('#fallback-notifications');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'fallback-notifications';
+      container.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        max-width: 400px;
+        pointer-events: none;
+      `;
+      document.body.appendChild(container);
+    }
+    
+    // 通知要素作成
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      background: ${this.getNotificationBgColor(type)};
+      color: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      pointer-events: auto;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+      font-size: 14px;
+      line-height: 1.4;
+    `;
+    
+    notification.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span>${this.getNotificationIcon(type)}</span>
+        <span>${this.escapeHtml(message)}</span>
+        <button onclick="this.parentElement.parentElement.remove()" 
+                style="background:none;border:none;color:white;cursor:pointer;margin-left:auto;font-size:16px;">×</button>
+      </div>
+    `;
+    
+    container.appendChild(notification);
+    
+    // アニメーション
+    setTimeout(() => {
+      notification.style.opacity = '1';
+      notification.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // 自動削除
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.remove();
+          }
+        }, 300);
+      }
+    }, 4000);
+  }
+
+  /**
+   * 通知の背景色を取得
+   */
+  getNotificationBgColor(type) {
+    const colors = {
+      success: '#28a745',
+      error: '#dc3545',
+      warning: '#ffc107',
+      info: '#4a90e2'
+    };
+    return colors[type] || colors.info;
+  }
+
+  /**
+   * 通知のアイコンを取得
+   */
+  getNotificationIcon(type) {
+    const icons = {
+      success: '✅',
+      error: '❌',
+      warning: '⚠️',
+      info: 'ℹ️'
+    };
+    return icons[type] || icons.info;
   }
 
   /**
@@ -824,18 +1403,271 @@ export class LessonStatusManagerModule {
     };
   }
 
+  // === 統合版追加機能 ===
+
+  /**
+   * ステータスマッピング（標準→管理画面）
+   */
+  mapStatusToAdmin(status) {
+    const mapping = {
+      'scheduled': '開催',
+      'cancelled': '中止',
+      'indoor': '室内開催',
+      'postponed': '延期'
+    };
+    return mapping[status] || '開催';
+  }
+
+  /**
+   * ステータスマッピング（管理画面→標準）
+   */
+  mapAdminToStatus(adminStatus) {
+    const mapping = {
+      '開催': 'scheduled',
+      '中止': 'cancelled',
+      '室内開催': 'indoor',
+      '延期': 'postponed'
+    };
+    return mapping[adminStatus] || 'scheduled';
+  }
+
+  /**
+   * フォームデータ収集（統合版）
+   */
+  collectFormData() {
+    const formData = {
+      date: this.dateInput?.value || this.getTodayDate(),
+      globalStatus: this.getSelectedGlobalStatus(),
+      globalMessage: this.getGlobalMessage(),
+      courses: {}
+    };
+    
+    // コース別データ収集（安全性を確保）
+    const courses = this.courses || ['basic', 'advance'];
+    
+    courses.forEach(course => {
+      try {
+        const status = this.getSelectedCourseStatus(course);
+        const message = this.getCourseMessage(course);
+        
+        formData.courses[course] = {
+          status: this.mapAdminToStatus(status),
+          message: message || ''
+        };
+        
+        this.debug(`コース[${course}]データ収集完了:`, {
+          status: status,
+          mappedStatus: this.mapAdminToStatus(status),
+          message: message
+        });
+        
+      } catch (error) {
+        this.error(`コース[${course}]データ収集エラー:`, error);
+        // フォールバック値を設定
+        formData.courses[course] = {
+          status: 'scheduled',
+          message: ''
+        };
+      }
+    });
+    
+    this.debug('フォームデータ収集完了:', formData);
+    return formData;
+  }
+
+  /**
+   * 選択されたグローバルステータスを取得
+   */
+  getSelectedGlobalStatus() {
+    if (this.globalStatusInputs && this.globalStatusInputs.length > 0) {
+      const checked = Array.from(this.globalStatusInputs).find(input => input.checked);
+      return checked?.value || 'scheduled';
+    }
+    // フォールバック
+    return this.getSelectedValue('global-status') || 'scheduled';
+  }
+
+  /**
+   * グローバルメッセージを取得
+   */
+  getGlobalMessage() {
+    if (this.globalMessageInput) {
+      return this.globalMessageInput.value || '';
+    }
+    // フォールバック
+    return this.getInputValue('global-message') || '';
+  }
+
+  /**
+   * 選択されたコースステータスを取得
+   */
+  getSelectedCourseStatus(course) {
+    const courseInputs = this.courseInputs[course]?.status;
+    if (courseInputs) {
+      const checked = Array.from(courseInputs).find(input => input.checked);
+      return checked?.value || '開催';
+    }
+    // フォールバック
+    return this.getSelectedValue(`${course}-status`) || 'scheduled';
+  }
+
+  /**
+   * コースメッセージを取得
+   */
+  getCourseMessage(course) {
+    const messageInput = this.courseInputs[course]?.message;
+    if (messageInput) {
+      return messageInput.value || '';
+    }
+    // フォールバック
+    return this.getInputValue(`${course}-message`) || '';
+  }
+
+  /**
+   * フォームバリデーション更新
+   */
+  updateFormValidation() {
+    // リアルタイムバリデーション表示
+    // 現在は基本的なチェックのみ
+  }
+
+  /**
+   * テキスト長バリデーション
+   */
+  validateTextLength(textElement) {
+    const maxLength = textElement.name?.includes('global') ? 
+      this.config.maxMessageLength : this.config.maxCourseMessageLength;
+    const currentLength = textElement.value.length;
+    
+    // 長さ表示
+    let lengthIndicator = textElement.parentElement.querySelector('.length-indicator');
+    if (!lengthIndicator) {
+      lengthIndicator = document.createElement('small');
+      lengthIndicator.className = 'length-indicator';
+      lengthIndicator.style.cssText = 'display: block; margin-top: 5px; font-size: 12px;';
+      textElement.parentElement.appendChild(lengthIndicator);
+    }
+    
+    lengthIndicator.textContent = `${currentLength}/${maxLength}文字`;
+    lengthIndicator.style.color = currentLength > maxLength ? '#e74c3c' : '#666';
+  }
+
+  /**
+   * ローディング状態設定
+   */
+  setLoading(loading) {
+    this.isLoading = loading;
+    
+    // ボタンの無効化/有効化
+    Object.values(this.actionButtons).forEach(button => {
+      if (button) {
+        button.disabled = loading;
+      }
+    });
+  }
+
+  /**
+   * UIの更新（レッスン状況表示）
+   */
+  updateUIWithLessonStatus(statusData) {
+    // 追加のUI更新処理
+    this.debug('UIの更新完了:', statusData);
+  }
+
+  /**
+   * 互換性メソッド - hasUnsavedData
+   */
+  hasUnsavedData() {
+    return this.hasUnsavedChanges;
+  }
+
+  /**
+   * 互換性メソッド - resetForm
+   */
+  async resetForm() {
+    if (this.hasUnsavedChanges) {
+      if (!confirm('未保存の変更があります。リセットしますか？')) {
+        return;
+      }
+    }
+    
+    await this.setDefaultForm(this.getTodayDate());
+    this.showNotification('info', 'フォームをリセットしました');
+  }
+
+  // === LessonStatusModernService互換メソッド ===
+
+  /**
+   * レッスン状況読み込み（Modern互換）
+   */
+  loadLessonStatusModern() {
+    const dateInput = document.querySelector('#lesson-date');
+    const date = dateInput?.value || this.getTodayDate();
+    return this.loadStatusByDate(date);
+  }
+
+  /**
+   * プレビュー表示（Modern互換）
+   */
+  previewLessonStatusModern() {
+    return this.previewLessonStatus();
+  }
+
+  /**
+   * 下書き保存（Modern互換）
+   */
+  saveDraftLessonStatusModern() {
+    return this.saveDraftLessonStatus();
+  }
+
+  /**
+   * 更新・公開（Modern互換）
+   */
+  updateLessonStatusModern() {
+    return this.updateLessonStatus();
+  }
+
+  /**
+   * 統合版のクリーンアップ
+   */
+  async destroy() {
+    try {
+      // タイムアウトクリア
+      if (this.autoSaveTimeout) {
+        clearTimeout(this.autoSaveTimeout);
+      }
+      
+      // イベントリスナー削除
+      EventBus.off('lessonStatus:updated');
+      
+      // 親クラスの破棄
+      if (super.destroy) {
+        await super.destroy();
+      }
+      
+      this.log('統合モジュール破棄完了');
+      
+    } catch (error) {
+      this.error('統合モジュール破棄エラー:', error);
+    }
+  }
+
   // === ログメソッド ===
 
   log(message, ...args) {
-    console.log(`[${this.moduleName}] ${message}`, ...args);
+    console.log(`[${this.componentName || this.moduleName}] ${message}`, ...args);
   }
 
   warn(message, ...args) {
-    console.warn(`[${this.moduleName}] ${message}`, ...args);
+    console.warn(`[${this.componentName || this.moduleName}] ${message}`, ...args);
   }
 
   error(message, ...args) {
-    console.error(`[${this.moduleName}] ${message}`, ...args);
+    console.error(`[${this.componentName || this.moduleName}] ${message}`, ...args);
+  }
+
+  debug(message, ...args) {
+    console.log(`[${this.componentName || this.moduleName}:DEBUG] ${message}`, ...args);
   }
 }
 
@@ -858,4 +1690,13 @@ export function getLessonStatusManagerModule() {
 export async function initializeLessonStatusManager() {
   const manager = getLessonStatusManagerModule();
   return await manager.initialize();
+}
+
+/**
+ * LessonStatusModernService 互換関数（統合版エイリアス）
+ * @deprecated 統一LessonStatusManagerModuleを使用してください
+ */
+export function getLessonStatusModernService() {
+  console.warn('⚠️ getLessonStatusModernService()は非推奨です。getLessonStatusManagerModule()を使用してください。');
+  return getLessonStatusManagerModule();
 } 
