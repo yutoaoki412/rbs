@@ -435,10 +435,7 @@ export class AdminActionService {
       },
 
       // レッスン状況
-      'load-lesson-status': () => this.loadLessonStatus(),
-      'update-lesson-status': () => this.updateLessonStatus(),
-      'preview-lesson-status': () => this.previewLessonStatus(),
-      'save-draft-lesson-status': () => this.saveDraftLessonStatus(),
+
       
 
       
@@ -1981,39 +1978,30 @@ export class AdminActionService {
    */
   // このメソッドは削除 - refreshRecentArticles内で直接処理
 
-  // === レッスン状況管理メソッド ===
+  // === レッスン状況管理は LessonStatusManagerModule に統合済み ===
+
+  // === データ管理メソッド ===
 
   /**
-   * レッスン状況読み込み
+   * データエクスポート
    */
-  async loadLessonStatus() {
+  async exportData() {
     try {
-      const targetDate = document.getElementById('lesson-date')?.value || this._getTodayDateString();
+      this.info('データエクスポートを開始しています...');
       
-      // 現在の状況表示を更新
-      this._updateCurrentStatusDisplay();
+      if (!this.dataExportService) {
+        throw new Error('DataExportServiceが初期化されていません');
+      }
       
-      // シンプルなレッスン状況読み込み
-      if (this.lessonStatusService) {
-        const data = this.lessonStatusService.getStatusByDate(targetDate);
-        
-        if (data) {
-          this._populateLessonStatusForm(data);
-          this._showFeedback(`${targetDate} のレッスン状況を読み込みました`, 'success');
-        } else {
-          // デフォルト値を設定
-          this._setDefaultLessonStatus(targetDate);
-          this._showFeedback(`${targetDate} の新規レッスン状況を設定しました`, 'info');
-        }
+      const result = await this.dataExportService.exportAllData();
+      if (result.success) {
+        this.success(`データエクスポートが完了しました: ${result.filename}`);
       } else {
-        // サービスが利用できない場合は、デフォルト値を設定
-        this._setDefaultLessonStatus(targetDate);
-        this._showFeedback('デフォルトのレッスン状況を設定しました', 'info');
+        this.error(`データエクスポートに失敗しました: ${result.message}`);
       }
       
     } catch (error) {
-      this.error('レッスン状況読み込みエラー:', error);
-      this._showFeedback('レッスン状況の読み込みに失敗しました', 'error');
+      this.error('データエクスポート処理中にエラーが発生しました:', error);
     }
   }
 

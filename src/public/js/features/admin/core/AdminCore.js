@@ -7,6 +7,7 @@ import { initAdminFeature } from '../index.js';
 import { getAdminNotificationService } from '../../../shared/services/AdminNotificationService.js';
 import { getDashboardStatsWidget } from '../components/DashboardStatsWidget.js';
 import { getInstagramEmbedModule } from '../modules/InstagramEmbedModule.js';
+import { getLessonStatusManagerModule } from '../modules/LessonStatusManagerModule.js';
 
 export class AdminCore {
   constructor() {
@@ -20,6 +21,7 @@ export class AdminCore {
       notificationService: false,
       dashboardStatsWidget: false,
       instagramEmbedModule: false,
+      lessonStatusManagerModule: false,
       adminFeatures: false
     };
     
@@ -61,10 +63,13 @@ export class AdminCore {
       // 5. Instagram埋め込みモジュールの初期化
       await this.initInstagramEmbedModule();
       
-      // 6. グローバル関数の設定
+      // 6. レッスン状況管理モジュールの初期化
+      await this.initLessonStatusManagerModule();
+      
+      // 7. グローバル関数の設定
       this.setupGlobalFunctions();
       
-      // 7. 初期化完了
+      // 8. 初期化完了
       this.finalizationInitialization();
       
     } catch (error) {
@@ -214,6 +219,32 @@ export class AdminCore {
       console.error('❌ Instagram埋め込みモジュール初期化エラー:', error);
       // Instagram機能のエラーは致命的ではないため、警告として処理
       console.warn('Instagram埋め込みモジュールの初期化に失敗しましたが、他の機能は継続します');
+    }
+  }
+
+  /**
+   * レッスン状況管理モジュールの初期化
+   */
+  async initLessonStatusManagerModule() {
+    const startTime = performance.now();
+    
+    try {
+      console.log('📅 レッスン状況管理モジュール初期化開始');
+      
+      const lessonStatusManager = getLessonStatusManagerModule();
+      await lessonStatusManager.initialize();
+      this.modules.set('lessonStatusManagerModule', lessonStatusManager);
+      
+      this.initializationState.lessonStatusManagerModule = true;
+      
+      const loadTime = performance.now() - startTime;
+      this.performanceMetrics.componentLoadTimes.set('lessonStatusManagerModule', loadTime);
+      console.log('✅ レッスン状況管理モジュール初期化完了');
+      
+    } catch (error) {
+      console.error('❌ レッスン状況管理モジュール初期化エラー:', error);
+      // レッスン状況機能のエラーは致命的ではないため、警告として処理
+      console.warn('レッスン状況管理モジュールの初期化に失敗しましたが、他の機能は継続します');
     }
   }
 
