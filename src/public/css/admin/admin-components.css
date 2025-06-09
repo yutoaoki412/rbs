@@ -1892,6 +1892,246 @@
   color: white;
 }
 
+/* Instagram統計セクション */
+.stats-overview {
+  margin-bottom: 2rem;
+}
+
+.stats-overview .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--admin-gray-200);
+}
+
+.stats-overview .section-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--admin-gray-900);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stats-overview .section-header h2 i {
+  color: var(--admin-primary);
+  font-size: 1.125rem;
+}
+
+.stats-overview .header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.stats-overview .btn-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--admin-gray-300);
+  background: var(--admin-white);
+  color: var(--admin-gray-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--admin-transition);
+}
+
+.stats-overview .btn-icon:hover {
+  background: var(--admin-gray-50);
+  border-color: var(--admin-primary);
+  color: var(--admin-primary);
+  transform: translateY(-1px);
+}
+
+/* Instagram設定ウィジェット */
+.display-settings.widget {
+  background: var(--admin-white);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius);
+  box-shadow: var(--admin-shadow);
+  overflow: hidden;
+}
+
+.display-settings .widget-header {
+  background: var(--admin-gray-50);
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--admin-gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.display-settings .widget-header h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.display-settings .widget-header h2 i {
+  color: var(--admin-primary);
+  font-size: 0.875rem;
+}
+
+.display-settings .widget-content {
+  padding: 1.5rem;
+}
+
+.display-settings .form-grid {
+  display: grid;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.display-settings .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.display-settings .form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--admin-gray-700);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.display-settings .form-label i {
+  color: var(--admin-gray-500);
+  font-size: 0.75rem;
+}
+
+.display-settings .form-select {
+  padding: 0.75rem;
+  border: 1px solid var(--admin-gray-300);
+  border-radius: var(--admin-border-radius-sm);
+  background: var(--admin-white);
+  color: var(--admin-gray-700);
+  font-size: 0.875rem;
+  transition: var(--admin-transition);
+}
+
+.display-settings .form-select:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.display-settings .form-help {
+  font-size: 0.75rem;
+  color: var(--admin-gray-500);
+  line-height: 1.4;
+}
+
+.display-settings .form-actions {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--admin-gray-100);
+}
+
+.display-settings .btn {
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--admin-border-radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--admin-transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid;
+}
+
+.display-settings .btn-primary {
+  background: var(--admin-primary);
+  color: var(--admin-white);
+  border-color: var(--admin-primary);
+}
+
+.display-settings .btn-primary:hover {
+  background: var(--admin-primary-dark);
+  border-color: var(--admin-primary-dark);
+  transform: translateY(-1px);
+}
+
+.display-settings .btn-outline {
+  background: var(--admin-white);
+  color: var(--admin-gray-700);
+  border-color: var(--admin-gray-300);
+}
+
+.display-settings .btn-outline:hover {
+  background: var(--admin-gray-50);
+  border-color: var(--admin-gray-400);
+  color: var(--admin-gray-900);
+}
+
+/* Instagram設定プレビュー */
+.settings-preview {
+  padding: 1rem 0;
+}
+
+.settings-preview h4 {
+  color: var(--admin-gray-900);
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.settings-preview h4 i {
+  color: var(--admin-primary);
+}
+
+.preview-items {
+  background: var(--admin-gray-50);
+  border-radius: var(--admin-border-radius-sm);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.preview-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--admin-gray-200);
+}
+
+.preview-item:last-child {
+  border-bottom: none;
+}
+
+.preview-item strong {
+  color: var(--admin-gray-700);
+  font-weight: 500;
+}
+
+.preview-note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--admin-gray-600);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.preview-note i {
+  color: var(--admin-primary);
+  font-size: 0.75rem;
+}
+
 /* Instagram空の状態 */
 .instagram-posts-list .empty-state {
   grid-column: 1 / -1;

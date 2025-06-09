@@ -483,6 +483,8 @@ export class AdminActionService {
           }
         },
         'filter-instagram-list': () => this.filterInstagramList(),
+        'reset-instagram-settings': () => this.resetInstagramSettings(),
+        'test-instagram-settings': () => this.testInstagramSettings(),
         'focus-embed-input': () => {
           const embedInput = document.getElementById('instagram-embed-code');
           if (embedInput) {
@@ -5165,11 +5167,13 @@ export class AdminActionService {
       const posts = this.instagramDataService.getAllPosts();
       
       const activePosts = posts.filter(p => p.status === 'active').length;
+      const inactivePosts = posts.filter(p => p.status === 'inactive').length;
       const featuredPosts = posts.filter(p => p.featured).length;
       
       // DOM要素の存在確認してから更新
       const totalPostsElement = document.getElementById('total-posts');
       const activePostsElement = document.getElementById('active-posts');
+      const inactivePostsElement = document.getElementById('inactive-posts');
       const featuredPostsElement = document.getElementById('featured-posts');
       const lastUpdatedElement = document.getElementById('last-updated');
       
@@ -5186,6 +5190,12 @@ export class AdminActionService {
         activePostsElement.textContent = activePosts;
       } else if (isInstagramSettingsTab) {
         this.warn('active-posts要素が見つかりません（Instagram設定タブ）');
+      }
+      
+      if (inactivePostsElement) {
+        inactivePostsElement.textContent = inactivePosts;
+      } else if (isInstagramSettingsTab) {
+        this.warn('inactive-posts要素が見つかりません（Instagram設定タブ）');
       }
       
       if (featuredPostsElement) {
@@ -5244,6 +5254,66 @@ export class AdminActionService {
   wizardNextStep() {
     this.debug('ウィザード次のステップ');
     this._showFeedback('ウィザード機能は開発中です', 'info');
+  }
+
+  /**
+   * Instagram設定をデフォルトに戻す
+   */
+  resetInstagramSettings() {
+    try {
+      const maxPostsSelect = document.getElementById('max-posts-display');
+      const openNewTabCheckbox = document.getElementById('open-new-tab');
+      
+      if (maxPostsSelect) {
+        maxPostsSelect.value = '6'; // デフォルト値
+      }
+      
+      if (openNewTabCheckbox) {
+        openNewTabCheckbox.checked = true; // デフォルト値
+      }
+      
+      this._showFeedback('Instagram設定をデフォルトに戻しました', 'info');
+      this.debug('Instagram設定をデフォルトに戻しました');
+      
+    } catch (error) {
+      this.error('Instagram設定リセットエラー:', error);
+      this._showFeedback('設定のリセットに失敗しました', 'error');
+    }
+  }
+
+  /**
+   * Instagram設定のプレビュー表示
+   */
+  testInstagramSettings() {
+    try {
+      const maxPosts = document.getElementById('max-posts-display')?.value || '6';
+      const openNewTab = document.getElementById('open-new-tab')?.checked || false;
+      
+      const previewMessage = `
+        <div class="settings-preview">
+          <h4><i class="fas fa-eye"></i> 設定プレビュー</h4>
+          <div class="preview-items">
+            <div class="preview-item">
+              <strong>最大表示件数:</strong> ${maxPosts}件
+            </div>
+            <div class="preview-item">
+              <strong>リンク動作:</strong> ${openNewTab ? '新しいタブで開く' : '同じタブで開く'}
+            </div>
+          </div>
+          <small class="preview-note">
+            <i class="fas fa-info-circle"></i>
+            これらの設定は保存後にフロントページに反映されます
+          </small>
+        </div>
+      `;
+      
+      this._showModal('Instagram設定プレビュー', previewMessage);
+      this.debug('Instagram設定プレビューを表示');
+      
+    } catch (error) {
+      this.error('Instagram設定プレビューエラー:', error);
+      this._showFeedback('プレビューの表示に失敗しました', 'error');
+    }
   }
 
   /**
