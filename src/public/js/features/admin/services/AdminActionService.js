@@ -114,12 +114,16 @@ export class AdminActionService {
    * 管理画面サービス初期化
    */
   async init() {
+    if (this.initialized) {
+      this.warn('AdminActionService は既に初期化済みです');
+      return true;
+    }
+
     try {
       this.log('🚀 AdminActionService初期化開始');
 
       // 基本設定
       this.currentTab = 'dashboard';
-      this.initialized = true;
 
       // UIManagerServiceの初期化
       await this.initializeServices();
@@ -127,6 +131,7 @@ export class AdminActionService {
       // 管理画面のUI設定
       await this.setupAdminUI();
 
+      this.initialized = true;
       this.log('✅ AdminActionService初期化完了');
       return true;
 
@@ -160,8 +165,13 @@ export class AdminActionService {
       // アクションマネージャーを設定・初期化
       this.actionManager = actionManager;
       if (!this.actionManager.initialized) {
-        this.actionManager.init();
-        this.debug('✅ ActionManager初期化完了');
+        try {
+          this.actionManager.init();
+          this.debug('✅ ActionManager初期化完了');
+        } catch (error) {
+          this.warn('ActionManager初期化で警告:', error.message);
+          // ActionManagerのエラーは管理画面機能を停止しない
+        }
       }
 
       // 必須サービス: UIManagerService（最優先）
@@ -2303,20 +2313,52 @@ export class AdminActionService {
        // 現在の状況表示を更新
        this._updateCurrentStatusDisplay();
        
-       // レッスン状況を読み込み
-       await this.loadLessonStatus();
-       
-       this.debug('レッスン状況タブの初期化完了');
-       
-     } catch (error) {
-       this.error('レッスン状況タブ初期化エラー:', error);
-       this._showFeedback('レッスン状況タブの初期化に失敗しました', 'error');
-     }
+            // レッスン状況を読み込み
+     await this.loadLessonStatus();
+     
+     this.debug('レッスン状況タブの初期化完了');
+     
+   } catch (error) {
+     this.error('レッスン状況タブ初期化エラー:', error);
+     this._showFeedback('レッスン状況タブの初期化に失敗しました', 'error');
    }
+ }
 
   /**
-   * レッスン状況のプレビュー
+   * レッスン状況読み込み
    */
+  async loadLessonStatus() {
+    try {
+      const dateInput = document.getElementById('lesson-date');
+      const date = dateInput?.value || this._getTodayDateString();
+      
+      this.debug(`レッスン状況読み込み: ${date}`);
+      
+      if (this.lessonStatusService) {
+        const statusData = this.lessonStatusService.getStatusByDate(date);
+        
+        if (statusData) {
+          this._populateLessonStatusForm(statusData);
+          this._updateCurrentStatusDisplay();
+          this._showFeedback(`${date} のレッスン状況を読み込みました`, 'success');
+        } else {
+          this._setDefaultLessonStatus(date);
+          this._showFeedback(`${date} の新規レッスン状況を設定しました`, 'info');
+        }
+      } else {
+        this.warn('LessonStatusServiceが利用できません');
+        this._setDefaultLessonStatus(date);
+      }
+      
+    } catch (error) {
+      this.error('レッスン状況読み込みエラー:', error);
+      this._showFeedback('レッスン状況の読み込みに失敗しました', 'error');
+    }
+  }
+
+/**
+ * レッスン状況のプレビュー
+ */
   previewLessonStatus() {
     try {
       const statusData = this._getLessonStatusFromForm();

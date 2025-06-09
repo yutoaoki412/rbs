@@ -98,6 +98,15 @@ export class LessonStatusManagerModule {
       this.storageService = getLessonStatusStorageService();
       await this.storageService.initialize();
       
+      // 通知サービス取得（安全に）
+      try {
+        const { getAdminNotificationService } = await import('../../../shared/services/AdminNotificationService.js');
+        this.notificationService = getAdminNotificationService();
+      } catch (error) {
+        this.warn('通知サービスの取得に失敗:', error.message);
+        this.notificationService = null;
+      }
+      
       this.log('✅ レッスン状況ストレージサービス初期化完了');
       
     } catch (error) {
@@ -764,12 +773,19 @@ export class LessonStatusManagerModule {
    * 通知表示
    */
   showNotification(type, message) {
-    this.notificationService.show({
-      type,
-      message,
-      duration: 4000,
-      category: 'lesson-status'
-    });
+    if (this.notificationService) {
+      this.notificationService.show({
+        type,
+        message,
+        duration: 4000,
+        category: 'lesson-status'
+      });
+    } else if (window.adminNotificationService) {
+      window.adminNotificationService.show({ type, message, duration: 4000 });
+    } else {
+      // フォールバック
+      console.log(`[${type}] ${message}`);
+    }
   }
 
   /**
