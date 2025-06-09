@@ -2852,14 +2852,15 @@ export class AdminActionService {
       }
       
       // 動的に作成されたモーダルを閉じる
-      const dynamicModals = document.querySelectorAll('.modal[id*="preview-modal"], .modal[id*="lesson-preview-modal"]');
+      const dynamicModals = document.querySelectorAll('.modal[id*="preview-modal"], .modal[id*="lesson-preview-modal"], .modal:not(#modal)');
       dynamicModals.forEach(dynamicModal => {
         dynamicModal.remove();
         this.debug('動的モーダルを削除しました');
       });
       
-      // bodyのmodal-openクラスを削除してスクロールを復旧
+      // bodyのスクロールを復旧
       document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
       
       this.debug('モーダルを閉じてスクロールを復旧しました');
       
@@ -2868,6 +2869,7 @@ export class AdminActionService {
       
       // エラー時でもスクロールを復旧
       document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
     }
   }
 

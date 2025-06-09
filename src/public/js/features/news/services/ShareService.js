@@ -6,11 +6,11 @@
 
 import { generateShareUrl, copyCurrentUrl, openInNewTab } from '../../../shared/utils/urlUtils.js';
 import { SHARE_CONFIG, META_TAGS } from '../../../shared/constants/newsConstants.js';
-import NotificationService from '../../../shared/services/NotificationService.js';
+import { getUnifiedNotificationService } from '../../../shared/services/UnifiedNotificationService.js';
 
 export default class ShareService {
   constructor() {
-    this.notificationService = new NotificationService();
+    this.notificationService = getUnifiedNotificationService();
   }
 
   /**
@@ -41,7 +41,7 @@ export default class ShareService {
         break;
       default:
         console.warn(`未対応のプラットフォーム: ${platform}`);
-        this.notificationService.showError(`${platform}でのシェアには対応していません`);
+        this.notificationService.error(`${platform}でのシェアには対応していません`);
     }
   }
 
@@ -65,10 +65,10 @@ export default class ShareService {
     
     if (opened) {
       console.log('Twitter シェア成功');
-      this.notificationService.showSuccess('Twitterでシェアしました');
+      this.notificationService.success('Twitterでシェアしました');
     } else {
       console.warn('Twitter シェア失敗');
-      this.notificationService.showError('Twitterでのシェアに失敗しました');
+      this.notificationService.error('Twitterでのシェアに失敗しました');
     }
   }
 
@@ -90,10 +90,10 @@ export default class ShareService {
     
     if (opened) {
       console.log('Facebook シェア成功');
-      this.notificationService.showSuccess('Facebookでシェアしました');
+      this.notificationService.success('Facebookでシェアしました');
     } else {
       console.warn('Facebook シェア失敗');
-      this.notificationService.showError('Facebookでのシェアに失敗しました');
+      this.notificationService.error('Facebookでのシェアに失敗しました');
     }
   }
 
@@ -117,10 +117,10 @@ export default class ShareService {
     
     if (opened) {
       console.log('LINE シェア成功');
-      this.notificationService.showSuccess('LINEでシェアしました');
+      this.notificationService.success('LINEでシェアしました');
     } else {
       console.warn('LINE シェア失敗');
-      this.notificationService.showError('LINEでのシェアに失敗しました');
+      this.notificationService.error('LINEでのシェアに失敗しました');
     }
   }
 
@@ -133,13 +133,13 @@ export default class ShareService {
       
       if (success) {
         console.log('URL コピー成功');
-        this.notificationService.showSuccess('URLをコピーしました');
+        this.notificationService.success('URLをコピーしました');
       } else {
         throw new Error('クリップボードへのコピーに失敗');
       }
     } catch (error) {
       console.error('URL コピー失敗:', error);
-      this.notificationService.showError('URLのコピーに失敗しました');
+      this.notificationService.error('URLのコピーに失敗しました');
       
       // フォールバック: プロンプトでURLを表示
       this.showUrlPrompt();
@@ -173,12 +173,12 @@ export default class ShareService {
       });
       
       console.log('ネイティブシェア成功');
-      this.notificationService.showSuccess('シェアしました');
+      this.notificationService.success('シェアしました');
       return true;
       
     } catch (error) {
       console.error('ネイティブシェア失敗:', error);
-      this.notificationService.showError('シェアに失敗しました');
+      this.notificationService.error('シェアに失敗しました');
       return false;
     }
   }

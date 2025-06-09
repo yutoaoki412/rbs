@@ -7,7 +7,7 @@ import { AdminActionService } from './services/AdminActionService.js';
 import { AdminSystemService } from './services/AdminSystemService.js';
 import { getArticleDataService } from './services/ArticleDataService.js';
 import { getLessonStatusStorageService } from '../../shared/services/LessonStatusStorageService.js';
-import { getAdminNotificationService, adminNotify, adminLog, adminToast, adminModal } from './services/AdminNotificationService.js';
+import { getAdminNotificationService, adminNotify, adminLog, adminToast, adminModal } from '../../shared/services/AdminNotificationService.js';
 import { authManager } from '../auth/AuthManager.js';
 import { CONFIG } from '../../shared/constants/config.js';
 

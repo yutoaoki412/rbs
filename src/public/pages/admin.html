@@ -16,7 +16,11 @@
   <link rel="stylesheet" href="../css/base.css">
   <link rel="stylesheet" href="../css/common.css">
   <link rel="stylesheet" href="../css/components.css">
-  <link rel="stylesheet" href="../css/admin.css">
+  <!-- 管理画面専用CSS（モジュラー版） -->
+  <link rel="stylesheet" href="../css/admin/admin-core.css">
+  <link rel="stylesheet" href="../css/admin/admin-components.css">
+  <link rel="stylesheet" href="../css/admin/admin-features.css">
+  <link rel="stylesheet" href="../css/admin/admin-responsive.css">
   <link rel="stylesheet" href="../css/utilities/style-utils.css">
   <link rel="stylesheet" href="../css/components/recent-articles.css">
   <link rel="stylesheet" href="../css/components/lesson-status-admin.css">
@@ -231,21 +235,24 @@
             <div class="panel-header">
               <h2><i class="fas fa-edit"></i> <span id="editor-title">新規記事作成</span></h2>
               <div class="panel-actions">
-                <button class="btn btn-outline" data-action="clear-news-editor">
+                <button class="btn btn-outline btn-sm" data-action="clear-news-editor">
+                  <i class="fas fa-undo"></i>
                   クリア
                 </button>
                 <button class="btn btn-secondary" data-action="preview-news">
                   <i class="fas fa-eye"></i>
                   プレビュー
                 </button>
-                <button class="btn btn-primary" data-action="save-news">
-                  <i class="fas fa-save"></i>
-                  保存
-                </button>
-                <button class="btn btn-success" data-action="publish-news">
-                  <i class="fas fa-globe"></i>
-                  公開
-                </button>
+                <div class="main-actions">
+                  <button class="btn btn-primary" data-action="save-news">
+                    <i class="fas fa-save"></i>
+                    下書き保存
+                  </button>
+                  <button class="btn btn-success" data-action="publish-news">
+                    <i class="fas fa-globe"></i>
+                    公開
+                  </button>
+                </div>
               </div>
             </div>
             
@@ -279,15 +286,7 @@
                   </label>
                   <input type="date" id="news-date" class="form-input">
                 </div>
-                <div class="form-group">
-                  <label for="news-status">
-                    ステータス
-                  </label>
-                  <select id="news-status" class="form-select">
-                    <option value="draft">下書き</option>
-                    <option value="published">公開</option>
-                  </select>
-                </div>
+
               </div>
               
               <div class="form-group">
@@ -314,15 +313,14 @@
                   <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="[" data-end="](URL)" title="リンク">
                     Link
                   </button>
-                  <div class="toolbar-separator"></div>
                   <button type="button" class="toolbar-btn help-btn" data-action="show-writing-guide" title="記事作成ガイド">
-                    <i class="fas fa-question-circle"></i>
+                    <i class="fas fa-book-open"></i>
                     ガイド
                   </button>
                 </div>
                 <textarea id="news-content" class="form-textarea editor-content" placeholder="記事の本文をMarkdown形式で入力してください" required></textarea>
                 <div class="form-help">
-                  <small>Markdown記法: **太字**、## 見出し、- リスト、[リンク](URL) | <a href="#" data-action="show-writing-guide" class="help-link">📖 詳細な記事作成ガイドを見る</a></small>
+                  <small>Markdown記法: **太字**、## 見出し、- リスト、[リンク](URL)</small>
                 </div>
               </div>
               
@@ -795,394 +793,28 @@
     <!-- 通知がここに表示される -->
   </div>
 
-  <!-- アプリケーション初期化 -->
+  <!-- 統合管理画面初期化システム -->
   <script type="module">
-            import { initAdminFeature } from '../js/features/admin/index.js';
+    import { initializeAdmin } from '../js/features/admin/core/AdminCore.js';
     
     document.addEventListener('DOMContentLoaded', async () => {
       try {
-        console.log('🚀 RBS管理画面初期化開始');
-        
-        // ダッシュボードタブを初期表示
-        const initializeDashboard = () => {
-          document.querySelectorAll('.admin-section').forEach(section => {
-            section.classList.remove('active');
-          });
-          document.querySelectorAll('.nav-item').forEach(navItem => {
-            navItem.classList.remove('active');
-          });
-          
-          const dashboardSection = document.getElementById('dashboard');
-          const dashboardNav = document.querySelector('[data-tab="dashboard"]');
-          
-          if (dashboardSection) {
-            dashboardSection.classList.add('active');
-          }
-          if (dashboardNav) {
-            dashboardNav.classList.add('active');
-          }
-          
-          localStorage.setItem('rbs_admin_tab', 'dashboard');
-        };
-        
-        initializeDashboard();
-        
-        // 統一された管理機能初期化
-        await initAdminFeature();
-        
-        console.log('✅ RBS管理画面初期化完了');
-        
+        // 新しい統合システムで初期化
+        await initializeAdmin();
       } catch (error) {
-        console.error('❌ 管理画面初期化エラー:', error);
-        
-        // エラー処理は initAdminFeature 内で実行済み
-        // ここでは追加のフォールバック処理のみ
-        if (!window.location.pathname.includes('admin-login.html')) {
-          const shouldRedirect = confirm(
-            `管理画面の初期化に失敗しました。\n\nエラー: ${error.message}\n\nログイン画面に戻りますか？`
-          );
-          if (shouldRedirect) {
-            localStorage.removeItem('rbs_admin_auth');
-            window.location.replace('admin-login.html?from=admin');
-          }
-        }
+        console.error('❌ 統合管理画面初期化エラー:', error);
       }
     });
   </script>
 
-  <!-- 通知システムヘルパー -->
-  <script>
-    // グローバル通知統一システム
-    window.notificationHistory = new Map();
-    
-    // グローバル通知ヘルパー関数（重複防止機能付き）
-    window.showNotification = function(type, message, duration = 4000, options = {}) {
-      // 重複チェック
-      const notificationKey = `${type}:${message}`;
-      const now = Date.now();
-      
-      if (window.notificationHistory.has(notificationKey)) {
-        const lastTime = window.notificationHistory.get(notificationKey);
-        if (now - lastTime < 3000) {
-          console.debug('重複通知をスキップ:', message);
-          return;
-        }
-      }
-      
-      // 通知履歴に記録
-      window.notificationHistory.set(notificationKey, now);
-      
-      // 既存の同じ通知を削除
-      document.querySelectorAll('.global-notification').forEach(notification => {
-        if (notification.textContent.includes(message)) {
-          notification.remove();
-        }
-      });
-      
-      if (window.uiManagerService) {
-        return window.uiManagerService.showNotification(type, message, duration, options);
-      } else {
-        // フォールバック: シンプルな通知
-        console.log(`${type.toUpperCase()}: ${message}`);
-        
-        // 簡易通知要素を作成
-        const notification = document.createElement('div');
-        notification.className = `global-notification ${type}`;
-        notification.textContent = message;
-        
-        document.body.appendChild(notification);
-        
-        // アニメーション
-        setTimeout(() => {
-          notification.classList.add('show');
-        }, 10);
-        
-        // 自動削除
-        setTimeout(() => {
-          notification.classList.remove('show');
-          notification.classList.add('hide');
-          setTimeout(() => {
-            if (notification.parentNode) {
-              notification.remove();
-            }
-          }, 300);
-        }, duration);
-      }
-      
-      // 履歴クリーンアップ（5分後）
-      setTimeout(() => {
-        window.notificationHistory.delete(notificationKey);
-      }, 300000);
-    };
-    
-    // 便利なヘルパー関数
-    window.showSuccess = (message, duration, options) => 
-      window.showNotification('success', message, duration, options);
-    
-    window.showError = (message, duration, options) => 
-      window.showNotification('error', message, duration, options);
-    
-    window.showWarning = (message, duration, options) => 
-      window.showNotification('warning', message, duration, options);
-    
-    window.showInfo = (message, duration, options) => 
-      window.showNotification('info', message, duration, options);
-    
-    // ActionManager アクセスヘルパー
-    window.registerAction = function(actionName, handler) {
-      if (window.app && window.app.actionManager) {
-        window.app.actionManager.register(actionName, handler);
-        console.log(`✅ アクション登録: ${actionName}`);
-      } else {
-        console.warn(`⚠️ ActionManagerが利用できません: ${actionName}`);
-      }
-    };
-    
-    // デバッグ用: 登録済みアクション一覧表示
-    window.listActions = function() {
-      if (window.app && window.app.actionManager) {
-        console.log('📋 登録済みアクション:', Array.from(window.app.actionManager._actions.keys()));
-      } else if (window.actionManager) {
-        console.log('📋 登録済みアクション:', Array.from(window.actionManager._actions.keys()));
-      } else {
-        console.warn('⚠️ ActionManagerが利用できません');
-      }
-    };
+  <!-- 
+    通知システム、デバッグヘルパー、統計更新機能は
+    AdminNotificationService、DashboardStatsWidget、AdminCoreに統合されました
+  -->
 
-    // デバッグ用: タブ機能テスト
-    window.testTabFunction = function(tabName = 'dashboard') {
-      console.log(`🧪 タブ機能テスト開始: ${tabName}`);
-      
-      if (window.adminActionService) {
-        console.log('✅ AdminActionServiceが利用可能');
-        window.adminActionService.switchAdminTab(tabName);
-      } else {
-        console.error('❌ AdminActionServiceが利用できません');
-      }
-    };
-
-    // デバッグ用: アクション実行テスト
-    window.testAction = function(actionName, params = {}) {
-      console.log(`🧪 アクション実行テスト: ${actionName}`, params);
-      
-      if (window.actionManager) {
-        const element = document.createElement('div');
-        element.setAttribute('data-action', actionName);
-        
-        // パラメータをdata属性として設定
-        Object.keys(params).forEach(key => {
-          element.setAttribute(`data-${key}`, params[key]);
-        });
-        
-        window.actionManager.handleAction(element, new Event('click'));
-      } else {
-        console.error('❌ ActionManagerが利用できません');
-      }
-    };
-
-    // デバッグ用: DOM要素確認
-    window.checkTabElements = function() {
-      console.log('🔍 タブ関連DOM要素確認');
-      
-      const navItems = document.querySelectorAll('.nav-item[data-tab]');
-      const sections = document.querySelectorAll('.admin-section');
-      
-      console.log('📋 ナビゲーション要素:', Array.from(navItems).map(item => ({
-        tab: item.dataset.tab,
-        action: item.dataset.action,
-        active: item.classList.contains('active')
-      })));
-      
-      console.log('📋 セクション要素:', Array.from(sections).map(section => ({
-        id: section.id,
-        active: section.classList.contains('active')
-      })));
-    };
-
-    // 統計情報更新機能
-    window.updateDashboardStats = function() {
-      try {
-        // config.jsで定義されているlocal storageキーを使用
-        const articlesKey = 'rbs_articles';
-        const instagramKey = 'rbs_instagram_posts';
-        
-        // 記事データの取得
-        let articles = [];
-        let publishedCount = 0;
-        let draftCount = 0;
-        
-        try {
-          const articlesData = localStorage.getItem(articlesKey);
-          if (articlesData) {
-            articles = JSON.parse(articlesData);
-            if (Array.isArray(articles)) {
-              publishedCount = articles.filter(article => article.status === 'published').length;
-              draftCount = articles.filter(article => article.status === 'draft').length;
-            }
-          }
-        } catch (error) {
-          console.warn('記事データの読み込みエラー:', error);
-        }
-        
-        // Instagram投稿データの取得
-        let instagramPosts = [];
-        let instagramVisibleCount = 0;
-        let instagramHiddenCount = 0;
-        
-        try {
-          const instagramData = localStorage.getItem(instagramKey);
-          if (instagramData) {
-            instagramPosts = JSON.parse(instagramData);
-            if (Array.isArray(instagramPosts)) {
-              instagramVisibleCount = instagramPosts.filter(post => post.status === 'active').length;
-              instagramHiddenCount = instagramPosts.filter(post => post.status === 'inactive').length;
-            }
-          }
-        } catch (error) {
-          console.warn('Instagram投稿データの読み込みエラー:', error);
-        }
-        
-        // 統計カードの更新
-        const updateStatCard = (id, value) => {
-          const element = document.getElementById(id);
-          if (element) {
-            // アニメーション付きで数値を更新
-            const currentValue = parseInt(element.textContent) || 0;
-            if (currentValue !== value) {
-              element.style.transform = 'scale(1.1)';
-              element.style.transition = 'transform 0.2s ease';
-              setTimeout(() => {
-                element.textContent = value;
-                element.style.transform = 'scale(1)';
-              }, 100);
-            } else {
-              element.textContent = value;
-            }
-          }
-        };
-        
-        // 各統計カードを更新
-        updateStatCard('stat-published', publishedCount);
-        updateStatCard('stat-drafts', draftCount);
-        updateStatCard('stat-instagram-visible', instagramVisibleCount);
-        updateStatCard('stat-instagram-hidden', instagramHiddenCount);
-        
-        console.log('📊 統計情報更新完了:', {
-          公開記事: publishedCount,
-          下書き: draftCount,
-          Instagram表示投稿: instagramVisibleCount,
-          Instagram非表示投稿: instagramHiddenCount
-        });
-        
-      } catch (error) {
-        console.error('統計情報更新エラー:', error);
-      }
-    };
-    
-    // 定期的な統計更新（5秒間隔）
-    setInterval(window.updateDashboardStats, 5000);
-    
-    // 初回統計更新（ページ読み込み時）
-    document.addEventListener('DOMContentLoaded', function() {
-      setTimeout(window.updateDashboardStats, 1000);
-    });
-    
-    // storage変更時の統計更新
-    window.addEventListener('storage', function(e) {
-      if (e.key === 'rbs_articles' || e.key === 'rbs_instagram_posts') {
-        setTimeout(window.updateDashboardStats, 100);
-      }
-    });
-    
-    // 手動更新機能
-    window.refreshStats = window.updateDashboardStats;
-  </script>
-
-  <!-- Instagram埋め込みスクリプト（2024年最適化） -->
-  <script>
-    // Instagram埋め込みスクリプトの高度な読み込み管理
-    (function() {
-      let instagramScriptLoaded = false;
-      let instagramScriptLoading = false;
-      let loadAttempts = 0;
-      const maxAttempts = 3;
-      
-      function loadInstagramScript() {
-        if (instagramScriptLoaded || instagramScriptLoading) return;
-        
-        instagramScriptLoading = true;
-        loadAttempts++;
-        
-        const script = document.createElement('script');
-        script.async = true;
-        script.src = '//www.instagram.com/embed.js';
-        
-        script.onload = function() {
-          instagramScriptLoaded = true;
-          instagramScriptLoading = false;
-          console.log('✅ Instagram埋め込みスクリプト読み込み完了');
-          
-          // 既存の埋め込みを処理
-          if (window.instgrm && window.instgrm.Embeds) {
-            setTimeout(() => {
-              window.instgrm.Embeds.process();
-            }, 100);
-          }
-        };
-        
-        script.onerror = function() {
-          instagramScriptLoading = false;
-          console.warn('⚠️ Instagram埋め込みスクリプト読み込み失敗');
-          
-          // リトライ
-          if (loadAttempts < maxAttempts) {
-            setTimeout(loadInstagramScript, 2000 * loadAttempts);
-          }
-        };
-        
-        // 既存のスクリプトを削除して新しく追加
-        const existingScript = document.querySelector('script[src*="embed.js"]');
-        if (existingScript) {
-          existingScript.remove();
-        }
-        
-        document.head.appendChild(script);
-      }
-      
-      // 初回読み込み
-      loadInstagramScript();
-      
-      // グローバル関数として公開
-      window.reloadInstagramScript = loadInstagramScript;
-      
-      // DOM変更を監視してInstagram埋め込みを自動処理
-      if (window.MutationObserver) {
-        const observer = new MutationObserver(function(mutations) {
-          let hasInstagramElements = false;
-          
-          mutations.forEach(function(mutation) {
-            mutation.addedNodes.forEach(function(node) {
-              if (node.nodeType === Node.ELEMENT_NODE) {
-                if (node.querySelector && node.querySelector('.instagram-media, .instagram-embed-wrapper')) {
-                  hasInstagramElements = true;
-                }
-              }
-            });
-          });
-          
-          if (hasInstagramElements && window.instgrm && window.instgrm.Embeds) {
-            setTimeout(() => {
-              window.instgrm.Embeds.process();
-            }, 100);
-          }
-        });
-        
-        observer.observe(document.body, {
-          childList: true,
-          subtree: true
-        });
-      }
-    })();
-  </script>
+  <!-- 
+    Instagram埋め込みスクリプト管理は
+    InstagramEmbedModuleに統合されました
+  -->
 </body>
 </html>
