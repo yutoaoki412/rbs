@@ -101,7 +101,7 @@ export class NewsUtils {
   static _generateAdminActions(article, mode) {
     const title = NewsUtils.escapeHtml(article.title);
     
-    // 完全統一: すべての管理画面コンテキストで同じアクションボタンを生成
+    // プレビューボタンを削除し、編集と削除のみに変更
     const actions = `
       <button class="news-action-btn edit-btn" 
               data-action="edit-article" 
@@ -110,14 +110,6 @@ export class NewsUtils {
               aria-label="記事「${title}」を編集">
         <i class="fas fa-edit"></i>
         <span class="action-text">編集</span>
-      </button>
-      <button class="news-action-btn preview-btn" 
-              data-action="preview-article" 
-              data-id="${article.id}" 
-              title="記事をプレビュー"
-              aria-label="記事「${title}」をプレビュー">
-        <i class="fas fa-eye"></i>
-        <span class="action-text">プレビュー</span>
       </button>
       <button class="news-action-btn delete-btn" 
               data-action="delete-article" 
@@ -129,7 +121,7 @@ export class NewsUtils {
       </button>
     `;
     
-    console.log(`🔧 _generateAdminActions - モード: ${mode}, 記事ID: ${article.id}, 生成したボタン数: 3`);
+    console.log(`🔧 _generateAdminActions - モード: ${mode}, 記事ID: ${article.id}, 生成したボタン数: 2`);
     
     return actions;
   }

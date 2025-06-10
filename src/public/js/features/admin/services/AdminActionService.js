@@ -66,8 +66,8 @@ export class AdminActionService {
       'switch-admin-tab', 'switch-news-tab', 'clear-news-editor', 'new-news-article',
       'preview-news', 'save-news', 'publish-news', 'test-article-service',
       'filter-news-list', 'refresh-news-list', 'refresh-recent-articles',
-      'insert-markdown', 'show-writing-guide', 'edit-article', 'delete-article',
-      'preview-article', 'duplicate-article', 'load-lesson-status', 'update-lesson-status',
+              'insert-markdown', 'show-writing-guide', 'edit-article', 'delete-article',
+        'duplicate-article', 'load-lesson-status', 'update-lesson-status',
       'wizard-prev', 'wizard-next',
       'toggle-notification-mode', 'export-data', 'clear-all-data', 'test-site-connection',
       'reset-local-storage', 'close-modal',
@@ -452,17 +452,6 @@ export class AdminActionService {
           console.log('🔍 取得した記事ID:', articleId);
           if (articleId) {
             await this.deleteArticle(articleId);
-          } else {
-            console.error('ERROR 記事IDが取得できませんでした:', { params, dataId: element?.getAttribute('data-id'), dataset: element?.dataset });
-            this._showFeedback('記事IDが取得できませんでした', 'error');
-          }
-        },
-        'preview-article': async (element, params) => {
-          console.log('👁️ プレビューアクション呼び出し:', { element, params });
-          const articleId = params?.id || element?.getAttribute('data-id') || element?.dataset?.id;
-          console.log('🔍 取得した記事ID:', articleId);
-          if (articleId) {
-            await this.previewArticleById(articleId);
           } else {
             console.error('ERROR 記事IDが取得できませんでした:', { params, dataId: element?.getAttribute('data-id'), dataset: element?.dataset });
             this._showFeedback('記事IDが取得できませんでした', 'error');
@@ -2289,58 +2278,58 @@ export class AdminActionService {
   }
 
   /**
-   * 記事IDによるプレビュー
+   * 記事IDによるプレビュー（UX改善・シンプル版）
    * @param {string} articleId - 記事ID
    */
   async previewArticleById(articleId) {
+    console.log('👁️ [DEBUG] プレビューボタンクリック:', articleId);
+    
     try {
-      console.log('👁️ 記事プレビュー開始:', articleId);
-      
       // 記事IDの検証
       if (!articleId) {
+        console.error('❌ [ERROR] 記事IDが空です');
         this._showFeedback('記事IDが指定されていません', 'error');
         return;
       }
       
       // ArticleDataServiceの初期化確認
       if (!this.articleDataService || !this.articleDataService.initialized) {
-        console.error('ERROR ArticleDataServiceが初期化されていません');
+        console.error('❌ [ERROR] ArticleDataServiceが未初期化');
         this._showFeedback('記事サービスが初期化されていません。ページを再読み込みしてください。', 'error');
         return;
       }
       
+      // 記事データを取得
       const article = this.articleDataService.getArticleById(articleId);
       if (!article) {
-        console.error('ERROR 記事が見つかりません:', articleId);
+        console.error('❌ [ERROR] 記事が見つかりません:', articleId);
+        
+        // デバッグ: 利用可能な記事をログ出力
+        const allArticles = this.articleDataService.loadArticles();
+        console.log('📊 [DEBUG] 利用可能な記事一覧:', allArticles.map(a => ({ id: a.id, title: a.title })));
+        
         this._showFeedback('プレビューする記事が見つかりません', 'error');
         return;
       }
       
-      console.log('📄 プレビュー対象記事:', article.title);
+      console.log('✅ [SUCCESS] 記事データ取得:', article.title);
       
-      // 記事本文を取得
-      const content = this.articleDataService.getArticleContent?.(articleId) || article.content || '';
+      // 簡単な確認ダイアログでテスト
+      const confirmed = confirm(`記事「${article.title}」をプレビューしますか？\n\n※デバッグ：この確認が表示されればボタンは正常に動作しています。`);
       
-      // プレビュー用のデータを作成
-      const previewData = {
-        id: articleId,
-        title: article.title || '無題',
-        content: content,
-        category: article.category || 'announcement',
-        date: article.date || article.createdAt || new Date().toISOString(),
-        summary: article.summary || article.excerpt || '',
-        status: article.status || 'draft',
-        featured: article.featured || false
-      };
+      if (!confirmed) {
+        console.log('💡 [INFO] プレビューがキャンセルされました');
+        return;
+      }
       
-      // プレビューモーダルを表示
-      this._showNewsPreviewModal(previewData);
+      // シンプルなプレビューモーダルを表示
+      this._showSimplePreviewModal(article, articleId);
       
-      console.log('SUCCESS 記事プレビュー表示完了');
+      console.log('✅ [SUCCESS] プレビュー表示完了');
       
     } catch (error) {
-      console.error('ERROR 記事プレビューエラー:', error);
-      this._showFeedback('記事のプレビューに失敗しました: ' + error.message, 'error');
+      console.error('❌ [ERROR] プレビューエラー:', error);
+      this._showFeedback(`プレビューエラー: ${error.message}`, 'error');
     }
   }
 
@@ -2480,6 +2469,255 @@ export class AdminActionService {
       console.error('ERROR 記事削除エラー:', error);
       this._showFeedback('記事の削除に失敗しました: ' + error.message, 'error');
       throw error;
+    }
+  }
+
+  /**
+   * シンプルなプレビューモーダルを表示（UX改善版）
+   * @private
+   * @param {Object} article - 記事データ
+   * @param {string} articleId - 記事ID
+   */
+  _showSimplePreviewModal(article, articleId) {
+    console.log('🖼️ [DEBUG] プレビューモーダル表示開始');
+    
+    try {
+      // 既存のモーダルを削除
+      const existingModal = document.getElementById('simple-preview-modal');
+      if (existingModal) {
+        existingModal.remove();
+      }
+      
+      // 記事本文を取得
+      const content = this.articleDataService.getArticleContent?.(articleId) || article.content || '記事の内容がありません。';
+      
+      // カテゴリー名を取得
+      const categoryNames = {
+        'announcement': 'お知らせ',
+        'event': '体験会',
+        'media': 'メディア',
+        'important': '重要'
+      };
+      const categoryName = categoryNames[article.category] || article.category || 'その他';
+      
+      // 日付フォーマット
+      const formattedDate = article.date ? 
+        new Date(article.date).toLocaleDateString('ja-JP', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }) : '日付未設定';
+      
+      // シンプルなモーダルHTML
+      const modalHTML = `
+        <div id="simple-preview-modal" class="modal preview-modal" style="
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.8);
+          z-index: 10000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: fadeIn 0.3s ease;
+        ">
+          <div class="modal-content" style="
+            background: white;
+            border-radius: 12px;
+            max-width: 800px;
+            max-height: 90vh;
+            width: 90%;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+          ">
+            <!-- モーダルヘッダー -->
+            <div class="modal-header" style="
+              padding: 20px 24px;
+              border-bottom: 1px solid #e5e7eb;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              background: #f8fafc;
+            ">
+              <div>
+                <h2 style="margin: 0; color: #1f2937; font-size: 18px; font-weight: 600;">
+                  📰 記事プレビュー
+                </h2>
+                <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">
+                  実際のページと同様の表示です
+                </p>
+              </div>
+              <button onclick="this.closest('.modal').remove()" style="
+                background: none;
+                border: none;
+                font-size: 24px;
+                color: #6b7280;
+                cursor: pointer;
+                padding: 8px;
+                border-radius: 6px;
+                transition: all 0.2s;
+              " onmouseover="this.style.background='#f3f4f6'; this.style.color='#374151'" 
+                 onmouseout="this.style.background='none'; this.style.color='#6b7280'"
+                 title="閉じる">
+                ×
+              </button>
+            </div>
+            
+            <!-- モーダルボディ -->
+            <div class="modal-body" style="
+              padding: 0;
+              max-height: calc(90vh - 80px);
+              overflow-y: auto;
+            ">
+              <div class="preview-content" style="padding: 32px 40px;">
+                <!-- 記事メタ情報 -->
+                <div class="article-meta" style="
+                  display: flex;
+                  gap: 16px;
+                  margin-bottom: 16px;
+                  flex-wrap: wrap;
+                ">
+                  <span style="
+                    background: #dbeafe;
+                    color: #1e40af;
+                    padding: 4px 12px;
+                    border-radius: 20px;
+                    font-size: 13px;
+                    font-weight: 500;
+                  ">
+                    📅 ${formattedDate}
+                  </span>
+                  <span style="
+                    background: #dcfce7;
+                    color: #166534;
+                    padding: 4px 12px;
+                    border-radius: 20px;
+                    font-size: 13px;
+                    font-weight: 500;
+                  ">
+                    🏷️ ${categoryName}
+                  </span>
+                  <span style="
+                    background: #fef3c7;
+                    color: #d97706;
+                    padding: 4px 12px;
+                    border-radius: 20px;
+                    font-size: 13px;
+                    font-weight: 500;
+                  ">
+                    ${article.status === 'published' ? '✅ 公開中' : '📝 下書き'}
+                  </span>
+                </div>
+                
+                <!-- 記事タイトル -->
+                <h1 style="
+                  margin: 0 0 24px 0;
+                  color: #1f2937;
+                  font-size: 28px;
+                  font-weight: 700;
+                  line-height: 1.3;
+                ">${this.escapeHtml(article.title || '無題')}</h1>
+                
+                <!-- 記事要約 -->
+                ${article.summary ? `
+                  <div class="article-summary" style="
+                    background: #f8fafc;
+                    border-left: 4px solid #3b82f6;
+                    padding: 16px 20px;
+                    margin-bottom: 32px;
+                    border-radius: 0 8px 8px 0;
+                  ">
+                    <p style="
+                      margin: 0;
+                      color: #374151;
+                      font-size: 16px;
+                      line-height: 1.6;
+                      font-style: italic;
+                    ">${this.escapeHtml(article.summary)}</p>
+                  </div>
+                ` : ''}
+                
+                <!-- 記事本文 -->
+                <div class="article-content" style="
+                  color: #374151;
+                  font-size: 16px;
+                  line-height: 1.8;
+                  white-space: pre-wrap;
+                  word-wrap: break-word;
+                ">${this.escapeHtml(content)}</div>
+                
+                <!-- フッター -->
+                <div style="
+                  margin-top: 40px;
+                  padding-top: 24px;
+                  border-top: 1px solid #e5e7eb;
+                  text-align: center;
+                  color: #6b7280;
+                  font-size: 14px;
+                ">
+                  <p style="margin: 0;">
+                    📱 プレビューモード | 記事ID: ${articleId}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <style>
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          
+          @keyframes slideIn {
+            from { transform: scale(0.9) translateY(-20px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+          }
+          
+          .modal-body::-webkit-scrollbar {
+            width: 8px;
+          }
+          
+          .modal-body::-webkit-scrollbar-track {
+            background: #f1f5f9;
+          }
+          
+          .modal-body::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+          }
+          
+          .modal-body::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+          }
+        </style>
+      `;
+      
+      // モーダルをDOMに追加
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+      
+      // ESCキーで閉じる
+      const modal = document.getElementById('simple-preview-modal');
+      const closeHandler = (e) => {
+        if (e.key === 'Escape' || e.target === modal) {
+          modal.remove();
+          document.removeEventListener('keydown', closeHandler);
+        }
+      };
+      
+      document.addEventListener('keydown', closeHandler);
+      modal.addEventListener('click', closeHandler);
+      
+      console.log('✅ [SUCCESS] プレビューモーダル表示完了');
+      
+    } catch (error) {
+      console.error('❌ [ERROR] プレビューモーダル表示エラー:', error);
+      // フォールバック: アラートで内容を表示
+      alert(`記事プレビュー\n\nタイトル: ${article.title}\n\n内容:\n${content.substring(0, 200)}...`);
     }
   }
 
@@ -3951,15 +4189,20 @@ export class AdminActionService {
   }
 
   /**
-   * アクション処理のデバッグ機能
+   * アクション処理のデバッグ機能（UX改善版）
    * コンソールでボタンイベントの処理状況を確認
    */
   debugActionHandling() {
-    console.log('🔍 記事一覧アクションボタンのデバッグ情報:');
+    console.log('🔍 [DEBUG] 記事一覧アクションボタンのデバッグ情報:');
     
     // 現在のページのアクションボタンを確認
     const actionButtons = document.querySelectorAll('.news-action-btn');
     console.log(`📊 見つかったアクションボタン数: ${actionButtons.length}`);
+    
+    if (actionButtons.length === 0) {
+      console.warn('⚠️ アクションボタンが見つかりません。記事一覧を表示してからお試しください。');
+      return;
+    }
     
     actionButtons.forEach((button, index) => {
       console.log(`🔘 ボタン ${index + 1}:`, {
@@ -3975,22 +4218,48 @@ export class AdminActionService {
       console.log('✅ ActionManager初期化済み:', this.actionManager.initialized);
       console.log('📝 登録済みアクション数:', Object.keys(this.actionManager.actions || {}).length);
       
-      const articleActions = ['edit-article', 'preview-article', 'delete-article'];
+      const articleActions = ['edit-article', 'delete-article'];
       articleActions.forEach(action => {
         const isRegistered = this.actionManager.actions && this.actionManager.actions[action];
         console.log(`${isRegistered ? '✅' : '❌'} ${action}: ${isRegistered ? '登録済み' : '未登録'}`);
       });
     } else {
       console.error('❌ ActionManagerが見つかりません');
+      return;
     }
     
-    // 手動でボタンクリックをテスト
-    if (actionButtons.length > 0) {
-      console.log('🧪 最初のボタンでテストクリック実行...');
-      const testButton = actionButtons[0];
-      const testEvent = new MouseEvent('click', { bubbles: true });
-      testButton.dispatchEvent(testEvent);
+    // 記事データの確認
+    if (this.articleDataService && this.articleDataService.initialized) {
+      const articles = this.articleDataService.loadArticles();
+      console.log(`📚 利用可能な記事数: ${articles.length}`);
+      if (articles.length > 0) {
+        console.log('📝 記事サンプル:', articles.slice(0, 3).map(a => ({ id: a.id, title: a.title })));
+      }
+    } else {
+      console.error('❌ ArticleDataServiceが初期化されていません');
     }
+    
+    console.log('✅ [INFO] プレビューボタンは削除されました。編集・削除ボタンのみが表示されます。');
+  }
+  
+  /**
+   * プレビュー機能のクイックテスト
+   */
+  testPreview() {
+    if (!this.articleDataService || !this.articleDataService.initialized) {
+      console.error('❌ ArticleDataServiceが初期化されていません');
+      return;
+    }
+    
+    const articles = this.articleDataService.loadArticles();
+    if (articles.length === 0) {
+      console.warn('⚠️ テスト用の記事がありません');
+      return;
+    }
+    
+    const testArticle = articles[0];
+    console.log('🧪 プレビューテスト開始:', testArticle.title);
+    this.previewArticleById(testArticle.id);
   }
 }
 
