@@ -292,7 +292,7 @@ class HeaderComponent extends Component {
         if (this.isScrollWatching) return;
         
         try {
-            this.addEventListener(window, 'scroll', this.throttle(this.handleScroll.bind(this), 16));
+            this.addEventListener(window, 'scroll', this.throttle(this.handleScroll.bind(this), 16), { passive: true });
             this.isScrollWatching = true;
             
             // 初期状態を設定

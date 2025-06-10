@@ -395,7 +395,7 @@ function initScrollNavigation(scrollContainer, prevButton, nextButton, indicator
         updateNavigationButtons();
       }
     }, 100);
-  });
+  }, { passive: true });
 
   // 初期状態を設定
   updateNavigationButtons();

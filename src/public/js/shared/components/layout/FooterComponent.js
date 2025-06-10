@@ -158,7 +158,7 @@ class FooterComponent extends Component {
     startScrollWatching() {
         if (this.isScrollWatching) return;
         
-        this.addEventListener(window, 'scroll', this.throttle(this.handleScroll.bind(this), 16));
+        this.addEventListener(window, 'scroll', this.throttle(this.handleScroll.bind(this), 16), { passive: true });
         this.isScrollWatching = true;
         
         // 初期状態を設定

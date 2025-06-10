@@ -246,7 +246,7 @@ class UIInteractionManager extends Component {
       this.updateStatusBannerPosition();
     }, 16); // 60fps
 
-    this.addEventListener(window, 'scroll', scrollHandler);
+    this.addEventListener(window, 'scroll', scrollHandler, { passive: true });
   }
 
   /**

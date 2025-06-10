@@ -8,7 +8,7 @@ import Application from './Application.js';
 import { debugPaths } from '../shared/constants/paths.js';
 import { CONFIG } from '../shared/constants/config.js';
 import { log } from '../shared/utils/logUtils.js';
-import { showApplicationError, setupGlobalErrorHandlers } from '../shared/utils/errorUtils.js';
+import { showApplicationError, showCriticalError, setupGlobalErrorHandlers } from '../shared/utils/errorUtils.js';
 
 log.info('Main', 'RBS陸上教室 アプリケーション起動中...');
 
