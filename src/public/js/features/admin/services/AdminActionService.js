@@ -428,29 +428,46 @@ export class AdminActionService {
         }),
         'filter-news-list': (element, params) => this.filterNewsList(element, params),
         'edit-article': (element, params) => {
-          const articleId = params.id || element.getAttribute('data-id');
+          console.log('🖊️ 編集アクション呼び出し:', { element, params });
+          const articleId = params?.id || element?.getAttribute('data-id') || element?.dataset?.id;
+          console.log('🔍 取得した記事ID:', articleId);
           if (articleId) {
             this.editArticle(articleId);
+          } else {
+            console.error('ERROR 記事IDが取得できませんでした:', { params, dataId: element?.getAttribute('data-id'), dataset: element?.dataset });
+            this._showFeedback('記事IDが取得できませんでした', 'error');
           }
         },
         'duplicate-article': async (element, params) => {
-          const articleId = params.id || element.getAttribute('data-id');
+          const articleId = params?.id || element?.getAttribute('data-id') || element?.dataset?.id;
           if (articleId) {
             await this.duplicateArticle(articleId);
+          } else {
+            this._showFeedback('記事IDが取得できませんでした', 'error');
           }
         },
         'delete-article': async (element, params) => {
-          const articleId = params.id || element.getAttribute('data-id');
+          console.log('🗑️ 削除アクション呼び出し:', { element, params });
+          const articleId = params?.id || element?.getAttribute('data-id') || element?.dataset?.id;
+          console.log('🔍 取得した記事ID:', articleId);
           if (articleId) {
             await this.deleteArticle(articleId);
+          } else {
+            console.error('ERROR 記事IDが取得できませんでした:', { params, dataId: element?.getAttribute('data-id'), dataset: element?.dataset });
+            this._showFeedback('記事IDが取得できませんでした', 'error');
           }
         },
         'preview-article': async (element, params) => {
-          const articleId = params.id || element.getAttribute('data-id');
+          console.log('👁️ プレビューアクション呼び出し:', { element, params });
+          const articleId = params?.id || element?.getAttribute('data-id') || element?.dataset?.id;
+          console.log('🔍 取得した記事ID:', articleId);
           if (articleId) {
             await this.previewArticleById(articleId);
+          } else {
+            console.error('ERROR 記事IDが取得できませんでした:', { params, dataId: element?.getAttribute('data-id'), dataset: element?.dataset });
+            this._showFeedback('記事IDが取得できませんでした', 'error');
           }
-                 },
+        },
 
          // Instagram関連
         'switch-instagram-tab': (element, params) => {
@@ -2276,36 +2293,55 @@ export class AdminActionService {
    * @param {string} articleId - 記事ID
    */
   async previewArticleById(articleId) {
-    console.log('👁️ 記事プレビュー開始:', articleId);
-    
-    // 記事IDの検証
-    if (!articleId) {
-      throw new Error('記事IDが指定されていません');
+    try {
+      console.log('👁️ 記事プレビュー開始:', articleId);
+      
+      // 記事IDの検証
+      if (!articleId) {
+        this._showFeedback('記事IDが指定されていません', 'error');
+        return;
+      }
+      
+      // ArticleDataServiceの初期化確認
+      if (!this.articleDataService || !this.articleDataService.initialized) {
+        console.error('ERROR ArticleDataServiceが初期化されていません');
+        this._showFeedback('記事サービスが初期化されていません。ページを再読み込みしてください。', 'error');
+        return;
+      }
+      
+      const article = this.articleDataService.getArticleById(articleId);
+      if (!article) {
+        console.error('ERROR 記事が見つかりません:', articleId);
+        this._showFeedback('プレビューする記事が見つかりません', 'error');
+        return;
+      }
+      
+      console.log('📄 プレビュー対象記事:', article.title);
+      
+      // 記事本文を取得
+      const content = this.articleDataService.getArticleContent?.(articleId) || article.content || '';
+      
+      // プレビュー用のデータを作成
+      const previewData = {
+        id: articleId,
+        title: article.title || '無題',
+        content: content,
+        category: article.category || 'announcement',
+        date: article.date || article.createdAt || new Date().toISOString(),
+        summary: article.summary || article.excerpt || '',
+        status: article.status || 'draft',
+        featured: article.featured || false
+      };
+      
+      // プレビューモーダルを表示
+      this._showNewsPreviewModal(previewData);
+      
+      console.log('SUCCESS 記事プレビュー表示完了');
+      
+    } catch (error) {
+      console.error('ERROR 記事プレビューエラー:', error);
+      this._showFeedback('記事のプレビューに失敗しました: ' + error.message, 'error');
     }
-    
-    // ArticleDataServiceの初期化確認
-    if (!this.articleDataService || !this.articleDataService.initialized) {
-      console.error('ERROR ArticleDataServiceが初期化されていません');
-      throw new Error('記事サービスが初期化されていません。ページを再読み込みしてください。');
-    }
-    
-    const article = this.articleDataService.getArticleById(articleId);
-    if (!article) {
-      console.error('ERROR 記事が見つかりません:', articleId);
-      throw new Error('記事が見つかりません');
-    }
-    
-    console.log('📄 プレビュー対象記事:', article.title);
-    
-    // 記事内容を取得
-    const content = this.articleDataService.getArticleContent(articleId);
-    const articleData = {
-      ...article,
-      content: content || ''
-    };
-    
-    // プレビューモーダルを表示
-    this._showNewsPreviewModal(articleData);
   }
 
   /**
@@ -2396,21 +2432,54 @@ export class AdminActionService {
    * @param {string} articleId - 記事ID
    */
   async deleteArticle(articleId) {
-    if (!confirm('この記事を削除しますか？この操作は取り消せません。')) {
-      return;
-    }
-    
-    const result = await this.articleDataService.deleteArticle(articleId);
-    
-    if (result.success) {
-      // 記事一覧とダッシュボードを更新
-      this.refreshRecentArticles();
-      this.refreshNewsList();
-      this.updateDashboardStats();
+    try {
+      console.log('🗑️ 記事削除開始:', articleId);
       
-      return result;
-    } else {
-      throw new Error(result.message || '削除に失敗しました');
+      if (!articleId) {
+        this._showFeedback('記事IDが指定されていません', 'error');
+        return;
+      }
+      
+      // ArticleDataServiceの初期化確認
+      if (!this.articleDataService || !this.articleDataService.initialized) {
+        console.error('ERROR ArticleDataServiceが初期化されていません');
+        this._showFeedback('記事サービスが初期化されていません。ページを再読み込みしてください。', 'error');
+        return;
+      }
+      
+      // 記事の存在確認
+      const article = this.articleDataService.getArticleById(articleId);
+      if (!article) {
+        this._showFeedback('削除対象の記事が見つかりません', 'error');
+        return;
+      }
+      
+      if (!confirm(`記事「${article.title}」を削除しますか？この操作は取り消せません。`)) {
+        console.log('記事削除がキャンセルされました');
+        return;
+      }
+      
+      const result = await this.articleDataService.deleteArticle(articleId);
+      
+      if (result.success) {
+        this._showFeedback(`記事「${article.title}」を削除しました`, 'success');
+        
+        // 記事一覧とダッシュボードを更新
+        await Promise.all([
+          this.refreshRecentArticles().catch(e => console.warn('最近の記事更新エラー:', e)),
+          this.refreshNewsList().catch(e => console.warn('記事一覧更新エラー:', e))
+        ]);
+        this.updateDashboardStats();
+        
+        console.log('SUCCESS 記事削除完了:', articleId);
+        return result;
+      } else {
+        throw new Error(result.message || '削除に失敗しました');
+      }
+    } catch (error) {
+      console.error('ERROR 記事削除エラー:', error);
+      this._showFeedback('記事の削除に失敗しました: ' + error.message, 'error');
+      throw error;
     }
   }
 
@@ -3878,6 +3947,49 @@ export class AdminActionService {
     } catch (error) {
       this.error('Instagram投稿フィルタリングエラー:', error);
       this.uiManagerService?.showNotification('error', 'フィルタリングに失敗しました');
+    }
+  }
+
+  /**
+   * アクション処理のデバッグ機能
+   * コンソールでボタンイベントの処理状況を確認
+   */
+  debugActionHandling() {
+    console.log('🔍 記事一覧アクションボタンのデバッグ情報:');
+    
+    // 現在のページのアクションボタンを確認
+    const actionButtons = document.querySelectorAll('.news-action-btn');
+    console.log(`📊 見つかったアクションボタン数: ${actionButtons.length}`);
+    
+    actionButtons.forEach((button, index) => {
+      console.log(`🔘 ボタン ${index + 1}:`, {
+        className: button.className,
+        dataAction: button.getAttribute('data-action'),
+        dataId: button.getAttribute('data-id'),
+        innerHTML: button.innerHTML.replace(/\s+/g, ' ').trim()
+      });
+    });
+    
+    // ActionManagerの初期化状態を確認
+    if (this.actionManager) {
+      console.log('✅ ActionManager初期化済み:', this.actionManager.initialized);
+      console.log('📝 登録済みアクション数:', Object.keys(this.actionManager.actions || {}).length);
+      
+      const articleActions = ['edit-article', 'preview-article', 'delete-article'];
+      articleActions.forEach(action => {
+        const isRegistered = this.actionManager.actions && this.actionManager.actions[action];
+        console.log(`${isRegistered ? '✅' : '❌'} ${action}: ${isRegistered ? '登録済み' : '未登録'}`);
+      });
+    } else {
+      console.error('❌ ActionManagerが見つかりません');
+    }
+    
+    // 手動でボタンクリックをテスト
+    if (actionButtons.length > 0) {
+      console.log('🧪 最初のボタンでテストクリック実行...');
+      const testButton = actionButtons[0];
+      const testEvent = new MouseEvent('click', { bubbles: true });
+      testButton.dispatchEvent(testEvent);
     }
   }
 }

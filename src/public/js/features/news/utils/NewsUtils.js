@@ -105,7 +105,7 @@ export class NewsUtils {
     const actions = `
       <button class="news-action-btn edit-btn" 
               data-action="edit-article" 
-              data-article-id="${article.id}" 
+              data-id="${article.id}" 
               title="記事を編集"
               aria-label="記事「${title}」を編集">
         <i class="fas fa-edit"></i>
@@ -113,7 +113,7 @@ export class NewsUtils {
       </button>
       <button class="news-action-btn preview-btn" 
               data-action="preview-article" 
-              data-article-id="${article.id}" 
+              data-id="${article.id}" 
               title="記事をプレビュー"
               aria-label="記事「${title}」をプレビュー">
         <i class="fas fa-eye"></i>
@@ -121,7 +121,7 @@ export class NewsUtils {
       </button>
       <button class="news-action-btn delete-btn" 
               data-action="delete-article" 
-              data-article-id="${article.id}" 
+              data-id="${article.id}" 
               title="記事を削除"
               aria-label="記事「${title}」を削除">
         <i class="fas fa-trash"></i>
