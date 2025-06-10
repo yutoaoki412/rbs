@@ -954,7 +954,7 @@
 
 .dashboard-widgets {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* 等幅2列 */
+  grid-template-columns: 2fr 1fr; /* 記事ウィジェットを大きく、クイックアクションを小さく */
   gap: 1.5rem;
   flex: 1;
   min-height: 0;
@@ -967,8 +967,13 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 320px; /* 最小高度を設定して枠を広げる */
-  max-height: calc(100vh - var(--admin-header-height) - 240px); /* 1画面に収める */
+  min-height: 400px; /* 記事を綺麗に表示するため高さを増加 */
+  max-height: calc(100vh - var(--admin-header-height) - 240px);
+}
+
+/* 記事ウィジェット専用の高さ調整 */
+.recent-articles-widget {
+  min-height: 500px; /* 記事ウィジェットの最小高度を増加 */
 }
 
 .widget:hover {
@@ -976,7 +981,7 @@
 }
 
 .widget-header {
-  padding: 1rem 1.25rem; /* パディングを調整 */
+  padding: 1.25rem 1.5rem; /* パディングを少し増加 */
   border-bottom: 1px solid var(--admin-gray-200);
   display: flex;
   justify-content: space-between;
@@ -1001,7 +1006,7 @@
 }
 
 .widget-content {
-  padding: 1rem 1.25rem; /* パディングを調整 */
+  padding: 1.5rem; /* パディングを増加して記事カードとのバランスを改善 */
   overflow-y: auto;
   flex: 1;
   min-height: 0;

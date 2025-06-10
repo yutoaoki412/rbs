@@ -22,7 +22,318 @@
 }
 
 /* ==========================================================================
-   02. ニュース一覧ページ専用スタイル
+   02. 管理画面用ニュースカードスタイル
+   ========================================================================== */
+
+/* 管理画面専用カード - LPサイドのデザインベース */
+.news-card.admin-card {
+  background: var(--white);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid #e5e7eb;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+}
+
+.news-card.admin-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(74, 144, 226, 0.15);
+  border-color: var(--primary-blue);
+}
+
+.news-card.admin-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-blue), var(--primary-teal));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.news-card.admin-card:hover::before {
+  opacity: 1;
+}
+
+.news-card.admin-card .admin-title-text {
+  color: var(--text-dark);
+  text-decoration: none;
+  cursor: default;
+  display: block;
+  font-weight: 600;
+}
+
+/* ステータス表示 */
+.news-status {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.news-status.published {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.news-status.draft {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* アクションボタン */
+.news-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.news-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.news-action-btn i {
+  font-size: 11px;
+}
+
+.action-text {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.news-action-btn.edit-btn {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.news-action-btn.edit-btn:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: white;
+}
+
+.news-action-btn.preview-btn {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+.news-action-btn.preview-btn:hover {
+  background: #059669;
+  border-color: #059669;
+  color: white;
+}
+
+.news-action-btn.delete-btn {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+.news-action-btn.delete-btn:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: white;
+}
+
+.news-card.admin-card .news-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: auto;
+}
+
+/* 統一ビュー（ダッシュボード・記事管理タブ共通） - LPサイドと完全統一 */
+.news-card.admin-card.unified-view {
+  background: var(--white);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid #e5e7eb;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+}
+
+/* カードヘッダー - LPサイドと統一 */
+.news-card.admin-card.unified-view .news-card-header {
+  padding: 20px 24px 14px;
+  flex-shrink: 0;
+}
+
+/* カードボディ - LPサイドと統一 */
+.news-card.admin-card.unified-view .news-card-body {
+  padding: 0 24px 20px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* メタ情報 - LPサイドと統一 */
+.news-card.admin-card.unified-view .news-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+/* 日付スタイル - LPサイドと統一 */
+.news-card.admin-card.unified-view .news-date {
+  background: var(--primary-blue);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.news-card.admin-card.unified-view .news-date::before {
+  content: '📅';
+  font-size: 10px;
+}
+
+/* カテゴリスタイル - LPサイドと統一 */
+.news-card.admin-card.unified-view .news-category {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: none;
+}
+
+/* タイトルスタイル - LPサイドと統一 */
+.news-card.admin-card.unified-view .news-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy-dark);
+  line-height: 1.4;
+  margin-bottom: 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/* 抜粋スタイル - LPサイドと統一 */
+.news-card.admin-card.unified-view .news-excerpt {
+  color: var(--gray-medium);
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  flex-grow: 1;
+  min-height: 39px;
+}
+
+/* アクションボタンエリア - LPサイドベースで管理機能追加 */
+.news-card.admin-card.unified-view .news-actions {
+  display: flex !important;
+  gap: 8px !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  margin-top: auto !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.news-card.admin-card.unified-view .news-action-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 6px 12px !important;
+  font-size: 11px !important;
+  border-radius: 6px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.news-card.admin-card.unified-view .action-text {
+  display: inline !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* 管理画面メタ情報の調整 */
+.news-card.admin-card .news-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.news-card.admin-card .news-date,
+.news-card.admin-card .news-category,
+.news-card.admin-card .news-status {
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   03. 既存スタイルとの統合調整
+   ========================================================================== */
+
+/* 管理画面ニュースコンテナ - LPサイドと同様のレイアウト */
+.admin-news-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  min-height: 200px;
+}
+
+.admin-news-container .news-card {
+  margin-bottom: 0;
+}
+
+/* ダッシュボードでは最初の3つのみ表示 */
+.admin-news-container .news-card.admin-card.recent-view:nth-child(n+4) {
+  display: none;
+}
+
+/* 記事管理モードでは全記事表示 */
+.admin-main.news-management-active .admin-news-container .news-card.admin-card.recent-view:nth-child(n+4) {
+  display: block;
+}
+
+/* ==========================================================================
+   04. ニュース一覧ページ専用スタイル
    ========================================================================== */
 
 /* ページヘッダー */
@@ -145,7 +456,7 @@
 }
 
 /* ==========================================================================
-   03. LPニュースセクション専用スタイル
+   05. LPニュースセクション専用スタイル
    ========================================================================== */
 
 #news {
@@ -231,7 +542,7 @@
 }
 
 /* ==========================================================================
-   04. 共通ニュースコンポーネント
+   06. 共通ニュースコンポーネント
    ========================================================================== */
 
 /* ニュースリスト */
@@ -415,7 +726,7 @@
 }
 
 /* ==========================================================================
-   05. ステータス・エラー表示
+   07. ステータス・エラー表示
    ========================================================================== */
 
 /* ローディング状況 */
@@ -554,7 +865,7 @@
 }
 
 /* ==========================================================================
-   06. ボタンコンポーネント
+   08. ボタンコンポーネント
    ========================================================================== */
 
 /* 汎用ボタン */
@@ -596,7 +907,7 @@
 }
 
 /* ==========================================================================
-   07. アニメーション
+   09. アニメーション
    ========================================================================== */
 
 @keyframes fadeInUp {
@@ -625,7 +936,7 @@
 }
 
 /* ==========================================================================
-   08. レスポンシブデザイン
+   10. レスポンシブデザイン
    ========================================================================== */
 
 /* タブレット (768px以上) */
@@ -745,15 +1056,13 @@
 
 /* モバイル (768px以下) */
 @media (max-width: 768px) {
-  /* ページヘッダー */
   .page-news .news-page-header {
     padding-top: 40px;
     margin-bottom: 40px;
   }
 
   .page-news .news-page-title {
-    margin-bottom: 30px;
-    padding-bottom: 20px;
+    font-size: clamp(28px, 6vw, 44px);
   }
 
   .page-news .news-page-title::after {
@@ -765,25 +1074,21 @@
     font-size: 16px;
   }
 
-  /* フィルター */
   .news-filters {
-    padding: 25px;
-    margin-bottom: 30px;
-    border-radius: 15px;
+    padding: 30px 20px;
+    margin-bottom: 40px;
   }
 
   .filter-buttons {
-    justify-content: center;
+    gap: 10px;
   }
 
   .filter-btn {
-    font-size: 13px;
-    padding: 10px 18px;
+    padding: 8px 16px;
+    font-size: 12px;
   }
 
-  /* グリッド */
   .news-grid {
-    grid-template-columns: 1fr;
     gap: 20px;
   }
 
@@ -791,10 +1096,8 @@
     gap: 16px;
   }
 
-  /* カード */
   .news-card {
     min-height: 180px;
-    border-radius: 12px;
   }
 
   .news-card-header {
@@ -806,69 +1109,118 @@
   }
 
   .news-meta {
-    gap: 6px;
     margin-bottom: 10px;
+    gap: 6px;
   }
 
   .news-title {
     font-size: 15px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
 
   .news-excerpt {
-    font-size: 13px;
-    margin-bottom: 12px;
-    min-height: 39px;
+    font-size: 12px;
+    margin-bottom: 10px;
   }
 
   .news-date,
   .news-category {
-    padding: 3px 6px;
-    font-size: 10px;
+    font-size: 9px;
   }
 
   .news-read-more {
-    font-size: 12px;
+    font-size: 11px;
     padding: 6px 12px;
   }
 
-  /* LPセクション */
   #news {
-    padding: var(--section-padding) 0 !important;
-    scroll-margin-top: var(--scroll-offset) !important;
+    padding: 40px 0;
   }
 
   #news::after {
-    width: 250px;
-    height: 250px;
+    display: none;
   }
 
-  /* エラー・状態表示 */
   .loading-message,
   .error-message,
-  .empty-message,
-  .no-news-message,
-  .news-error,
-  .initialization-error {
-    padding: 40px 20px;
+  .news-empty {
+    padding: 20px;
   }
 
   .loading-spinner {
-    width: 32px;
-    height: 32px;
-    border-width: 3px;
+    width: 40px;
+    height: 40px;
   }
 
   .error-actions {
     flex-direction: column;
-    align-items: center;
+    gap: 10px;
   }
 
   .btn {
-    padding: 10px 20px;
-    font-size: 14px;
-    min-width: 120px;
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+
+  /* 管理画面のモバイル対応改善 */
+  .news-card.admin-card {
+    min-height: 160px;
+  }
+
+  .news-card.admin-card .news-meta {
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .news-card.admin-card .news-actions {
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  .news-card.admin-card .news-action-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    min-height: 40px;
+  }
+
+  .news-card.admin-card.recent-view .news-action-btn {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.75rem;
+    min-height: 32px;
+  }
+
+  .news-card.admin-card.list-view .news-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .news-card.admin-card.list-view .news-action-btn {
     justify-content: center;
+  }
+
+  .admin-news-container {
+    gap: 0.75rem;
+  }
+
+  /* 統一ビューのレスポンシブ対応 */
+  .news-card.admin-card.unified-view .news-actions {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .news-card.admin-card.unified-view .news-action-btn {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.75rem;
+    min-height: 32px;
+  }
+
+  .news-card.admin-card.unified-view .news-card-header {
+    padding: 0.75rem 1rem 0.5rem;
+  }
+
+  .news-card.admin-card.unified-view .news-card-body {
+    padding: 0 1rem 0.75rem;
   }
 }
 
@@ -964,7 +1316,7 @@
 }
 
 /* ==========================================================================
-   09. アクセシビリティ対応
+   11. アクセシビリティ対応
    ========================================================================== */
 
 /* アニメーション無効化 */
@@ -1005,4 +1357,34 @@
     border-width: 2px;
     border-color: var(--gray-dark);
   }
+}
+
+/* 管理画面全体で記事ボタンを強制表示 */
+.admin-main .news-actions {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.admin-main .news-action-btn {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.admin-main .action-text {
+  display: inline !important;
+  visibility: visible !important;
+}
+
+/* インラインスタイルを上書き */
+.news-card[style*="display: none"] .news-actions,
+.news-actions[style*="display: none"],
+.news-action-btn[style*="display: none"] {
+  display: flex !important;
+}
+
+.news-action-btn[style*="visibility: hidden"],
+.action-text[style*="visibility: hidden"] {
+  visibility: visible !important;
 } 

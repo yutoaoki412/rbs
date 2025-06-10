@@ -12,7 +12,7 @@ export class NewsUtils {
    */
   static createArticleCard(article, context = 'default') {
     const categoryInfo = CONFIG.articles.categories[article.category];
-    const date = NewsUtils.formatDate(article.date || article.publishedAt);
+    const date = NewsUtils.formatDate(article.date || article.publishedAt || article.createdAt);
     
     // 概要文を生成（複数のフィールドから取得を試行）
     let excerptText = '';
@@ -36,32 +36,102 @@ export class NewsUtils {
       finalExcerpt: excerptText
     });
     
-    // コンテキストに応じてクラスを設定
-    const cardClasses = context === 'homepage' ? 'news-card loading' : 'news-card fade-in';
+    // コンテキストに応じてクラスとコンテンツを設定
+    let cardClasses = 'news-card';
+    let adminActions = '';
+    
+    switch (context) {
+      case 'homepage':
+        cardClasses = 'news-card loading';
+        break;
+      case 'admin-recent':
+        cardClasses = 'news-card admin-card recent-view';
+        adminActions = NewsUtils._generateAdminActions(article, 'recent');
+        break;
+      case 'admin-list':
+        cardClasses = 'news-card admin-card list-view';
+        adminActions = NewsUtils._generateAdminActions(article, 'list');
+        break;
+      case 'admin-unified':
+        cardClasses = 'news-card admin-card unified-view';
+        adminActions = NewsUtils._generateAdminActions(article, 'unified');
+        break;
+      default:
+        cardClasses = 'news-card fade-in';
+        break;
+    }
     
     return `
-      <article class="${cardClasses}">
+      <article class="${cardClasses}" data-article-id="${article.id}">
         <div class="news-card-header">
           <div class="news-meta">
             <div class="news-date">${date}</div>
             <div class="news-category ${article.category}">
               ${categoryInfo?.name || article.category}
             </div>
+            ${article.status ? `<div class="news-status ${article.status}">${article.status === 'published' ? '公開中' : '下書き'}</div>` : ''}
           </div>
           <h3 class="news-title">
-            <a href="news-detail.html?id=${article.id}">${NewsUtils.escapeHtml(article.title)}</a>
+            ${context.startsWith('admin') ? 
+              `<span class="admin-title-text">${NewsUtils.escapeHtml(article.title)}</span>` :
+              `<a href="news-detail.html?id=${article.id}">${NewsUtils.escapeHtml(article.title)}</a>`
+            }
           </h3>
         </div>
         <div class="news-card-body">
           <p class="news-excerpt">${NewsUtils.escapeHtml(excerptText)}</p>
           <div class="news-actions">
-            <a href="news-detail.html?id=${article.id}" class="news-read-more">
-              続きを読む
-            </a>
+            ${context.startsWith('admin') ? 
+              adminActions :
+              `<a href="news-detail.html?id=${article.id}" class="news-read-more">続きを読む</a>`
+            }
           </div>
         </div>
       </article>
     `;
+  }
+
+  /**
+   * 管理画面用アクションボタンを生成
+   * @private
+   * @param {Object} article - 記事データ
+   * @param {string} mode - 表示モード（統一化により不要だが互換性のため残す）
+   * @returns {string} アクションボタンHTML
+   */
+  static _generateAdminActions(article, mode) {
+    const title = NewsUtils.escapeHtml(article.title);
+    
+    // 完全統一: すべての管理画面コンテキストで同じアクションボタンを生成
+    const actions = `
+      <button class="news-action-btn edit-btn" 
+              data-action="edit-article" 
+              data-article-id="${article.id}" 
+              title="記事を編集"
+              aria-label="記事「${title}」を編集">
+        <i class="fas fa-edit"></i>
+        <span class="action-text">編集</span>
+      </button>
+      <button class="news-action-btn preview-btn" 
+              data-action="preview-article" 
+              data-article-id="${article.id}" 
+              title="記事をプレビュー"
+              aria-label="記事「${title}」をプレビュー">
+        <i class="fas fa-eye"></i>
+        <span class="action-text">プレビュー</span>
+      </button>
+      <button class="news-action-btn delete-btn" 
+              data-action="delete-article" 
+              data-article-id="${article.id}" 
+              title="記事を削除"
+              aria-label="記事「${title}」を削除">
+        <i class="fas fa-trash"></i>
+        <span class="action-text">削除</span>
+      </button>
+    `;
+    
+    console.log(`🔧 _generateAdminActions - モード: ${mode}, 記事ID: ${article.id}, 生成したボタン数: 3`);
+    
+    return actions;
   }
 
   /**
