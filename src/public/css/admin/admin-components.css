@@ -1586,6 +1586,247 @@
   white-space: pre-wrap;
 }
 
+.test-results.hidden {
+  display: none;
+}
+
+/* 統計グリッド（設定タブ用） */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: var(--admin-white);
+  border: 2px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius);
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--admin-shadow);
+  border-color: var(--admin-gray-300);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.25rem;
+}
+
+.stat-icon.total {
+  background: var(--admin-primary);
+}
+
+.stat-icon.featured {
+  background: #e91e63;
+}
+
+.stat-icon.instagram-visible {
+  background: var(--admin-success);
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-number {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--admin-gray-900);
+  margin-bottom: 0.25rem;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--admin-gray-600);
+  font-weight: 500;
+}
+
+/* トグルスイッチ */
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-switch input[type="checkbox"] {
+  position: relative;
+  width: 50px;
+  height: 26px;
+  appearance: none;
+  background: var(--admin-gray-300);
+  border-radius: 13px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toggle-switch input[type="checkbox"]:checked {
+  background: var(--admin-primary);
+}
+
+.toggle-switch input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-switch input[type="checkbox"]:checked::before {
+  transform: translateX(24px);
+}
+
+.toggle-slider {
+  display: none; /* 既存のtoggle-sliderがある場合は非表示 */
+}
+
+.toggle-label {
+  font-weight: 500;
+  color: var(--admin-gray-700);
+}
+
+/* デバッグ情報表示用スタイル */
+.debug-info {
+  font-family: var(--admin-font-mono, 'Monaco', 'Consolas', monospace);
+}
+
+.debug-grid {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.debug-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: var(--admin-gray-50);
+  border-radius: var(--admin-border-radius-sm);
+  border-left: 3px solid var(--admin-primary);
+}
+
+.debug-item strong {
+  color: var(--admin-gray-900);
+  font-weight: 600;
+}
+
+.debug-item span {
+  color: var(--admin-gray-600);
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+.debug-summary {
+  padding: 1rem;
+  background: var(--admin-primary);
+  color: white;
+  border-radius: var(--admin-border-radius);
+  margin-bottom: 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.debug-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.debug-article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: var(--admin-gray-50);
+  border-radius: var(--admin-border-radius-sm);
+  border: 1px solid var(--admin-gray-200);
+}
+
+.debug-article strong {
+  flex: 1;
+  color: var(--admin-gray-900);
+}
+
+.debug-article small {
+  color: var(--admin-gray-500);
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+}
+
+/* 設定フォーム用スタイル */
+.settings-form {
+  width: 100%;
+}
+
+.settings-form .form-grid {
+  display: grid;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.settings-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.settings-form .form-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--admin-gray-700);
+  margin-bottom: 0.5rem;
+}
+
+.settings-form .form-label i {
+  color: var(--admin-primary);
+  font-size: 0.875rem;
+}
+
+.settings-form .form-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+/* btn-warningクラスの追加 */
+.btn-warning {
+  background: var(--admin-warning);
+  color: white;
+  border: 2px solid var(--admin-warning);
+}
+
+.btn-warning:hover {
+  background: var(--admin-warning-dark, #d97706);
+  border-color: var(--admin-warning-dark, #d97706);
+}
+
 /* =============================================================================
  * アクション専用通知スタイル
  * ============================================================================= */

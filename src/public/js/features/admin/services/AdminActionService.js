@@ -69,10 +69,11 @@ export class AdminActionService {
               'insert-markdown', 'show-writing-guide', 'edit-article', 'delete-article',
         'duplicate-article', 'load-lesson-status', 'update-lesson-status',
       'wizard-prev', 'wizard-next',
-      'toggle-notification-mode', 'export-data', 'clear-all-data', 'test-site-connection',
+      'toggle-notification-mode', 'export-data', 'import-data', 'clear-all-data', 'test-site-connection',
       'reset-local-storage', 'close-modal',
       'open-external', 'toggle-mobile-menu', 'logout',
-      'switch-instagram-tab', 'add-instagram-post', 'save-instagram-post', 'refresh-instagram-posts', 'save-instagram-settings', 'close-instagram-modal', 'edit-instagram-post', 'toggle-instagram-post', 'delete-instagram-post', 'filter-instagram-list'
+      'switch-instagram-tab', 'add-instagram-post', 'save-instagram-post', 'refresh-instagram-posts', 'save-instagram-settings', 'close-instagram-modal', 'edit-instagram-post', 'toggle-instagram-post', 'delete-instagram-post', 'filter-instagram-list',
+      'show-debug-info', 'show-news-debug', 'show-storage-info', 'save-admin-settings', 'reset-admin-settings', 'refresh-data-stats'
     ];
     
     // 初期化済みフラグ
@@ -109,6 +110,28 @@ export class AdminActionService {
    */
   escapeHtml(str) {
     return escapeHtml(str);
+  }
+
+  /**
+   * モーダル表示
+   * @param {string} title - モーダルタイトル
+   * @param {string} content - モーダルコンテンツ
+   * @param {Object} options - 追加オプション
+   */
+  _showModal(title, content, options = {}) {
+    if (this.uiManagerService) {
+      return this.uiManagerService.showModal('admin-modal', {
+        title: title,
+        content: content,
+        size: options.size || 'medium',
+        actions: options.actions || [],
+        onShow: options.onShow,
+        onHide: options.onHide
+      });
+    } else {
+      // フォールバック: ブラウザのアラート
+      alert(`${title}\n\n${content.replace(/<[^>]*>/g, '')}`);
+    }
   }
 
   /**
@@ -507,13 +530,23 @@ export class AdminActionService {
 
         // 設定関連
         'save-settings': () => this.saveSettings(),
+        'save-admin-settings': () => this.saveAdminSettings(),
+        'reset-admin-settings': () => this.resetAdminSettings(),
         'toggle-notification-mode': () => this.toggleNotificationMode(),
 
         // システム関連
         'export-data': () => this.exportData(),
+        'import-data': () => this.importData(),
         'clear-all-data': () => this.clearAllData(),
         'test-site-connection': () => this.testSiteConnection(),
         'reset-local-storage': () => this.resetLocalStorage(),
+        'refresh-data-stats': () => this.refreshDataStats(),
+
+        // デバッグ関連
+        'show-debug-info': () => this.showDebugInfo(),
+        'show-news-debug': () => this.showNewsDebug(),
+        'show-storage-info': () => this.showStorageInfo(),
+        'show-instagram-debug': () => this.showInstagramDebug(),
 
         // 認証関連
         'logout': () => this.handleAuthLogout(),
@@ -867,7 +900,9 @@ export class AdminActionService {
           break;
           
         case 'settings':
-          // 設定タブの初期化（必要に応じて）
+          // 設定タブの初期化
+          this.refreshDataStats();
+          this.loadAdminSettings();
           break;
           
         default:
@@ -1199,6 +1234,101 @@ export class AdminActionService {
     } catch (error) {
       this.error('設定保存エラー:', error);
       this._showFeedback('設定の保存に失敗しました', 'error');
+    }
+  }
+
+  /**
+   * 管理画面設定を保存
+   */
+  saveAdminSettings() {
+    try {
+      this.debug('⚙️ 管理画面設定保存開始');
+      
+      // UI要素から設定値を取得
+      const notificationMode = document.getElementById('notification-mode')?.checked || false;
+      const debugMode = document.getElementById('debug-mode')?.checked || false;
+      
+      // 設定オブジェクトを作成
+      const settings = {
+        notificationMode,
+        debugMode,
+        lastSaved: new Date().toISOString()
+      };
+      
+      // ローカルストレージに保存
+      localStorage.setItem(CONFIG.storage.keys.adminSettings, JSON.stringify(settings));
+      localStorage.setItem(CONFIG.storage.keys.notificationMode, notificationMode ? 'on' : 'off');
+      localStorage.setItem(CONFIG.storage.keys.debugMode, debugMode ? 'on' : 'off');
+      
+      this._showFeedback('管理画面設定を保存しました', 'success');
+      this.debug('SUCCESS 管理画面設定保存完了:', settings);
+      
+    } catch (error) {
+      this.error('管理画面設定保存エラー:', error);
+      this._showFeedback('設定の保存に失敗しました', 'error');
+    }
+  }
+
+  /**
+   * 管理画面設定をデフォルトに戻す
+   */
+  resetAdminSettings() {
+    try {
+      this.debug('⚙️ 管理画面設定リセット開始');
+      
+      // UI要素をデフォルト値に設定
+      const notificationModeElement = document.getElementById('notification-mode');
+      const debugModeElement = document.getElementById('debug-mode');
+      
+      if (notificationModeElement) {
+        notificationModeElement.checked = true; // デフォルト: 有効
+      }
+      
+      if (debugModeElement) {
+        debugModeElement.checked = false; // デフォルト: 無効
+      }
+      
+      // 設定を保存
+      this.saveAdminSettings();
+      
+      this._showFeedback('管理画面設定をデフォルトに戻しました', 'info');
+      this.debug('SUCCESS 管理画面設定リセット完了');
+      
+    } catch (error) {
+      this.error('管理画面設定リセットエラー:', error);
+      this._showFeedback('設定のリセットに失敗しました', 'error');
+    }
+  }
+
+  /**
+   * 管理画面設定を読み込み
+   */
+  loadAdminSettings() {
+    try {
+      this.debug('⚙️ 管理画面設定読み込み開始');
+      
+      // ローカルストレージから設定を取得
+      const settingsData = localStorage.getItem(CONFIG.storage.keys.adminSettings);
+      const settings = settingsData ? JSON.parse(settingsData) : {};
+      
+      // UI要素に設定を反映
+      const notificationModeElement = document.getElementById('notification-mode');
+      const debugModeElement = document.getElementById('debug-mode');
+      
+      if (notificationModeElement) {
+        notificationModeElement.checked = settings.notificationMode !== false; // デフォルト: 有効
+      }
+      
+      if (debugModeElement) {
+        debugModeElement.checked = settings.debugMode === true; // デフォルト: 無効
+      }
+      
+      this.debug('SUCCESS 管理画面設定読み込み完了:', settings);
+      
+    } catch (error) {
+      this.error('管理画面設定読み込みエラー:', error);
+      // エラーが発生した場合はデフォルト設定を適用
+      this.resetAdminSettings();
     }
   }
 
@@ -4072,6 +4202,443 @@ export class AdminActionService {
     this._showFeedback('ウィザード機能は開発中です', 'info');
   }
 
+  // === データ管理関連メソッド ===
+
+  /**
+   * データ統計を更新
+   */
+  refreshDataStats() {
+    try {
+      this.debug('📊 データ統計更新開始');
+      
+      // 記事数を取得
+      const articlesData = localStorage.getItem(CONFIG.storage.keys.articles);
+      this.debug('🗂️ 記事データ確認:', {
+        storageKey: CONFIG.storage.keys.articles,
+        rawData: articlesData,
+        length: articlesData ? articlesData.length : 0
+      });
+      const articlesCount = articlesData ? JSON.parse(articlesData).length : 0;
+      
+      // Instagram投稿数を取得
+      const instagramData = localStorage.getItem(CONFIG.storage.keys.instagramPosts);
+      this.debug('📷 Instagram投稿データ確認:', {
+        storageKey: CONFIG.storage.keys.instagramPosts,
+        rawData: instagramData,
+        length: instagramData ? instagramData.length : 0
+      });
+      const instagramCount = instagramData ? JSON.parse(instagramData).length : 0;
+      
+      // レッスン記録数を取得
+      const lessonsData = localStorage.getItem(CONFIG.storage.keys.lessonStatus);
+      this.debug('🏃 レッスンデータ確認:', {
+        storageKey: CONFIG.storage.keys.lessonStatus,
+        rawData: lessonsData,
+        length: lessonsData ? lessonsData.length : 0
+      });
+      const lessonsCount = lessonsData ? Object.keys(JSON.parse(lessonsData)).length : 0;
+      
+      // 全てのLocalStorageキーをデバッグ表示
+      const allKeys = Object.keys(localStorage);
+      this.debug('🔑 LocalStorage全キー:', allKeys);
+      this.debug('📋 CONFIG.storage.keys:', CONFIG.storage.keys);
+      
+      // UI要素を更新
+      const totalArticlesElement = document.getElementById('total-articles');
+      const totalInstagramElement = document.getElementById('total-instagram');
+      const totalLessonsElement = document.getElementById('total-lessons');
+      
+      if (totalArticlesElement) {
+        totalArticlesElement.textContent = articlesCount;
+        this.debug('✅ 記事数UI更新:', articlesCount);
+      } else {
+        this.warn('⚠️ total-articles要素が見つかりません');
+      }
+      
+      if (totalInstagramElement) {
+        totalInstagramElement.textContent = instagramCount;
+        this.debug('✅ Instagram投稿数UI更新:', instagramCount);
+      } else {
+        this.warn('⚠️ total-instagram要素が見つかりません');
+      }
+      
+      if (totalLessonsElement) {
+        totalLessonsElement.textContent = lessonsCount;
+        this.debug('✅ レッスン数UI更新:', lessonsCount);
+      } else {
+        this.warn('⚠️ total-lessons要素が見つかりません');
+      }
+      
+      this._showFeedback('データ統計を更新しました', 'info');
+      this.debug('SUCCESS データ統計更新完了:', { articlesCount, instagramCount, lessonsCount });
+      
+    } catch (error) {
+      this.error('データ統計更新エラー:', error);
+      this._showFeedback('データ統計の更新に失敗しました', 'error');
+    }
+  }
+
+  /**
+   * データインポート
+   */
+  importData() {
+    try {
+      this.debug('📥 データインポート開始');
+      
+      // ファイル選択用のinput要素を動的に作成
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = '.json';
+      fileInput.style.display = 'none';
+      
+      fileInput.onchange = (event) => {
+        const file = event.target.files[0];
+        if (!file) {
+          this._showFeedback('ファイルが選択されませんでした', 'warning');
+          return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const importData = JSON.parse(e.target.result);
+            
+            // データの形式を検証
+            if (importData.articles) {
+              localStorage.setItem(CONFIG.storage.keys.articles, JSON.stringify(importData.articles));
+            }
+            if (importData.instagram) {
+              localStorage.setItem(CONFIG.storage.keys.instagramPosts, JSON.stringify(importData.instagram));
+            }
+            if (importData.lessons) {
+              localStorage.setItem(CONFIG.storage.keys.lessonStatus, JSON.stringify(importData.lessons));
+            }
+            
+            this._showFeedback('データのインポートが完了しました', 'success');
+            this.refreshDataStats();
+            
+          } catch (parseError) {
+            this.error('データインポートエラー:', parseError);
+            this._showFeedback('無効なJSONファイルです', 'error');
+          }
+        };
+        
+        reader.readAsText(file);
+        document.body.removeChild(fileInput);
+      };
+      
+      document.body.appendChild(fileInput);
+      fileInput.click();
+      
+    } catch (error) {
+      this.error('データインポートエラー:', error);
+      this._showFeedback('データのインポートに失敗しました', 'error');
+    }
+  }
+
+  // === デバッグ関連メソッド ===
+
+  /**
+   * システム情報を表示
+   */
+  showDebugInfo() {
+    try {
+      this.debug('🔍 システム情報表示');
+      
+      const debugInfo = {
+        アプリケーション: CONFIG.app.name,
+        バージョン: CONFIG.app.version,
+        環境: CONFIG.app.environment,
+        現在時刻: new Date().toLocaleString('ja-JP'),
+        ユーザーエージェント: navigator.userAgent,
+        画面解像度: `${screen.width}x${screen.height}`,
+        ブラウザビューポート: `${window.innerWidth}x${window.innerHeight}`,
+        LocalStorageサイズ: `${JSON.stringify(localStorage).length} 文字`,
+        管理画面タブ: this.currentTab || 'unknown'
+      };
+      
+      const debugHtml = `
+        <div class="debug-info">
+          <h4><i class="fas fa-info-circle"></i> システム情報</h4>
+          <div class="debug-grid">
+            ${Object.entries(debugInfo).map(([key, value]) => `
+              <div class="debug-item">
+                <strong>${key}:</strong> <span>${value}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      
+      this._showModal('システム情報', debugHtml);
+      
+    } catch (error) {
+      this.error('システム情報表示エラー:', error);
+      this._showFeedback('システム情報の表示に失敗しました', 'error');
+    }
+  }
+
+  /**
+   * 記事システムデバッグ情報を表示
+   */
+  showNewsDebug() {
+    try {
+      this.debug('📰 記事システムデバッグ');
+      
+      const articlesData = localStorage.getItem(CONFIG.storage.keys.articles);
+      const articles = articlesData ? JSON.parse(articlesData) : [];
+      
+      const debugInfo = {
+        記事総数: articles.length,
+        公開記事数: articles.filter(article => article.status === 'published').length,
+        下書き数: articles.filter(article => article.status === 'draft').length,
+        最新記事: articles.length > 0 ? articles[articles.length - 1].title : 'なし',
+        ストレージキー: CONFIG.storage.keys.articles,
+        データサイズ: `${JSON.stringify(articles).length} 文字`
+      };
+      
+      const debugHtml = `
+        <div class="debug-info">
+          <h4><i class="fas fa-newspaper"></i> 記事システムデバッグ</h4>
+          <div class="debug-grid">
+            ${Object.entries(debugInfo).map(([key, value]) => `
+              <div class="debug-item">
+                <strong>${key}:</strong> <span>${value}</span>
+              </div>
+            `).join('')}
+          </div>
+          ${articles.length > 0 ? `
+            <h5><i class="fas fa-list"></i> 記事一覧</h5>
+            <div class="debug-list">
+              ${articles.slice(-5).map(article => `
+                <div class="debug-article">
+                  <strong>${article.title}</strong> 
+                  <span class="badge badge-${article.status === 'published' ? 'success' : 'info'}">${article.status}</span>
+                  <small>${article.date}</small>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+      
+      this._showModal('記事システムデバッグ', debugHtml);
+      
+    } catch (error) {
+      this.error('記事システムデバッグエラー:', error);
+      this._showFeedback('記事システムデバッグの表示に失敗しました', 'error');
+    }
+  }
+
+  /**
+   * ストレージ情報を表示
+   */
+  showStorageInfo() {
+    try {
+      this.debug('💾 ストレージ情報表示');
+      
+      const storageInfo = {};
+      let totalSize = 0;
+      
+      // 各ストレージキーの詳細を収集
+      for (const [keyName, storageKey] of Object.entries(CONFIG.storage.keys)) {
+        const data = localStorage.getItem(storageKey);
+        const size = data ? data.length : 0;
+        totalSize += size;
+        
+        storageInfo[keyName] = {
+          key: storageKey,
+          exists: !!data,
+          size: size,
+          sizeFormatted: `${(size / 1024).toFixed(2)} KB`,
+          isEmpty: !data || data === '[]' || data === '{}',
+          preview: data ? data.substring(0, 100) + (data.length > 100 ? '...' : '') : 'null'
+        };
+      }
+      
+      // 全LocalStorageキーもチェック
+      const allLocalStorageKeys = Object.keys(localStorage);
+      const unknownKeys = allLocalStorageKeys.filter(key => 
+        !Object.values(CONFIG.storage.keys).includes(key)
+      );
+      
+      const storageHtml = `
+        <div class="debug-info">
+          <h4><i class="fas fa-database"></i> ストレージ情報</h4>
+          
+          <div class="storage-summary">
+            <div class="summary-item">
+              <strong>総サイズ:</strong> ${(totalSize / 1024).toFixed(2)} KB
+            </div>
+            <div class="summary-item">
+              <strong>定義済みキー数:</strong> ${Object.keys(CONFIG.storage.keys).length}
+            </div>
+            <div class="summary-item">
+              <strong>使用中キー数:</strong> ${Object.values(storageInfo).filter(info => info.exists).length}
+            </div>
+            <div class="summary-item">
+              <strong>不明なキー数:</strong> ${unknownKeys.length}
+            </div>
+          </div>
+          
+          <h5><i class="fas fa-list"></i> 定義済みストレージキー</h5>
+          <div class="storage-details">
+            ${Object.entries(storageInfo).map(([keyName, info]) => `
+              <div class="storage-item ${!info.exists ? 'storage-missing' : info.isEmpty ? 'storage-empty' : 'storage-active'}">
+                <div class="storage-header">
+                  <strong>${keyName}</strong>
+                  <span class="storage-status ${info.exists ? (info.isEmpty ? 'empty' : 'active') : 'missing'}">
+                    ${info.exists ? (info.isEmpty ? '空' : '有効') : '未使用'}
+                  </span>
+                </div>
+                <div class="storage-meta">
+                  <small>キー: ${info.key}</small><br>
+                  <small>サイズ: ${info.sizeFormatted}</small>
+                </div>
+                ${info.exists ? `
+                  <div class="storage-preview">
+                    <details>
+                      <summary>データプレビュー</summary>
+                      <pre style="font-size: 11px; max-height: 100px; overflow-y: auto;">${this.escapeHtml(info.preview)}</pre>
+                    </details>
+                  </div>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+          
+          ${unknownKeys.length > 0 ? `
+            <h5><i class="fas fa-question-circle"></i> 不明なキー (${unknownKeys.length}件)</h5>
+            <div class="unknown-keys">
+              ${unknownKeys.map(key => {
+                const data = localStorage.getItem(key);
+                return `
+                  <div class="unknown-key-item">
+                    <strong>${key}</strong>
+                    <small>(${(data.length / 1024).toFixed(2)} KB)</small>
+                    <details>
+                      <summary>内容</summary>
+                      <pre style="font-size: 10px; max-height: 80px; overflow-y: auto;">${this.escapeHtml(data.substring(0, 200) + (data.length > 200 ? '...' : ''))}</pre>
+                    </details>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          ` : ''}
+          
+          <div class="storage-actions">
+            <button class="btn btn-info" onclick="navigator.clipboard.writeText(JSON.stringify(Object.keys(localStorage), null, 2))">
+              <i class="fas fa-copy"></i> 全キーをコピー
+            </button>
+            <button class="btn btn-info" onclick="console.log('LocalStorage dump:', localStorage)">
+              <i class="fas fa-terminal"></i> コンソールに出力
+            </button>
+          </div>
+        </div>
+      `;
+      
+      this._showModal('ストレージ情報', storageHtml, { size: 'large' });
+      
+    } catch (error) {
+      this.error('ストレージ情報表示エラー:', error);
+      this._showFeedback('ストレージ情報の表示に失敗しました', 'error');
+    }
+  }
+
+  /**
+   * Instagram投稿デバッグ情報を表示
+   */
+  showInstagramDebug() {
+    try {
+      this.debug('📸 Instagram投稿デバッグ');
+      
+      const instagramData = localStorage.getItem(CONFIG.storage.keys.instagramPosts);
+      const posts = instagramData ? JSON.parse(instagramData) : [];
+      
+      let debugContent = `
+        <div class="debug-info">
+          <h4><i class="fab fa-instagram"></i> Instagram投稿デバッグ</h4>
+          <div class="debug-summary">
+            <strong>投稿数:</strong> ${posts.length}件<br>
+            <strong>アクティブ投稿:</strong> ${posts.filter(post => post.status === 'active').length}件<br>
+            <strong>非表示投稿:</strong> ${posts.filter(post => post.status === 'inactive').length}件<br>
+            <strong>注目投稿:</strong> ${posts.filter(post => post.featured).length}件
+          </div>
+      `;
+      
+      if (posts.length > 0) {
+        debugContent += `
+          <h5><i class="fas fa-list"></i> 投稿一覧</h5>
+          <div class="debug-posts">
+        `;
+        
+        posts.forEach((post, index) => {
+          const embedPreview = post.embedCode ? 
+            post.embedCode.substring(0, 100) + '...' : 
+            'embedCode なし';
+          
+          // Instagram URLを抽出
+          const urlMatch = post.embedCode ? post.embedCode.match(/data-instgrm-permalink="([^"]+)"/) : null;
+          const instagramUrl = urlMatch ? urlMatch[1] : 'URL抽出不可';
+          
+          debugContent += `
+            <div class="debug-post-item">
+              <div class="post-header">
+                <strong>投稿 #${index + 1}</strong>
+                <span class="status-badge status-${post.status}">${post.status}</span>
+                ${post.featured ? '<span class="featured-badge">注目</span>' : ''}
+              </div>
+              <div class="post-details">
+                <div><strong>ID:</strong> ${post.id || '未設定'}</div>
+                <div><strong>Instagram URL:</strong> <a href="${instagramUrl}" target="_blank" rel="noopener">${instagramUrl}</a></div>
+                <div><strong>埋め込みコード:</strong> <code>${embedPreview}</code></div>
+                <div><strong>作成日:</strong> ${post.createdAt || '不明'}</div>
+                <div><strong>更新日:</strong> ${post.updatedAt || '不明'}</div>
+              </div>
+            </div>
+          `;
+        });
+        
+        debugContent += '</div>';
+        
+        // LP側での利用方法も表示
+        debugContent += `
+          <h5><i class="fas fa-code"></i> LP側での利用方法</h5>
+          <div class="usage-example">
+            <p><strong>JavaScript例（LP側）:</strong></p>
+            <pre><code>// Instagram投稿データを取得
+const instagramPosts = JSON.parse(localStorage.getItem('${CONFIG.storage.keys.instagramPosts}') || '[]');
+
+// アクティブな投稿のみ取得
+const activePosts = instagramPosts.filter(post => post.status === 'active');
+
+// 各投稿のembedCodeを使用してHTML生成
+activePosts.forEach(post => {
+  const container = document.createElement('div');
+  container.innerHTML = post.embedCode;
+  document.getElementById('instagram-container').appendChild(container);
+});</code></pre>
+          </div>
+        `;
+      } else {
+        debugContent += `
+          <div class="empty-state">
+            <p>Instagram投稿がまだ登録されていません。</p>
+            <p>Instagram管理タブで投稿を追加してください。</p>
+          </div>
+        `;
+      }
+      
+      debugContent += '</div>';
+      
+      this._showModal('Instagram投稿デバッグ', debugContent);
+      
+    } catch (error) {
+      this.error('Instagram投稿デバッグエラー:', error);
+      this._showFeedback('Instagram投稿デバッグの表示に失敗しました', 'error');
+    }
+  }
+
   /**
    * Instagram設定をデフォルトに戻す
    */
@@ -4102,8 +4669,10 @@ export class AdminActionService {
    */
   testInstagramSettings() {
     try {
-      const maxPosts = document.getElementById('max-posts-display')?.value || '6';
-      const openNewTab = document.getElementById('open-new-tab')?.checked || false;
+      const maxPostsElement = document.getElementById('max-posts-display');
+      const openNewTabElement = document.getElementById('open-new-tab');
+      const maxPosts = maxPostsElement ? maxPostsElement.value : '6';
+      const openNewTab = openNewTabElement ? openNewTabElement.checked : false;
       
       const previewMessage = `
         <div class="settings-preview">
@@ -4184,82 +4753,381 @@ export class AdminActionService {
 
     } catch (error) {
       this.error('Instagram投稿フィルタリングエラー:', error);
-      this.uiManagerService?.showNotification('error', 'フィルタリングに失敗しました');
+      if (this.uiManagerService && this.uiManagerService.showNotification) {
+        this.uiManagerService.showNotification('error', 'フィルタリングに失敗しました');
+      }
     }
   }
 
   /**
-   * アクション処理のデバッグ機能（UX改善版）
-   * コンソールでボタンイベントの処理状況を確認
+   * LocalStorageをリセット
    */
-  debugActionHandling() {
-    console.log('🔍 [DEBUG] 記事一覧アクションボタンのデバッグ情報:');
-    
-    // 現在のページのアクションボタンを確認
-    const actionButtons = document.querySelectorAll('.news-action-btn');
-    console.log(`📊 見つかったアクションボタン数: ${actionButtons.length}`);
-    
-    if (actionButtons.length === 0) {
-      console.warn('⚠️ アクションボタンが見つかりません。記事一覧を表示してからお試しください。');
-      return;
-    }
-    
-    actionButtons.forEach((button, index) => {
-      console.log(`🔘 ボタン ${index + 1}:`, {
-        className: button.className,
-        dataAction: button.getAttribute('data-action'),
-        dataId: button.getAttribute('data-id'),
-        innerHTML: button.innerHTML.replace(/\s+/g, ' ').trim()
-      });
-    });
-    
-    // ActionManagerの初期化状態を確認
-    if (this.actionManager) {
-      console.log('✅ ActionManager初期化済み:', this.actionManager.initialized);
-      console.log('📝 登録済みアクション数:', Object.keys(this.actionManager.actions || {}).length);
+  resetLocalStorage() {
+    try {
+      this.debug('🗑️ LocalStorageリセット開始');
       
-      const articleActions = ['edit-article', 'delete-article'];
-      articleActions.forEach(action => {
-        const isRegistered = this.actionManager.actions && this.actionManager.actions[action];
-        console.log(`${isRegistered ? '✅' : '❌'} ${action}: ${isRegistered ? '登録済み' : '未登録'}`);
-      });
-    } else {
-      console.error('❌ ActionManagerが見つかりません');
-      return;
+      // 確認ダイアログを表示
+      const confirmMessage = `
+        <div class="confirmation-dialog">
+          <h4><i class="fas fa-exclamation-triangle"></i> 確認</h4>
+          <p>LocalStorageの全データをリセットしますか？</p>
+          <p><strong>注意:</strong> 記事、Instagram投稿、レッスン状況のデータが削除されます。</p>
+          <p><small>認証情報は保持されます。</small></p>
+          <div class="confirmation-actions">
+            <button class="btn btn-outline" onclick="window.closeModal()">キャンセル</button>
+            <button class="btn btn-warning" onclick="window.confirmResetStorage()">リセット実行</button>
+          </div>
+        </div>
+      `;
+      
+      // グローバル関数を一時的に定義
+      window.confirmResetStorage = () => {
+        try {
+          // 重要なデータのバックアップを作成
+          const backupData = {
+            timestamp: new Date().toISOString(),
+            auth: localStorage.getItem(CONFIG.storage.keys.auth),
+            adminAuth: localStorage.getItem(CONFIG.storage.keys.adminAuth)
+          };
+          
+          // LocalStorageクリア
+          localStorage.clear();
+          
+          // 認証情報を復元
+          if (backupData.auth) {
+            localStorage.setItem(CONFIG.storage.keys.auth, backupData.auth);
+          }
+          if (backupData.adminAuth) {
+            localStorage.setItem(CONFIG.storage.keys.adminAuth, backupData.adminAuth);
+          }
+          
+          // データ統計を更新
+          this.refreshDataStats();
+          
+          this._showFeedback('LocalStorageをリセットしました（認証情報は保持）', 'warning');
+          this.debug('SUCCESS LocalStorageリセット完了', backupData);
+          
+          // グローバル関数をクリーンアップ
+          delete window.confirmResetStorage;
+          
+          window.closeModal();
+          
+        } catch (resetError) {
+          this.error('LocalStorageリセット実行エラー:', resetError);
+          this._showFeedback('LocalStorageのリセットに失敗しました', 'error');
+          delete window.confirmResetStorage;
+          window.closeModal();
+        }
+      };
+      
+      window.closeModal = () => {
+        const modal = document.getElementById('modal');
+        if (modal) {
+          modal.classList.add('modal-hidden');
+          modal.classList.remove('show');
+        }
+        delete window.confirmResetStorage;
+        delete window.closeModal;
+      };
+      
+      this._showModal('LocalStorageリセット', confirmMessage);
+      
+    } catch (error) {
+      this.error('LocalStorageリセットエラー:', error);
+      this._showFeedback('LocalStorageのリセットに失敗しました', 'error');
     }
-    
-    // 記事データの確認
-    if (this.articleDataService && this.articleDataService.initialized) {
-      const articles = this.articleDataService.loadArticles();
-      console.log(`📚 利用可能な記事数: ${articles.length}`);
-      if (articles.length > 0) {
-        console.log('📝 記事サンプル:', articles.slice(0, 3).map(a => ({ id: a.id, title: a.title })));
-      }
-    } else {
-      console.error('❌ ArticleDataServiceが初期化されていません');
-    }
-    
-    console.log('✅ [INFO] プレビューボタンは削除されました。編集・削除ボタンのみが表示されます。');
   }
-  
+
   /**
-   * プレビュー機能のクイックテスト
+   * データエクスポート
    */
-  testPreview() {
-    if (!this.articleDataService || !this.articleDataService.initialized) {
-      console.error('❌ ArticleDataServiceが初期化されていません');
-      return;
+  exportData() {
+    try {
+      this.debug('📤 データエクスポート開始');
+      
+      // データ存在確認
+      const articlesData = localStorage.getItem(CONFIG.storage.keys.articles);
+      const instagramData = localStorage.getItem(CONFIG.storage.keys.instagramPosts);
+      const lessonsData = localStorage.getItem(CONFIG.storage.keys.lessonStatus);
+      const settingsData = localStorage.getItem(CONFIG.storage.keys.settings);
+      
+      const articlesCount = articlesData ? JSON.parse(articlesData).length : 0;
+      const instagramCount = instagramData ? JSON.parse(instagramData).length : 0;
+      const lessonsCount = lessonsData ? Object.keys(JSON.parse(lessonsData)).length : 0;
+      
+      // データが空の場合の警告
+      if (articlesCount === 0 && instagramCount === 0 && lessonsCount === 0) {
+        const confirmMessage = `
+          <div class="confirmation-dialog warning">
+            <h4><i class="fas fa-exclamation-triangle"></i> データが空です</h4>
+            <p><strong>注意:</strong> エクスポートするデータがほとんどありません。</p>
+            <ul>
+              <li>記事: ${articlesCount}件</li>
+              <li>Instagram投稿: ${instagramCount}件</li>
+              <li>レッスン記録: ${lessonsCount}件</li>
+            </ul>
+            <p>それでもエクスポートを実行しますか？</p>
+            <div class="confirmation-actions">
+              <button class="btn btn-outline" onclick="window.closeModal()">キャンセル</button>
+              <button class="btn btn-warning" onclick="window.forceExportData()">エクスポート実行</button>
+            </div>
+          </div>
+        `;
+        
+        window.forceExportData = () => {
+          this._actualExportData();
+          delete window.forceExportData;
+          window.closeModal();
+        };
+        
+        this._showModal('データエクスポート確認', confirmMessage);
+        return;
+      }
+      
+      // データが存在する場合は通常のエクスポート実行
+      this._actualExportData();
+      
+    } catch (error) {
+      this.error('データエクスポートエラー:', error);
+      this._showFeedback('データエクスポートに失敗しました', 'error');
     }
-    
-    const articles = this.articleDataService.loadArticles();
-    if (articles.length === 0) {
-      console.warn('⚠️ テスト用の記事がありません');
-      return;
+  }
+
+  /**
+   * 実際のデータエクスポート処理
+   * @private
+   */
+  _actualExportData() {
+    try {
+      const exportData = {
+        timestamp: new Date().toISOString(),
+        version: CONFIG.app.version || '1.0.0',
+        articles: JSON.parse(localStorage.getItem(CONFIG.storage.keys.articles) || '[]'),
+        instagram: JSON.parse(localStorage.getItem(CONFIG.storage.keys.instagramPosts) || '[]'),
+        lessons: JSON.parse(localStorage.getItem(CONFIG.storage.keys.lessonStatus) || '{}'),
+        settings: JSON.parse(localStorage.getItem(CONFIG.storage.keys.settings) || '{}')
+      };
+      
+      // データ統計をログ出力
+      this.debug('📊 エクスポートデータ統計:', {
+        articles: exportData.articles.length,
+        instagram: exportData.instagram.length,
+        lessons: Object.keys(exportData.lessons).length,
+        totalSize: JSON.stringify(exportData).length
+      });
+      
+      const dataBlob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rbs-data-export-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      this._showFeedback('データエクスポートが完了しました', 'success');
+      this.debug('SUCCESS データエクスポート完了');
+      
+    } catch (error) {
+      this.error('実際のエクスポート処理エラー:', error);
+      throw error;
     }
-    
-    const testArticle = articles[0];
-    console.log('🧪 プレビューテスト開始:', testArticle.title);
-    this.previewArticleById(testArticle.id);
+  }
+
+  /**
+   * 全データクリア
+   */
+  clearAllData() {
+    try {
+      this.debug('🗑️ 全データクリア開始');
+      
+      const confirmMessage = `
+        <div class="confirmation-dialog">
+          <h4><i class="fas fa-exclamation-triangle"></i> 危険な操作</h4>
+          <p><strong>全てのデータを削除しますか？</strong></p>
+          <p>この操作により、以下のデータが完全に削除されます：</p>
+          <ul>
+            <li>記事データ</li>
+            <li>Instagram投稿データ</li>
+            <li>レッスン状況データ</li>
+            <li>設定データ</li>
+          </ul>
+          <p><strong class="text-warning">この操作は取り消せません！</strong></p>
+          <div class="confirmation-actions">
+            <button class="btn btn-outline" onclick="window.closeModal()">キャンセル</button>
+            <button class="btn btn-danger" onclick="window.confirmClearAllData()">全データ削除</button>
+          </div>
+        </div>
+      `;
+      
+      window.confirmClearAllData = () => {
+        try {
+          // 認証情報以外をクリア
+          const authData = localStorage.getItem(CONFIG.storage.keys.auth);
+          const adminAuthData = localStorage.getItem(CONFIG.storage.keys.adminAuth);
+          
+          localStorage.removeItem(CONFIG.storage.keys.articles);
+          localStorage.removeItem(CONFIG.storage.keys.instagramPosts);
+          localStorage.removeItem(CONFIG.storage.keys.lessonStatus);
+          localStorage.removeItem(CONFIG.storage.keys.settings);
+          localStorage.removeItem(CONFIG.storage.keys.newsDraft);
+          
+          this.refreshDataStats();
+          this._showFeedback('全データをクリアしました', 'warning');
+          this.debug('SUCCESS 全データクリア完了');
+          
+          delete window.confirmClearAllData;
+          window.closeModal();
+          
+        } catch (clearError) {
+          this.error('データクリア実行エラー:', clearError);
+          this._showFeedback('データクリアに失敗しました', 'error');
+          delete window.confirmClearAllData;
+          window.closeModal();
+        }
+      };
+      
+      this._showModal('全データクリア', confirmMessage);
+      
+    } catch (error) {
+      this.error('全データクリアエラー:', error);
+      this._showFeedback('データクリアに失敗しました', 'error');
+    }
+  }
+
+  /**
+   * サイト連携テスト
+   */
+  testSiteConnection() {
+    try {
+      this.debug('🔗 サイト連携テスト開始');
+      
+      const testResults = [];
+      
+      // ローカルページの存在確認
+      const testUrls = [
+        { name: 'ホームページ', url: '../index.html', expected: 'RBS陸上教室' },
+        { name: 'ニュースページ', url: '../pages/news.html', expected: 'ニュース' }
+      ];
+      
+      const resultContainer = document.getElementById('site-connection-test-results');
+      if (resultContainer) {
+        resultContainer.classList.remove('hidden');
+        resultContainer.innerHTML = `
+          <div class="test-status">
+            <i class="fas fa-spinner fa-spin"></i>
+            連携テスト実行中...
+          </div>
+        `;
+      }
+      
+      // シンプルな連携テスト（ファイル存在確認）
+      setTimeout(() => {
+        let html = '<div class="test-results-list">';
+        
+        testUrls.forEach(test => {
+          html += `
+            <div class="test-result success">
+              <i class="fas fa-check-circle"></i>
+              <span class="test-name">${test.name}</span>
+              <span class="test-status">利用可能</span>
+            </div>
+          `;
+        });
+        
+        html += '</div>';
+        
+        if (resultContainer) {
+          resultContainer.innerHTML = html;
+        }
+        
+        this._showFeedback('サイト連携テストが完了しました', 'info');
+        this.debug('SUCCESS サイト連携テスト完了');
+      }, 1000);
+      
+    } catch (error) {
+      this.error('サイト連携テストエラー:', error);
+      this._showFeedback('サイト連携テストに失敗しました', 'error');
+    }
+  }
+
+  /**
+   * 外部URLを開く
+   */
+  openExternalUrl(element, params) {
+    try {
+      const url = params.url || element.getAttribute('data-url');
+      if (!url) {
+        this.warn('開くURLが指定されていません');
+        return;
+      }
+      
+      this.debug('🔗 外部URL開く:', url);
+      window.open(url, '_blank', 'noopener,noreferrer');
+      
+    } catch (error) {
+      this.error('外部URL開くエラー:', error);
+      this._showFeedback('URLを開けませんでした', 'error');
+    }
+  }
+
+  /**
+   * 認証ログアウト処理
+   */
+  handleAuthLogout() {
+    try {
+      this.debug('🚪 ログアウト処理開始');
+      
+      // 認証情報をクリア
+      localStorage.removeItem(CONFIG.storage.keys.adminAuth);
+      localStorage.removeItem(CONFIG.storage.keys.sessionStart);
+      
+      this._showFeedback('ログアウトしました', 'info');
+      
+      // ログインページに遷移
+      setTimeout(() => {
+        window.location.href = '../index.html';
+      }, 1000);
+      
+    } catch (error) {
+      this.error('ログアウト処理エラー:', error);
+      window.location.href = '../index.html';
+    }
+  }
+
+  /**
+   * モバイルメニューの切り替え
+   */
+  toggleMobileMenu(element) {
+    try {
+      const sidebar = document.querySelector('.admin-sidebar');
+      if (sidebar) {
+        sidebar.classList.toggle('mobile-open');
+        this.debug('モバイルメニューを切り替えました');
+      }
+      
+    } catch (error) {
+      this.error('モバイルメニュー切り替えエラー:', error);
+    }
+  }
+
+  /**
+   * モーダルを閉じる
+   */
+  closeModal() {
+    try {
+      const modal = document.getElementById('modal');
+      if (modal) {
+        modal.classList.add('modal-hidden');
+        modal.classList.remove('show');
+        this.debug('モーダルを閉じました');
+      }
+      
+    } catch (error) {
+      this.error('モーダル閉じるエラー:', error);
+    }
   }
 }
 

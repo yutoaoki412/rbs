@@ -100,6 +100,52 @@
           <span id="news-status-text">ニュースを読み込み中...</span>
         </div>
       </div>
+
+      <!-- Instagram投稿セクション -->
+      <div class="instagram-posts-section" id="instagram-posts-section" style="display: none;">
+        <div class="instagram-posts-header">
+          <div>
+            <h3 class="instagram-posts-title">
+              <i class="fab fa-instagram"></i>
+              Instagram
+            </h3>
+            <p class="instagram-posts-subtitle">RBS陸上教室の最新の様子をご覧ください</p>
+          </div>
+        </div>
+        
+        <div class="instagram-posts-container">
+          <!-- スクロールナビゲーション -->
+          <button class="instagram-scroll-nav prev" id="instagram-scroll-prev" aria-label="前のInstagram投稿を表示">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button class="instagram-scroll-nav next" id="instagram-scroll-next" aria-label="次のInstagram投稿を表示">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+          
+          <!-- 投稿スクロールエリア -->
+          <div class="instagram-posts-scroll" id="instagram-posts-scroll">
+            <!-- Instagram投稿は動的に生成されます -->
+          </div>
+          
+          <!-- ローディング状態 -->
+          <div class="instagram-posts-loading" id="instagram-posts-loading">
+            <i class="fab fa-instagram fa-spin"></i>
+            <span>Instagram投稿を読み込み中...</span>
+          </div>
+          
+          <!-- 空状態 -->
+          <div class="instagram-posts-empty" id="instagram-posts-empty" style="display: none;">
+            <i class="fab fa-instagram"></i>
+            <h4>Instagram投稿がありません</h4>
+            <p>まだInstagram投稿が登録されていません</p>
+          </div>
+        </div>
+        
+        <!-- スクロールインジケーター -->
+        <div class="instagram-scroll-indicators" id="instagram-scroll-indicators">
+          <!-- インジケーターは動的に生成されます -->
+        </div>
+      </div>
       
       <div class="news-list" id="news-list">
         <!-- ニュース記事は動的に生成されます -->

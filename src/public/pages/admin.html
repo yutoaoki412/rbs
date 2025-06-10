@@ -764,51 +764,192 @@
           <h1><i class="fas fa-cog"></i> 設定</h1>
         </div>
         
-        <div class="settings-panel">
-          <div class="setting-group">
-            <h3><i class="fas fa-database"></i> データ管理</h3>
-            <p>記事、Instagram投稿、レッスン状況データの統合管理とバックアップ</p>
-            <div class="setting-actions">
-              <button class="btn btn-outline" data-action="export-data">
-                <i class="fas fa-download"></i> 全データをエクスポート
-              </button>
-              <button class="btn btn-outline" data-action="clear-all-data">
-                <i class="fas fa-trash"></i> 全データクリア
-              </button>
+        <div class="dashboard-widgets">
+          <!-- データ管理ウィジェット -->
+          <div class="widget">
+            <div class="widget-header">
+              <h2><i class="fas fa-database"></i> データ管理</h2>
+              <div class="widget-header-actions">
+                <button class="btn-icon" data-action="refresh-data-stats" title="統計を更新">
+                  <i class="fas fa-sync-alt"></i>
+                </button>
+              </div>
             </div>
-            <small class="setting-note">
-              <i class="fas fa-info-circle"></i>
-              エクスポート機能が改善されました。ファイル名、メタデータ、エラーハンドリングが強化されています。
-            </small>
-          </div>
-          
-          <div class="setting-group">
-            <h3><i class="fas fa-link"></i> サイト連携</h3>
-            <p>フロントエンドサイトとの連携状況</p>
-            <div class="setting-actions">
-              <button class="btn btn-primary" data-action="test-site-connection">
-                <i class="fas fa-link"></i> 連携テスト
-              </button>
-              <div id="site-connection-test-results" class="test-results"></div>
-              <button class="btn btn-secondary" data-action="open-external" data-url="news.html">
-                <i class="fas fa-external-link-alt"></i> ニュースページを開く
-              </button>
+            <div class="widget-content">
+              <!-- データ統計 -->
+              <div class="stats-grid">
+                <div class="stat-card">
+                  <div class="stat-icon total">
+                    <i class="fas fa-newspaper"></i>
+                  </div>
+                  <div class="stat-content">
+                    <div class="stat-number" id="total-articles">0</div>
+                    <div class="stat-label">記事総数</div>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon featured">
+                    <i class="fab fa-instagram"></i>
+                  </div>
+                  <div class="stat-content">
+                    <div class="stat-number" id="total-instagram">0</div>
+                    <div class="stat-label">Instagram投稿</div>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon instagram-visible">
+                    <i class="fas fa-calendar-check"></i>
+                  </div>
+                  <div class="stat-content">
+                    <div class="stat-number" id="total-lessons">0</div>
+                    <div class="stat-label">レッスン記録</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- データ管理アクション -->
+              <div class="form-actions">
+                <button class="btn btn-primary" data-action="export-data">
+                  <i class="fas fa-download"></i>
+                  データエクスポート
+                </button>
+                <button class="btn btn-outline" data-action="import-data">
+                  <i class="fas fa-upload"></i>
+                  データインポート
+                </button>
+                <button class="btn btn-outline btn-warning" data-action="clear-all-data">
+                  <i class="fas fa-trash"></i>
+                  全データクリア
+                </button>
+              </div>
+              
+              <small class="form-help">
+                <i class="fas fa-info-circle"></i>
+                エクスポート機能では記事、Instagram投稿、レッスン状況データを統合したJSONファイルをダウンロードできます。
+              </small>
             </div>
           </div>
-          
-          <div class="setting-group">
-            <h3><i class="fas fa-tools"></i> 開発者ツール</h3>
-            <p>開発・デバッグ機能（本番環境では非表示）</p>
-            <div class="setting-actions">
-              <button class="btn btn-info" data-action="show-debug-info">
-                <i class="fas fa-info-circle"></i> システム情報表示
-              </button>
-              <button class="btn btn-info" data-action="show-news-debug">
-                <i class="fas fa-bug"></i> ニュース連携デバッグ
-              </button>
-              <button class="btn btn-warning" data-action="reset-local-storage">
-                <i class="fas fa-redo"></i> LocalStorage リセット
-              </button>
+
+          <!-- サイト連携ウィジェット -->
+          <div class="widget">
+            <div class="widget-header">
+              <h2><i class="fas fa-link"></i> サイト連携</h2>
+            </div>
+            <div class="widget-content">
+              <div class="settings-form">
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fas fa-globe"></i>
+                    フロントエンドサイトとの連携状況
+                  </label>
+                  <div id="site-connection-test-results" class="test-results hidden">
+                    <!-- 連携テスト結果がここに表示される -->
+                  </div>
+                </div>
+                
+                <div class="form-actions">
+                  <button class="btn btn-primary" data-action="test-site-connection">
+                    <i class="fas fa-link"></i>
+                    連携テスト
+                  </button>
+                  <button class="btn btn-secondary" data-action="open-external" data-url="news.html">
+                    <i class="fas fa-external-link-alt"></i>
+                    ニュースページを開く
+                  </button>
+                  <button class="btn btn-secondary" data-action="open-external" data-url="../index.html">
+                    <i class="fas fa-home"></i>
+                    ホームページを開く
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 管理画面設定ウィジェット -->
+          <div class="widget">
+            <div class="widget-header">
+              <h2><i class="fas fa-sliders-h"></i> 管理画面設定</h2>
+            </div>
+            <div class="widget-content">
+              <div class="settings-form">
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label">
+                      <i class="fas fa-bell"></i>
+                      通知設定
+                    </label>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="notification-mode" checked>
+                      <span class="toggle-slider"></span>
+                      <span class="toggle-label">通知を有効にする</span>
+                    </label>
+                    <small class="form-help">操作の完了やエラーの通知を表示します</small>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">
+                      <i class="fas fa-bug"></i>
+                      デバッグモード
+                    </label>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="debug-mode">
+                      <span class="toggle-slider"></span>
+                      <span class="toggle-label">デバッグモードを有効にする</span>
+                    </label>
+                    <small class="form-help">開発者向けのデバッグ情報を表示します</small>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button class="btn btn-primary" data-action="save-admin-settings">
+                    <i class="fas fa-save"></i>
+                    設定を保存
+                  </button>
+                  <button class="btn btn-outline" data-action="reset-admin-settings">
+                    <i class="fas fa-undo"></i>
+                    デフォルトに戻す
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 開発者ツールウィジェット -->
+          <div class="widget">
+            <div class="widget-header">
+              <h2><i class="fas fa-tools"></i> 開発者ツール</h2>
+              <div class="widget-header-actions">
+                <span class="badge badge-info">開発用</span>
+              </div>
+            </div>
+            <div class="widget-content">
+              <div class="form-actions">
+                <button class="btn btn-info" data-action="show-debug-info">
+                  <i class="fas fa-info-circle"></i>
+                  システム情報表示
+                </button>
+                <button class="btn btn-info" data-action="show-news-debug">
+                  <i class="fas fa-newspaper"></i>
+                  記事システムデバッグ
+                </button>
+                <button class="btn btn-info" data-action="show-instagram-debug">
+                  <i class="fab fa-instagram"></i>
+                  Instagram投稿デバッグ
+                </button>
+                <button class="btn btn-info" data-action="show-storage-info">
+                  <i class="fas fa-database"></i>
+                  ストレージ情報表示
+                </button>
+                <button class="btn btn-warning" data-action="reset-local-storage">
+                  <i class="fas fa-redo"></i>
+                  LocalStorage リセット
+                </button>
+              </div>
+              
+              <small class="form-help">
+                <i class="fas fa-exclamation-triangle"></i>
+                これらの機能は開発・デバッグ用です。本番環境では使用しないでください。
+              </small>
             </div>
           </div>
         </div>

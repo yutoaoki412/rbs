@@ -1387,4 +1387,332 @@
 .news-action-btn[style*="visibility: hidden"],
 .action-text[style*="visibility: hidden"] {
   visibility: visible !important;
+}
+
+/* ==========================================================================
+   Instagram投稿横スクロール表示（Newsセクション内）
+   ========================================================================== */
+
+/* Instagram投稿セクション */
+.instagram-posts-section {
+  margin: 40px 0;
+  position: relative;
+}
+
+.instagram-posts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.instagram-posts-title {
+  color: var(--text-dark);
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.instagram-posts-title i {
+  color: #e1306c;
+  font-size: 22px;
+}
+
+.instagram-posts-subtitle {
+  color: var(--text-light);
+  font-size: 14px;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* 横スクロールコンテナ */
+.instagram-posts-container {
+  position: relative;
+  overflow: hidden;
+  margin: 0 -16px; /* コンテナ外まで拡張 */
+  padding: 0 16px;
+}
+
+.instagram-posts-scroll {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 0 0 16px 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.instagram-posts-scroll::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* Instagram投稿アイテム */
+.instagram-post-item {
+  flex: 0 0 auto;
+  width: 320px;
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--white);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.instagram-post-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(225, 48, 108, 0.15);
+}
+
+/* Instagram埋め込みラッパー */
+.instagram-post-item .instagram-embed-wrapper {
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gray-lightest);
+}
+
+/* Instagram埋め込みコンテンツのスタイル調整（管理画面と同じ） */
+.instagram-post-item .instagram-embed-wrapper blockquote.instagram-media {
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 16px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
+  width: 100% !important;
+  height: 400px !important;
+  max-height: 400px !important;
+  overflow: hidden !important;
+}
+
+/* Instagram埋め込み後のiframe調整 */
+.instagram-post-item .instagram-embed-wrapper iframe {
+  width: 100% !important;
+  height: 400px !important;
+  max-height: 400px !important;
+  border: none !important;
+  border-radius: 16px !important;
+}
+
+/* スクロールナビゲーションボタン */
+.instagram-scroll-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background: var(--white);
+  border: 2px solid var(--gray-border);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  visibility: hidden;
+}
+
+.instagram-scroll-nav:hover {
+  background: var(--primary-blue);
+  border-color: var(--primary-blue);
+  color: var(--white);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.instagram-scroll-nav.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.instagram-scroll-nav.prev {
+  left: -6px;
+}
+
+.instagram-scroll-nav.next {
+  right: -6px;
+}
+
+.instagram-scroll-nav i {
+  font-size: 16px;
+  color: inherit;
+}
+
+/* ローディング状態 */
+.instagram-posts-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: var(--gray-lightest);
+  border-radius: 16px;
+  margin: 20px 0;
+}
+
+.instagram-posts-loading i {
+  color: #e1306c;
+  font-size: 24px;
+  margin-right: 12px;
+  animation: spin 1s linear infinite;
+}
+
+.instagram-posts-loading span {
+  color: var(--text-light);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* 空状態 */
+.instagram-posts-empty {
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--gray-lightest);
+  border-radius: 16px;
+  margin: 20px 0;
+}
+
+.instagram-posts-empty i {
+  color: #e1306c;
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.instagram-posts-empty h4 {
+  color: var(--text-dark);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.instagram-posts-empty p {
+  color: var(--text-light);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* スクロールインジケーター */
+.instagram-scroll-indicators {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.instagram-scroll-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gray-border);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.instagram-scroll-dot.active {
+  background: #e1306c;
+  transform: scale(1.2);
+}
+
+/* レスポンシブ対応 */
+@media (min-width: 768px) {
+  .instagram-posts-container {
+    margin: 0 -24px;
+    padding: 0 24px;
+  }
+  
+  .instagram-posts-scroll {
+    gap: 24px;
+  }
+  
+  .instagram-post-item {
+    width: 360px;
+  }
+  
+  .instagram-scroll-nav {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .instagram-scroll-nav i {
+    font-size: 18px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .instagram-posts-container {
+    margin: 0 -40px;
+    padding: 0 40px;
+  }
+  
+  .instagram-posts-scroll {
+    gap: 28px;
+  }
+  
+  .instagram-post-item {
+    width: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .instagram-posts-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .instagram-posts-title {
+    font-size: 18px;
+  }
+  
+  .instagram-posts-container {
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+  
+  .instagram-posts-scroll {
+    gap: 16px;
+  }
+  
+  .instagram-post-item {
+    width: 280px;
+  }
+  
+  .instagram-scroll-nav {
+    display: none; /* モバイルではナビゲーションボタンを非表示 */
+  }
+}
+
+@media (max-width: 480px) {
+  .instagram-post-item {
+    width: 260px;
+  }
+}
+
+/* Instagram埋め込みスクリプト読み込み対応 */
+.instagram-post-item[data-instgrm-loaded="true"] {
+  /* 読み込み完了後の最適化 */
+}
+
+/* タッチデバイス対応 */
+@media (hover: none) and (pointer: coarse) {
+  .instagram-posts-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+  
+  .instagram-post-item {
+    scroll-snap-align: start;
+  }
 } 

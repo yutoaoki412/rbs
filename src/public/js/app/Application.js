@@ -699,6 +699,15 @@ export default class Application {
         console.warn('⚠️ ホームページ：ニュース機能初期化エラー、他の機能は継続します:', newsError.message);
         // ニュース機能のエラーがあっても、他の機能は継続
       }
+
+      // Instagram投稿表示機能の初期化
+      try {
+        await this.initializeInstagramFeatures();
+        console.log('✅ ホームページ：Instagram投稿機能初期化完了');
+      } catch (instagramError) {
+        console.warn('⚠️ ホームページ：Instagram投稿機能初期化エラー、他の機能は継続します:', instagramError.message);
+        // Instagram機能のエラーがあっても、他の機能は継続
+      }
       
       // レッスン状況機能の初期化
       await this.initializeLessonStatusFeatures();
@@ -755,6 +764,56 @@ export default class Application {
       }
     }
   }
+
+  /**
+   * Instagram投稿表示機能の初期化
+   * @private
+   */
+  async initializeInstagramFeatures() {
+    try {
+      console.log('📷 Instagram投稿機能初期化開始 (core/Application)');
+      
+      // Instagram投稿表示ユーティリティの動的インポート
+      const { initInstagramPostsDisplay } = await import('../shared/utils/InstagramUtils.js');
+      
+      // Instagram投稿セクションの存在確認
+      const instagramSection = document.getElementById('instagram-posts-section');
+      if (!instagramSection) {
+        console.log('📷 Instagram投稿セクションが見つかりません、初期化をスキップします');
+        return;
+      }
+      
+      // Instagram投稿表示機能を初期化
+      await initInstagramPostsDisplay('instagram-posts-section', {
+        limit: window.CONFIG?.instagram?.posts?.defaultDisplayPosts || 6
+      });
+      
+      this.features.set('instagram', true);
+      
+      console.log('✅ Instagram投稿機能初期化完了 (core/Application)');
+      
+    } catch (error) {
+      console.error('❌ Instagram投稿機能初期化エラー (core/Application):', error);
+      console.error('📋 エラー詳細:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      
+      // エラーレポートに記録
+      window.lastInstagramInitError = {
+        error,
+        timestamp: new Date().toISOString(),
+        location: 'core/Application.initializeInstagramFeatures'
+      };
+      
+      // 基本的なエラー表示
+      this.showInstagramInitializationError(error);
+      
+      // ホームページでは例外をスローしない（非致命的エラーとして処理）
+      console.warn('⚠️ ホームページでのInstagram投稿機能エラーは非致命的として処理');
+    }
+  }
   
   /**
    * ニュース初期化エラー表示
@@ -779,6 +838,36 @@ export default class Application {
           </div>
         </div>
       `;
+    }
+  }
+
+  /**
+   * Instagram投稿初期化エラー表示
+   * @private
+   */
+  showInstagramInitializationError(error) {
+    const instagramContainer = document.getElementById('instagram-posts-scroll');
+    const loadingElement = document.getElementById('instagram-posts-loading');
+    const emptyElement = document.getElementById('instagram-posts-empty');
+    
+    if (loadingElement) {
+      loadingElement.style.display = 'none';
+    }
+    
+    if (emptyElement) {
+      emptyElement.innerHTML = `
+        <i class="fab fa-instagram"></i>
+        <h4>Instagram投稿の読み込みに失敗しました</h4>
+        <p>エラー: ${error.message}</p>
+        <div class="error-actions">
+          <button onclick="location.reload()" class="btn btn-outline">ページを再読み込み</button>
+        </div>
+      `;
+      emptyElement.style.display = 'block';
+    }
+    
+    if (instagramContainer) {
+      instagramContainer.style.display = 'none';
     }
   }
 
