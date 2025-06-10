@@ -1395,7 +1395,7 @@
 
 /* Instagram投稿セクション */
 .instagram-posts-section {
-  margin: 40px 0;
+  margin: 20px 0;
   position: relative;
 }
 
@@ -1471,10 +1471,10 @@
 /* Instagram埋め込みラッパー */
 .instagram-post-item .instagram-embed-wrapper {
   width: 100%;
-  height: 400px;
+  height: 580px;
   overflow: hidden;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   background: var(--gray-lightest);
 }
@@ -1489,16 +1489,16 @@
   max-width: 100% !important;
   min-width: 100% !important;
   width: 100% !important;
-  height: 400px !important;
-  max-height: 400px !important;
-  overflow: hidden !important;
+  height: 580px !important;
+  max-height: 580px !important;
+  overflow: visible !important;
 }
 
 /* Instagram埋め込み後のiframe調整 */
 .instagram-post-item .instagram-embed-wrapper iframe {
   width: 100% !important;
-  height: 400px !important;
-  max-height: 400px !important;
+  height: 580px !important;
+  max-height: 580px !important;
   border: none !important;
   border-radius: 16px !important;
 }
