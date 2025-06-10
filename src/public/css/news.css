@@ -1471,7 +1471,7 @@
 /* Instagram埋め込みラッパー */
 .instagram-post-item .instagram-embed-wrapper {
   width: 100%;
-  height: 600px;
+  aspect-ratio: 9 / 14;
   overflow: hidden;
   display: flex;
   align-items: flex-start;
@@ -1489,8 +1489,7 @@
   max-width: 100% !important;
   min-width: 100% !important;
   width: 100% !important;
-  height: 600px !important;
-  max-height: 600px !important;
+  height: 100% !important;
   overflow: visible !important;
 }
 
@@ -1677,16 +1676,31 @@
   }
   
   .instagram-posts-container {
-    margin: 0 -16px;
-    padding: 0 16px;
+    margin: 0;
+    padding: 0;
   }
   
   .instagram-posts-scroll {
-    gap: 16px;
+    gap: 20px;
+    padding: 0 20px;
   }
   
   .instagram-post-item {
-    width: 280px;
+    width: calc(100vw - 60px);
+    flex-shrink: 0;
+  }
+
+  .instagram-post-item .instagram-embed-wrapper {
+    aspect-ratio: 9 / 16;
+    max-height: 65vh;
+    width: 100%;
+  }
+
+  .instagram-post-item .instagram-embed-wrapper blockquote.instagram-media {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
   }
   
   .instagram-scroll-nav {
@@ -1695,8 +1709,32 @@
 }
 
 @media (max-width: 480px) {
+  .instagram-posts-container {
+    margin: 0;
+    padding: 0;
+  }
+
+  .instagram-posts-scroll {
+    gap: 15px;
+    padding: 0 15px;
+  }
+
   .instagram-post-item {
-    width: 260px;
+    width: calc(100vw - 50px);
+    flex-shrink: 0;
+  }
+
+  .instagram-post-item .instagram-embed-wrapper {
+    aspect-ratio: 9 / 16;
+    max-height: 70vh;
+    width: 100%;
+  }
+
+  .instagram-post-item .instagram-embed-wrapper blockquote.instagram-media {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
   }
 }
 
