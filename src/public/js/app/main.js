@@ -45,7 +45,7 @@ function setupBannerControl() {
  */
 window.showAuthStatus = function() {
   try {
-    const authData = localStorage.getItem(CONFIG.storage.keys.adminAuth);
+    const authData = localStorage.getItem(CONFIG.storage.keys.adminSession);
     if (!authData) {
       log.info('DevTools', '認証状態: 未ログイン');
       return;
@@ -74,7 +74,7 @@ window.showAuthStatus = function() {
  */
 window.clearAuthData = function() {
   try {
-    localStorage.removeItem(CONFIG.storage.keys.adminAuth);
+    localStorage.removeItem(CONFIG.storage.keys.adminSession);
     localStorage.removeItem(CONFIG.storage.keys.authAttempts);
     localStorage.removeItem(CONFIG.storage.keys.authLastAttempt);
     log.info('DevTools', '認証データをクリアしました');
@@ -102,7 +102,7 @@ window.createTestSession = function(durationHours = 24) {
       version: '2.0'
     };
     
-    localStorage.setItem(CONFIG.storage.keys.adminAuth, JSON.stringify(testAuthData));
+    localStorage.setItem(CONFIG.storage.keys.adminSession, JSON.stringify(testAuthData));
     log.info('DevTools', 'テストセッションを作成しました', {
       duration: durationHours + '時間',
       expires: new Date(testAuthData.expires)

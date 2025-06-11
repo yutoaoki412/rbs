@@ -8,9 +8,9 @@ import { CONFIG } from '../../shared/constants/config.js';
 
 export class AuthManager {
   constructor() {
-    this.storageKey = CONFIG.storage.keys.adminAuth;
-    this.password = CONFIG.security.admin.password;
-    this.sessionDuration = CONFIG.security.admin.sessionDuration;
+    this.storageKey = CONFIG.storage.keys.adminSession; // 最適化版に対応
+    this.password = CONFIG.admin.auth.password;
+    this.sessionDuration = CONFIG.admin.auth.sessionDuration;
     this.initialized = false;
     
     console.log('🔐 AuthManager初期化', {

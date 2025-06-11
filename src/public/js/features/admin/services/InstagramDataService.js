@@ -14,11 +14,11 @@ export class InstagramDataService {
     this.serviceName = 'InstagramDataService';
     this.initialized = false;
     
-    // ストレージキー（CONFIG統一）
+    // ストレージキー（最適化版CONFIG対応）
     this.storageKeys = {
-      posts: CONFIG.storage.keys.instagramPosts,
-      settings: CONFIG.storage.keys.instagramSettings,
-      backup: CONFIG.storage.keys.instagramBackup
+      posts: CONFIG.storage.keys.instagram,  // 統一されたキー
+      settings: CONFIG.storage.keys.settings,
+      backup: CONFIG.storage.keys.cache
     };
     
     // データ格納
@@ -26,9 +26,9 @@ export class InstagramDataService {
     this.unsavedChanges = new Set();
     this.lastSaved = null;
     
-    // 自動保存間隔（設定から取得）
+    // 自動保存間隔（最適化版設定から取得）
     this.autoSaveInterval = null;
-    this.autoSaveDelay = CONFIG.instagram.posts.autoSaveInterval;
+    this.autoSaveDelay = CONFIG.storage.autoSave || 30000;
   }
 
   /**
@@ -57,10 +57,8 @@ export class InstagramDataService {
       const data = localStorage.getItem(this.storageKeys.posts);
       this.posts = data ? JSON.parse(data) : [];
       
-      // データの整合性チェック（設定ベース）
-      if (CONFIG.instagram.data.integrity.validateOnLoad) {
-        this.posts = this.validateAndRepairPosts(this.posts);
-      }
+      // データの整合性チェック（最適化版）
+      this.posts = this.validateAndRepairPosts(this.posts);
       
       EventBus.emit('instagram:loaded', { count: this.posts.length });
       console.log(`📷 Instagram投稿データを読み込み: ${this.posts.length}件`);
@@ -84,8 +82,8 @@ export class InstagramDataService {
       return [];
     }
 
-    const requiredFields = CONFIG.instagram.posts.schema.required;
-    const defaults = CONFIG.instagram.posts.schema.defaults;
+    const requiredFields = CONFIG.instagram.schema.required;
+    const defaults = CONFIG.instagram.schema.defaults;
     
     return posts.filter(post => {
       if (!post || typeof post !== 'object') {
@@ -95,29 +93,25 @@ export class InstagramDataService {
         return false;
       }
 
-      // 必須フィールドチェック
+      // 必須フィールドチェック（最適化版）
       const missingFields = requiredFields.filter(field => !post[field]);
       if (missingFields.length > 0) {
-        if (CONFIG.instagram.data.integrity.autoRepair && missingFields.includes('createdAt') && post.id && post.url) {
+        if (missingFields.includes('createdAt') && post.id && post.embedCode) {
           // 基本情報があればcreatedAtを自動補完
           post.createdAt = new Date().toISOString();
           console.warn('🔧 createdAtを自動補完:', post.id);
         } else {
-          if (CONFIG.instagram.data.integrity.logErrors) {
-            console.warn('🔧 必須フィールドが不足している投稿を除外:', { id: post.id, missing: missingFields });
-          }
+          console.warn('🔧 必須フィールドが不足している投稿を除外:', { id: post.id, missing: missingFields });
           return false;
         }
       }
 
-      // デフォルト値の補完（新バージョン最適化）
-      if (CONFIG.instagram.data.integrity.autoRepair) {
-        Object.keys(defaults).forEach(key => {
-          if (post[key] === undefined || post[key] === null) {
-            post[key] = defaults[key];
-          }
-        });
-      }
+      // デフォルト値の補完（最適化版）
+      Object.keys(defaults).forEach(key => {
+        if (post[key] === undefined || post[key] === null) {
+          post[key] = defaults[key];
+        }
+      });
 
       return true;
     });
@@ -162,9 +156,9 @@ export class InstagramDataService {
         
         this.posts[index] = post;
       } else {
-        // 新規投稿の作成（設定ベースのデフォルト値適用）
+        // 新規投稿の作成（最適化版デフォルト値適用）
         post = {
-          ...CONFIG.instagram.posts.schema.defaults,
+          ...CONFIG.instagram.schema.defaults,
           ...postData,
           id: this.generateId(),
           createdAt: now.toISOString(),
@@ -189,14 +183,14 @@ export class InstagramDataService {
       return {
         success: true,
         id: post.id,
-        message: postData.id ? CONFIG.instagram.ui.successMessages.updated : CONFIG.instagram.ui.successMessages.saved
+        message: postData.id ? CONFIG.instagram.ui.messages.saved : CONFIG.instagram.ui.messages.saved
       };
       
     } catch (error) {
       console.error('❌ Instagram投稿保存エラー:', error);
       return {
         success: false,
-        message: CONFIG.instagram.ui.errorMessages.saveError
+        message: CONFIG.instagram.ui.messages.error
       };
     }
   }

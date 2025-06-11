@@ -20,7 +20,7 @@ export class AdminSystemService {
     
     // 統一ストレージキー（CONFIG.storage.keysから取得）
     this.storageKeys = {
-      auth: CONFIG.storage.keys.adminAuth // adminAuthキーに統一
+      auth: CONFIG.storage.keys.adminSession // adminSessionキーに統一
     };
     
     // システム状態

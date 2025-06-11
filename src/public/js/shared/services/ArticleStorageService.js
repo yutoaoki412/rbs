@@ -15,11 +15,11 @@ export class ArticleStorageService {
     this.initialized = false;
     this.componentName = 'ArticleStorageService';
     
-    // 統一ストレージキー（CONFIG.storage.keysに含まれるキーは既にプレフィックス付き）
+    // 統一ストレージキー（最適化版CONFIG対応）
     this.storageKeys = {
-      articles: CONFIG.storage.keys.articles,
-      content: CONFIG.storage.keys.content,
-      config: CONFIG.storage.keys.config
+      articles: CONFIG.storage.keys.articles,    // 'rbs_articles' - 統一記事データ
+      settings: CONFIG.storage.keys.settings,    // 'rbs_settings' - 設定データ
+      cache: CONFIG.storage.keys.cache           // 'rbs_cache' - キャッシュデータ
     };
     
     // データキャッシュ
@@ -36,12 +36,12 @@ export class ArticleStorageService {
     // カテゴリー設定（設定ファイルから読み込み）
     this.categories = CONFIG.articles.categories;
     
-    // 設定（設定ファイルから読み込み）
+    // 設定（最適化版設定ファイルから読み込み）
     this.config = {
-      maxArticles: CONFIG.articles.maxArticles,
+      maxArticles: CONFIG.articles.maxCount,
       excerptLength: CONFIG.articles.excerptLength,
-      autoSaveInterval: CONFIG.articles.autoSaveInterval,
-      syncTimeout: CONFIG.performance.cacheMaxAge
+      autoSaveInterval: CONFIG.storage.autoSave,
+      syncTimeout: CONFIG.performance.cacheTimeout
     };
     
     // 自動保存タイマー
@@ -111,17 +111,27 @@ export class ArticleStorageService {
       // 記事の分類
       this.categorizeArticles();
       
-      // 本文キャッシュ読み込み
-      const contentData = localStorage.getItem(this.storageKeys.content);
+      // 本文キャッシュ読み込み（最適化版）
+      const contentData = localStorage.getItem(this.storageKeys.cache);
       if (contentData) {
-        const contentMap = JSON.parse(contentData);
-        this.contentCache = new Map(Object.entries(contentMap));
+        try {
+          const contentMap = JSON.parse(contentData);
+          this.contentCache = new Map(Object.entries(contentMap));
+        } catch (error) {
+          this.warn('キャッシュデータの読み込みに失敗:', error);
+          this.contentCache = new Map();
+        }
       }
       
-      // 設定読み込み
-      const configData = localStorage.getItem(this.storageKeys.config);
+      // 設定読み込み（最適化版）
+      const configData = localStorage.getItem(this.storageKeys.settings);
       if (configData) {
-        this.config = { ...this.config, ...JSON.parse(configData) };
+        try {
+          const settings = JSON.parse(configData);
+          this.config = { ...this.config, ...settings };
+        } catch (error) {
+          this.warn('設定データの読み込みに失敗:', error);
+        }
       }
       
       this.debug(`データ読み込み完了 - 記事: ${this.articles.length}件, 本文キャッシュ: ${this.contentCache.size}件`);

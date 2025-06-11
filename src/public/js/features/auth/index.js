@@ -39,7 +39,7 @@ export function getAuthStatus() {
     isAuthenticated: authManager.isAuthenticated(),
     sessionInfo: authManager.getSessionInfo(),
     environment: CONFIG.app.environment,
-    storageKey: CONFIG.storage.keys.adminAuth
+          storageKey: CONFIG.storage.keys.adminSession
   };
 }
 

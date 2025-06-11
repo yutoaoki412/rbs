@@ -2448,3 +2448,217 @@
     min-width: 60px;
   }
 }
+
+/* 設定タブコンテンツ用スタイル */
+.settings-tab-content {
+  display: none;
+}
+
+.settings-tab-content.active {
+  display: block;
+}
+
+/* セッション情報表示 */
+.session-info-display {
+  background: var(--admin-gray-50);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 8px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--admin-gray-100);
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 500;
+  color: var(--admin-gray-700);
+}
+
+.info-value {
+  font-family: 'Courier New', monospace;
+  color: var(--admin-gray-900);
+  background: var(--admin-gray-100);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+/* パフォーマンス監視 */
+.performance-metrics {
+  background: var(--admin-gray-50);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.metric-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--admin-gray-100);
+}
+
+.metric-item:last-child {
+  border-bottom: none;
+}
+
+.metric-label {
+  font-weight: 500;
+  color: var(--admin-gray-700);
+}
+
+.metric-value {
+  font-family: 'Courier New', monospace;
+  color: var(--admin-primary);
+  background: var(--admin-gray-100);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ウィジェット情報ボックス */
+.widget-info {
+  background: var(--admin-gray-50);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.widget-info i {
+  color: var(--admin-primary);
+  font-size: 16px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.widget-info p {
+  margin: 0;
+  color: var(--admin-gray-700);
+  line-height: 1.5;
+}
+
+.widget-info.warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.widget-info.warning i {
+  color: var(--admin-warning);
+}
+
+/* フォームセレクト（追加スタイル） */
+.form-select {
+  appearance: none;
+  background: white url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") no-repeat right 8px center;
+  background-size: 16px;
+  border: 1px solid var(--admin-gray-300);
+  border-radius: 8px;
+  padding: 10px 40px 10px 12px;
+  font-size: 14px;
+  color: var(--admin-gray-900);
+  transition: var(--admin-transition);
+  width: 100%;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+/* 統計カード拡張スタイル */
+.stat-icon.total {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* アニメーション追加 */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.settings-tab-content.active {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .session-info-display,
+  .performance-metrics {
+    padding: 12px;
+  }
+  
+  .info-item,
+  .metric-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .info-value,
+  .metric-value {
+    align-self: stretch;
+    text-align: center;
+  }
+  
+  .widget-info {
+    padding: 12px;
+  }
+}
+
+/* サイトプレビュー用スタイル */
+.site-preview {
+  text-align: center;
+  padding: 20px;
+}
+
+.site-preview h4 {
+  margin-bottom: 16px;
+  color: var(--admin-gray-900);
+}
+
+.site-preview p {
+  margin-bottom: 24px;
+  color: var(--admin-gray-700);
+}
+
+.preview-options {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.preview-options .btn {
+  min-width: 160px;
+}
+
+/* モーダル内のアクションボタン対応 */
+.modal-body .btn[data-action] {
+  pointer-events: all;
+  cursor: pointer;
+}

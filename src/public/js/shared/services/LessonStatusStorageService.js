@@ -12,9 +12,10 @@ export class LessonStatusStorageService {
     this.componentName = 'LessonStatusStorageService';
     this.initialized = false;
     
-    // ストレージ設定
-    this.storageKey = CONFIG.storage.keys.lessonStatus || 'rbs_lesson_status';
-    this.fallbackStorageKey = 'rbs_lesson_status';
+    // ストレージ設定（統一キー使用）
+    this.storageKey = CONFIG.storage.keys.lessons;           // 'rbs_lessons' - 統一キー
+    this.legacyStorageKey = 'rbs_lesson_status';             // 旧キー（マイグレーション用）
+    this.fallbackStorageKey = CONFIG.storage.keys.lessons;   // フォールバック統一
     
     // データ構造
     this.statusData = new Map();
@@ -391,21 +392,33 @@ export class LessonStatusStorageService {
   }
 
   /**
-   * ストレージからデータを読み込み
+   * ストレージからデータを読み込み（統一キー対応＋マイグレーション）
    * @private
    */
   async loadFromStorage() {
     try {
       const startTime = performance.now();
       
-      // メインストレージキーから読み込み
+      // 統一キーから読み込み
       let data = localStorage.getItem(this.storageKey);
+      let dataSource = 'main';
+      
+      // 旧キーからのマイグレーション処理
+      if (!data) {
+        const legacyData = localStorage.getItem(this.legacyStorageKey);
+        if (legacyData) {
+          this.log(`旧キー ${this.legacyStorageKey} からデータをマイグレーションします`);
+          data = legacyData;
+          dataSource = 'legacy';
+        }
+      }
       
       // フォールバック読み込み
       if (!data && this.storageKey !== this.fallbackStorageKey) {
         data = localStorage.getItem(this.fallbackStorageKey);
         if (data) {
           this.warn('フォールバックストレージからデータを読み込みました');
+          dataSource = 'fallback';
         }
       }
       
@@ -421,8 +434,15 @@ export class LessonStatusStorageService {
           this.statusData.set(date, status);
         });
         
+        // 旧キーからマイグレーションした場合、統一キーに保存して旧キーを削除
+        if (dataSource === 'legacy') {
+          await this.saveToStorage();
+          localStorage.removeItem(this.legacyStorageKey);
+          this.log(`旧キー ${this.legacyStorageKey} からのマイグレーション完了`);
+        }
+        
         this.performanceMetrics.loadTime = performance.now() - startTime;
-        this.log(`データ読み込み完了: ${this.statusData.size}件 (${this.performanceMetrics.loadTime.toFixed(2)}ms)`);
+        this.log(`データ読み込み完了: ${this.statusData.size}件 (${this.performanceMetrics.loadTime.toFixed(2)}ms) [source: ${dataSource}]`);
       } else {
         this.debug('ストレージにデータが見つかりません');
       }

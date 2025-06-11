@@ -13,14 +13,14 @@ export function diagnosisAuth() {
   console.group('🩺 認証システム診断 (CONFIG統一版)');
   
   try {
-    const authData = localStorage.getItem(CONFIG.storage.keys.adminAuth);
+    const authData = localStorage.getItem(CONFIG.storage.keys.adminSession);
     const now = Date.now();
     
     console.log('📋 基本情報');
     console.log('  環境:', CONFIG.app.environment);
-    console.log('  ストレージキー:', CONFIG.storage.keys.adminAuth);
-    console.log('  パスワード:', CONFIG.security.admin.password);
-    console.log('  セッション時間:', CONFIG.security.admin.sessionDuration / (60*60*1000) + '時間');
+    console.log('  ストレージキー:', CONFIG.storage.keys.adminSession);
+      console.log('  パスワード:', CONFIG.admin.auth.password);
+  console.log('  セッション時間:', CONFIG.admin.auth.sessionDuration / (60*60*1000) + '時間');
     
     console.log('\n💾 ストレージ状態');
     console.log('  認証データ存在:', !!authData);
@@ -88,7 +88,7 @@ export function diagnosisAuth() {
     
     console.log('\n🔧 その他のストレージ');
     Object.entries(CONFIG.storage.keys).forEach(([key, value]) => {
-      if (key !== 'adminAuth') {
+      if (key !== 'adminSession') {
         const data = localStorage.getItem(value);
         console.log(`  ${key} (${value}):`, data ? '存在' : 'なし');
       }
@@ -189,7 +189,7 @@ export function checkRedirectState() {
     console.log('ハッシュ:', window.location.hash);
     
     // セッション判定
-    const authData = localStorage.getItem(CONFIG.storage.keys.adminAuth);
+    const authData = localStorage.getItem(CONFIG.storage.keys.adminSession);
     const hasValidSession = authData && (() => {
       try {
         const parsed = JSON.parse(authData);
