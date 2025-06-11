@@ -855,6 +855,7 @@ export class AdminActionService {
     const modal = document.getElementById('modal');
     if (modal) {
       modal.classList.remove('show');
+      modal.classList.remove('writing-guide-modal'); // ガイド専用クラスも削除
       modal.classList.add('modal-hidden');
     }
   }
@@ -902,12 +903,57 @@ export class AdminActionService {
 
   // ユーティリティメソッド
   markdownToHtml(markdown) {
-    return markdown
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/^## (.*$)/gm, '<h3>$1</h3>')
-      .replace(/^- (.*$)/gm, '<li>$1</li>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-      .replace(/\n/g, '<br>');
+    if (!markdown) return '';
+    
+    // 行ごとに分割して処理
+    const lines = markdown.split('\n');
+    const processedLines = [];
+    let inQuote = false;
+    let quoteLines = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // 引用行の処理
+      if (line.startsWith('> ')) {
+        if (!inQuote) {
+          inQuote = true;
+          quoteLines = [];
+        }
+        quoteLines.push(line.substring(2)); // '> 'を除去
+      } else {
+        // 引用ブロックが終わった場合
+        if (inQuote) {
+          processedLines.push(`<blockquote>${quoteLines.join('<br>')}</blockquote>`);
+          inQuote = false;
+          quoteLines = [];
+        }
+        
+        // 通常の行処理
+        let processedLine = line
+          // 見出し処理（長いパターンから先に処理）
+          .replace(/^#### (.*$)/, '<h5>$1</h5>')
+          .replace(/^### (.*$)/, '<h4>$1</h4>')
+          .replace(/^## (.*$)/, '<h3>$1</h3>')
+          // リスト
+          .replace(/^- (.*)/, '<li>$1</li>')
+          // 太字
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          // イタリック
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          // リンク
+          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+        
+        processedLines.push(processedLine);
+      }
+    }
+    
+    // 最後に引用ブロックが残っている場合
+    if (inQuote) {
+      processedLines.push(`<blockquote>${quoteLines.join('<br>')}</blockquote>`);
+    }
+    
+    return processedLines.join('<br>');
   }
 
   // プレースホルダーメソッド（必要に応じて実装）
@@ -1319,7 +1365,177 @@ export class AdminActionService {
   exportData() { this.showNotification('データエクスポート機能は準備中です', 'info'); }
   importData() { this.showNotification('データインポート機能は準備中です', 'info'); }
   updateLessonStatus() { this.showNotification('レッスン状況更新機能は準備中です', 'info'); }
-  showWritingGuide() { this.showNotification('記事作成ガイド機能は準備中です', 'info'); }
+  /**
+   * 記事作成ガイドを表示
+   */
+  showWritingGuide() {
+    try {
+      this.debug('記事作成ガイドを表示');
+      
+      const guideContent = `
+        <div class="writing-guide-modern">
+          <!-- ヘッダー -->
+          <div class="guide-header">
+            <div class="guide-icon">
+              <i class="fas fa-book-open"></i>
+            </div>
+            <div class="guide-title">
+              <h3>記事作成ガイド</h3>
+              <p>効果的な記事を作成するためのガイドライン</p>
+            </div>
+          </div>
+
+          <!-- ガイドコンテンツ -->
+          <div class="guide-content">
+            
+            <!-- 基本的な書き方 -->
+            <div class="guide-card">
+              <div class="card-header">
+                <i class="fas fa-pencil-alt"></i>
+                <h4>基本的な書き方</h4>
+              </div>
+              <div class="card-content">
+                <div class="tip-item">
+                  <strong>タイトル:</strong> 簡潔で分かりやすく（30文字以内推奨）
+                </div>
+                <div class="tip-item">
+                  <strong>概要:</strong> 記事の要点を1-2文で（100文字以内推奨）
+                </div>
+                <div class="tip-item">
+                  <strong>本文:</strong> 読みやすい長さの段落に分けて記述
+                </div>
+              </div>
+            </div>
+
+            <!-- Markdown記法 -->
+            <div class="guide-card">
+              <div class="card-header">
+                <i class="fab fa-markdown"></i>
+                <h4>Markdown記法</h4>
+              </div>
+              <div class="card-content">
+                <div class="markdown-grid">
+                  <div class="markdown-item">
+                    <code>## 見出し</code>
+                    <span class="arrow">→</span>
+                    <strong class="result">大見出し</strong>
+                  </div>
+                  <div class="markdown-item">
+                    <code>### 小見出し</code>
+                    <span class="arrow">→</span>
+                    <strong class="result">小見出し</strong>
+                  </div>
+                  <div class="markdown-item">
+                    <code>**太字**</code>
+                    <span class="arrow">→</span>
+                    <strong class="result">太字</strong>
+                  </div>
+                  <div class="markdown-item">
+                    <code>*イタリック*</code>
+                    <span class="arrow">→</span>
+                    <em class="result">イタリック</em>
+                  </div>
+                                     <div class="markdown-item">
+                     <code>> 引用</code>
+                     <span class="arrow">→</span>
+                     <blockquote class="result" style="margin: 0; padding: 8px 12px; background: #f8f9fa; border-left: 3px solid #4a90e2; font-style: italic;">引用テキスト</blockquote>
+                   </div>
+                  <div class="markdown-item">
+                    <code>- リスト項目</code>
+                    <span class="arrow">→</span>
+                    <span class="result">• リスト項目</span>
+                  </div>
+                  <div class="markdown-item">
+                    <code>[リンク](URL)</code>
+                    <span class="arrow">→</span>
+                    <a href="#" class="result">リンク</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- カテゴリー選択 -->
+            <div class="guide-card">
+              <div class="card-header">
+                <i class="fas fa-tags"></i>
+                <h4>カテゴリー選択</h4>
+              </div>
+              <div class="card-content">
+                <div class="category-grid">
+                  <div class="category-item announcement">
+                    <span class="category-name">お知らせ</span>
+                    <span class="category-desc">一般的な告知・連絡事項</span>
+                  </div>
+                  <div class="category-item event">
+                    <span class="category-name">体験会</span>
+                    <span class="category-desc">体験レッスンの案内</span>
+                  </div>
+                  <div class="category-item media">
+                    <span class="category-name">メディア</span>
+                    <span class="category-desc">メディア掲載、取材記事</span>
+                  </div>
+                  <div class="category-item important">
+                    <span class="category-name">重要</span>
+                    <span class="category-desc">緊急性の高い重要な連絡</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 公開前チェック -->
+            <div class="guide-card">
+              <div class="card-header">
+                <i class="fas fa-check-circle"></i>
+                <h4>公開前チェックリスト</h4>
+              </div>
+              <div class="card-content">
+                <div class="checklist">
+                  <div class="check-item">
+                    <i class="fas fa-check"></i>
+                    <span>タイトルと内容が一致しているか</span>
+                  </div>
+                  <div class="check-item">
+                    <i class="fas fa-check"></i>
+                    <span>誤字脱字がないか</span>
+                  </div>
+                  <div class="check-item">
+                    <i class="fas fa-check"></i>
+                    <span>日付とカテゴリーが適切か</span>
+                  </div>
+                  <div class="check-item">
+                    <i class="fas fa-check"></i>
+                    <span>プレビューで表示を確認したか</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- フッター -->
+          <div class="guide-footer">
+            <div class="footer-tip">
+              <i class="fas fa-lightbulb"></i>
+              <span>プレビュー機能で記事の表示を事前に確認できます</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // モーダルを表示（ガイド専用クラスを追加）
+      this.showModal('記事作成ガイド', guideContent);
+      
+      // ガイド専用スタイルを適用
+      const modal = document.getElementById('modal');
+      if (modal) {
+        modal.classList.add('writing-guide-modal');
+      }
+      
+    } catch (error) {
+      this.error('記事作成ガイド表示エラー:', error);
+      this.showNotification('ガイドの表示に失敗しました', 'error');
+    }
+  }
   logout() { this.handleLogout(); }
   openExternal(params) { 
     const url = params?.url;

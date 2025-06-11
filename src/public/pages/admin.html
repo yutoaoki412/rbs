@@ -303,14 +303,26 @@
                   <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="**" data-end="**" title="太字">
                     <strong>B</strong>
                   </button>
-                  <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="## " data-end="" title="見出し">
+                  <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="*" data-end="*" title="イタリック">
+                    <em>I</em>
+                  </button>
+                  <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="## " data-end="" title="見出し H2">
                     H2
                   </button>
+                  <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="### " data-end="" title="見出し H3">
+                    H3
+                  </button>
+                  <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="#### " data-end="" title="見出し H4">
+                    H4
+                  </button>
+                  <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="> " data-end="" title="引用">
+                    <i class="fas fa-quote-left"></i>
+                  </button>
                   <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="- " data-end="" title="リスト">
-                    List
+                    <i class="fas fa-list-ul"></i>
                   </button>
                   <button type="button" class="toolbar-btn" data-action="insert-markdown" data-start="[" data-end="](URL)" title="リンク">
-                    Link
+                    <i class="fas fa-link"></i>
                   </button>
                   <button type="button" class="toolbar-btn help-btn" data-action="show-writing-guide" title="記事作成ガイド">
                     <i class="fas fa-book-open"></i>
@@ -319,7 +331,7 @@
                 </div>
                 <textarea id="news-content" class="form-textarea editor-content" placeholder="記事の本文をMarkdown形式で入力してください" required></textarea>
                 <div class="form-help">
-                  <small>Markdown記法: **太字**、## 見出し、- リスト、[リンク](URL)</small>
+                  <small>Markdown記法: **太字**、*イタリック*、## 見出し、### 小見出し、> 引用、- リスト、[リンク](URL)</small>
                 </div>
               </div>
               
