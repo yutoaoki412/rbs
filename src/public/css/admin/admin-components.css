@@ -2662,3 +2662,205 @@
   pointer-events: all;
   cursor: pointer;
 }
+
+/* =============================================================================
+ * 記事プレビュー専用モーダルスタイル
+ * ============================================================================= */
+
+.modal .article-preview {
+  max-width: 800px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.modal .article-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--admin-gray-200);
+}
+
+.modal .article-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.modal .article-date {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--admin-gray-600);
+  font-size: 0.9rem;
+}
+
+.modal .article-date i {
+  color: var(--admin-primary);
+}
+
+.modal .news-category {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modal .news-category.announcement {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  color: #1976d2;
+  border: 1px solid #90caf9;
+}
+
+.modal .news-category.event {
+  background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+  color: #7b1fa2;
+  border: 1px solid #ce93d8;
+}
+
+.modal .news-category.media {
+  background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+  color: #388e3c;
+  border: 1px solid #81c784;
+}
+
+.modal .news-category.important {
+  background: linear-gradient(135deg, #ffebee, #ffcdd2);
+  color: #d32f2f;
+  border: 1px solid #ef5350;
+}
+
+.modal .article-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--admin-gray-900);
+  line-height: 1.3;
+  margin: 0;
+}
+
+.modal .article-summary {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  position: relative;
+}
+
+.modal .article-summary::before {
+  content: '\f05a';
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  color: var(--admin-primary);
+  font-size: 1.1rem;
+}
+
+.modal .summary-content {
+  margin-left: 2rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--admin-gray-700);
+  font-style: italic;
+}
+
+.modal .article-content {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--admin-gray-800);
+}
+
+.modal .article-content h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+  margin: 2rem 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--admin-primary);
+}
+
+.modal .article-content strong {
+  font-weight: 700;
+  color: var(--admin-gray-900);
+}
+
+.modal .article-content a {
+  color: var(--admin-primary);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.modal .article-content a:hover {
+  border-bottom-color: var(--admin-primary);
+}
+
+.modal .article-content li {
+  margin: 0.5rem 0;
+  padding-left: 0.5rem;
+}
+
+.modal .article-content li::marker {
+  color: var(--admin-primary);
+}
+
+/* モーダルサイズ調整 */
+.modal-content {
+  width: 95vw;
+  max-width: 900px;
+  max-height: 90vh;
+}
+
+.modal-body {
+  max-height: calc(90vh - 120px);
+  overflow-y: auto;
+}
+
+/* スクロールバーのスタイリング */
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .modal .article-title {
+    font-size: 1.5rem;
+  }
+  
+  .modal .article-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .modal .summary-content {
+    margin-left: 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .modal-content {
+    width: 98vw;
+    margin: 1rem;
+  }
+  
+  .modal-body {
+    padding: 1rem;
+  }
+}

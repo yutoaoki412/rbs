@@ -75,97 +75,71 @@ export class AdminActionService {
   }
 
   /**
-   * 統一イベントリスナー設定 - 全data-actionを処理
+   * 統一イベントリスナー設定 - シンプル＆クリーン
    */
   setupUnifiedEventListeners() {
     if (this.listenersAdded) return;
 
-    // 全クリックイベントを統一処理
-    document.addEventListener('click', (e) => {
-      const target = e.target.closest('[data-action]');
-      if (!target) return;
-
-      const action = target.dataset.action;
-      const params = this.extractParams(target);
-      
-      this.executeAction(action, target, params);
-    });
-
-    // ESCキーでモーダルを閉じる
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        const modal = document.getElementById('modal');
-        if (modal && !modal.classList.contains('modal-hidden')) {
-          this.closeModal();
-        }
-      }
-    });
+    // シンプルなイベントデリゲーション
+    document.addEventListener('click', this.handleClick.bind(this));
+    document.addEventListener('keydown', this.handleKeydown.bind(this));
 
     this.listenersAdded = true;
     this.log('統一イベントリスナー設定完了');
   }
 
   /**
-   * 要素からパラメータ抽出
+   * クリックイベント処理 - シンプル統一
    */
-  extractParams(element) {
+  handleClick(e) {
+    const target = e.target.closest('[data-action]');
+    if (!target) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const action = target.dataset.action;
+    const params = this.getElementParams(target);
+    
+    this.executeAction(action, params, target);
+  }
+
+  /**
+   * キーボードイベント処理
+   */
+  handleKeydown(e) {
+    if (e.key === 'Escape') {
+      this.closeModal();
+    }
+  }
+
+  /**
+   * 要素からパラメータ抽出 - シンプル版
+   */
+  getElementParams(element) {
     const params = {};
     
-    for (const attr of element.attributes) {
-      if (attr.name.startsWith('data-') && attr.name !== 'data-action') {
-        const key = attr.name.replace('data-', '').replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-        params[key] = attr.value;
-      }
-    }
+    // data-*属性を全て取得
+    Object.entries(element.dataset).forEach(([key, value]) => {
+      if (key !== 'action') params[key] = value;
+    });
     
     return params;
   }
 
   /**
-   * 統一アクション実行 - 全てのdata-actionを水平思考で処理
+   * 統一アクション実行 - 動的メソッド呼び出し
    */
-  executeAction(action, element, params) {
+  executeAction(action, params = {}, element = null) {
     try {
-      this.debug(`アクション実行: ${action}`, params);
-
-      // タブ切り替え系
-      if (action.includes('switch') && action.includes('tab')) {
-        return this.handleTabSwitch(action, element, params);
+      // アクション名を正規化してメソッド名に変換
+      const methodName = this.getMethodName(action);
+      
+      if (typeof this[methodName] === 'function') {
+        this[methodName](params, element);
+      } else {
+        this.log(`未対応のアクション: ${action} -> ${methodName}`);
       }
-
-      // 記事管理系
-      if (action.includes('news') || action.includes('article')) {
-        return this.handleNewsAction(action, element, params);
-      }
-
-      // Instagram管理系
-      if (action.includes('instagram')) {
-        return this.handleInstagramAction(action, element, params);
-      }
-
-      // レッスン状況系
-      if (action.includes('lesson')) {
-        return this.handleLessonAction(action, element, params);
-      }
-
-      // 設定系
-      if (action.includes('settings') || action.includes('admin')) {
-        return this.handleSettingsAction(action, element, params);
-      }
-
-      // データ管理系
-      if (action.includes('data') || action.includes('export') || action.includes('import')) {
-        return this.handleDataAction(action, element, params);
-      }
-
-      // UI系
-      if (action.includes('modal') || action.includes('show') || action.includes('close')) {
-        return this.handleUIAction(action, element, params);
-      }
-
-      // その他の一般的なアクション
-      this.handleGeneralAction(action, element, params);
-
     } catch (error) {
       this.error(`アクション実行エラー [${action}]:`, error);
       this.showNotification(`エラーが発生しました: ${action}`, 'error');
@@ -173,316 +147,291 @@ export class AdminActionService {
   }
 
   /**
-   * タブ切り替え処理
+   * アクション名をメソッド名に変換
    */
-  handleTabSwitch(action, element, params) {
-    const tab = params.tab || element.dataset.tab;
+  getMethodName(action) {
+    // kebab-case を camelCase に変換
+    return action.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+  }
+
+  // ===========================================
+  // アクションメソッド群 - シンプル＆統一
+  // ===========================================
+
+  newNewsArticle() {
+    this.switchAdminTab('news-management');
+    setTimeout(() => {
+      this.switchNewsTab('editor');
+      this.clearNewsEditor();
+      this.showNotification('新規記事エディタを開きました');
+    }, 100);
+  }
+
+  clearNewsEditor() {
+    ['news-title', 'news-content', 'news-summary'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    
+    const categoryEl = document.getElementById('news-category');
+    const dateEl = document.getElementById('news-date');
+    
+    if (categoryEl) categoryEl.selectedIndex = 0;
+    if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
+    
+    this.showNotification('エディタをクリアしました');
+  }
+
+  previewNews(params) {
+    this.debug('プレビューボタンクリック:', params);
+    
+    const articleId = params?.id;
+    let article = null;
+
+    if (articleId) {
+      // 既存記事のプレビュー
+      const articles = this.getArticles();
+      article = articles.find(a => a.id === articleId);
+      
+      if (!article) {
+        this.showNotification('記事が見つかりません', 'error');
+        return;
+      }
+      this.debug('既存記事をプレビュー:', article);
+    } else {
+      // エディタからのプレビュー
+      article = this.getEditorData();
+      this.debug('エディタデータ:', article);
+      
+      if (!article.title.trim() || !article.content.trim()) {
+        this.showNotification('タイトルと本文を入力してください', 'warning');
+        return;
+      }
+    }
+
+    this.showArticlePreview(article, !!articleId);
+  }
+
+  saveNews() {
+    const article = this.getEditorData();
+    if (!article.title.trim() || !article.content.trim()) {
+      this.showNotification('タイトルと本文を入力してください', 'warning');
+      return;
+    }
+
+    article.status = 'draft';
+    article.updatedAt = new Date().toISOString();
+    
+    this.saveArticle(article);
+    this.showNotification('記事を下書き保存しました');
+    
+    // フォームをクリアしてダッシュボードに戻る
+    setTimeout(() => {
+      this.clearNewsEditor();
+      this.switchAdminTab('dashboard');
+    }, 1000);
+  }
+
+  publishNews(params) {
+    const articleId = params?.id;
+
+    if (articleId) {
+      // 既存記事の公開
+      this.publishExistingArticle(articleId);
+    } else {
+      // エディタからの公開
+      this.publishNewArticle();
+    }
+  }
+
+  editNews(params) {
+    const articleId = params?.id;
+    if (!articleId) {
+      this.showNotification('記事IDが取得できませんでした', 'error');
+      return;
+    }
+
+    const articles = this.getArticles();
+    const article = articles.find(a => a.id === articleId);
+    
+    if (!article) {
+      this.showNotification('記事が見つかりません', 'error');
+      return;
+    }
+
+    this.loadArticleToEditor(article);
+    this.switchAdminTab('news-management');
+    this.switchNewsTab('editor');
+    this.showNotification('記事を編集モードで読み込みました');
+  }
+
+  deleteNews(params) {
+    const articleId = params?.id;
+    if (!articleId || !confirm('この記事を削除しますか？この操作は取り消せません。')) {
+      return;
+    }
+
+    let articles = this.getArticles();
+    const initialCount = articles.length;
+    
+    articles = articles.filter(a => a.id !== articleId);
+    
+    if (articles.length === initialCount) {
+      this.showNotification('削除対象の記事が見つかりません', 'error');
+      return;
+    }
+
+    this.saveArticles(articles);
+    this.refreshAllViews();
+    this.showNotification('記事を削除しました');
+  }
+
+  unpublishNews(params) {
+    const articleId = params?.id;
+    if (!articleId || !confirm('この記事を非公開にしますか？')) {
+      return;
+    }
+
+    const articles = this.getArticles();
+    const article = articles.find(a => a.id === articleId);
+    
+    if (!article) {
+      this.showNotification('記事が見つかりません', 'error');
+      return;
+    }
+
+    article.status = 'draft';
+    article.unpublishedAt = new Date().toISOString();
+    
+    this.saveArticles(articles);
+    this.refreshAllViews();
+    this.showNotification('記事を非公開にしました');
+  }
+
+  refreshNewsList() {
+    this.initializeArticleData();
+    const articles = this.getArticles();
+    const container = document.querySelector('#news-list');
+    
+    if (!container) return;
+
+    container.innerHTML = articles.length > 0 
+      ? articles.map(article => this.createArticleCard(article, 'list')).join('')
+      : '<div class="empty-state"><i class="fas fa-newspaper"></i><p>記事がありません</p></div>';
+  }
+
+  refreshRecentArticles() {
+    this.initializeArticleData();
+    const articles = this.getArticles()
+      .filter(a => a.status === 'published')
+      .sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt))
+      .slice(0, 5);
+    
+    const container = document.querySelector('#recent-articles');
+    
+    if (!container) return;
+
+    container.innerHTML = articles.length > 0 
+      ? articles.map(article => this.createArticleCard(article, 'recent')).join('')
+      : '<div class="empty-state"><i class="fas fa-newspaper"></i><p>公開済みの記事がありません</p></div>';
+  }
+
+  // タブ切り替え系
+  switchAdminTab(params) {
+    const tabName = typeof params === 'string' ? params : params?.tab;
+    if (!tabName) return;
+
+    document.querySelectorAll('.admin-section').forEach(section => {
+      section.classList.remove('active');
+    });
+    
+    document.querySelectorAll('.nav-item').forEach(nav => {
+      nav.classList.remove('active');
+    });
+
+    const targetSection = document.getElementById(tabName);
+    const targetNav = document.querySelector(`[data-tab="${tabName}"]`);
+
+    if (targetSection) targetSection.classList.add('active');
+    if (targetNav) targetNav.classList.add('active');
+
+    this.currentTab = tabName;
+    this.initializeTab(tabName);
+    localStorage.setItem(this.storageKeys.adminTab, tabName);
+  }
+
+  switchNewsTab(params) {
+    const tab = typeof params === 'string' ? params : params?.tab;
     if (!tab) return;
 
-    switch (action) {
-      case 'switch-admin-tab':
-        this.switchAdminTab(tab);
-        break;
-      case 'switch-news-tab':
-        this.switchNewsTab(tab);
-        break;
-      case 'switch-instagram-tab':
-        this.switchInstagramTab(tab);
-        break;
-      case 'switch-settings-tab':
-        this.switchSettingsTab(tab);
-        break;
+    document.querySelectorAll('.sub-nav-item').forEach(item => {
+      item.classList.remove('active');
+    });
+    document.querySelector(`[data-tab="${tab}"]`)?.classList.add('active');
+    
+    document.querySelectorAll('.news-tab-content').forEach(content => {
+      content.classList.remove('active');
+    });
+    document.getElementById(`news-${tab}-tab`)?.classList.add('active');
+    
+    this.currentNewsTab = tab;
+    
+    if (tab === 'list') {
+      setTimeout(() => this.refreshNewsList(), 100);
     }
   }
 
-  /**
-   * 記事管理アクション処理
-   */
-  handleNewsAction(action, element, params) {
-    switch (action) {
-      case 'new-news-article':
-        this.newNewsArticle();
-        break;
-      case 'clear-news-editor':
-        this.clearNewsEditor();
-        break;
-      case 'preview-news':
-        this.previewNews();
-        break;
-      case 'save-news':
-        this.saveNews();
-        break;
-      case 'publish-news':
-        this.publishNews();
-        break;
-      case 'refresh-news-list':
-        this.refreshNewsList();
-        break;
-      case 'filter-news-list':
-        this.filterNewsList(element.value);
-        break;
-      case 'insert-markdown':
-        this.insertMarkdown(params.start, params.end);
-        break;
-      case 'show-writing-guide':
-        this.showWritingGuide();
-        break;
-      case 'refresh-recent-articles':
-        this.refreshRecentArticles();
-        break;
-    }
+  // その他のアクション
+  filterNewsList(params, element) {
+    const filterValue = element?.value || 'all';
+    const newsItems = document.querySelectorAll('.news-card.admin-card.unified-view');
+    
+    newsItems.forEach(item => {
+      const status = item.dataset.status;
+      const shouldShow = filterValue === 'all' || status === filterValue;
+      item.style.display = shouldShow ? 'block' : 'none';
+    });
   }
 
-  /**
-   * Instagram管理アクション処理
-   */
-  handleInstagramAction(action, element, params) {
-    switch (action) {
-      case 'save-instagram-post':
-        this.saveInstagramPost();
-        break;
-      case 'refresh-instagram-posts':
-        this.refreshInstagramPosts();
-        break;
-      case 'filter-instagram-list':
-        this.filterInstagramList(element.value);
-        break;
-      case 'save-instagram-settings':
-        this.saveInstagramSettings();
-        break;
-      case 'test-instagram-settings':
-        this.testInstagramSettings();
-        break;
-      case 'reset-instagram-settings':
-        this.resetInstagramSettings();
-        break;
-    }
-  }
-
-  /**
-   * レッスン状況アクション処理
-   */
-  handleLessonAction(action, element, params) {
-    switch (action) {
-      case 'load-lesson-status':
-        this.loadLessonStatus();
-        break;
-      case 'update-lesson-status':
-        this.updateLessonStatus();
-        break;
-      case 'preview-lesson-status':
-        this.previewLessonStatus();
-        break;
-      case 'save-draft-lesson-status':
-        this.saveDraftLessonStatus();
-        break;
-    }
-  }
-
-  /**
-   * 設定アクション処理
-   */
-  handleSettingsAction(action, element, params) {
-    switch (action) {
-      case 'save-admin-settings':
-        this.saveAdminSettings();
-        break;
-      case 'reset-admin-settings':
-        this.resetAdminSettings();
-        break;
-      case 'test-site-connection':
-        this.testSiteConnection();
-        break;
-    }
-  }
-
-  /**
-   * データ管理アクション処理
-   */
-  handleDataAction(action, element, params) {
-    switch (action) {
-      case 'export-data':
-        this.exportData();
-        break;
-      case 'import-data':
-        this.importData();
-        break;
-      case 'backup-data':
-        this.backupData();
-        break;
-      case 'clear-all-data':
-        this.clearAllData();
-        break;
-      case 'refresh-data-stats':
-        this.refreshDataStats();
-        break;
-      case 'clear-performance-data':
-        this.clearPerformanceData();
-        break;
-      case 'reset-local-storage':
-        this.resetLocalStorage();
-        break;
-    }
-  }
-
-  /**
-   * UI関連アクション処理
-   */
-  handleUIAction(action, element, params) {
-    switch (action) {
-      case 'close-modal':
-        this.closeModal();
-        break;
-      case 'show-debug-info':
-        this.showDebugInfo();
-        break;
-      case 'show-news-debug':
-        this.showNewsDebug();
-        break;
-      case 'show-instagram-debug':
-        this.showInstagramDebug();
-        break;
-      case 'show-storage-info':
-        this.showStorageInfo();
-        break;
-      case 'show-writing-guide':
-        this.showWritingGuide();
-        break;
-    }
-  }
-
-  /**
-   * 一般的なアクション処理
-   */
-  handleGeneralAction(action, element, params) {
-    switch (action) {
-      case 'logout':
-        this.handleLogout();
-        break;
-      case 'toggle-notification-mode':
-        this.toggleNotificationMode();
-        break;
-      case 'open-external':
-        const url = params.url || element.dataset.url;
-        if (url) window.open(url, '_blank');
-        break;
-      case 'preview-site':
-        this.previewSite();
-        break;
-      case 'download-logs':
-        this.downloadLogs();
-        break;
-      default:
-        this.debug(`未対応のアクション: ${action}`);
-    }
+  insertMarkdown(params) {
+    const textarea = document.getElementById('news-content');
+    if (!textarea || !params.start) return;
+    
+    const { start, end = '' } = params;
+    const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+    const newText = start + selectedText + end;
+    
+    const beforeText = textarea.value.substring(0, textarea.selectionStart);
+    const afterText = textarea.value.substring(textarea.selectionEnd);
+    
+    textarea.value = beforeText + newText + afterText;
+    textarea.focus();
+    
+    const newCursorPos = textarea.selectionStart + start.length + selectedText.length;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
   }
 
   // ===========================================
   // タブ切り替えメソッド群（シンプル版）
   // ===========================================
 
-  switchAdminTab(tabName) {
-    this.debug(`管理タブ切り替え: ${tabName}`);
-    
-    // 全タブを非表示
-    document.querySelectorAll('.admin-section').forEach(section => {
-      section.classList.remove('active');
-    });
-    
-    // 全ナビを非アクティブ
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.classList.remove('active');
-    });
-    
-    // 指定タブを表示
-    const targetSection = document.getElementById(tabName);
-    const targetNav = document.querySelector(`[data-tab="${tabName}"]`);
-    
-    if (targetSection) targetSection.classList.add('active');
-    if (targetNav) targetNav.classList.add('active');
-    
-    this.currentTab = tabName;
-    localStorage.setItem(this.storageKeys.adminTab, tabName);
-    
-    // タブ固有の初期化
-    this.initializeTab(tabName);
-  }
-
-  switchNewsTab(tab) {
-    this.debug(`記事タブ切り替え: ${tab}`);
-    
-    document.querySelectorAll('.news-tab-content').forEach(content => {
-      content.classList.remove('active');
-    });
-    
-    document.querySelectorAll('[data-action="switch-news-tab"]').forEach(item => {
-      item.classList.remove('active');
-    });
-    
-    const targetTab = document.getElementById(`news-${tab}-tab`);
-    const targetNav = document.querySelector(`[data-action="switch-news-tab"][data-tab="${tab}"]`);
-    
-    if (targetTab) targetTab.classList.add('active');
-    if (targetNav) targetNav.classList.add('active');
-    
-    this.currentNewsTab = tab;
-  }
-
-  switchInstagramTab(tab) {
-    this.debug(`Instagramタブ切り替え: ${tab}`);
-    
-    document.querySelectorAll('.instagram-tab-content').forEach(content => {
-      content.classList.remove('active');
-    });
-    
-    document.querySelectorAll('[data-action="switch-instagram-tab"]').forEach(item => {
-      item.classList.remove('active');
-    });
-    
-    const targetTab = document.getElementById(`instagram-${tab}-tab`);
-    const targetNav = document.querySelector(`[data-action="switch-instagram-tab"][data-tab="${tab}"]`);
-    
-    if (targetTab) targetTab.classList.add('active');
-    if (targetNav) targetNav.classList.add('active');
-    
-    this.currentInstagramTab = tab;
-  }
-
-  switchSettingsTab(tab) {
-    this.debug(`設定タブ切り替え: ${tab}`);
-    
-    document.querySelectorAll('.settings-tab-content').forEach(content => {
-      content.classList.remove('active');
-    });
-    
-    document.querySelectorAll('[data-action="switch-settings-tab"]').forEach(item => {
-      item.classList.remove('active');
-    });
-    
-    const targetTab = document.getElementById(`settings-${tab}-tab`);
-    const targetNav = document.querySelector(`[data-action="switch-settings-tab"][data-tab="${tab}"]`);
-    
-    if (targetTab) targetTab.classList.add('active');
-    if (targetNav) targetNav.classList.add('active');
-    
-    this.currentSettingsTab = tab;
-    
-    // 設定タブ固有の初期化
-    if (tab === 'data') {
-      this.refreshDataStats();
-    }
-  }
-
   initializeTab(tabName) {
+    this.debug(`タブ初期化: ${tabName}`);
+    
+    // データ初期化を先に実行
+    this.initializeArticleData();
+    
     switch (tabName) {
       case 'dashboard':
         this.updateDashboardStats();
+        this.refreshRecentArticles();
         break;
       case 'settings':
         this.switchSettingsTab('data');
         break;
       case 'news-management':
         this.switchNewsTab('editor');
+        this.refreshNewsList();
         break;
       case 'instagram-management':
         this.switchInstagramTab('posts');
@@ -544,97 +493,21 @@ export class AdminActionService {
     }
   }
 
-  newNewsArticle() {
-    this.debug('新規記事作成');
-    this.switchAdminTab('news-management');
-    this.switchNewsTab('editor');
-    this.clearNewsEditor();
-    this.showNotification('新規記事エディタを開きました');
-  }
-
-  clearNewsEditor() {
-    this.debug('記事エディタクリア');
-    const titleInput = document.getElementById('news-title');
-    const contentTextarea = document.getElementById('news-content');
-    const categorySelect = document.getElementById('news-category');
-    const dateInput = document.getElementById('news-date');
-    const summaryTextarea = document.getElementById('news-summary');
-    
-    if (titleInput) titleInput.value = '';
-    if (contentTextarea) contentTextarea.value = '';
-    if (categorySelect) categorySelect.selectedIndex = 0;
-    if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
-    if (summaryTextarea) summaryTextarea.value = '';
-    
-    this.showNotification('エディタをクリアしました');
-  }
-
-  previewNews() {
-    this.debug('記事プレビュー');
-    const title = document.getElementById('news-title')?.value || '';
-    const content = document.getElementById('news-content')?.value || '';
-    const summary = document.getElementById('news-summary')?.value || '';
-    
-    if (!title.trim() || !content.trim()) {
-      this.showNotification('タイトルと本文を入力してください', 'warning');
-      return;
-    }
-    
-    const previewContent = `
-      <div class="news-preview">
-        <h2>${title}</h2>
-        <div class="news-summary">${summary}</div>
-        <div class="news-content">${this.markdownToHtml(content)}</div>
-      </div>
-    `;
-    
-    this.showModal('記事プレビュー', previewContent);
-  }
-
-  saveNews() {
-    this.debug('記事保存（下書き）');
-    const newsData = this.getNewsFormData();
-    
-    if (!newsData.title.trim() || !newsData.content.trim()) {
-      this.showNotification('タイトルと本文を入力してください', 'warning');
-      return;
-    }
-    
-    newsData.status = 'draft';
-    newsData.updatedAt = new Date().toISOString();
-    
-    this.saveArticleToStorage(newsData);
-    this.showNotification('記事を下書き保存しました');
-  }
-
-  publishNews() {
-    this.debug('記事公開');
-    const newsData = this.getNewsFormData();
-    
-    if (!newsData.title.trim() || !newsData.content.trim() || !newsData.summary.trim()) {
-      this.showNotification('すべての必須項目を入力してください', 'warning');
-      return;
-    }
-    
-    newsData.status = 'published';
-    newsData.publishedAt = new Date().toISOString();
-    newsData.updatedAt = new Date().toISOString();
-    
-    this.saveArticleToStorage(newsData);
-    this.showNotification('記事を公開しました', 'success');
-    this.refreshRecentArticles();
-  }
-
   getNewsFormData() {
-    const defaultArticle = CONFIG.helpers.createDefaultArticle();
+    const currentDate = new Date().toISOString();
+    const id = document.getElementById('news-id')?.value || this.generateId();
     
     return {
-      ...defaultArticle,
+      id: id,
       title: document.getElementById('news-title')?.value || '',
       content: document.getElementById('news-content')?.value || '',
       category: document.getElementById('news-category')?.value || 'announcement',
       date: document.getElementById('news-date')?.value || new Date().toISOString().split('T')[0],
-      summary: document.getElementById('news-summary')?.value || ''
+      summary: document.getElementById('news-summary')?.value || '',
+      featured: document.getElementById('news-featured')?.checked || false,
+      status: 'draft',
+      createdAt: currentDate,
+      updatedAt: currentDate
     };
   }
 
@@ -657,101 +530,92 @@ export class AdminActionService {
     }
   }
 
-  refreshRecentArticles() {
-    this.debug('最近の記事更新');
-    try {
-      // データの初期化確認
-      this.initializeArticleData();
-      
-      const articles = JSON.parse(localStorage.getItem(this.storageKeys.articles) || '[]');
-      const recentContainer = document.querySelector('.recent-articles-list');
-      
-      this.debug(`記事データ: ${articles.length}件の記事を取得`);
-      
-      if (!recentContainer) {
-        this.debug('最近の記事コンテナが見つかりません');
-        return;
-      }
-      
-      const recentArticles = articles
-        .filter(article => article.status === 'published')
-        .sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt))
-        .slice(0, 5);
-      
-      this.debug(`公開記事: ${recentArticles.length}件`);
-      
-      recentContainer.innerHTML = recentArticles.length > 0 
-        ? recentArticles.map(article => `
-            <div class="article-item">
-              <div class="article-title">${article.title}</div>
-              <div class="article-date">${CONFIG.helpers.formatDate(article.publishedAt || article.date || article.createdAt)}</div>
-              <div class="article-category">${CONFIG.helpers.getCategoryInfo(article.category).name}</div>
-            </div>
-          `).join('')
-        : '<div class="no-articles">公開済みの記事がありません</div>';
-        
-    } catch (error) {
-      this.error('最近の記事更新エラー:', error);
-      const recentContainer = document.querySelector('.recent-articles-list');
-      if (recentContainer) {
-        recentContainer.innerHTML = '<div class="no-articles error">記事の読み込みに失敗しました</div>';
-      }
-    }
+  getArticles() {
+    return JSON.parse(localStorage.getItem(this.storageKeys.articles) || '[]');
   }
 
-  refreshNewsList() {
-    this.debug('記事一覧更新');
-    // 記事一覧の更新処理を実装
-    this.showNotification('記事一覧を更新しました');
+  saveArticles(articles) {
+    localStorage.setItem(this.storageKeys.articles, JSON.stringify(articles));
   }
 
-  filterNewsList(filterValue) {
-    this.debug(`記事一覧フィルタ: ${filterValue}`);
-    // フィルタ処理を実装
+  getEditorData() {
+    return this.getNewsFormData();
   }
 
-  insertMarkdown(start, end) {
-    const textarea = document.getElementById('news-content');
-    if (!textarea) return;
-    
-    const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-    const newText = start + selectedText + end;
-    
-    const beforeText = textarea.value.substring(0, textarea.selectionStart);
-    const afterText = textarea.value.substring(textarea.selectionEnd);
-    
-    textarea.value = beforeText + newText + afterText;
-    textarea.focus();
-    
-    const newCursorPos = textarea.selectionStart + start.length + selectedText.length;
-    textarea.setSelectionRange(newCursorPos, newCursorPos);
+  showArticlePreview(article, isExisting) {
+    this.debug('プレビュー表示:', { article, isExisting });
+    const previewHTML = this.generateArticlePreviewHTML(article, isExisting);
+    this.debug('プレビューHTML生成完了');
+    this.showModal('記事プレビュー', previewHTML);
   }
 
-  showWritingGuide() {
-    const guideContent = `
-      <div class="writing-guide">
-        <h3>記事作成ガイド</h3>
-        <div class="guide-section">
-          <h4>マークダウン記法</h4>
-          <ul>
-            <li><strong>**太字**</strong> - 重要な内容の強調</li>
-            <li><strong>## 見出し</strong> - セクションの区切り</li>
-            <li><strong>- リスト</strong> - 箇条書き</li>
-            <li><strong>[リンク](URL)</strong> - 外部リンク</li>
-          </ul>
+  generateArticlePreviewHTML(article, isExisting) {
+    const categoryInfo = this.getCategoryInfo(article.category);
+    const previewDate = article.publishedAt || article.date || article.createdAt || new Date().toISOString();
+    
+    const previewHTML = `
+      <div class="article-preview">
+        <div class="article-header">
+          <div class="article-meta">
+            <span class="article-date">
+              <i class="fas fa-calendar"></i>
+              ${this.formatDate(previewDate)}
+            </span>
+            <span class="news-category ${categoryInfo.class}">${categoryInfo.name}</span>
+          </div>
+          <h1 class="article-title">${this.escapeHtml(article.title)}</h1>
+          ${article.summary ? `<div class="article-summary">
+            <div class="summary-content">${this.escapeHtml(article.summary)}</div>
+          </div>` : ''}
         </div>
-        <div class="guide-section">
-          <h4>記事作成のコツ</h4>
-          <ul>
-            <li>タイトルは具体的で分かりやすく</li>
-            <li>概要で記事の要点を簡潔に</li>
-            <li>本文は読みやすい段落に分割</li>
-          </ul>
-        </div>
+        <div class="article-content">${this.markdownToHtml(article.content)}</div>
       </div>
     `;
-    
-    this.showModal('記事作成ガイド', guideContent);
+    return previewHTML;
+  }
+
+  // ===========================================
+  // ヘルパーメソッド群
+  // ===========================================
+
+  getCategoryInfo(category) {
+    const categories = {
+      announcement: { name: 'お知らせ', class: 'announcement' },
+      event: { name: '体験会', class: 'event' },
+      media: { name: 'メディア', class: 'media' },
+      important: { name: '重要', class: 'important' }
+    };
+    return categories[category] || { name: 'その他', class: 'other' };
+  }
+
+  getStatusInfo(status) {
+    const statuses = {
+      published: { name: '公開中', class: 'status-published' },
+      draft: { name: '下書き', class: 'status-draft' },
+      scheduled: { name: '予約投稿', class: 'status-scheduled' }
+    };
+    return statuses[status] || { name: '不明', class: 'status-unknown' };
+  }
+
+  escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  formatDate(dateString) {
+    if (!dateString) return '不明';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ja-JP', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+    } catch {
+      return '不明';
+    }
   }
 
   // ===========================================
@@ -764,38 +628,39 @@ export class AdminActionService {
       // データの初期化確認
       this.initializeArticleData();
       
-      const articles = JSON.parse(localStorage.getItem(this.storageKeys.articles) || '[]');
+      const articles = this.getArticles();
       const publishedCount = articles.filter(a => a.status === 'published').length;
       const draftCount = articles.filter(a => a.status === 'draft').length;
       
       this.debug(`統計データ: 公開${publishedCount}件、下書き${draftCount}件`);
       
-      // 統計カードの更新（より確実な方法）
-      const statCards = document.querySelectorAll('.stat-card');
-      statCards.forEach((card, index) => {
-        const statNumber = card.querySelector('.stat-number');
-        if (statNumber) {
-          switch (index) {
-            case 0: // 公開記事数
-              statNumber.textContent = publishedCount;
-              break;
-            case 1: // 下書き記事数
-              statNumber.textContent = draftCount;
-              break;
-            case 2: // 総記事数
-              statNumber.textContent = articles.length;
-              break;
-            case 3: // 今月の記事数
-              const thisMonth = new Date().getMonth();
-              const thisMonthCount = articles.filter(a => {
-                const articleDate = new Date(a.createdAt);
-                return articleDate.getMonth() === thisMonth;
-              }).length;
-              statNumber.textContent = thisMonthCount;
-              break;
-          }
-        }
-      });
+      // 統計カードの更新（IDベースでより確実に）
+      const statElements = {
+        published: document.querySelector('#stat-published'),
+        drafts: document.querySelector('#stat-drafts'),
+        instagramVisible: document.querySelector('#stat-instagram-visible'),
+        instagramHidden: document.querySelector('#stat-instagram-hidden')
+      };
+      
+      // 公開記事数
+      if (statElements.published) {
+        statElements.published.textContent = publishedCount;
+        this.debug(`公開記事数を更新: ${publishedCount}`);
+      }
+      
+      // 下書き記事数
+      if (statElements.drafts) {
+        statElements.drafts.textContent = draftCount;
+        this.debug(`下書き記事数を更新: ${draftCount}`);
+      }
+      
+      // Instagram統計（準備中）
+      if (statElements.instagramVisible) {
+        statElements.instagramVisible.textContent = '0';
+      }
+      if (statElements.instagramHidden) {
+        statElements.instagramHidden.textContent = '0';
+      }
       
       this.refreshRecentArticles();
       
@@ -807,7 +672,7 @@ export class AdminActionService {
   refreshDataStats() {
     this.debug('データ統計更新');
     try {
-      const articles = JSON.parse(localStorage.getItem(this.storageKeys.articles) || '[]');
+      const articles = this.getArticles();
       const settings = JSON.parse(localStorage.getItem(this.storageKeys.adminSettings) || '{}');
       
       const statsContainer = document.querySelector('.data-stats');
@@ -836,7 +701,7 @@ export class AdminActionService {
     this.debug('データエクスポート');
     try {
       const data = {
-        articles: JSON.parse(localStorage.getItem(this.storageKeys.articles) || '[]'),
+        articles: this.getArticles(),
         settings: JSON.parse(localStorage.getItem(this.storageKeys.adminSettings) || '{}'),
         exportDate: new Date().toISOString()
       };
@@ -873,7 +738,7 @@ export class AdminActionService {
           const data = JSON.parse(e.target.result);
           
           if (data.articles) {
-            localStorage.setItem(this.storageKeys.articles, JSON.stringify(data.articles));
+            this.saveArticles(data.articles);
           }
           if (data.settings) {
             localStorage.setItem(this.storageKeys.adminSettings, JSON.stringify(data.settings));
@@ -964,20 +829,32 @@ export class AdminActionService {
   }
 
   showModal(title, content) {
+    this.debug('モーダル表示開始:', title);
     const modal = document.getElementById('modal');
     const modalTitle = document.getElementById('modal-title');
-    const modalContent = document.getElementById('modal-content');
+    const modalContent = document.getElementById('modal-body'); // HTMLと一致させる
     
-    if (!modal || !modalTitle || !modalContent) return;
+    this.debug('モーダル要素:', { modal: !!modal, modalTitle: !!modalTitle, modalContent: !!modalContent });
+    
+    if (!modal || !modalTitle || !modalContent) {
+      this.error('モーダル要素が見つかりません');
+      return;
+    }
     
     modalTitle.textContent = title;
     modalContent.innerHTML = content;
+    
+    // CSSと一致させるためにshowクラスを追加
     modal.classList.remove('modal-hidden');
+    modal.classList.add('show');
+    
+    this.debug('モーダル表示完了');
   }
 
   closeModal() {
     const modal = document.getElementById('modal');
     if (modal) {
+      modal.classList.remove('show');
       modal.classList.add('modal-hidden');
     }
   }
@@ -1032,8 +909,6 @@ export class AdminActionService {
       .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
       .replace(/\n/g, '<br>');
   }
-
-
 
   // プレースホルダーメソッド（必要に応じて実装）
   backupData() { this.showNotification('バックアップ機能は準備中です', 'info'); }
@@ -1307,8 +1182,150 @@ export class AdminActionService {
     
     return definitions[statusKey] || definitions['scheduled'];
   }
+
+  saveArticle(article) {
+    let articles = this.getArticles();
+    const existingIndex = articles.findIndex(a => a.id === article.id);
+    
+    if (existingIndex >= 0) {
+      articles[existingIndex] = article;
+    } else {
+      article.id = article.id || this.generateId();
+      article.createdAt = article.createdAt || new Date().toISOString();
+      articles.push(article);
+    }
+    
+    this.saveArticles(articles);
+    this.refreshAllViews();
+  }
+
+  publishNewArticle() {
+    const article = this.getEditorData();
+    if (!article.title.trim() || !article.content.trim() || !article.summary.trim()) {
+      this.showNotification('すべての必須項目を入力してください', 'warning');
+      return;
+    }
+
+    article.status = 'published';
+    article.publishedAt = new Date().toISOString();
+    article.updatedAt = new Date().toISOString();
+    
+    this.saveArticle(article);
+    this.showNotification('記事を公開しました', 'success');
+    
+    // フォームをクリアしてダッシュボードに戻る
+    setTimeout(() => {
+      this.clearNewsEditor();
+      this.switchAdminTab('dashboard');
+    }, 1000);
+  }
+
+  publishExistingArticle(articleId) {
+    if (!confirm('この記事を公開しますか？')) return;
+
+    const articles = this.getArticles();
+    const article = articles.find(a => a.id === articleId);
+    
+    if (!article) {
+      this.showNotification('記事が見つかりません', 'error');
+      return;
+    }
+
+    article.status = 'published';
+    article.publishedAt = new Date().toISOString();
+    article.updatedAt = new Date().toISOString();
+    
+    this.saveArticles(articles);
+    this.refreshAllViews();
+    this.showNotification('記事を公開しました', 'success');
+  }
+
+  loadArticleToEditor(article) {
+    document.getElementById('news-id').value = article.id;
+    document.getElementById('news-title').value = article.title || '';
+    document.getElementById('news-category').value = article.category || 'announcement';
+    document.getElementById('news-date').value = article.date || new Date().toISOString().split('T')[0];
+    document.getElementById('news-summary').value = article.summary || '';
+    document.getElementById('news-content').value = article.content || '';
+    document.getElementById('news-featured').checked = article.featured || false;
+    
+    const editorTitle = document.getElementById('editor-title');
+    if (editorTitle) editorTitle.textContent = '記事を編集';
+  }
+
+  createArticleCard(article, type) {
+    const date = article.publishedAt || article.date || article.createdAt;
+    const categoryInfo = this.getCategoryInfo(article.category);
+    const statusInfo = this.getStatusInfo(article.status);
+    
+    const baseClasses = `news-card admin-card ${type === 'recent' ? 'recent-view' : 'unified-view'}`;
+    const actions = type === 'recent' 
+      ? `<button class="news-action-btn edit-btn" data-action="edit-news" data-id="${article.id}">
+           <i class="fas fa-edit"></i>
+           <span class="action-text">編集</span>
+         </button>`
+      : `<button class="news-action-btn edit-btn" data-action="edit-news" data-id="${article.id}">
+           <i class="fas fa-edit"></i>
+           <span class="action-text">編集</span>
+         </button>
+         <button class="news-action-btn preview-btn" data-action="preview-news" data-id="${article.id}">
+           <i class="fas fa-eye"></i>
+           <span class="action-text">プレビュー</span>
+         </button>
+         ${article.status === 'draft' 
+           ? `<button class="news-action-btn edit-btn" data-action="publish-news" data-id="${article.id}">
+                <i class="fas fa-globe"></i>
+                <span class="action-text">公開</span>
+              </button>`
+           : `<button class="news-action-btn edit-btn" data-action="unpublish-news" data-id="${article.id}">
+                <i class="fas fa-archive"></i>
+                <span class="action-text">非公開</span>
+              </button>`
+         }
+         <button class="news-action-btn delete-btn" data-action="delete-news" data-id="${article.id}">
+           <i class="fas fa-trash"></i>
+           <span class="action-text">削除</span>
+         </button>`;
+
+    return `
+      <div class="${baseClasses}" data-status="${article.status}" data-category="${article.category}">
+        <div class="news-card-header">
+          <div class="news-meta">
+            <span class="news-date">${this.formatDate(date)}</span>
+            <span class="news-category ${categoryInfo.class}">${categoryInfo.name}</span>
+            ${type !== 'recent' ? `<span class="news-status ${statusInfo.class}">${statusInfo.name}</span>` : ''}
+          </div>
+        </div>
+        <div class="news-card-body">
+          <h3 class="news-title admin-title-text">${this.escapeHtml(article.title)}</h3>
+          <p class="news-excerpt">${this.escapeHtml(article.summary || '概要なし')}</p>
+          <div class="news-actions">${actions}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  refreshAllViews() {
+    this.refreshRecentArticles();
+    this.refreshNewsList();
+    this.updateDashboardStats();
+  }
+
+  generateId() {
+    return 'article-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+  }
+
+  // 他のアクションメソッド（Instagram、レッスン、設定など）
+  exportData() { this.showNotification('データエクスポート機能は準備中です', 'info'); }
+  importData() { this.showNotification('データインポート機能は準備中です', 'info'); }
+  updateLessonStatus() { this.showNotification('レッスン状況更新機能は準備中です', 'info'); }
+  showWritingGuide() { this.showNotification('記事作成ガイド機能は準備中です', 'info'); }
+  logout() { this.handleLogout(); }
+  openExternal(params) { 
+    const url = params?.url;
+    if (url) window.open(url, '_blank');
+  }
 }
 
 // デフォルトエクスポート
 export default AdminActionService;
-export const adminActionService = new AdminActionService();
