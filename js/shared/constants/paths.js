@@ -131,8 +131,8 @@ const detectEnvironment = () => {
                        hostname === '127.0.0.1' || 
                        hostname.includes('local');
   
-  // ファイル構造の判定（src/public/構造かどうか）
-  const isSourceStructure = pathname.includes('/src/public/');
+  // ファイル構造の判定（現在は全てルートディレクトリ構造）
+  const isSourceStructure = false;
   
   return {
     isDevelopment,
@@ -150,8 +150,8 @@ const environment = detectEnvironment();
  */
 const getBasePath = () => {
   if (environment.isSourceStructure) {
-    // src/public/構造の場合
-    return '/src/public';
+    // ルートディレクトリ構造
+    return '';
   } else {
     // 本番環境やビルド後の構造
     return '';
@@ -217,11 +217,8 @@ export const PathHelper = {
     } else {
       // 現在のページディレクトリから相対的に取得
       const currentPath = window.location.pathname;
-      if (currentPath.includes('/pages/')) {
-        return PATHS.PAGES.RELATIVE.ADMIN_LOGIN;
-      } else {
-        return `pages/${PATHS.PAGES.RELATIVE.ADMIN_LOGIN}`;
-      }
+      // 全てルートディレクトリに配置
+      return PATHS.PAGES.RELATIVE.ADMIN_LOGIN;
     }
   },
   
@@ -234,12 +231,8 @@ export const PathHelper = {
     if (absolute) {
       return PATHS.PAGES.ADMIN;
     } else {
-      const currentPath = window.location.pathname;
-      if (currentPath.includes('/pages/')) {
-        return PATHS.PAGES.RELATIVE.ADMIN;
-      } else {
-        return `pages/${PATHS.PAGES.RELATIVE.ADMIN}`;
-      }
+      // 全てルートディレクトリに配置
+      return PATHS.PAGES.RELATIVE.ADMIN;
     }
   },
   
@@ -252,12 +245,8 @@ export const PathHelper = {
     if (absolute) {
       return PATHS.PAGES.HOME;
     } else {
-      const currentPath = window.location.pathname;
-      if (currentPath.includes('/pages/')) {
-        return PATHS.PAGES.RELATIVE.HOME;
-      } else {
-        return `pages/${PATHS.PAGES.RELATIVE.HOME}`;
-      }
+      // 全てルートディレクトリに配置
+      return PATHS.PAGES.RELATIVE.HOME;
     }
   },
   
@@ -273,31 +262,13 @@ export const PathHelper = {
     
     switch (targetPage) {
       case 'admin-login':
-        if (currentDir.endsWith('/pages')) {
-          return 'admin-login.html';
-        } else if (currentDir.includes('/src/public')) {
-          return 'pages/admin-login.html';
-        } else {
-          return PATHS.PAGES.ADMIN_LOGIN;
-        }
+        return 'admin-login.html';
         
       case 'admin':
-        if (currentDir.endsWith('/pages')) {
-          return 'admin.html';
-        } else if (currentDir.includes('/src/public')) {
-          return 'pages/admin.html';
-        } else {
-          return PATHS.PAGES.ADMIN;
-        }
+        return 'admin.html';
         
       case 'home':
-        if (currentDir.endsWith('/pages')) {
-          return 'index.html';
-        } else if (currentDir.includes('/src/public')) {
-          return 'pages/index.html';
-        } else {
-          return PATHS.PAGES.HOME;
-        }
+        return 'index.html';
         
       default:
         console.warn(`Unknown target page: ${targetPage}`);

@@ -523,9 +523,8 @@ class HeaderComponent extends Component {
     getHomeUrl() {
         const currentPath = window.location.pathname;
         
-        if (currentPath.includes('/pages/')) {
-            return './index.html';
-        }
+                // 全てルートディレクトリに配置されているため
+        return './index.html';
         
         return 'index.html';
     }

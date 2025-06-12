@@ -11,30 +11,30 @@ import { PathHelper } from '../constants/paths.js';
  */
 export function fixAdminLinks() {
   // 管理画面へのリンクを検索
-  const adminLinks = document.querySelectorAll('a[href*="admin.html"], a[href*="pages/admin.html"]');
+  const adminLinks = document.querySelectorAll('a[href*="admin.html"]');
   
   adminLinks.forEach(link => {
     const href = link.getAttribute('href');
     
     // 既に正しいパスの場合はスキップ
-    if (href && !href.includes('src/public')) {
+    if (href && !href.startsWith('./admin.html') && !href.startsWith('admin.html')) {
       // 統一されたパス取得を使用
-      const correctPath = PathHelper.getSafeRedirectPath('admin');
+      const correctPath = 'admin.html';
       link.setAttribute('href', correctPath);
       console.log(`🔗 管理画面リンク修正: ${href} → ${correctPath}`);
     }
   });
   
   // 管理画面ログインへのリンクを検索
-  const adminLoginLinks = document.querySelectorAll('a[href*="admin-login.html"], a[href*="pages/admin-login.html"]');
+  const adminLoginLinks = document.querySelectorAll('a[href*="admin-login.html"]');
   
   adminLoginLinks.forEach(link => {
     const href = link.getAttribute('href');
     
     // 既に正しいパスの場合はスキップ
-    if (href && !href.includes('src/public')) {
+    if (href && !href.startsWith('./admin-login.html') && !href.startsWith('admin-login.html')) {
       // 統一されたパス取得を使用
-      const correctPath = PathHelper.getSafeRedirectPath('admin-login');
+      const correctPath = 'admin-login.html';
       link.setAttribute('href', correctPath);
       console.log(`🔗 管理画面ログインリンク修正: ${href} → ${correctPath}`);
     }
@@ -60,22 +60,13 @@ export function fixRelativeLinks() {
       return;
     }
     
-    // 相対パスの調整
-    if (href.includes('.html') && !href.includes('src/public')) {
-      const currentPath = window.location.pathname;
-      
-      // 現在のページがsrc/public/構造の場合の調整
-      if (currentPath.includes('/src/public/')) {
-        // pagesディレクトリ内のファイルへのリンクの場合
-        if (href.includes('pages/') && !href.startsWith('pages/')) {
-          // 既に適切な相対パス
-          return;
-        } else if (!href.includes('pages/') && (href.includes('.html'))) {
-          // pages/を追加する必要がある場合
-          const newHref = `pages/${href}`;
-          link.setAttribute('href', newHref);
-          console.log(`🔗 相対リンク修正: ${href} → ${newHref}`);
-        }
+    // 相対パスの調整 - 現在は全てルートディレクトリに配置
+    if (href.includes('.html')) {
+      // 古いpages/パスを削除
+      if (href.includes('pages/')) {
+        const newHref = href.replace('pages/', '');
+        link.setAttribute('href', newHref);
+        console.log(`🔗 相対リンク修正: ${href} → ${newHref}`);
       }
     }
   });
@@ -104,22 +95,20 @@ export function fixLinksInContainer(container) {
   if (!container) return;
   
   // コンテナ内の管理画面リンクを修正
-  const adminLinks = container.querySelectorAll('a[href*="admin.html"], a[href*="pages/admin.html"]');
+  const adminLinks = container.querySelectorAll('a[href*="admin.html"]');
   adminLinks.forEach(link => {
     const href = link.getAttribute('href');
-    if (href && !href.includes('src/public')) {
-      const correctPath = PathHelper.getSafeRedirectPath('admin');
-      link.setAttribute('href', correctPath);
+    if (href && !href.startsWith('./admin.html') && !href.startsWith('admin.html')) {
+      link.setAttribute('href', 'admin.html');
     }
   });
   
   // コンテナ内の管理画面ログインリンクを修正
-  const adminLoginLinks = container.querySelectorAll('a[href*="admin-login.html"], a[href*="pages/admin-login.html"]');
+  const adminLoginLinks = container.querySelectorAll('a[href*="admin-login.html"]');
   adminLoginLinks.forEach(link => {
     const href = link.getAttribute('href');
-    if (href && !href.includes('src/public')) {
-      const correctPath = PathHelper.getSafeRedirectPath('admin-login');
-      link.setAttribute('href', correctPath);
+    if (href && !href.startsWith('./admin-login.html') && !href.startsWith('admin-login.html')) {
+      link.setAttribute('href', 'admin-login.html');
     }
   });
 }
