@@ -2,10 +2,14 @@
    Components - 再利用可能なコンポーネントスタイル
    ========================================================================== */
 
+/* ヘッダー・ナビゲーション関連のスタイルはheader.cssに完全移行済み。不要な記述を削除しました。 */
+
 /* ヘッダー */
 .header {
   position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   width: 100%;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
@@ -14,18 +18,26 @@
   z-index: var(--z-fixed);
   padding: 12px 0;
   border-bottom: 3px solid var(--primary-blue);
+  box-sizing: border-box;
 }
 
 .nav {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-xl);
   display: flex;
   justify-content: space-between;
   align-items: center;
   min-height: 100px; /* ヘッダーの最小高さを確保 */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .logo {
   flex-shrink: 1; /* ロゴは必要に応じて縮小可能 */
   max-width: 50%; /* ロゴがヘッダーの50%以上を占めないように */
+  display: flex;
+  align-items: center;
 }
 
 .logo a {

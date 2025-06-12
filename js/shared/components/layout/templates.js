@@ -12,7 +12,7 @@ export const TEMPLATES = {
    * ヘッダーテンプレート
    */
   header: `<header class="header" data-template="header">
-  <nav class="nav container">
+  <nav class="nav">
     <div class="logo">
       <a href="{{logoLink}}" id="logo-link" data-action="navigate-home">
         <img src="./assets/images/rds-logo.png" alt="RBS陸上教室 Running & Brain School" class="logo-image">

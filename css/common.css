@@ -41,6 +41,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .logo {
@@ -245,8 +247,6 @@ main {
   padding: var(--spacing-lg);
 }
 
-
-
 /* アニメーション */
 .fade-in {
   animation: fadeIn 0.6s ease-out;
@@ -326,6 +326,8 @@ main {
 
   .nav {
     padding: 0 var(--spacing-lg);
+    max-width: none;
+    margin: 0;
   }
 
   .logo-image {
@@ -335,8 +337,6 @@ main {
   main {
     padding-top: 100px;
   }
-
-
 }
 
 @media (max-width: 480px) {
@@ -346,6 +346,8 @@ main {
 
   .nav {
     padding: 0 var(--spacing-md);
+    max-width: none;
+    margin: 0;
   }
 
   .logo-image {
@@ -377,3 +379,6 @@ main {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* ヘッダー・ナビゲーション関連のスタイルはheader.cssに完全移行済み。不要な記述を削除しました。 */

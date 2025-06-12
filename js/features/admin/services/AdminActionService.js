@@ -1058,53 +1058,18 @@ export class AdminActionService {
   // ===========================================
 
   /**
-   * 記事データの初期化（テストデータ作成）
+   * 記事データの初期化（空配列で初期化）
    */
   initializeArticleData() {
     const existingArticles = localStorage.getItem(this.storageKeys.articles);
     
-    // データが存在しない場合、テストデータを作成
-    if (!existingArticles || existingArticles === '[]') {
-      this.debug('記事データが存在しないため、テストデータを作成します');
-      
-      const testArticles = [
-        {
-          ...this.createDefaultArticle(),
-          id: 'test-1',
-          title: 'RBS陸上教室へようこそ',
-          content: '## RBS陸上教室について\n\nRBS陸上教室は、子どもたちの健全な成長を支援する陸上競技教室です。\n\n### 特徴\n- 経験豊富なコーチ陣\n- 個人のレベルに合わせた指導\n- 楽しく学べる環境',
-          category: 'announcement',
-          status: 'published',
-          summary: 'RBS陸上教室の紹介記事です。教室の特徴や理念について説明しています。',
-          publishedAt: new Date(Date.now() - 86400000).toISOString(), // 1日前
-          createdAt: new Date(Date.now() - 86400000).toISOString()
-        },
-        {
-          ...this.createDefaultArticle(),
-          id: 'test-2',
-          title: '体験会のお知らせ',
-          content: '## 無料体験会開催！\n\n来週土曜日に無料体験会を開催します。\n\n### 詳細\n- 日時: 来週土曜日 10:00-12:00\n- 場所: 地域スポーツセンター\n- 対象: 小学生～中学生',
-          category: 'event',
-          status: 'published',
-          summary: '無料体験会のお知らせです。ぜひお気軽にご参加ください。',
-          publishedAt: new Date(Date.now() - 43200000).toISOString(), // 12時間前
-          createdAt: new Date(Date.now() - 43200000).toISOString()
-        },
-        {
-          ...this.createDefaultArticle(),
-          id: 'test-3',
-          title: '下書き記事のテスト',
-          content: 'これは下書きの記事です。まだ公開されていません。',
-          category: 'announcement',
-          status: 'draft',
-          summary: 'テスト用の下書き記事です。',
-          createdAt: new Date().toISOString()
-        }
-      ];
-      
-      localStorage.setItem(this.storageKeys.articles, JSON.stringify(testArticles));
-      this.debug(`テストデータを作成しました: ${testArticles.length}件`);
+    // データが存在しない場合、空配列で初期化
+    if (!existingArticles) {
+      this.debug('記事データが存在しないため、空配列で初期化します');
+      localStorage.setItem(this.storageKeys.articles, JSON.stringify([]));
+      this.debug('記事ストレージを空配列で初期化しました');
     }
+    // 既存データがある場合はそのまま使用
   }
 
   getNewsFormData() {

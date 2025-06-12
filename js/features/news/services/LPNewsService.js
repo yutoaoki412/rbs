@@ -45,64 +45,18 @@ export class LPNewsService {
       
       console.log(`[LPNewsService] 記事データを読み込み: ${this.articles.length}件`);
       
-      // データが空の場合、テストデータを作成
-      if (this.articles.length === 0) {
-        this.createTestData();
-      }
+      // データが空の場合は空配列のまま
+      // テストデータの自動作成は削除
       
     } catch (error) {
       console.error('[LPNewsService] 記事データ読み込みエラー:', error);
       this.articles = [];
-      this.createTestData();
+      // エラー時もテストデータは作成しない
     }
   }
 
-  /**
-   * テストデータ作成
-   */
-  createTestData() {
-    console.log('[LPNewsService] テストデータを作成します');
-    
-    const testArticles = [
-      {
-        ...CONFIG.helpers.createDefaultArticle(),
-        id: 'lp-test-1',
-        title: 'RBS陸上教室へようこそ！',
-        content: '## RBS陸上教室について\n\nRBS陸上教室は、子どもたちの健全な成長を支援する陸上競技教室です。\n\n### 特徴\n- 経験豊富なコーチ陣\n- 個人のレベルに合わせた指導\n- 楽しく学べる環境\n\n### 対象年齢\n年長～小学6年生まで幅広く対応しています。',
-        category: 'announcement',
-        status: 'published',
-        summary: 'RBS陸上教室の紹介記事です。教室の特徴や理念について説明しています。',
-        publishedAt: new Date(Date.now() - 86400000).toISOString(), // 1日前
-        createdAt: new Date(Date.now() - 86400000).toISOString()
-      },
-      {
-        ...CONFIG.helpers.createDefaultArticle(),
-        id: 'lp-test-2',
-        title: '無料体験会開催のお知らせ',
-        content: '## 無料体験会開催！\n\n来週土曜日に無料体験会を開催します。お気軽にご参加ください。\n\n### 開催詳細\n- **日時**: 毎週土曜日 10:00-12:00\n- **場所**: 練馬区立大泉中央公園\n- **対象**: 年長～小学6年生\n- **参加費**: 無料\n\n### 持ち物\n- 動きやすい服装\n- 運動靴\n- 水筒\n- タオル\n\n皆様のご参加をお待ちしております！',
-        category: 'event',
-        status: 'published',
-        summary: '無料体験会のお知らせです。ぜひお気軽にご参加ください。',
-        publishedAt: new Date(Date.now() - 43200000).toISOString(), // 12時間前
-        createdAt: new Date(Date.now() - 43200000).toISOString()
-      },
-      {
-        ...CONFIG.helpers.createDefaultArticle(),
-        id: 'lp-test-3',
-        title: 'メディア掲載情報',
-        content: '## テレビ番組で紹介されました\n\n地元のテレビ番組でRBS陸上教室の活動が紹介されました。\n\n### 放送内容\n子どもたちの走力向上の様子や、脳トレメニューの効果について特集していただきました。\n\n放送をご覧いただいた皆様、ありがとうございました。',
-        category: 'media',
-        status: 'published',
-        summary: 'テレビ番組での紹介について報告します。',
-        publishedAt: new Date(Date.now() - 172800000).toISOString(), // 2日前
-        createdAt: new Date(Date.now() - 172800000).toISOString()
-      }
-    ];
-    
-    this.articles = testArticles;
-    localStorage.setItem(this.storageKey, JSON.stringify(testArticles));
-    console.log(`[LPNewsService] テストデータを作成: ${testArticles.length}件`);
-  }
+  // テストデータ作成機能は削除されました
+  // 記事は管理画面からのみ作成・管理されます
 
   /**
    * 公開済み記事を取得
