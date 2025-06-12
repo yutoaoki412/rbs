@@ -248,6 +248,12 @@
   overflow-y: auto;
 }
 
+/* 設定タブでは高さ制限とスクロールを無効化 */
+.settings-tab-content .list-content {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
 /* 記事一覧は統一されたnews-cardスタイルを使用 */
 
 /* クイックアクション */
