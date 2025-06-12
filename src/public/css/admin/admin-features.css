@@ -437,7 +437,7 @@
   flex-wrap: wrap;
 }
 
-/* トグルスイッチ */
+/* トグルスイッチ - 基本スタイル（設定タブ専用の改善版はadmin-components.cssで定義） */
 .toggle-switch {
   position: relative;
   display: flex;

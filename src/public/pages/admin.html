@@ -800,26 +800,189 @@
 
         <!-- 設定用のタブナビゲーション -->
         <div class="sub-nav">
-          <div class="sub-nav-item active" data-action="switch-settings-tab" data-tab="data">
+          <div class="sub-nav-item active" data-action="switch-settings-tab" data-tab="basic">
+            <i class="fas fa-sliders-h"></i>
+            基本設定
+          </div>
+          <div class="sub-nav-item" data-action="switch-settings-tab" data-tab="data">
             <i class="fas fa-database"></i>
             データ管理
           </div>
-          <div class="sub-nav-item" data-action="switch-settings-tab" data-tab="system">
-            <i class="fas fa-sliders-h"></i>
-            システム設定
-          </div>
-          <div class="sub-nav-item" data-action="switch-settings-tab" data-tab="connection">
-            <i class="fas fa-link"></i>
-            サイト連携
-          </div>
-          <div class="sub-nav-item" data-action="switch-settings-tab" data-tab="developer">
-            <i class="fas fa-tools"></i>
-            開発者ツール
+        </div>
+
+        <!-- 基本設定タブ -->
+        <div id="settings-basic-tab" class="settings-tab-content active">
+          <div class="dashboard-widgets">
+            <!-- 管理画面設定ウィジェット -->
+            <div class="widget">
+              <div class="widget-header">
+                <h2><i class="fas fa-sliders-h"></i> 管理画面設定</h2>
+              </div>
+              <div class="widget-content">
+                <form class="settings-form" id="admin-settings-form" data-auto-load="true">
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label class="form-label">
+                        <i class="fas fa-bell"></i>
+                        通知設定
+                      </label>
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="notifications-enabled" checked>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">通知を有効にする</span>
+                      </label>
+                      <small class="form-help">操作の完了やエラーの通知を表示します</small>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">
+                        <i class="fas fa-save"></i>
+                        自動保存
+                      </label>
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="auto-save-enabled" checked>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">自動保存を有効にする</span>
+                      </label>
+                      <small class="form-help">記事編集時に自動で下書きを保存します</small>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">
+                        <i class="fas fa-clock"></i>
+                        自動保存間隔
+                      </label>
+                      <select id="auto-save-interval" class="form-select">
+                        <option value="30">30秒</option>
+                        <option value="60" selected>1分</option>
+                        <option value="120">2分</option>
+                        <option value="300">5分</option>
+                      </select>
+                      <small class="form-help">記事編集時の自動保存間隔を設定できます</small>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">
+                        <i class="fas fa-palette"></i>
+                        テーマ設定
+                      </label>
+                      <select id="admin-theme" class="form-select">
+                        <option value="light" selected>ライトテーマ</option>
+                        <option value="dark">ダークテーマ</option>
+                        <option value="auto">システム設定に従う</option>
+                      </select>
+                      <small class="form-help">管理画面の外観テーマを選択できます</small>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- 動作設定 -->
+            <div class="widget">
+              <div class="widget-header">
+                <h2><i class="fas fa-cogs"></i> 動作設定</h2>
+              </div>
+              <div class="widget-content">
+                <form class="settings-form">
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label class="form-label">
+                        <i class="fas fa-trash"></i>
+                        削除時の確認
+                      </label>
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="confirm-before-delete" checked>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">削除前に確認ダイアログを表示</span>
+                      </label>
+                      <small class="form-help">記事や投稿を削除する前に確認を求めます</small>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">
+                        <i class="fas fa-eye"></i>
+                        公開前プレビュー
+                      </label>
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="preview-before-publish" checked>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">公開前にプレビューを表示</span>
+                      </label>
+                      <small class="form-help">記事公開前にプレビューを自動表示します</small>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label">
+                        <i class="fas fa-database"></i>
+                        自動バックアップ
+                      </label>
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="auto-backup-enabled" checked>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">定期的な自動バックアップ</span>
+                      </label>
+                      <small class="form-help">データの自動バックアップを有効にします</small>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- 設定操作 -->
+            <div class="widget">
+              <div class="widget-header">
+                <h2><i class="fas fa-tools"></i> 設定操作</h2>
+              </div>
+              <div class="widget-content">
+                <div class="action-buttons-grid">
+                  <button class="action-btn compact success" data-action="save-admin-settings">
+                    <div class="action-icon">
+                      <i class="fas fa-save"></i>
+                    </div>
+                    <div class="action-content">
+                      <span class="action-title">設定を保存</span>
+                      <span class="action-desc">現在の設定をローカルストレージに保存</span>
+                    </div>
+                  </button>
+
+                  <button class="action-btn compact warning" data-action="reset-admin-settings">
+                    <div class="action-icon">
+                      <i class="fas fa-undo"></i>
+                    </div>
+                    <div class="action-content">
+                      <span class="action-title">設定をリセット</span>
+                      <span class="action-desc">全設定をデフォルト値に戻す</span>
+                    </div>
+                  </button>
+
+                  <button class="action-btn compact secondary" data-action="test-site-connection">
+                    <div class="action-icon">
+                      <i class="fas fa-link"></i>
+                    </div>
+                    <div class="action-content">
+                      <span class="action-title">サイト連携テスト</span>
+                      <span class="action-desc">フロントエンドサイトとの接続確認</span>
+                    </div>
+                  </button>
+
+                  <button class="action-btn compact info" data-action="open-external" data-url="../index.html">
+                    <div class="action-icon">
+                      <i class="fas fa-external-link-alt"></i>
+                    </div>
+                    <div class="action-content">
+                      <span class="action-title">サイトを確認</span>
+                      <span class="action-desc">メインサイトを新しいタブで開く</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- データ管理タブ -->
-        <div id="settings-data-tab" class="settings-tab-content active">
+        <div id="settings-data-tab" class="settings-tab-content">
           <!-- システム統計 -->
           <div class="stats-grid">
             <div class="stat-card">
@@ -949,322 +1112,6 @@
                   <p>統合エクスポート機能では記事、Instagram投稿、レッスンステータス、設定データなど全ての Local Storage データを包括的にバックアップできます。カテゴリ別エクスポートでは特定のデータタイプのみを選択してダウンロードできます。</p>
                   <br>
                   <p><strong>新機能:</strong> エクスポート履歴、データ完全性チェック、インテリジェントインポート（重複回避・データ検証）に対応しました。</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- システム設定タブ -->
-        <div id="settings-system-tab" class="settings-tab-content">
-          <div class="dashboard-widgets">
-            <!-- 管理画面設定ウィジェット -->
-            <div class="widget">
-              <div class="widget-header">
-                <h2><i class="fas fa-sliders-h"></i> 管理画面設定</h2>
-              </div>
-              <div class="widget-content">
-                <div class="settings-form">
-                  <div class="form-grid">
-                    <div class="form-group">
-                      <label class="form-label">
-                        <i class="fas fa-bell"></i>
-                        通知設定
-                      </label>
-                      <label class="toggle-switch">
-                        <input type="checkbox" id="notification-mode" checked>
-                        <span class="toggle-slider"></span>
-                        <span class="toggle-label">通知を有効にする</span>
-                      </label>
-                      <small class="form-help">操作の完了やエラーの通知を表示します</small>
-                    </div>
-
-                    <div class="form-group">
-                      <label class="form-label">
-                        <i class="fas fa-bug"></i>
-                        デバッグモード
-                      </label>
-                      <label class="toggle-switch">
-                        <input type="checkbox" id="debug-mode">
-                        <span class="toggle-slider"></span>
-                        <span class="toggle-label">デバッグモードを有効にする</span>
-                      </label>
-                      <small class="form-help">開発者向けのデバッグ情報を表示します</small>
-                    </div>
-
-                    <div class="form-group">
-                      <label class="form-label">
-                        <i class="fas fa-clock"></i>
-                        自動保存間隔
-                      </label>
-                      <select id="auto-save-interval" class="form-select">
-                        <option value="30">30秒</option>
-                        <option value="60" selected>1分</option>
-                        <option value="120">2分</option>
-                        <option value="300">5分</option>
-                        <option value="0">無効</option>
-                      </select>
-                      <small class="form-help">記事編集時の自動保存間隔を設定できます</small>
-                    </div>
-
-                    <div class="form-group">
-                      <label class="form-label">
-                        <i class="fas fa-palette"></i>
-                        テーマ設定
-                      </label>
-                      <select id="admin-theme" class="form-select">
-                        <option value="light" selected>ライトテーマ</option>
-                        <option value="dark">ダークテーマ</option>
-                        <option value="auto">システム設定に従う</option>
-                      </select>
-                      <small class="form-help">管理画面の外観テーマを選択できます</small>
-                    </div>
-                  </div>
-
-                  <div class="form-actions">
-                    <button class="btn btn-primary" data-action="save-admin-settings">
-                      <i class="fas fa-save"></i>
-                      設定を保存
-                    </button>
-                    <button class="btn btn-outline" data-action="reset-admin-settings">
-                      <i class="fas fa-undo"></i>
-                      デフォルトに戻す
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- セキュリティ設定 -->
-            <div class="widget">
-              <div class="widget-header">
-                <h2><i class="fas fa-shield-alt"></i> セキュリティ設定</h2>
-              </div>
-              <div class="widget-content">
-                <div class="settings-form">
-                  <div class="form-grid">
-                    <div class="form-group">
-                      <label class="form-label">
-                        <i class="fas fa-lock"></i>
-                        セッション管理
-                      </label>
-                      <div class="session-info-display">
-                        <div class="info-item">
-                          <span class="info-label">セッション時間:</span>
-                          <span class="info-value" id="session-time">取得中...</span>
-                        </div>
-                        <div class="info-item">
-                          <span class="info-label">最終アクセス:</span>
-                          <span class="info-value" id="last-access">取得中...</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="form-group">
-                      <label class="form-label">
-                        <i class="fas fa-user-shield"></i>
-                        アクセス制御
-                      </label>
-                      <label class="toggle-switch">
-                        <input type="checkbox" id="ip-restriction" disabled>
-                        <span class="toggle-slider"></span>
-                        <span class="toggle-label">IP制限を有効にする（準備中）</span>
-                      </label>
-                      <small class="form-help">特定のIPアドレスからのみアクセスを許可します</small>
-                    </div>
-                  </div>
-
-                  <div class="form-actions">
-                    <button class="btn btn-outline" data-action="logout">
-                      <i class="fas fa-sign-out-alt"></i>
-                      ログアウト
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- サイト連携タブ -->
-        <div id="settings-connection-tab" class="settings-tab-content">
-          <div class="dashboard-widgets">
-            <!-- サイト連携ウィジェット -->
-            <div class="widget">
-              <div class="widget-header">
-                <h2><i class="fas fa-link"></i> サイト連携</h2>
-              </div>
-              <div class="widget-content">
-                <div class="settings-form">
-                  <div class="form-group">
-                    <label class="form-label">
-                      <i class="fas fa-globe"></i>
-                      フロントエンドサイトとの連携状況
-                    </label>
-                    <div id="site-connection-test-results" class="test-results hidden">
-                      <!-- 連携テスト結果がここに表示される -->
-                    </div>
-                  </div>
-                  
-                  <div class="form-actions">
-                    <button class="btn btn-primary" data-action="test-site-connection">
-                      <i class="fas fa-link"></i>
-                      連携テスト
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 外部サイトアクセス -->
-            <div class="widget quick-actions">
-              <div class="widget-header">
-                <h2><i class="fas fa-external-link-alt"></i> 外部ページアクセス</h2>
-              </div>
-              <div class="widget-content">
-                <div class="action-buttons-grid">
-                  <button class="action-btn compact info" data-action="open-external" data-url="../index.html">
-                    <div class="action-icon">
-                      <i class="fas fa-home"></i>
-                    </div>
-                    <div class="action-content">
-                      <span class="action-title">ホームページ</span>
-                      <span class="action-desc">メインサイトを確認</span>
-                    </div>
-                  </button>
-                  
-                  <button class="action-btn compact success" data-action="open-external" data-url="news.html">
-                    <div class="action-icon">
-                      <i class="fas fa-newspaper"></i>
-                    </div>
-                    <div class="action-content">
-                      <span class="action-title">ニュースページ</span>
-                      <span class="action-desc">記事一覧を確認</span>
-                    </div>
-                  </button>
-                  
-                  <button class="action-btn compact secondary" data-action="preview-site">
-                    <div class="action-icon">
-                      <i class="fas fa-eye"></i>
-                    </div>
-                    <div class="action-content">
-                      <span class="action-title">サイトプレビュー</span>
-                      <span class="action-desc">変更内容を事前確認</span>
-                    </div>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 開発者ツールタブ -->
-        <div id="settings-developer-tab" class="settings-tab-content">
-          <div class="dashboard-widgets">
-            <!-- 開発者ツールウィジェット -->
-            <div class="widget">
-              <div class="widget-header">
-                <h2><i class="fas fa-tools"></i> 開発者ツール</h2>
-                <div class="widget-header-actions">
-                  <span class="badge badge-info">開発用</span>
-                </div>
-              </div>
-              <div class="widget-content">
-                <div class="action-buttons-grid">
-                  <button class="action-btn compact info" data-action="show-debug-info">
-                    <div class="action-icon">
-                      <i class="fas fa-info-circle"></i>
-                    </div>
-                    <div class="action-content">
-                      <span class="action-title">システム情報</span>
-                      <span class="action-desc">デバッグ情報を表示</span>
-                    </div>
-                  </button>
-                  
-                  <button class="action-btn compact info" data-action="show-news-debug">
-                    <div class="action-icon">
-                      <i class="fas fa-newspaper"></i>
-                    </div>
-                    <div class="action-content">
-                      <span class="action-title">記事システム</span>
-                      <span class="action-desc">記事データをデバッグ</span>
-                    </div>
-                  </button>
-                  
-                  <button class="action-btn compact info" data-action="show-instagram-debug">
-                    <div class="action-icon">
-                      <i class="fab fa-instagram"></i>
-                    </div>
-                    <div class="action-content">
-                      <span class="action-title">Instagram投稿</span>
-                      <span class="action-desc">投稿データをデバッグ</span>
-                    </div>
-                  </button>
-                  
-                  <button class="action-btn compact info" data-action="show-storage-info">
-                    <div class="action-icon">
-                      <i class="fas fa-database"></i>
-                    </div>
-                    <div class="action-content">
-                      <span class="action-title">ストレージ情報</span>
-                      <span class="action-desc">ローカルストレージ状況</span>
-                    </div>
-                  </button>
-                  
-                  <button class="action-btn compact warning" data-action="reset-local-storage">
-                    <div class="action-icon">
-                      <i class="fas fa-redo"></i>
-                    </div>
-                    <div class="action-content">
-                      <span class="action-title">ストレージリセット</span>
-                      <span class="action-desc">全データを初期化</span>
-                    </div>
-                  </button>
-                  
-                  <button class="action-btn compact secondary" data-action="download-logs">
-                    <div class="action-icon">
-                      <i class="fas fa-file-download"></i>
-                    </div>
-                    <div class="action-content">
-                      <span class="action-title">ログダウンロード</span>
-                      <span class="action-desc">エラーログを取得</span>
-                    </div>
-                  </button>
-                </div>
-                
-                <div class="widget-info warning">
-                  <i class="fas fa-exclamation-triangle"></i>
-                  <p>これらの機能は開発・デバッグ用です。本番環境では使用しないでください。</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- パフォーマンス監視 -->
-            <div class="widget">
-              <div class="widget-header">
-                <h2><i class="fas fa-tachometer-alt"></i> パフォーマンス監視</h2>
-              </div>
-              <div class="widget-content">
-                <div class="performance-metrics">
-                  <div class="metric-item">
-                    <span class="metric-label">ページ読み込み時間:</span>
-                    <span class="metric-value" id="load-time">計測中...</span>
-                  </div>
-                  <div class="metric-item">
-                    <span class="metric-label">JavaScriptエラー:</span>
-                    <span class="metric-value" id="js-errors">0</span>
-                  </div>
-                  <div class="metric-item">
-                    <span class="metric-label">API応答時間:</span>
-                    <span class="metric-value" id="api-response">-</span>
-                  </div>
-                </div>
-                
-                <div class="form-actions">
-                  <button class="btn btn-outline" data-action="clear-performance-data">
-                    <i class="fas fa-trash"></i>
-                    パフォーマンスデータをクリア
-                  </button>
                 </div>
               </div>
             </div>

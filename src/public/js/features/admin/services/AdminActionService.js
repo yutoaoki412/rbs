@@ -2,10 +2,12 @@
  * 管理画面アクションサービス（完全統一版）
  * 全てのdata-actionを水平思考で統一処理
  * 統合データエクスポートサービス完全対応
- * @version 6.0.0 - 統合エクスポートサービス対応版
+ * 専用設定サービス対応
+ * @version 7.0.0 - 設定サービス統合版
  */
 
 import { CONFIG } from '../../../shared/constants/config.js';
+import { adminSettingsService } from './AdminSettingsService.js';
 
 export class AdminActionService {
   constructor() {
@@ -14,13 +16,24 @@ export class AdminActionService {
     this.currentTab = 'dashboard';
     this.currentNewsTab = 'editor';
     this.currentInstagramTab = 'posts';
-    this.currentSettingsTab = 'data';
+    this.currentSettingsTab = 'basic'; // デフォルトを基本設定に変更
     
     // フラグ
     this.listenersAdded = false;
     
     // 統一ストレージキー（CONFIG使用）
     this.storageKeys = CONFIG.storage.keys;
+
+    // 設定項目マッピング定数（DRY原則：重複を排除）
+    this.SETTING_MAPPINGS = [
+      { id: 'notifications-enabled', key: 'notifications', type: 'checkbox', default: true },
+      { id: 'auto-save-enabled', key: 'autoSave', type: 'checkbox', default: true },
+      { id: 'auto-save-interval', key: 'autoSaveInterval', type: 'number', default: 60 },
+      { id: 'admin-theme', key: 'theme', type: 'value', default: 'light' },
+      { id: 'confirm-before-delete', key: 'confirmBeforeDelete', type: 'checkbox', default: true },
+      { id: 'preview-before-publish', key: 'showPreviewBeforePublish', type: 'checkbox', default: true },
+      { id: 'auto-backup-enabled', key: 'autoBackup', type: 'checkbox', default: true }
+    ];
   }
 
   log(message, ...args) {
@@ -49,6 +62,9 @@ export class AdminActionService {
         });
       }
 
+      // 設定サービス初期化
+      await adminSettingsService.init();
+
       // サービスの初期化
       this.initializeServices();
 
@@ -56,8 +72,16 @@ export class AdminActionService {
       this.setupUnifiedEventListeners();
 
       // 初期タブ設定
-      const savedTab = localStorage.getItem(this.storageKeys.adminTab) || 'dashboard';
+      const savedTab = adminSettingsService.getCurrentTab() || 'dashboard';
       this.switchAdminTab(savedTab);
+      
+      // 設定タブの場合、基本設定タブをデフォルトで表示
+      if (savedTab === 'settings') {
+        this.switchSettingsTab('basic');
+      }
+
+      // 設定フォームの自動読み込み
+      this.loadAutoLoadForms();
 
       this.initialized = true;
       this.log('初期化完了');
@@ -737,23 +761,46 @@ export class AdminActionService {
   }
 
   /**
-   * 設定タブ切り替え
+   * 設定タブ切り替え（簡素化版）
    */
   switchSettingsTab(params) {
     const tab = typeof params === 'string' ? params : params?.tab;
     if (!tab) return;
 
-    document.querySelectorAll('.settings-tab-nav .sub-nav-item').forEach(item => {
+    this.debug(`設定タブ切り替え: ${tab}`);
+
+    // タブナビゲーションの更新
+    document.querySelectorAll('#settings .sub-nav-item').forEach(item => {
       item.classList.remove('active');
     });
-    document.querySelector(`.settings-tab-nav [data-tab="${tab}"]`)?.classList.add('active');
+    const activeTabBtn = document.querySelector(`#settings [data-tab="${tab}"]`);
+    if (activeTabBtn) {
+      activeTabBtn.classList.add('active');
+    }
     
-    document.querySelectorAll('.settings-tab-content').forEach(content => {
+    // タブコンテンツの更新
+    document.querySelectorAll('#settings .settings-tab-content').forEach(content => {
       content.classList.remove('active');
     });
-    document.getElementById(`settings-${tab}-tab`)?.classList.add('active');
+    const activeTabContent = document.getElementById(`settings-${tab}-tab`);
+    if (activeTabContent) {
+      activeTabContent.classList.add('active');
+    }
+    
+    // タブ固有の初期化処理（少し遅延を入れて確実に実行）
+    setTimeout(() => {
+      if (tab === 'basic') {
+        // 基本設定タブ：フォームに現在の設定を読み込み
+        this.loadAdminSettingsToForm();
+        this.debug('基本設定タブ: 設定読み込み実行完了');
+      } else if (tab === 'data') {
+        // データ管理タブ：統計を更新
+        this.refreshDataStats();
+      }
+    }, 100);
     
     this.currentSettingsTab = tab;
+    this.debug(`✅ 設定タブ ${tab} に切り替え完了`);
   }
 
   // その他のアクション
@@ -994,7 +1041,7 @@ export class AdminActionService {
         this.refreshRecentArticles();
         break;
       case 'settings':
-        this.switchSettingsTab('data');
+        this.switchSettingsTab('basic');
         break;
       case 'news-management':
         this.switchNewsTab('editor');
@@ -1976,41 +2023,154 @@ export class AdminActionService {
     }
   }
 
+  /**
+   * 通知モード切り替え（設定サービス経由）
+   */
   toggleNotificationMode() {
-    const current = localStorage.getItem(this.storageKeys.notificationMode) || 'on';
-    const newMode = current === 'on' ? 'off' : 'on';
-    localStorage.setItem(this.storageKeys.notificationMode, newMode);
+    const currentMode = adminSettingsService.getNotificationMode();
+    const newMode = !currentMode;
     
-    const toggle = document.querySelector('[data-action="toggle-notification-mode"]');
-    if (toggle) {
-      toggle.textContent = newMode === 'on' ? '通知OFF' : '通知ON';
+    if (adminSettingsService.setNotificationMode(newMode)) {
+      // チェックボックスの状態を更新
+      const checkbox = document.getElementById('notifications-enabled');
+      if (checkbox) {
+        checkbox.checked = newMode;
+      }
+      
+      // トグルボタンのテキストを更新（もし存在すれば）
+      const toggle = document.querySelector('[data-action="toggle-notification-mode"]');
+      if (toggle) {
+        toggle.textContent = newMode ? '通知OFF' : '通知ON';
+      }
+      
+      this.showNotification(`通知を${newMode ? '有効' : '無効'}にしました`);
+    } else {
+      this.showNotification('通知設定の変更に失敗しました', 'error');
     }
-    
-    this.showNotification(`通知を${newMode === 'on' ? '有効' : '無効'}にしました`);
   }
 
-  saveAdminSettings() {
+  async saveAdminSettings() {
     this.debug('管理設定保存');
     
-    const settings = {
-      autoSaveInterval: document.getElementById('auto-save-interval')?.value || '5',
-      themePreference: document.getElementById('theme-preference')?.value || 'system',
-      lastUpdated: new Date().toISOString()
-    };
-    
-    localStorage.setItem(this.storageKeys.adminSettings, JSON.stringify(settings));
-    this.showNotification('設定を保存しました');
+    try {
+      // DRY原則：統一メソッドでフォームから設定値を取得
+      const settings = this.getSettingsFromForm();
+      
+      // 設定サービスで一括更新
+      const success = adminSettingsService.setMultiple(settings);
+      
+      if (success) {
+        await adminSettingsService.saveSettings();
+        this.showNotification('設定を保存しました');
+      } else {
+        this.showNotification('一部の設定に問題があります', 'warning');
+      }
+      
+    } catch (error) {
+      this.error('設定保存エラー:', error);
+      this.showNotification('設定の保存に失敗しました', 'error');
+    }
   }
 
-  resetAdminSettings() {
+  async resetAdminSettings() {
     if (!confirm('設定をリセットしますか？')) return;
     
-    localStorage.removeItem(this.storageKeys.adminSettings);
-    this.showNotification('設定をリセットしました');
+    try {
+      await adminSettingsService.resetSettings();
+      
+      // フォームに設定を反映
+      this.loadAdminSettingsToForm();
+      
+      this.showNotification('設定をリセットしました');
+      
+    } catch (error) {
+      this.error('設定リセットエラー:', error);
+      this.showNotification('設定のリセットに失敗しました', 'error');
+    }
+  }
+
+  /**
+   * 設定をフォームに読み込み（DRY原則適用）
+   */
+  loadAdminSettingsToForm() {
+    try {
+      const settings = adminSettingsService.getAllSettings();
+      this.debug('📝 設定フォーム読み込み開始:', settings);
+      
+      // 統一的に設定値を反映（定数使用）
+      this.SETTING_MAPPINGS.forEach(({ id, key, type }) => {
+        const element = document.getElementById(id);
+        if (element) {
+          if (settings[key] !== undefined) {
+            if (type === 'checkbox') {
+              element.checked = settings[key];
+              this.debug(`✅ ${id}: ${settings[key]} (checkbox)`);
+            } else if (type === 'value' || type === 'number') {
+              element.value = settings[key];
+              this.debug(`✅ ${id}: ${settings[key]} (${type})`);
+            }
+          } else {
+            this.debug(`⚠️ ${id}: 設定値が未定義 (key: ${key})`);
+          }
+        } else {
+          this.debug(`❌ ${id}: 要素が見つかりません`);
+        }
+      });
+      
+      this.debug('📝 設定をフォームに読み込み完了');
+      
+    } catch (error) {
+      this.error('設定読み込みエラー:', error);
+    }
+  }
+
+  /**
+   * data-auto-load属性を持つフォームの自動読み込み
+   */
+  loadAutoLoadForms() {
+    try {
+      const autoLoadForms = document.querySelectorAll('[data-auto-load="true"]');
+      
+      autoLoadForms.forEach(form => {
+        if (form.id === 'admin-settings-form') {
+          this.loadAdminSettingsToForm();
+          this.debug('自動読み込み実行: admin-settings-form');
+        }
+      });
+      
+    } catch (error) {
+      this.error('フォーム自動読み込みエラー:', error);
+    }
+  }
+
+  /**
+   * フォームから設定値を取得（DRY原則適用）
+   */
+  getSettingsFromForm() {
+    const settings = {};
     
-    // フォームのリセット
-    const form = document.querySelector('#settings-system-tab form');
-    if (form) form.reset();
+    // 統一的に設定値を取得（定数使用）
+    this.SETTING_MAPPINGS.forEach(({ id, key, type, default: defaultValue }) => {
+      const element = document.getElementById(id);
+      if (element) {
+        switch (type) {
+          case 'checkbox':
+            settings[key] = element.checked;
+            break;
+          case 'number':
+            settings[key] = parseInt(element.value) || defaultValue;
+            break;
+          case 'value':
+          default:
+            settings[key] = element.value || defaultValue;
+            break;
+        }
+      } else {
+        settings[key] = defaultValue;
+      }
+    });
+
+    return settings;
   }
 
   testSiteConnection() {
