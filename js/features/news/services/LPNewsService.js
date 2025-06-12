@@ -195,16 +195,18 @@ export class LPNewsService {
     
     return `
       <article class="news-card ${isHomeVersion ? 'home-news-card' : ''}" data-article-id="${article.id}">
-        ${showCategory ? `<div class="news-category" style="background-color: ${categoryInfo.color}">${categoryInfo.name}</div>` : ''}
-        <div class="news-content">
-          <h3 class="news-title">
-            <a href="news-detail.html?id=${article.id}" class="news-link">${article.title}</a>
-          </h3>
-          ${showSummary && article.summary ? `<p class="news-summary">${article.summary}</p>` : ''}
+        <div class="news-card-header">
+          ${showCategory ? `<div class="news-category" style="background-color: ${categoryInfo.color}">${categoryInfo.name}</div>` : ''}
           <div class="news-meta">
             <time class="news-date">${formattedDate}</time>
             ${article.featured ? '<span class="news-featured">注目</span>' : ''}
           </div>
+        </div>
+        <div class="news-card-body">
+          <h3 class="news-title">
+            <a href="news-detail.html?id=${article.id}" class="news-link">${article.title}</a>
+          </h3>
+          ${showSummary && article.summary ? `<p class="news-excerpt">${article.summary}</p>` : ''}
         </div>
       </article>
     `;
