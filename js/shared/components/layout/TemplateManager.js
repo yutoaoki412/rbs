@@ -26,10 +26,28 @@ export class TemplateManager extends BaseService {
         this.currentPageConfig = null;
         
         /** @type {string} テンプレートベースパス */
-        this.templateBasePath = `${PATHS.BASE}/js/lib/templates/`;
+        this.templateBasePath = this.getTemplateBasePath();
         
         /** @type {boolean} 初期化フラグ */
         this.isInitialized = false;
+    }
+
+    /**
+     * テンプレートベースパスを取得
+     * @returns {string}
+     */
+    getTemplateBasePath() {
+        // 現在のページのパスを取得
+        const currentPath = window.location.pathname;
+        const baseDir = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+        
+        // ルートディレクトリからの相対パスを返す
+        if (baseDir === '/' || baseDir === '') {
+            return './js/lib/templates/';
+        } else {
+            // サブディレクトリの場合は適切な相対パス
+            return './js/lib/templates/';
+        }
     }
 
     /**
@@ -90,6 +108,10 @@ export class TemplateManager extends BaseService {
 
         try {
             const templateUrl = `${this.templateBasePath}${templateName}`;
+            console.log(`🔍 テンプレートURL: ${templateUrl}`);
+            console.log(`🔍 現在のURL: ${window.location.href}`);
+            console.log(`🔍 ベースパス: ${this.templateBasePath}`);
+            
             const templateContent = await this.httpService.get(templateUrl, {
                 headers: { 'Content-Type': 'text/html' }
             });
