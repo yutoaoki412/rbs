@@ -735,10 +735,149 @@
   <!-- フッターコンテナ -->
   <div id="footer-container"></div>
 
+  <!-- JavaScript初期化とエラーハンドリング -->
+  <script>
+    // GitHub Pages対応: エラーハンドリング付きモジュール読み込み
+    window.RBSApp = {
+      errors: [],
+      initialized: false,
+      
+      logError: function(error, context) {
+        console.error(`[RBS App Error - ${context}]:`, error);
+        this.errors.push({ error, context, timestamp: new Date() });
+      },
+      
+      initializeNews: function() {
+        try {
+          if (window.LPNewsController) {
+            const controller = new window.LPNewsController();
+            controller.init().catch(err => this.logError(err, 'LPNewsController.init'));
+          }
+        } catch (error) {
+          this.logError(error, 'initializeNews');
+        }
+      }
+    };
+    
+    // モジュール読み込み失敗時のフォールバック確認
+    window.addEventListener('error', function(e) {
+      if (e.filename && e.filename.includes('.js')) {
+        window.RBSApp.logError(e.error || e.message, 'Module Load Error');
+      }
+    });
+  </script>
+  
   <!-- LP統一ニュースコントローラー -->
-  <script type="module" src="./js/features/news/controllers/LPNewsController.js"></script>
+  <script type="module" src="./js/features/news/controllers/LPNewsController.js?v=1.0.2"></script>
   
   <!-- メインアプリケーション（ES6モジュール） -->
-  <script type="module" src="./js/app/main.js"></script>
+  <script type="module" src="./js/app/main.js?v=1.0.2"></script>
+  
+  <!-- GitHub Pages対応: 非モジュール版フォールバック -->
+  <script>
+    // モジュールロードの検証
+    let moduleLoadTimeout = setTimeout(() => {
+      console.warn('[GitHub Pages] ES Modules読み込みがタイムアウトしました。フォールバック処理を実行します。');
+      
+      // 基本的なニュース表示処理（非モジュール版）
+      const newsGrid = document.getElementById('news-grid');
+      const loadingStatus = document.getElementById('news-loading-status');
+      
+      if (newsGrid && loadingStatus) {
+        // ローカルストレージからニュースデータを読み込み
+        try {
+          const articlesData = localStorage.getItem('rbs_articles');
+          const articles = articlesData ? JSON.parse(articlesData) : [];
+          
+          if (articles.length > 0) {
+            // 公開済み記事をフィルタして最新6件を取得
+            const publishedArticles = articles
+              .filter(article => article.status === 'published')
+              .sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt))
+              .slice(0, 6);
+            
+            // ニュースHTML生成
+            const newsHTML = publishedArticles.map(article => {
+              const categoryInfo = getCategoryInfo(article.category);
+              const formattedDate = formatDate(article.publishedAt || article.createdAt);
+              
+              return `
+                <article class="news-card home-news-card" data-article-id="${article.id}">
+                  <div class="news-card-header">
+                    <div class="news-meta">
+                      <div class="news-date">${formattedDate}</div>
+                      <div class="news-category ${article.category}">${categoryInfo.label}</div>
+                    </div>
+                    <h3 class="news-title">
+                      <a href="news-detail.html?id=${article.id}">${article.title}</a>
+                    </h3>
+                  </div>
+                  <div class="news-card-body">
+                    <p class="news-excerpt">${article.summary || article.content.substring(0, 100) + '...'}</p>
+                    <div class="news-actions">
+                      <a href="news-detail.html?id=${article.id}" class="news-read-more">続きを読む</a>
+                    </div>
+                  </div>
+                </article>
+              `;
+            }).join('');
+            
+            newsGrid.innerHTML = newsHTML;
+            loadingStatus.style.display = 'none';
+            
+          } else {
+            // テストデータがない場合は空状態を表示
+            newsGrid.innerHTML = '<div class="news-empty"><h3>ニュースがありません</h3><p>まだニュースが登録されていません</p></div>';
+            loadingStatus.style.display = 'none';
+          }
+          
+        } catch (error) {
+          console.error('[Fallback] ニュース読み込みエラー:', error);
+          newsGrid.innerHTML = '<div class="news-error">ニュースの読み込みに失敗しました</div>';
+          loadingStatus.style.display = 'none';
+        }
+      }
+    }, 2000); // 2秒待ってからフォールバック実行
+    
+    // ヘルパー関数（非モジュール版）
+    function getCategoryInfo(categoryId) {
+      const categories = {
+        'announcement': { label: 'お知らせ', color: '#4a90e2' },
+        'event': { label: '体験会', color: '#50c8a3' },
+        'media': { label: 'メディア', color: '#f5a623' },
+        'important': { label: '重要', color: '#e74c3c' }
+      };
+      return categories[categoryId] || { label: 'その他', color: '#6c757d' };
+    }
+    
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+    }
+    
+    // モジュールが正常に読み込まれた場合はタイムアウトをクリア
+    window.addEventListener('RBSAppLoaded', function() {
+      clearTimeout(moduleLoadTimeout);
+      console.log('[GitHub Pages] ES Modules正常読み込み完了');
+    });
+  </script>
+  
+  <!-- GitHub Pages対応: フォールバック処理 -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 3秒後にJavaScriptが正常に実行されているかチェック
+      setTimeout(function() {
+        if (!window.RBSApp.initialized) {
+          console.warn('[RBS App] JavaScript初期化が完了していません。静的コンテンツで表示します。');
+          
+          // ニュース読み込み状況を非表示
+          const loadingStatus = document.getElementById('news-loading-status');
+          if (loadingStatus) {
+            loadingStatus.style.display = 'none';
+          }
+        }
+      }, 3000);
+    });
+  </script>
 </body>
 </html> 
