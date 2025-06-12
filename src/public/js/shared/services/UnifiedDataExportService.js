@@ -54,14 +54,6 @@ export class UnifiedDataExportService extends BaseService {
         validator: (data) => typeof data === 'object' && data !== null,
         icon: 'fas fa-cog'
       },
-      auth: {
-        key: CONFIG.storage.keys.auth,
-        type: 'object',
-        description: '認証データ',
-        validator: (data) => typeof data === 'object' && data !== null,
-        sensitive: true,
-        icon: 'fas fa-key'
-      },
       adminAuth: {
         key: CONFIG.storage.keys.adminAuth,
         type: 'object',
@@ -75,6 +67,7 @@ export class UnifiedDataExportService extends BaseService {
         type: 'object',
         description: 'ニュース下書きデータ',
         validator: (data) => typeof data === 'object' && data !== null,
+        optional: true,  // 記事作成時のみ存在する一時データ
         icon: 'fas fa-edit'
       },
       notificationMode: {
@@ -82,6 +75,7 @@ export class UnifiedDataExportService extends BaseService {
         type: 'string',
         description: '通知モード設定',
         validator: (data) => typeof data === 'string',
+        optional: true,  // 初期設定時に作成される
         icon: 'fas fa-bell'
       }
     };
@@ -806,12 +800,18 @@ export class UnifiedDataExportService extends BaseService {
           size: data ? JSON.stringify(data).length : 0,
           description: schema.description,
           icon: schema.icon,
-          sensitive: schema.sensitive || false
+          sensitive: schema.sensitive || false,
+          optional: schema.optional || false
         };
         
         if (!exists) {
-          report.warnings.push(`${schemaName}: データが存在しません`);
-          report.summary.missingSchemas++;
+          if (schema.optional) {
+            // オプショナルデータは警告しない
+            report.summary.validSchemas++;
+          } else {
+            report.warnings.push(`${schemaName}: データが存在しません`);
+            report.summary.missingSchemas++;
+          }
         } else if (!valid) {
           report.errors.push(`${schemaName}: データ検証に失敗しました`);
           report.summary.errorSchemas++;

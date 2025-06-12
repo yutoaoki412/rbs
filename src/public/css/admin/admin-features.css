@@ -256,21 +256,7 @@
 
 /* 記事一覧は統一されたnews-cardスタイルを使用 */
 
-/* クイックアクション */
-.quick-actions .widget-content {
-  padding: 1rem;
-}
-
-.quick-actions .action-buttons {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 0.75rem;
-}
-
-.quick-actions .action-btn {
-  justify-content: center;
-  padding: 0.75rem;
-}
+/* クイックアクションはadmin-components.cssで統一管理 */
 
 /* =============================================================================
  * Instagram管理機能

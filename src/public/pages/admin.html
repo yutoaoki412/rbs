@@ -170,7 +170,6 @@
                   </div>
                   <div class="action-content">
                     <span class="action-title">新規記事作成</span>
-                    <span class="action-desc">新しいニュース記事を作成</span>
                   </div>
                 </button>
 
@@ -181,7 +180,6 @@
                   </div>
                   <div class="action-content">
                     <span class="action-title">統合データエクスポート</span>
-                    <span class="action-desc">全データ（記事・Instagram・レッスン）をダウンロード</span>
                   </div>
                 </button>
 
@@ -192,7 +190,6 @@
                   </div>
                   <div class="action-content">
                     <span class="action-title">エクスポート履歴</span>
-                    <span class="action-desc">過去のエクスポート履歴を表示</span>
                   </div>
                 </button>
 
@@ -203,7 +200,6 @@
                   </div>
                   <div class="action-content">
                     <span class="action-title">データ完全性チェック</span>
-                    <span class="action-desc">データの整合性を確認</span>
                   </div>
                 </button>
 
@@ -214,7 +210,6 @@
                   </div>
                   <div class="action-content">
                     <span class="action-title">レッスン状況</span>
-                    <span class="action-desc">練習状況を更新</span>
                   </div>
                 </button>
 
@@ -225,7 +220,6 @@
                   </div>
                   <div class="action-content">
                     <span class="action-title">システム設定</span>
-                    <span class="action-desc">管理画面の設定</span>
                   </div>
                 </button>
               </div>
@@ -942,7 +936,6 @@
                     </div>
                     <div class="action-content">
                       <span class="action-title">設定を保存</span>
-                      <span class="action-desc">現在の設定をローカルストレージに保存</span>
                     </div>
                   </button>
 
@@ -952,7 +945,6 @@
                     </div>
                     <div class="action-content">
                       <span class="action-title">設定をリセット</span>
-                      <span class="action-desc">全設定をデフォルト値に戻す</span>
                     </div>
                   </button>
 
@@ -962,7 +954,6 @@
                     </div>
                     <div class="action-content">
                       <span class="action-title">サイト連携テスト</span>
-                      <span class="action-desc">フロントエンドサイトとの接続確認</span>
                     </div>
                   </button>
 
@@ -972,7 +963,6 @@
                     </div>
                     <div class="action-content">
                       <span class="action-title">サイトを確認</span>
-                      <span class="action-desc">メインサイトを新しいタブで開く</span>
                     </div>
                   </button>
                 </div>
@@ -1036,73 +1026,66 @@
               </div>
               <div class="widget-content">
                 <div class="action-buttons-grid">
-                  <button class="action-btn compact success" data-action="export-data">
+                  <button class="action-btn compact data-action" data-action="export-data" data-color="success">
                     <div class="action-icon">
                       <i class="fas fa-download"></i>
                     </div>
                     <div class="action-content">
                       <span class="action-title">統合データエクスポート</span>
-                      <span class="action-desc">全データをJSONでダウンロード</span>
                     </div>
                   </button>
                   
-                  <button class="action-btn compact info" data-action="import-data">
+                  <button class="action-btn compact data-action" data-action="import-data" data-color="info">
                     <div class="action-icon">
                       <i class="fas fa-upload"></i>
                     </div>
                     <div class="action-content">
                       <span class="action-title">統合データインポート</span>
-                      <span class="action-desc">バックアップファイルから復元</span>
                     </div>
                   </button>
                   
-                  <button class="action-btn compact outline" data-action="export-data-by-category" data-category="articles">
+                  <button class="action-btn compact data-action" data-action="export-data-by-category" data-category="articles" data-color="gray">
                     <div class="action-icon">
                       <i class="fas fa-newspaper"></i>
                     </div>
                     <div class="action-content">
                       <span class="action-title">記事データのみ</span>
-                      <span class="action-desc">記事データのみをエクスポート</span>
                     </div>
                   </button>
                   
-                  <button class="action-btn compact outline" data-action="export-data-by-category" data-category="instagram">
+                  <button class="action-btn compact data-action" data-action="export-data-by-category" data-category="instagram" data-color="purple">
                     <div class="action-icon">
                       <i class="fab fa-instagram"></i>
                     </div>
                     <div class="action-content">
                       <span class="action-title">Instagramデータのみ</span>
-                      <span class="action-desc">Instagram投稿データのみをエクスポート</span>
                     </div>
                   </button>
                   
-                  <button class="action-btn compact outline" data-action="export-data-by-category" data-category="lessons">
+                  <button class="action-btn compact data-action" data-action="export-data-by-category" data-category="lessons" data-color="orange">
                     <div class="action-icon">
                       <i class="fas fa-calendar-check"></i>
                     </div>
                     <div class="action-content">
                       <span class="action-title">レッスンデータのみ</span>
-                      <span class="action-desc">レッスンステータスデータのみをエクスポート</span>
                     </div>
                   </button>
                   
-                  <button class="action-btn compact secondary" data-action="show-data-integrity-report">
+                  <button class="action-btn compact data-action" data-action="show-data-integrity-report" data-color="secondary">
                     <div class="action-icon">
                       <i class="fas fa-shield-alt"></i>
                     </div>
                     <div class="action-content">
                       <span class="action-title">データ完全性チェック</span>
-                      <span class="action-desc">データの整合性確認レポート</span>
                     </div>
                   </button>
                   
-                  <button class="action-btn compact warning" data-action="clear-all-data">
+                  <button class="action-btn compact data-action" data-action="clear-all-data" data-color="warning">
                     <div class="action-icon">
                       <i class="fas fa-trash"></i>
                     </div>
                     <div class="action-content">
                       <span class="action-title">全データクリア</span>
-                      <span class="action-desc">すべてのデータを削除（要注意）</span>
                     </div>
                   </button>
                 </div>
@@ -1110,8 +1093,6 @@
                 <div class="widget-info">
                   <i class="fas fa-info-circle"></i>
                   <p>統合エクスポート機能では記事、Instagram投稿、レッスンステータス、設定データなど全ての Local Storage データを包括的にバックアップできます。カテゴリ別エクスポートでは特定のデータタイプのみを選択してダウンロードできます。</p>
-                  <br>
-                  <p><strong>新機能:</strong> エクスポート履歴、データ完全性チェック、インテリジェントインポート（重複回避・データ検証）に対応しました。</p>
                 </div>
               </div>
             </div>

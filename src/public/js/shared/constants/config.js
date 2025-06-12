@@ -24,7 +24,6 @@ const config = {
     keys: {
       // コアデータ
       articles: 'rbs_articles',           // 記事データ（統一）
-      auth: 'rbs_auth',                   // 認証情報
       settings: 'rbs_settings',           // アプリ設定
       
       // 管理画面
@@ -184,9 +183,7 @@ const config = {
     // 認証
     auth: {
       password: 'rbs2024admin',
-      sessionDuration: 86400000,    // 24時間
-      maxAttempts: 5,
-      lockoutDuration: 900000       // 15分
+      sessionDuration: 86400000     // 24時間
     },
     
     // タブ設定

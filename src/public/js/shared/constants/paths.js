@@ -399,9 +399,7 @@ export const redirect = {
       // グローバル関数を追加
       window.clearSessionAndRetry = () => {
         // 認証関連のストレージをクリア
-              localStorage.removeItem(CONFIG.storage.keys.adminSession);
-      localStorage.removeItem(CONFIG.storage.keys.authAttempts);
-      localStorage.removeItem(CONFIG.storage.keys.authLastAttempt);
+                  localStorage.removeItem(CONFIG.storage.keys.adminSession);
         sessionStorage.clear();
         
         // リダイレクト履歴をクリア

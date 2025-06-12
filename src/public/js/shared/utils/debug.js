@@ -111,10 +111,6 @@ export function clearAllAuth() {
     // AuthManagerを使用してクリア
     authManager.logout();
     
-    // 関連データもクリア
-    localStorage.removeItem(CONFIG.storage.keys.authAttempts);
-    localStorage.removeItem(CONFIG.storage.keys.authLastAttempt);
-    
     console.log('✅ 認証データクリア完了');
     
     // 現在の状態確認
@@ -162,8 +158,8 @@ export function resetAuthSystem() {
   console.log('🔄 認証システムリセット開始');
   
   try {
-    // 全認証データクリア
-    clearAllAuth();
+    // 認証データクリア
+    authManager.logout();
     
     // ページリロード
     setTimeout(() => {

@@ -75,8 +75,6 @@ window.showAuthStatus = function() {
 window.clearAuthData = function() {
   try {
     localStorage.removeItem(CONFIG.storage.keys.adminSession);
-    localStorage.removeItem(CONFIG.storage.keys.authAttempts);
-    localStorage.removeItem(CONFIG.storage.keys.authLastAttempt);
     log.info('DevTools', '認証データをクリアしました');
     
     // 現在のページがadmin系の場合は警告

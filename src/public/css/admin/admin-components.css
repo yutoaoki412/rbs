@@ -414,45 +414,9 @@
   transform: translateY(-1px);
 }
 
-.action-btn.primary {
-  background: var(--admin-primary);
-  color: var(--admin-white);
-  border-color: var(--admin-primary);
-}
 
-.action-btn.primary:hover {
-  background: var(--admin-primary-dark);
-}
 
-.action-btn.success {
-  background: var(--admin-success);
-  color: var(--admin-white);
-  border-color: var(--admin-success);
-}
-
-.action-btn.success:hover {
-  background: var(--status-scheduled-dark);
-}
-
-.action-btn.secondary {
-  background: var(--admin-gray-500);
-  color: var(--admin-white);
-  border-color: var(--admin-gray-500);
-}
-
-.action-btn.secondary:hover {
-  background: var(--admin-gray-700);
-}
-
-.action-btn.info {
-  background: var(--admin-secondary);
-  color: var(--admin-white);
-  border-color: var(--admin-secondary);
-}
-
-.action-btn.info:hover {
-  background: #0891b2;
-}
+/* カラーバリエーションは削除 - アイコンのみに色を適用 */
 
 /* =============================================================================
  * フォームシステム（統一版）
@@ -954,7 +918,7 @@
 
 .dashboard-widgets {
   display: grid;
-  grid-template-columns: 2fr 1fr; /* 記事ウィジェットを大きく、クイックアクションを小さく */
+  grid-template-columns: 3fr 2fr; /* 記事:クイックアクション = 3:2の比率に変更 */
   gap: 1.5rem;
   flex: 1;
   min-height: 0;
@@ -1039,11 +1003,198 @@
 
 /* 古い重複定義削除 - 設定タブ専用の改良版を下部で定義済み */
 
-/* クイックアクション専用：高さ制限を解除 */
+/* =============================================================================
+ * クイックアクションシステム（統合・洗練版）
+ * ============================================================================= */
+
+/* 基本クイックアクション（20px広く） */
 .quick-actions .widget-content {
-  max-height: none;
-  overflow-y: auto; /* スクロール可能にする */
-  padding: 1rem; /* パディングを調整 */
+  padding: 1.5rem;
+}
+
+
+
+/* 統一されたアクションボタン（統計カードより丸く） */
+.action-btn {
+  background: var(--admin-white);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: 24px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: var(--admin-transition);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* ホバーエフェクト（統計カードと統一） */
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--admin-shadow-lg);
+  border-color: var(--admin-gray-300);
+}
+
+/* アクションアイコン（統計カードと完全統一） */
+.action-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--admin-border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: var(--admin-white);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+/* 統計アイコンフォント確実表示のための追加スタイル */
+.stat-icon i {
+  font-style: normal;
+  font-variant: normal;
+  font-weight: normal;
+  line-height: 1;
+  font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", "Font Awesome 6 Pro", sans-serif;
+  speak: none;
+  text-decoration: inherit;
+  text-transform: none;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.stat-icon i::before {
+  font-weight: 900; /* FontAwesome Solid icons */
+}
+
+.stat-icon i.fab::before {
+  font-weight: 400; /* FontAwesome Brand icons */
+  font-family: "Font Awesome 6 Brands";
+}
+
+.stat-icon i.fas::before {
+  font-weight: 900; /* FontAwesome Solid icons */
+  font-family: "Font Awesome 6 Free";
+}
+
+/* アイコンフォント確実表示のための追加スタイル */
+.action-icon i {
+  font-style: normal;
+  font-variant: normal;
+  font-weight: normal;
+  line-height: 1;
+  font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", "Font Awesome 6 Pro", sans-serif;
+  speak: none;
+  text-decoration: inherit;
+  text-transform: none;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* アイコンが表示されない場合のフォールバック */
+.action-icon i::before {
+  font-weight: 900; /* FontAwesome Solid icons */
+}
+
+/* ブランドアイコン（Instagram等）の特別スタイル */
+.action-icon i.fab::before {
+  font-weight: 400; /* FontAwesome Brand icons */
+  font-family: "Font Awesome 6 Brands";
+}
+
+/* 特定のアイコンタイプの確実な表示 */
+.action-icon i.fas::before {
+  font-weight: 900; /* FontAwesome Solid icons */
+  font-family: "Font Awesome 6 Free";
+}
+
+.action-icon i.far::before {
+  font-weight: 400; /* FontAwesome Regular icons */
+  font-family: "Font Awesome 6 Free";
+}
+
+/* アクションコンテンツ（統計カードと完全統一） */
+.action-content {
+  flex: 1;
+}
+
+.action-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.action-desc {
+  display: none; /* 説明文を非表示 */
+}
+
+/* アクションボタングリッド（統計カードと同じ間隔） */
+.action-buttons-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin: 0;
+}
+
+/* アイコンカラーシステム（統計カードと統一） */
+.action-btn.primary .action-icon { background: #4a90e2; }
+.action-btn.success .action-icon { background: #22c55e; }
+.action-btn.warning .action-icon { background: #f59e0b; }
+.action-btn.secondary .action-icon { background: #6b7280; }
+.action-btn.info .action-icon { background: #06b6d4; }
+.action-btn.purple .action-icon { background: #8b5cf6; }
+
+/* アウトラインボタンのアイコンスタイル */
+.action-btn.outline .action-icon { 
+  background: var(--admin-gray-100);
+  color: var(--admin-gray-700);
+  border: 1px solid var(--admin-gray-300);
+}
+
+/* アウトラインボタンホバー時のアイコンスタイル */
+.action-btn.outline:hover .action-icon { 
+  background: var(--admin-primary);
+  color: var(--admin-white);
+  border-color: var(--admin-primary);
+}
+
+/* レスポンシブ対応（統計カードと統一） */
+@media (max-width: 1024px) {
+  .action-buttons-grid {
+    gap: 0.75rem;
+  }
+  
+  .action-btn {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .action-buttons-grid {
+    gap: 0.5rem;
+  }
+  
+  .action-btn {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+  
+  .action-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .action-btn {
+    gap: 0.5rem;
+  }
 }
 
 /* =============================================================================
@@ -1382,45 +1533,6 @@
     padding: 0.25rem 0.5rem;
   }
   
-  .action-btn.compact {
-    padding: 1rem;
-    gap: 0.875rem;
-    min-height: 65px; /* 小さい画面でも適度な高さを確保 */
-  }
-  
-  .action-icon {
-    width: 32px;
-    height: 32px;
-    font-size: 0.95rem;
-  }
-  
-  .widget-content {
-    padding: 1rem;
-  }
-  
-  .action-buttons-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .action-btn.compact {
-    padding: 1.25rem; /* 余白を維持 */
-    min-height: 70px; /* モバイルでは少し小さく */
-  }
-  
-  .action-icon {
-    width: 36px; /* 少し小さく */
-    height: 36px; /* 少し小さく */
-    font-size: 1rem; /* フォントサイズ調整 */
-  }
-  
-  .action-title {
-    font-size: 0.85rem; /* フォントサイズ調整 */
-  }
-  
-  .action-desc {
-    font-size: 0.7rem; /* フォントサイズ調整 */
-  }
-  
   .form-input,
   .form-select,
   .form-textarea {
@@ -1542,14 +1654,16 @@
 }
 
 .stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--admin-border-radius);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
   font-size: 1.25rem;
+  color: var(--admin-white);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
 }
 
 .stat-icon.total {
@@ -2973,104 +3087,31 @@
   }
 }
 
-/* 設定タブ専用アクションボタンの改善 */
+/* 設定タブ専用レイアウト調整 */
 .settings-tab-content .action-buttons-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
-  margin: 0;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
-.settings-tab-content .action-btn.compact {
-  background: var(--admin-white);
-  border: 2px solid var(--admin-gray-200);
-  border-radius: 12px;
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: all 0.3s ease;
+.settings-tab-content .action-btn {
+  flex-direction: row;
   text-align: left;
-  height: auto;
-  min-height: 100px;
-  position: relative;
-  overflow: hidden;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
 }
 
-.settings-tab-content .action-btn.compact::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: var(--btn-color, var(--admin-primary));
-  transform: scaleY(0);
-  transition: transform 0.3s ease;
-  transform-origin: bottom;
-}
-
-.settings-tab-content .action-btn.compact:hover::before {
-  transform: scaleY(1);
-}
-
-.settings-tab-content .action-btn.compact:hover {
-  border-color: var(--btn-color, var(--admin-primary));
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  transform: translateY(-3px);
-}
-
-.settings-tab-content .action-btn.compact.success {
-  --btn-color: var(--admin-success);
-}
-
-.settings-tab-content .action-btn.compact.warning {
-  --btn-color: var(--admin-warning);
-}
-
-.settings-tab-content .action-btn.compact.secondary {
-  --btn-color: var(--admin-gray-500);
-}
-
-.settings-tab-content .action-btn.compact.info {
-  --btn-color: var(--admin-info);
-}
-
-.settings-tab-content .action-btn.compact .action-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: var(--btn-color, var(--admin-primary));
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.settings-tab-content .action-btn.compact .action-content {
-  flex: 1;
+.settings-tab-content .action-content {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  flex: 1;
 }
 
-.settings-tab-content .action-btn.compact .action-title {
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--admin-gray-900);
-  margin: 0;
-  line-height: 1.3;
+.settings-tab-content .action-title {
+  text-align: left;
+  font-size: 0.95rem;
 }
 
-.settings-tab-content .action-btn.compact .action-desc {
-  font-size: 0.875rem;
-  color: var(--admin-gray-600);
-  line-height: 1.4;
-  margin: 0;
-}
+
 
 /* データ管理タブの統計カード改善 */
 .settings-tab-content .stats-grid {
@@ -3268,7 +3309,7 @@
 
 /* アクションボタンのコンパクト化 */
 .settings-tab-content .action-btn.compact {
-  padding: 1.25rem;
+  padding: 1rem;
   min-height: 80px;
 }
 
@@ -3320,17 +3361,6 @@
   .settings-tab-content .widget-content {
     padding: 1.25rem !important;
   }
-  
-  .settings-tab-content .action-btn.compact {
-    min-height: 70px;
-    padding: 1rem;
-  }
-  
-  .settings-tab-content .action-btn.compact .action-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 1.125rem;
-  }
 }
 
 /* モバイル対応 */
@@ -3362,18 +3392,7 @@
     grid-template-columns: 1fr;
   }
   
-  .settings-tab-content .action-btn.compact {
-    min-height: 60px;
-    padding: 0.875rem;
-  }
-  
-  .settings-tab-content .action-btn.compact .action-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 1rem;
-  }
-  
-  .settings-tab-content .stats-grid {
+    .settings-tab-content .stats-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
   }
@@ -3422,4 +3441,135 @@
     padding: 0.75rem !important;
     margin-top: 0.75rem !important;
   }
+}
+
+/* レガシーアクションボタンのアウトラインスタイル（他の箇所で使用） */
+.action-btn.outline:not(.data-action) {
+  border-color: var(--admin-gray-300);
+  background: var(--admin-white);
+  color: var(--admin-gray-700);
+}
+
+.action-btn.outline:not(.data-action):hover {
+  border-color: var(--admin-primary);
+  background: var(--admin-gray-50);
+}
+
+.settings-tab-content .action-btn.compact:not(.data-action) {
+  padding: 1rem;
+  gap: 0.75rem;
+}
+
+/* レガシーコンパクトアウトラインボタンの特別スタイル */
+.action-btn.compact.outline:not(.data-action) .action-icon {
+  background: var(--admin-gray-50);
+  color: var(--admin-gray-600);
+  border: 1px solid var(--admin-gray-200);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.action-btn.compact.outline:not(.data-action):hover .action-icon {
+  background: var(--admin-primary);
+  color: var(--admin-white);
+  border-color: var(--admin-primary);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.15);
+}
+
+/* =============================================================================
+ * 統一データ操作ボタンシステム
+ * ============================================================================= */
+
+/* ベースデータ操作ボタンスタイル */
+.action-btn.data-action {
+  border: 1px solid var(--admin-gray-200);
+  background: var(--admin-white);
+  color: var(--admin-gray-700);
+  padding: 1rem;
+  gap: 0.75rem;
+  min-height: 80px;
+  transition: all 0.2s ease;
+}
+
+/* データ操作ボタンのアイコン共通スタイル */
+.action-btn.data-action .action-icon {
+  background: var(--data-action-color, var(--admin-gray-100));
+  color: var(--admin-white);
+  border: 1px solid var(--data-action-color, var(--admin-gray-200));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  opacity: 0.85;
+  transition: all 0.2s ease;
+}
+
+/* データ操作ボタンホバー時の統一スタイル */
+.action-btn.data-action:hover {
+  border-color: var(--data-action-color, var(--admin-primary));
+  background: var(--admin-gray-50);
+  transform: translateY(-1px);
+}
+
+.action-btn.data-action:hover .action-icon {
+  background: var(--data-action-color, var(--admin-primary));
+  color: var(--admin-white);
+  border-color: var(--data-action-color, var(--admin-primary));
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+/* カラーバリエーション定義 */
+.action-btn.data-action[data-color="success"] {
+  --data-action-color: #22c55e;
+}
+
+.action-btn.data-action[data-color="info"] {
+  --data-action-color: #06b6d4;
+}
+
+.action-btn.data-action[data-color="warning"] {
+  --data-action-color: #f59e0b;
+}
+
+.action-btn.data-action[data-color="secondary"] {
+  --data-action-color: #6b7280;
+}
+
+.action-btn.data-action[data-color="purple"] {
+  --data-action-color: #8b5cf6;
+}
+
+.action-btn.data-action[data-color="orange"] {
+  --data-action-color: #f97316;
+}
+
+.action-btn.data-action[data-color="gray"] {
+  --data-action-color: #64748b;
+}
+
+/* アイコンフォント確実表示のための追加スタイル */
+.action-btn.data-action .action-icon i {
+  font-style: normal;
+  font-variant: normal;
+  font-weight: normal;
+  line-height: 1;
+  font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", "Font Awesome 6 Pro", sans-serif;
+  speak: none;
+  text-decoration: inherit;
+  text-transform: none;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.action-btn.data-action .action-icon i::before {
+  font-weight: 900; /* FontAwesome Solid icons */
+}
+
+.action-btn.data-action .action-icon i.fab::before {
+  font-weight: 400; /* FontAwesome Brand icons */
+  font-family: "Font Awesome 6 Brands";
+}
+
+.action-btn.data-action .action-icon i.fas::before {
+  font-weight: 900; /* FontAwesome Solid icons */
+  font-family: "Font Awesome 6 Free";
 }
