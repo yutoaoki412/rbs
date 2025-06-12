@@ -432,13 +432,7 @@
   box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);
 }
 
-/* グリッドレイアウト */
-.news-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-  gap: 30px;
-  margin-bottom: 60px;
-}
+/* 統一ニュースグリッドレイアウト（後方で定義済み） */
 
 /* 検索結果表示 */
 .search-results {
@@ -449,10 +443,19 @@
   border-left: 4px solid var(--primary-blue);
 }
 
+.search-results.hidden-section {
+  display: none;
+}
+
 .search-results-text {
   font-size: 16px;
   color: var(--navy-dark);
   font-weight: 600;
+}
+
+/* 汎用的な非表示クラス */
+.hidden-section {
+  display: none;
 }
 
 /* ==========================================================================
@@ -593,13 +596,22 @@
   flex-direction: column;
 }
 
-/* メタ情報 */
+/* メタ情報（左上：日付、右上：カテゴリ） */
 .news-meta {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   margin-bottom: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+
+/* LP側のニュースカードでは横並びレイアウト（左上：日付、右上：カテゴリ） */
+#news .news-card .news-meta {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
 }
 
 /* 日付 */
@@ -1008,6 +1020,11 @@
     font-size: 18px;
     gap: 10px;
   }
+
+  #news .news-grid {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 900px;
+  }
 }
 
 /* デスクトップ (1200px以上) */
@@ -1052,37 +1069,40 @@
     padding: 20px 50px;
     font-size: 20px;
   }
+
+  #news .news-grid {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 1200px;
+  }
 }
 
 /* モバイル (768px以下) */
 @media (max-width: 768px) {
   .page-news .news-page-header {
-    padding-top: 40px;
-    margin-bottom: 40px;
+    padding: 20px 0;
   }
-
+  
   .page-news .news-page-title {
-    font-size: clamp(28px, 6vw, 44px);
+    font-size: 32px;
   }
-
+  
   .page-news .news-page-title::after {
-    width: 80px;
-    height: 6px;
+    width: 60px;
+    height: 4px;
   }
-
+  
   .page-news .news-page-description {
-    font-size: 16px;
+    font-size: 15px;
   }
-
+  
   .news-filters {
-    padding: 30px 20px;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
   }
-
+  
   .filter-buttons {
-    gap: 10px;
+    gap: 8px;
   }
-
+  
   .filter-btn {
     padding: 8px 16px;
     font-size: 12px;
@@ -1090,6 +1110,13 @@
 
   .news-grid {
     gap: 20px;
+  }
+  
+  /* LP側では最低でも2列を維持 */
+  #news .news-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    max-width: 100%;
   }
 
   .news-list {
@@ -1111,6 +1138,8 @@
   .news-meta {
     margin-bottom: 10px;
     gap: 6px;
+    justify-content: space-between;
+    flex-wrap: nowrap;
   }
 
   .news-title {
@@ -1266,6 +1295,37 @@
     font-size: 11px;
     padding: 5px 10px;
     border-radius: 15px;
+  }
+  
+  /* LP側では小画面でも2列維持 */
+  #news .news-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    max-width: 100%;
+  }
+  
+  /* LP側のニュースカードをコンパクトに */
+  #news .news-card {
+    min-height: 160px;
+  }
+  
+  #news .news-card-header {
+    padding: 12px 14px 8px;
+  }
+  
+  #news .news-card-body {
+    padding: 0 14px 12px;
+  }
+  
+  #news .news-title {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  
+  #news .news-excerpt {
+    font-size: 11px;
+    margin-bottom: 8px;
+    min-height: 30px;
   }
 
   /* LPセクション */
@@ -1766,5 +1826,37 @@
   
   .instagram-post-item {
     scroll-snap-align: start;
+  }
+}
+
+/* ニュースグリッド（#newsセクション内とnews.htmlページ共通） */
+#news .news-grid,
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 30px;
+  margin: 0 auto;
+  min-height: 200px;
+  max-width: 1200px;
+}
+
+/* #newsセクション内のニュースグリッド特別スタイル（LP側での横並び強化） */
+#news .news-grid {
+  margin-bottom: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+/* LP側での横並び表示を確実にするためのメディアクエリ */
+@media (min-width: 768px) {
+  #news .news-grid {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 900px;
+  }
+}
+
+@media (min-width: 1200px) {
+  #news .news-grid {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 1200px;
   }
 } 

@@ -69,7 +69,7 @@ export class NewsUtils {
             <div class="news-category ${article.category}">
               ${categoryInfo?.name || article.category}
             </div>
-            ${article.status ? `<div class="news-status ${article.status}">${article.status === 'published' ? '公開中' : '下書き'}</div>` : ''}
+
           </div>
           <h3 class="news-title">
             ${context.startsWith('admin') ? 

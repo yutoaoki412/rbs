@@ -196,45 +196,27 @@ export class LPNewsService {
     return `
       <article class="news-card ${isHomeVersion ? 'home-news-card' : ''}" data-article-id="${article.id}">
         <div class="news-card-header">
-          ${showCategory ? `<div class="news-category" style="background-color: ${categoryInfo.color}">${categoryInfo.name}</div>` : ''}
           <div class="news-meta">
-            <time class="news-date">${formattedDate}</time>
+            <div class="news-date">${formattedDate}</div>
+            ${showCategory ? `<div class="news-category ${article.category}" style="background-color: ${categoryInfo.color}">${categoryInfo.name}</div>` : ''}
             ${article.featured ? '<span class="news-featured">注目</span>' : ''}
           </div>
-        </div>
-        <div class="news-card-body">
           <h3 class="news-title">
             <a href="news-detail.html?id=${article.id}" class="news-link">${article.title}</a>
           </h3>
+        </div>
+        <div class="news-card-body">
           ${showSummary && article.summary ? `<p class="news-excerpt">${article.summary}</p>` : ''}
+          <div class="news-actions">
+            <a href="news-detail.html?id=${article.id}" class="news-read-more">続きを読む</a>
+          </div>
         </div>
       </article>
     `;
   }
 
   /**
-   * Home用ニュースリストを生成
-   * @param {number} limit - 表示件数
-   * @returns {string} HTML文字列
-   */
-  generateHomeNewsList(limit = 5) {
-    const articles = this.getPublishedArticles({ limit });
-    
-    if (articles.length === 0) {
-      return '<div class="news-empty">記事がまだありません</div>';
-    }
-    
-    return articles.map(article => 
-      this.generateArticleCard(article, { 
-        showSummary: true, 
-        showCategory: true, 
-        isHomeVersion: true 
-      })
-    ).join('');
-  }
-
-  /**
-   * News一覧ページ用リストを生成
+   * ニュース一覧を生成（index.html、news.html共通）
    * @param {Object} options - フィルターオプション
    * @returns {string} HTML文字列
    */
@@ -255,7 +237,7 @@ export class LPNewsService {
       this.generateArticleCard(article, { 
         showSummary: true, 
         showCategory: true, 
-        isHomeVersion: false 
+        isHomeVersion: options.isHomeVersion || false 
       })
     ).join('');
   }

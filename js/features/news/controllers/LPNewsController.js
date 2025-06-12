@@ -69,7 +69,7 @@ export class LPNewsController {
    * ホームページのニュースセクション初期化
    */
   async initializeHomePage() {
-    const newsContainer = document.getElementById('news-list');
+    const newsContainer = document.getElementById('news-grid');
     const statusContainer = document.getElementById('news-loading-status');
     
     if (!newsContainer) {
@@ -81,8 +81,11 @@ export class LPNewsController {
       // ローディング状態を表示
       this.showLoadingStatus(statusContainer, 'ニュースを読み込み中...');
       
-      // ニュースリスト生成
-      const newsHtml = this.newsService.generateHomeNewsList(5);
+      // ニュース一覧生成（シンプル表示、件数制限あり）
+      const newsHtml = this.newsService.generateNewsPageList({ 
+        limit: 6,
+        isHomeVersion: true 
+      });
       newsContainer.innerHTML = newsHtml;
       
       // ローディング状態を非表示
@@ -95,6 +98,8 @@ export class LPNewsController {
       this.showErrorStatus(statusContainer, 'ニュースの読み込みに失敗しました');
     }
   }
+
+
 
   /**
    * ニュース一覧ページ初期化
@@ -116,8 +121,11 @@ export class LPNewsController {
       // フィルターボタンの状態更新
       this.updateFilterButtons(category);
       
-      // ニュース一覧生成
-      const options = category !== 'all' ? { category } : {};
+      // ニュース一覧生成（統一フォーマット）
+      const options = { 
+        ...(category !== 'all' ? { category } : {}),
+        isHomeVersion: false 
+      };
       const newsHtml = this.newsService.generateNewsPageList(options);
       newsGrid.innerHTML = newsHtml;
       
@@ -295,8 +303,11 @@ export class LPNewsController {
     // フィルターボタン状態更新
     this.updateFilterButtons(category);
     
-    // ニュース一覧更新
-    const options = category !== 'all' ? { category } : {};
+    // ニュース一覧更新（統一フォーマット）
+    const options = { 
+      ...(category !== 'all' ? { category } : {}),
+      isHomeVersion: false 
+    };
     const newsHtml = this.newsService.generateNewsPageList(options);
     newsGrid.innerHTML = newsHtml;
     
