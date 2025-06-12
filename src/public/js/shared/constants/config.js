@@ -43,7 +43,16 @@ const config = {
       
       // 一時データ
       draft: 'rbs_draft',                 // 下書きデータ
-      cache: 'rbs_cache'                  // キャッシュデータ
+      cache: 'rbs_cache',                 // キャッシュデータ
+      
+      // エクスポート・インポート
+      exportHistory: 'rbs_export_history', // エクスポート履歴
+      newsDraft: 'rbs_news_draft',         // ニュース下書き
+      
+      // 追加設定
+      adminSettings: 'rbs_admin_settings', // 管理設定
+      adminAuth: 'rbs_admin_auth',         // 管理認証
+      notificationMode: 'rbs_notification_mode' // 通知モード
     },
     
     // 自動保存・クリーンアップ

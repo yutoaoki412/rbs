@@ -1,7 +1,8 @@
 /**
  * 管理画面アクションサービス（完全統一版）
  * 全てのdata-actionを水平思考で統一処理
- * @version 5.0.0 - シンプル&クリーン統一版
+ * 統合データエクスポートサービス完全対応
+ * @version 6.0.0 - 統合エクスポートサービス対応版
  */
 
 import { CONFIG } from '../../../shared/constants/config.js';
@@ -1224,24 +1225,100 @@ export class AdminActionService {
     }
   }
 
-  exportData() {
-    this.debug('データエクスポート');
+  async exportData() {
+    this.debug('📤 統合データエクスポート開始');
     try {
-      const data = {
-        articles: this.getArticles(),
-        settings: JSON.parse(localStorage.getItem(this.storageKeys.adminSettings) || '{}'),
-        exportDate: new Date().toISOString()
-      };
+      // 統合データエクスポートサービスの初期化（まだでなければ）
+      if (!this.unifiedDataExportService) {
+        const { unifiedDataExportService } = await import('../../../shared/services/UnifiedDataExportService.js');
+        this.unifiedDataExportService = unifiedDataExportService;
+        
+        if (!this.unifiedDataExportService.initialized) {
+          await this.unifiedDataExportService.init();
+        }
+      }
       
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `rbs-data-export-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      // データ完全性チェック
+      const integrityReport = await this.unifiedDataExportService.checkDataIntegrity();
       
-      this.showNotification('データをエクスポートしました');
+      // データが存在するかチェック
+      const hasData = Object.values(integrityReport.schemas).some(schema => schema.exists);
+      
+      if (!hasData) {
+        // データが空の場合の確認ダイアログ
+        const confirmMessage = `
+          <div class="confirmation-dialog warning">
+            <h4><i class="fas fa-exclamation-triangle"></i> データが空です</h4>
+            <p><strong>注意:</strong> エクスポートするデータがほとんどありません。</p>
+            <div class="data-status">
+              ${Object.entries(integrityReport.schemas).map(([name, schema]) => 
+                `<div class="status-item ${schema.exists ? 'exists' : 'empty'}">
+                  <i class="fas ${schema.exists ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                  ${schema.description}: ${schema.exists ? 'あり' : 'なし'}
+                </div>`
+              ).join('')}
+            </div>
+            <p>それでもエクスポートを実行しますか？</p>
+            <div class="confirmation-actions">
+              <button class="btn btn-outline" onclick="window.closeModal()">キャンセル</button>
+              <button class="btn btn-warning" onclick="window.forceExportData()">エクスポート実行</button>
+            </div>
+          </div>
+        `;
+        
+        window.forceExportData = async () => {
+          try {
+            const result = await this.unifiedDataExportService.exportAllData({
+              includeSensitiveData: false
+            });
+            
+            if (result.success) {
+              this.showNotification(`${result.message}\n統計: ${result.stats.totalRecords}件のレコード`, 'success');
+            } else {
+              this.showNotification(result.message, 'error');
+            }
+          } catch (error) {
+            this.error('強制エクスポートエラー:', error);
+            this.showNotification('エクスポートに失敗しました', 'error');
+          }
+          
+          delete window.forceExportData;
+          this.closeModal();
+        };
+        
+        this.showModal('データエクスポート確認', confirmMessage);
+        return;
+      }
+      
+      // 通常のエクスポート実行
+      const result = await this.unifiedDataExportService.exportAllData({
+        includeSensitiveData: false,
+        includeMetadata: true
+      });
+      
+      if (result.success) {
+        // 詳細統計情報をログ出力
+        this.debug('📊 エクスポート統計:', result.stats);
+        
+        let statsMessage = `データエクスポートが完了しました\n`;
+        statsMessage += `ファイル名: ${result.filename}\n`;
+        statsMessage += `総レコード数: ${result.stats.totalRecords}件\n`;
+        
+        if (result.stats.categories) {
+          statsMessage += `カテゴリ詳細:\n`;
+          Object.entries(result.stats.categories).forEach(([category, stats]) => {
+            statsMessage += `  • ${category}: ${stats.records}件\n`;
+          });
+        }
+        
+        this.showNotification(statsMessage, 'success');
+        
+        // ダッシュボード統計更新
+        this.updateDashboardStats();
+        
+      } else {
+        this.showNotification(result.message, 'error');
+      }
       
     } catch (error) {
       this.error('データエクスポートエラー:', error);
@@ -1249,41 +1326,632 @@ export class AdminActionService {
     }
   }
 
-  importData() {
-    this.debug('データインポート');
+  async importData() {
+    this.debug('📥 統合データインポート開始');
+    
+    // ファイル選択ダイアログ
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
     
-    input.onchange = (e) => {
+    input.onchange = async (e) => {
       const file = e.target.files[0];
       if (!file) return;
       
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = JSON.parse(e.target.result);
-          
-          if (data.articles) {
-            this.saveArticles(data.articles);
-          }
-          if (data.settings) {
-            localStorage.setItem(this.storageKeys.adminSettings, JSON.stringify(data.settings));
-          }
-          
-          this.showNotification('データをインポートしました');
-          this.refreshDataStats();
-          this.updateDashboardStats();
-          
-    } catch (error) {
-          this.error('データインポートエラー:', error);
-          this.showNotification('インポートに失敗しました', 'error');
-        }
-      };
-      reader.readAsText(file);
+      try {
+        // ファイル読み込み
+        const fileContent = await this.readFileAsText(file);
+        const importData = JSON.parse(fileContent);
+        
+        // データ構造を分析
+        const analysis = this.analyzeImportData(importData);
+        
+        // インポート確認ダイアログを表示
+        await this.showImportConfirmDialog(analysis, importData);
+        
+      } catch (error) {
+        this.error('ファイル読み込みエラー:', error);
+        this.showNotification('ファイルの読み込みに失敗しました', 'error');
+      }
     };
     
     input.click();
+  }
+
+  async readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (e) => reject(new Error('ファイル読み込みエラー'));
+      reader.readAsText(file);
+    });
+  }
+
+  analyzeImportData(data) {
+    const analysis = {
+      isUnifiedFormat: false,
+      isLegacyFormat: false,
+      detectedCategories: [],
+      totalRecords: 0,
+      fileSize: JSON.stringify(data).length,
+      metadata: null
+    };
+    
+    // 統一フォーマット（UnifiedDataExportService）かチェック
+    if (data.metadata && data.data && data.statistics) {
+      analysis.isUnifiedFormat = true;
+      analysis.metadata = data.metadata;
+      
+      // カテゴリ分析
+      for (const [category, categoryData] of Object.entries(data.data)) {
+        if (categoryData && typeof categoryData === 'object' && !categoryData.error) {
+          analysis.detectedCategories.push({
+            name: category,
+            type: Array.isArray(categoryData) ? 'array' : 'object',
+            count: Array.isArray(categoryData) ? categoryData.length : Object.keys(categoryData).length
+          });
+          
+          analysis.totalRecords += Array.isArray(categoryData) ? categoryData.length : Object.keys(categoryData).length;
+        }
+      }
+    }
+    // レガシーフォーマット（旧AdminActionService）かチェック
+    else if (data.articles || data.instagram || data.lessons || data.settings) {
+      analysis.isLegacyFormat = true;
+      
+      if (data.articles && Array.isArray(data.articles)) {
+        analysis.detectedCategories.push({
+          name: 'articles',
+          type: 'array',
+          count: data.articles.length
+        });
+        analysis.totalRecords += data.articles.length;
+      }
+      
+      if (data.instagram && Array.isArray(data.instagram)) {
+        analysis.detectedCategories.push({
+          name: 'instagram',
+          type: 'array',
+          count: data.instagram.length
+        });
+        analysis.totalRecords += data.instagram.length;
+      }
+      
+      if (data.lessons && typeof data.lessons === 'object') {
+        analysis.detectedCategories.push({
+          name: 'lessons',
+          type: 'object',
+          count: Object.keys(data.lessons).length
+        });
+        analysis.totalRecords += Object.keys(data.lessons).length;
+      }
+      
+      if (data.settings && typeof data.settings === 'object') {
+        analysis.detectedCategories.push({
+          name: 'settings',
+          type: 'object',
+          count: Object.keys(data.settings).length
+        });
+        analysis.totalRecords += Object.keys(data.settings).length;
+      }
+    }
+    
+    return analysis;
+  }
+
+  async showImportConfirmDialog(analysis, importData) {
+    let dialogHtml = `
+      <div class="import-confirmation">
+        <h4><i class="fas fa-upload"></i> データインポート確認</h4>
+        
+        <div class="import-analysis">
+          <div class="analysis-summary">
+            <div class="summary-item">
+              <i class="fas fa-file"></i>
+              <span>ファイル形式: ${analysis.isUnifiedFormat ? '統合フォーマット' : analysis.isLegacyFormat ? 'レガシーフォーマット' : '不明'}</span>
+            </div>
+            <div class="summary-item">
+              <i class="fas fa-database"></i>
+              <span>総レコード数: ${analysis.totalRecords}件</span>
+            </div>
+            <div class="summary-item">
+              <i class="fas fa-weight"></i>
+              <span>ファイルサイズ: ${Math.round(analysis.fileSize / 1024 * 100) / 100}KB</span>
+            </div>
+          </div>
+          
+          <div class="categories-preview">
+            <h5>検出されたデータカテゴリ</h5>
+            ${analysis.detectedCategories.length > 0 ? `
+              <div class="category-list">
+                ${analysis.detectedCategories.map(category => `
+                  <div class="category-item">
+                    <i class="fas ${category.type === 'array' ? 'fa-list' : 'fa-object-group'}"></i>
+                    <span class="category-name">${category.name}</span>
+                    <span class="category-count">${category.count}件</span>
+                  </div>
+                `).join('')}
+              </div>
+            ` : '<p class="no-categories">データカテゴリが検出されませんでした</p>'}
+          </div>
+          
+          ${analysis.metadata ? `
+            <div class="metadata-info">
+              <h5>メタデータ情報</h5>
+              <div class="metadata-details">
+                <div class="meta-item">エクスポート日時: ${new Date(analysis.metadata.exportedAt).toLocaleString('ja-JP')}</div>
+                <div class="meta-item">バージョン: ${analysis.metadata.version}</div>
+                <div class="meta-item">サービス: ${analysis.metadata.serviceName}</div>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+        
+        <div class="import-options">
+          <div class="option-group">
+            <label>
+              <input type="checkbox" id="merge-data" checked>
+              <span>既存データとマージ（上書きしない）</span>
+            </label>
+          </div>
+          <div class="option-group">
+            <label>
+              <input type="checkbox" id="backup-before-import" checked>
+              <span>インポート前に現在のデータをバックアップ</span>
+            </label>
+          </div>
+          <div class="option-group">
+            <label>
+              <input type="checkbox" id="validate-data" checked>
+              <span>データ検証を実行</span>
+            </label>
+          </div>
+        </div>
+        
+        <div class="import-actions">
+          <button class="btn btn-outline" onclick="window.cancelImport()">キャンセル</button>
+          <button class="btn btn-primary" onclick="window.executeImport()">インポート実行</button>
+        </div>
+      </div>
+    `;
+    
+    window.cancelImport = () => {
+      this.closeModal();
+      delete window.cancelImport;
+      delete window.executeImport;
+    };
+    
+    window.executeImport = async () => {
+      try {
+        const options = {
+          mergeData: document.getElementById('merge-data').checked,
+          backupBeforeImport: document.getElementById('backup-before-import').checked,
+          validateData: document.getElementById('validate-data').checked
+        };
+        
+        await this.executeDataImport(importData, analysis, options);
+        
+        delete window.cancelImport;
+        delete window.executeImport;
+        this.closeModal();
+        
+      } catch (error) {
+        this.error('インポート実行エラー:', error);
+        this.showNotification('インポートに失敗しました', 'error');
+      }
+    };
+    
+    this.showModal('データインポート', dialogHtml);
+  }
+
+  async executeDataImport(importData, analysis, options) {
+    this.debug('📥 データインポート実行開始');
+    
+    try {
+      // バックアップ作成（オプション）
+      if (options.backupBeforeImport) {
+        await this.createPreImportBackup();
+      }
+      
+      let importedCategories = 0;
+      let importedRecords = 0;
+      
+      // 統合フォーマットの場合
+      if (analysis.isUnifiedFormat) {
+        for (const [categoryName, categoryData] of Object.entries(importData.data)) {
+          if (categoryData && typeof categoryData === 'object' && !categoryData.error) {
+            const result = await this.importCategoryData(categoryName, categoryData, options);
+            if (result.success) {
+              importedCategories++;
+              importedRecords += result.recordCount;
+            }
+          }
+        }
+      }
+      // レガシーフォーマットの場合
+      else if (analysis.isLegacyFormat) {
+        const categoryMapping = {
+          articles: 'rbs_articles',
+          instagram: 'rbs_instagram_posts',
+          lessons: 'rbs_lesson_status',
+          settings: 'rbs_admin_settings'
+        };
+        
+        for (const [legacyName, storageKey] of Object.entries(categoryMapping)) {
+          if (importData[legacyName]) {
+            const result = await this.importLegacyData(legacyName, importData[legacyName], storageKey, options);
+            if (result.success) {
+              importedCategories++;
+              importedRecords += result.recordCount;
+            }
+          }
+        }
+      }
+      
+      // インポート完了通知
+      this.showNotification(
+        `データインポートが完了しました\n` +
+        `カテゴリ: ${importedCategories}件\n` +
+        `レコード: ${importedRecords}件`,
+        'success'
+      );
+      
+      // UI更新
+      this.refreshDataStats();
+      this.updateDashboardStats();
+      
+      this.debug('📥 データインポート実行完了');
+      
+    } catch (error) {
+      this.error('インポート実行エラー:', error);
+      throw error;
+    }
+  }
+
+  async createPreImportBackup() {
+    try {
+      // 統合データエクスポートサービスを使用してバックアップ作成
+      if (!this.unifiedDataExportService) {
+        const { unifiedDataExportService } = await import('../../../shared/services/UnifiedDataExportService.js');
+        this.unifiedDataExportService = unifiedDataExportService;
+        
+        if (!this.unifiedDataExportService.initialized) {
+          await this.unifiedDataExportService.init();
+        }
+      }
+      
+      const result = await this.unifiedDataExportService.exportAllData({
+        includeSensitiveData: false
+      });
+      
+      if (result.success) {
+        this.debug('📦 インポート前バックアップ作成完了:', result.filename);
+      }
+      
+    } catch (error) {
+      this.warn('バックアップ作成エラー:', error);
+    }
+  }
+
+  async importCategoryData(categoryName, categoryData, options) {
+    try {
+      const storageKey = this.getCategoryStorageKey(categoryName);
+      if (!storageKey) {
+        this.warn(`未知のカテゴリ: ${categoryName}`);
+        return { success: false, recordCount: 0 };
+      }
+      
+      // データ検証（オプション）
+      if (options.validateData) {
+        const isValid = this.validateCategoryData(categoryName, categoryData);
+        if (!isValid) {
+          this.warn(`データ検証失敗: ${categoryName}`);
+          return { success: false, recordCount: 0 };
+        }
+      }
+      
+      // 既存データとのマージ処理
+      if (options.mergeData) {
+        const existingData = this.getExistingCategoryData(storageKey);
+        const mergedData = this.mergeCategoryData(categoryName, existingData, categoryData);
+        localStorage.setItem(storageKey, JSON.stringify(mergedData));
+      } else {
+        localStorage.setItem(storageKey, JSON.stringify(categoryData));
+      }
+      
+      const recordCount = Array.isArray(categoryData) ? categoryData.length : Object.keys(categoryData).length;
+      
+      this.debug(`✅ ${categoryName} インポート完了: ${recordCount}件`);
+      return { success: true, recordCount };
+      
+    } catch (error) {
+      this.error(`カテゴリインポートエラー (${categoryName}):`, error);
+      return { success: false, recordCount: 0 };
+    }
+  }
+
+  async importLegacyData(legacyName, data, storageKey, options) {
+    try {
+      return await this.importCategoryData(legacyName, data, options);
+    } catch (error) {
+      this.error(`レガシーデータインポートエラー (${legacyName}):`, error);
+      return { success: false, recordCount: 0 };
+    }
+  }
+
+  getCategoryStorageKey(categoryName) {
+    const mapping = {
+      articles: CONFIG.storage.keys.articles,
+      instagram: CONFIG.storage.keys.instagramPosts,
+      lessons: CONFIG.storage.keys.lessonStatus,
+      settings: CONFIG.storage.keys.settings,
+      adminAuth: CONFIG.storage.keys.adminAuth,
+      newsDraft: CONFIG.storage.keys.newsDraft,
+      notificationMode: CONFIG.storage.keys.notificationMode
+    };
+    
+    return mapping[categoryName] || null;
+  }
+
+  getExistingCategoryData(storageKey) {
+    try {
+      const existing = localStorage.getItem(storageKey);
+      return existing ? JSON.parse(existing) : null;
+    } catch (error) {
+      this.warn(`既存データ取得エラー (${storageKey}):`, error);
+      return null;
+    }
+  }
+
+  mergeCategoryData(categoryName, existingData, newData) {
+    if (!existingData) return newData;
+    
+    // 配列の場合はユニークマージ
+    if (Array.isArray(existingData) && Array.isArray(newData)) {
+      const existingIds = new Set(existingData.map(item => item.id).filter(id => id));
+      const mergedData = [...existingData];
+      
+      newData.forEach(newItem => {
+        if (!newItem.id || !existingIds.has(newItem.id)) {
+          mergedData.push(newItem);
+        }
+      });
+      
+      return mergedData;
+    }
+    // オブジェクトの場合は深いマージ
+    else if (typeof existingData === 'object' && typeof newData === 'object') {
+      return { ...existingData, ...newData };
+    }
+    
+    return newData;
+  }
+
+  validateCategoryData(categoryName, data) {
+    try {
+      switch (categoryName) {
+        case 'articles':
+          return Array.isArray(data) && data.every(item => 
+            item.id && item.title && item.content
+          );
+        
+        case 'instagram':
+          return Array.isArray(data) && data.every(item => 
+            item.id && item.embedCode
+          );
+        
+        case 'lessons':
+          return typeof data === 'object' && data !== null;
+        
+        case 'settings':
+          return typeof data === 'object' && data !== null;
+        
+        default:
+          return true; // 不明なカテゴリは通す
+      }
+    } catch (error) {
+      this.warn(`データ検証エラー (${categoryName}):`, error);
+      return false;
+    }
+  }
+
+  async exportDataByCategory(category) {
+    this.debug(`📦 カテゴリ別エクスポート: ${category}`);
+    try {
+      // 統合データエクスポートサービスの初期化
+      if (!this.unifiedDataExportService) {
+        const { unifiedDataExportService } = await import('../../../shared/services/UnifiedDataExportService.js');
+        this.unifiedDataExportService = unifiedDataExportService;
+        
+        if (!this.unifiedDataExportService.initialized) {
+          await this.unifiedDataExportService.init();
+        }
+      }
+      
+      const result = await this.unifiedDataExportService.exportDataByCategory(category, {
+        includeSensitiveData: false
+      });
+      
+      if (result.success) {
+        this.showNotification(`${category} データを ${result.filename} としてエクスポートしました`, 'success');
+      } else {
+        this.showNotification(result.message, 'error');
+      }
+      
+    } catch (error) {
+      this.error(`カテゴリ別エクスポートエラー (${category}):`, error);
+      this.showNotification(`${category} のエクスポートに失敗しました`, 'error');
+    }
+  }
+
+  async showExportHistory() {
+    this.debug('📜 エクスポート履歴表示');
+    try {
+      // 統合データエクスポートサービスの初期化
+      if (!this.unifiedDataExportService) {
+        const { unifiedDataExportService } = await import('../../../shared/services/UnifiedDataExportService.js');
+        this.unifiedDataExportService = unifiedDataExportService;
+        
+        if (!this.unifiedDataExportService.initialized) {
+          await this.unifiedDataExportService.init();
+        }
+      }
+      
+      const history = this.unifiedDataExportService.getExportHistory();
+      
+      let historyHtml = `
+        <div class="export-history">
+          <h4><i class="fas fa-history"></i> エクスポート履歴</h4>
+      `;
+      
+      if (history.length === 0) {
+        historyHtml += `
+          <p class="no-history">エクスポート履歴がありません</p>
+        `;
+      } else {
+        historyHtml += `
+          <div class="history-list">
+            ${history.map(record => `
+              <div class="history-item">
+                <div class="history-header">
+                  <span class="filename">${record.filename}</span>
+                  <span class="timestamp">${new Date(record.timestamp).toLocaleString('ja-JP')}</span>
+                </div>
+                <div class="history-details">
+                  <span class="type">${this.getExportTypeLabel(record.type)}</span>
+                  ${record.category ? `<span class="category">${record.category}</span>` : ''}
+                  <span class="records">${record.stats?.totalRecords || 0}件</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="history-actions">
+            <button class="btn btn-outline" onclick="window.clearExportHistory()">履歴クリア</button>
+          </div>
+        `;
+      }
+      
+      historyHtml += `</div>`;
+      
+      window.clearExportHistory = async () => {
+        if (confirm('エクスポート履歴をクリアしますか？')) {
+          this.unifiedDataExportService.clearExportHistory();
+          this.showNotification('エクスポート履歴をクリアしました', 'info');
+          this.closeModal();
+        }
+      };
+      
+      this.showModal('エクスポート履歴', historyHtml);
+      
+    } catch (error) {
+      this.error('エクスポート履歴表示エラー:', error);
+      this.showNotification('履歴の表示に失敗しました', 'error');
+    }
+  }
+
+  getExportTypeLabel(type) {
+    const labels = {
+      'full-export': '全データ',
+      'category-export': 'カテゴリ別',
+      'service-export': 'サービス別'
+    };
+    return labels[type] || type;
+  }
+
+  async showDataIntegrityReport() {
+    this.debug('🔍 データ完全性レポート表示');
+    try {
+      // 統合データエクスポートサービスの初期化
+      if (!this.unifiedDataExportService) {
+        const { unifiedDataExportService } = await import('../../../shared/services/UnifiedDataExportService.js');
+        this.unifiedDataExportService = unifiedDataExportService;
+        
+        if (!this.unifiedDataExportService.initialized) {
+          await this.unifiedDataExportService.init();
+        }
+      }
+      
+      const report = await this.unifiedDataExportService.checkDataIntegrity();
+      
+      let reportHtml = `
+        <div class="integrity-report">
+          <h4><i class="fas fa-shield-alt"></i> データ完全性レポート</h4>
+          <div class="report-summary">
+            <div class="summary-item warnings">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span>警告: ${report.warnings.length}件</span>
+            </div>
+            <div class="summary-item errors">
+              <i class="fas fa-times-circle"></i>
+              <span>エラー: ${report.errors.length}件</span>
+            </div>
+          </div>
+          
+          <div class="schema-status">
+            <h5>データカテゴリ状況</h5>
+            ${Object.entries(report.schemas).map(([name, schema]) => `
+              <div class="schema-item ${schema.exists ? 'exists' : 'missing'} ${schema.valid ? 'valid' : 'invalid'}">
+                <div class="schema-header">
+                  <i class="fas ${schema.exists ? (schema.valid ? 'fa-check-circle' : 'fa-exclamation-circle') : 'fa-times-circle'}"></i>
+                  <span class="schema-name">${name}</span>
+                  <span class="schema-description">${schema.description}</span>
+                </div>
+                <div class="schema-details">
+                  ${schema.exists ? `<span class="size">${Math.round(schema.size / 1024 * 100) / 100}KB</span>` : '<span class="missing">データなし</span>'}
+                  ${schema.error ? `<span class="error-msg">${schema.error}</span>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          
+          ${report.warnings.length > 0 ? `
+            <div class="warnings-section">
+              <h5><i class="fas fa-exclamation-triangle"></i> 警告</h5>
+              <ul>
+                ${report.warnings.map(warning => `<li>${warning}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+          
+          ${report.errors.length > 0 ? `
+            <div class="errors-section">
+              <h5><i class="fas fa-times-circle"></i> エラー</h5>
+              <ul>
+                ${report.errors.map(error => `<li>${error}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+          
+          <div class="report-actions">
+            <button class="btn btn-primary" onclick="window.exportReportData()">レポート結果をエクスポート</button>
+          </div>
+        </div>
+      `;
+      
+      window.exportReportData = async () => {
+        const reportData = {
+          integrityReport: report,
+          timestamp: new Date().toISOString()
+        };
+        
+        const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `rbs-integrity-report-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        this.showNotification('完全性レポートをエクスポートしました');
+        delete window.exportReportData;
+      };
+      
+      this.showModal('データ完全性レポート', reportHtml);
+      
+    } catch (error) {
+      this.error('データ完全性レポート表示エラー:', error);
+      this.showNotification('レポートの表示に失敗しました', 'error');
+    }
   }
 
   clearAllData() {
