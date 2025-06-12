@@ -134,8 +134,8 @@ export default class NewsDetailController {
       console.log('🔄 ArticleServiceを初期化中...');
       
       try {
-        const { default: ArticleService } = await import('../services/ArticleService.js');
-        window.articleService = new ArticleService();
+        const { getArticleStorageService } = await import('../../../shared/services/ArticleStorageService.js');
+        window.articleService = getArticleStorageService();
         await window.articleService.init();
         
         console.log('✅ ArticleService初期化完了');
