@@ -1,370 +1,493 @@
 /**
- * ダッシュボード統計ウィジェット - admin.html内のインライン統計更新機能を外部化
- * @version 1.0.0 - リファクタリング版
+ * ダッシュボード統計ウィジェット - UI専門版
+ * @version 4.0.0 - UnifiedDashboardStatsService完全統合・軽量化版
+ * @description データ取得はUnifiedDashboardStatsServiceに委譲、UI操作のみに専念
  */
 
 import { Component } from '../../../lib/base/Component.js';
 import { CONFIG } from '../../../shared/constants/config.js';
 import { getAdminNotificationService } from '../../../shared/services/AdminNotificationService.js';
+import { getUnifiedDashboardStatsService } from '../services/UnifiedDashboardStatsService.js';
 
 export class DashboardStatsWidget extends Component {
   constructor() {
     super({ autoInit: false });
     this.componentName = 'DashboardStatsWidget';
     
-    // 設定
+    // 統一ダッシュボード統計サービス（データ専門）
+    this.unifiedStatsService = getUnifiedDashboardStatsService();
+    
+    // UI設定のみ
     this.config = {
-      updateInterval: 5000, // 5秒間隔
-      animationDuration: 200, // アニメーション時間
-      articlesKey: CONFIG.storage?.keys?.articles || 'rbs_articles',
-      instagramKey: CONFIG.storage?.keys?.instagram || 'rbs_instagram_posts'
+      updateInterval: 5000,        // 5秒間隔
+      animationDuration: 200,      // アニメーション時間
+      autoRefresh: true            // 自動更新
     };
     
-    // 状態管理
-    this.currentStats = {
-      publishedCount: 0,
-      draftCount: 0,
-      instagramVisibleCount: 0,
-      instagramHiddenCount: 0
-    };
-    
+    // UI状態管理
+    this.currentDisplayStats = {};
     this.updateIntervalId = null;
     this.notificationService = getAdminNotificationService();
     this.initialized = false;
+    
+    // ログ（CONFIG統合）
+    this.log = CONFIG.helpers.log;
   }
 
   /**
-   * 初期化
+   * 初期化（軽量版）
    */
   async init() {
     if (this.initialized) return;
     
     try {
-      this.log('DashboardStatsWidget初期化開始', 'info');
+      this.log('info', 'DashboardStatsWidget初期化開始 - UI専門版');
+      
+      // 統一サービスの初期化
+      await this.unifiedStatsService.init();
       
       // DOM要素の確認
-      this.validateStatElements();
+      this.validateAndMapStatElements();
       
-      // イベントリスナーの設定
-      this.setupEventListeners();
+      // UI イベントの設定
+      this.setupUIEventListeners();
       
-      // 初回統計更新
-      await this.updateStats();
+      // 初回表示更新
+      await this.refreshDisplay();
       
-      // 定期更新の開始
-      this.startAutoUpdate();
+      // 自動更新の開始
+      if (this.config.autoRefresh) {
+        this.startAutoRefresh();
+      }
       
-      // グローバル関数の公開
-      this.setupGlobalHelpers();
+      // グローバルUI関数の公開
+      this.setupGlobalUIHelpers();
       
       this.initialized = true;
-      this.log('DashboardStatsWidget初期化完了', 'info');
+      this.log('info', 'DashboardStatsWidget初期化完了 - UI専門版');
       
     } catch (error) {
-      this.error('DashboardStatsWidget初期化エラー:', error);
+      this.log('error', 'DashboardStatsWidget初期化エラー:', error);
       throw error;
     }
   }
 
   /**
-   * 統計カード要素の検証
+   * 統計表示要素のマッピング（実HTML対応・完全版）
    */
-  validateStatElements() {
-    const requiredElements = [
-      'stat-published',
-      'stat-drafts', 
-      'stat-instagram-visible',
-      'stat-instagram-hidden'
-    ];
-    
-    const missingElements = requiredElements.filter(id => !document.getElementById(id));
-    
-    if (missingElements.length > 0) {
-      throw new Error(`必要な統計要素が見つかりません: ${missingElements.join(', ')}`);
-    }
-    
-    this.log('統計カード要素の検証完了', 'debug');
-  }
-
-  /**
-   * イベントリスナーの設定
-   */
-  setupEventListeners() {
-    // LocalStorage変更の監視
-    window.addEventListener('storage', (e) => {
-      if (e.key === this.config.articlesKey || e.key === this.config.instagramKey) {
-        // 100ms遅延して更新（重複防止）
-        setTimeout(() => this.updateStats(), 100);
-      }
-    });
-    
-    // ページ可視性変更の監視
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        this.stopAutoUpdate();
-      } else {
-        this.startAutoUpdate();
-        this.updateStats(); // 即座に更新
-      }
-    });
-    
-    this.log('イベントリスナー設定完了', 'debug');
-  }
-
-  /**
-   * グローバルヘルパー関数の設定
-   */
-  setupGlobalHelpers() {
-    // admin.html内の実装を統合
-    window.updateDashboardStats = () => this.updateStats();
-    window.refreshStats = () => this.updateStats();
-    
-    this.log('グローバルヘルパー関数設定完了', 'debug');
-  }
-
-  /**
-   * 統計情報の更新
-   */
-  async updateStats() {
-    try {
-      const newStats = await this.calculateStats();
+  validateAndMapStatElements() {
+    // 全タブの統計表示要素をマッピング
+    this.statElementMap = {
+      // ===== ダッシュボードタブ =====
+      dashboard: {
+        'stat-published': { 
+          type: 'publishedCount', 
+          label: '公開記事数',
+          icon: 'fas fa-newspaper',
+          color: '#28a745'
+        },
+        'stat-drafts': { 
+          type: 'draftCount', 
+          label: '下書き記事数',
+          icon: 'fas fa-edit',
+          color: '#ffc107'
+        },
+        'stat-instagram-visible': { 
+          type: 'instagramActiveCount', 
+          label: '表示中Instagram投稿数',
+          icon: 'fab fa-instagram',
+          color: '#e4405f'
+        },
+        'stat-instagram-hidden': { 
+          type: 'instagramInactiveCount', 
+          label: '非表示Instagram投稿数',
+          icon: 'fas fa-eye-slash',
+          color: '#6c757d'
+        }
+      },
       
-      // 変更があった場合のみアニメーション付きで更新
-      if (this.hasStatsChanged(newStats)) {
-        await this.updateStatCards(newStats);
-        this.currentStats = { ...newStats };
-        
-        this.log('📊 統計情報更新完了:', newStats, 'debug');
+      // ===== Instagram設定タブ =====
+      instagram: {
+        'total-posts': { 
+          type: 'totalInstagram', 
+          label: '総Instagram投稿数',
+          icon: 'fab fa-instagram',
+          color: '#e4405f'
+        },
+        'active-posts': { 
+          type: 'instagramActiveCount', 
+          label: '表示中Instagram投稿数',
+          icon: 'fas fa-eye',
+          color: '#28a745'
+        },
+        'featured-posts': { 
+          type: 'featuredInstagramCount', 
+          label: '注目Instagram投稿数',
+          icon: 'fas fa-star',
+          color: '#ffc107'
+        },
+        'inactive-posts': { 
+          type: 'instagramInactiveCount', 
+          label: '非表示Instagram投稿数',
+          icon: 'fas fa-eye-slash',
+          color: '#6c757d'
+        }
+      },
+      
+      // ===== 設定データタブ =====
+      settings: {
+        'total-articles': { 
+          type: 'totalArticles', 
+          label: '記事総数',
+          icon: 'fas fa-newspaper',
+          color: '#007bff'
+        },
+        'total-instagram': { 
+          type: 'totalInstagram', 
+          label: 'Instagram投稿総数',
+          icon: 'fab fa-instagram',
+          color: '#e4405f'
+        },
+        'total-lessons': { 
+          type: 'totalLessons', 
+          label: 'レッスン記録総数',
+          icon: 'fas fa-calendar-check',
+          color: '#6f42c1'
+        },
+        'storage-usage': { 
+          type: 'storageUsage', 
+          label: 'ストレージ使用量',
+          icon: 'fas fa-hdd',
+          color: '#17a2b8',
+          isSpecial: true // 特別処理が必要
+        }
       }
-      
-    } catch (error) {
-      this.error('統計情報更新エラー:', error);
-      
-      // エラー時は視覚的にエラー状態を表示
-      this.showStatsError();
-    }
-  }
-
-  /**
-   * 統計データの計算
-   */
-  async calculateStats() {
-    const stats = {
-      publishedCount: 0,
-      draftCount: 0,
-      instagramVisibleCount: 0,
-      instagramHiddenCount: 0
     };
-
-    // 記事データの取得と計算
-    try {
-      const articlesData = localStorage.getItem(this.config.articlesKey);
-      if (articlesData) {
-        const articles = JSON.parse(articlesData);
-        if (Array.isArray(articles)) {
-          stats.publishedCount = articles.filter(article => article.status === 'published').length;
-          stats.draftCount = articles.filter(article => article.status === 'draft').length;
+    
+    // 実際に存在する要素をチェック
+    this.availableElements = [];
+    Object.values(this.statElementMap).forEach(tabElements => {
+      Object.keys(tabElements).forEach(elementId => {
+        if (document.getElementById(elementId)) {
+          this.availableElements.push(elementId);
         }
-      }
-    } catch (error) {
-      this.warn('記事データの読み込みエラー:', error);
-    }
-
-    // Instagram投稿データの取得と計算
-    try {
-      const instagramData = localStorage.getItem(this.config.instagramKey);
-      if (instagramData) {
-        const instagramPosts = JSON.parse(instagramData);
-        if (Array.isArray(instagramPosts)) {
-          stats.instagramVisibleCount = instagramPosts.filter(post => post.status === 'active').length;
-          stats.instagramHiddenCount = instagramPosts.filter(post => post.status === 'inactive').length;
-        }
-      }
-    } catch (error) {
-      this.warn('Instagram投稿データの読み込みエラー:', error);
-    }
-
-    return stats;
+      });
+    });
+    
+    this.log('debug', `統計表示要素マッピング完了: ${this.availableElements.length}個の要素が利用可能`);
+    
+    return this.availableElements.length > 0;
   }
 
   /**
-   * 統計の変更チェック
+   * UI イベントリスナーの設定（UI専門）
    */
-  hasStatsChanged(newStats) {
+  setupUIEventListeners() {
+    // ページ可視性変更の監視
+    this.visibilityListener = () => {
+      if (document.hidden) {
+        this.log('debug', 'ページ非表示 - 自動更新停止');
+        this.stopAutoRefresh();
+      } else {
+        this.log('debug', 'ページ表示 - 自動更新再開');
+        this.startAutoRefresh();
+        this.refreshDisplay(); // 即座に表示更新
+      }
+    };
+    
+    document.addEventListener('visibilitychange', this.visibilityListener);
+    
+    // 統一サービスからの統計更新通知を監視
+    this.statsUpdateListener = (event) => {
+      if (event.detail && event.detail.source === 'UnifiedDashboardStatsService') {
+        this.log('debug', '統一サービスからの統計更新通知を受信');
+        this.refreshDisplay();
+      }
+    };
+    
+    document.addEventListener('statsUpdated', this.statsUpdateListener);
+    
+    this.log('debug', 'UIイベントリスナー設定完了');
+  }
+
+  /**
+   * 表示の更新（UI専門・軽量版）
+   */
+  async refreshDisplay() {
+    try {
+      this.log('debug', '統計表示更新開始');
+      
+      // 統一サービスから統計データを取得（計算はすべて委譲）
+      const newStats = await this.unifiedStatsService.getDashboardStats();
+      
+      // 表示の変更があった場合のみアニメーション付きで更新
+      if (this.hasDisplayChanged(newStats)) {
+        await this.updateAllDisplayElements(newStats);
+        this.currentDisplayStats = { ...newStats };
+        
+        this.log('debug', '📊 統計表示更新完了:', newStats);
+        
+        // 成功通知（CONFIG設定に従って）
+        if (CONFIG.admin.features.notifications) {
+          this.showUpdateSuccess();
+        }
+      } else {
+        this.log('debug', '統計表示に変更なし');
+      }
+      
+    } catch (error) {
+      this.log('error', '統計表示更新エラー:', error);
+      this.showDisplayError();
+    }
+  }
+
+  /**
+   * 表示変更の確認
+   */
+  hasDisplayChanged(newStats) {
     return Object.keys(newStats).some(key => 
-      this.currentStats[key] !== newStats[key]
+      this.currentDisplayStats[key] !== newStats[key]
     );
   }
 
   /**
-   * 統計カードの更新（アニメーション付き）
+   * 全表示要素の更新（アニメーション付き）
    */
-  async updateStatCards(stats) {
-    const updates = [
-      { id: 'stat-published', value: stats.publishedCount },
-      { id: 'stat-drafts', value: stats.draftCount },
-      { id: 'stat-instagram-visible', value: stats.instagramVisibleCount },
-      { id: 'stat-instagram-hidden', value: stats.instagramHiddenCount }
-    ];
+  async updateAllDisplayElements(stats) {
+    const updatePromises = [];
+    
+    // すべてのタブの要素を並列更新
+    Object.values(this.statElementMap).forEach(tabElements => {
+      Object.entries(tabElements).forEach(([elementId, config]) => {
+        if (this.availableElements.includes(elementId)) {
+          updatePromises.push(
+            this.updateDisplayElement(elementId, stats, config)
+          );
+        }
+      });
+    });
 
-    // 全ての更新を並列実行
-    await Promise.all(updates.map(update => this.updateStatCard(update.id, update.value)));
+    // 全更新を並列実行
+    await Promise.all(updatePromises);
+    
+    this.log('debug', `統計表示要素更新完了: ${updatePromises.length}件`);
   }
 
   /**
-   * 個別統計カードの更新
+   * 個別表示要素の更新（アニメーション付き）
    */
-  async updateStatCard(id, value) {
-    const element = document.getElementById(id);
-    if (!element) {
-      this.warn(`統計カード要素が見つかりません: ${id}`);
-      return;
-    }
+  async updateDisplayElement(elementId, stats, config) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
 
-    const currentValue = parseInt(element.textContent) || 0;
-    
-    if (currentValue !== value) {
-      // アニメーション付きで更新
+    try {
+      let newValue;
+      
+      // 特別処理が必要な要素
+      if (config.isSpecial && config.type === 'storageUsage') {
+        const usage = this.unifiedStatsService.getStorageUsage();
+        newValue = `${usage.totalKB}KB`;
+      } else {
+        // 通常の統計値
+        newValue = stats[config.type] || 0;
+      }
+      
+      const currentValue = element.textContent;
+      
+      if (currentValue !== String(newValue)) {
+        this.log('debug', `表示要素更新: ${config.label} ${currentValue} → ${newValue}`);
+        
+        // アニメーション付きで更新
+        await this.animateValueChange(element, newValue, config);
+        
+        // データ属性で最終更新時刻を記録
+        element.setAttribute('data-last-updated', new Date().toISOString());
+        element.setAttribute('data-stat-type', config.type);
+      }
+      
+    } catch (error) {
+      this.log('warn', `表示要素更新エラー (${elementId}):`, error);
+    }
+  }
+
+  /**
+   * 値変更アニメーション
+   */
+  async animateValueChange(element, newValue, config) {
+    return new Promise((resolve) => {
+      // スケールアニメーション
       element.style.transform = 'scale(1.1)';
       element.style.transition = `transform ${this.config.animationDuration}ms ease`;
+      element.style.color = config.color || '#007bff';
       
-      // 値の更新
       setTimeout(() => {
-        element.textContent = value;
+        element.textContent = newValue;
         element.style.transform = 'scale(1)';
         
-        // 変更があったことを視覚的に示す
-        element.style.color = '#4a90e2';
+        // 色をリセット
         setTimeout(() => {
           element.style.color = '';
-        }, 500);
+          resolve();
+        }, this.config.animationDuration);
         
       }, this.config.animationDuration / 2);
-    } else {
-      element.textContent = value;
-    }
+    });
   }
 
   /**
-   * エラー状態の表示
+   * エラー表示（UI専門）
    */
-  showStatsError() {
-    const statElements = ['stat-published', 'stat-drafts', 'stat-instagram-visible', 'stat-instagram-hidden'];
-    
-    statElements.forEach(id => {
-      const element = document.getElementById(id);
+  showDisplayError() {
+    this.availableElements.forEach(elementId => {
+      const element = document.getElementById(elementId);
       if (element) {
         element.style.color = '#dc3545';
         element.textContent = '---';
+        element.setAttribute('data-error', 'true');
         
         // 5秒後に元に戻す
         setTimeout(() => {
           element.style.color = '';
+          element.removeAttribute('data-error');
         }, 5000);
       }
     });
+    
+    if (this.notificationService) {
+      this.notificationService.toast('統計表示の更新に失敗しました', 'error');
+    }
+  }
+
+  /**
+   * 更新成功表示
+   */
+  showUpdateSuccess() {
+    if (this.notificationService) {
+      this.notificationService.toast('統計データを更新しました', 'success', 1000);
+    }
   }
 
   /**
    * 自動更新の開始
    */
-  startAutoUpdate() {
+  startAutoRefresh() {
     if (this.updateIntervalId) {
-      this.stopAutoUpdate();
+      this.stopAutoRefresh();
     }
     
     this.updateIntervalId = setInterval(() => {
-      this.updateStats();
+      this.refreshDisplay();
     }, this.config.updateInterval);
     
-    this.log(`自動更新開始 (${this.config.updateInterval}ms間隔)`, 'debug');
+    this.log('debug', `自動表示更新開始 (${this.config.updateInterval}ms間隔)`);
   }
 
   /**
    * 自動更新の停止
    */
-  stopAutoUpdate() {
+  stopAutoRefresh() {
     if (this.updateIntervalId) {
       clearInterval(this.updateIntervalId);
       this.updateIntervalId = null;
-      this.log('自動更新停止', 'debug');
+      this.log('debug', '自動表示更新停止');
     }
   }
 
   /**
    * 手動更新の実行
    */
-  async refresh() {
-    this.log('手動統計更新実行', 'info');
-    await this.updateStats();
+  async manualRefresh() {
+    this.log('info', '手動統計表示更新実行');
     
-    // 成功通知
-    this.notificationService.toast('統計を更新しました', 'success');
+    try {
+      // 統一サービスに統計の強制更新を依頼
+      await this.unifiedStatsService.forceRefresh();
+      
+      // 表示更新
+      await this.refreshDisplay();
+      
+      this.log('info', '手動表示更新完了');
+      
+    } catch (error) {
+      this.log('error', '手動表示更新エラー:', error);
+      this.showDisplayError();
+    }
   }
 
   /**
-   * 設定の更新
+   * グローバルUIヘルパー関数の設定
    */
-  updateConfig(newConfig) {
+  setupGlobalUIHelpers() {
+    // 表示更新関数のグローバル公開
+    window.updateDashboardDisplay = () => this.refreshDisplay();
+    window.refreshDashboardDisplay = () => this.manualRefresh();
+    
+    this.log('debug', 'グローバルUIヘルパー関数設定完了');
+  }
+
+  /**
+   * UI設定の更新
+   */
+  updateUIConfig(newConfig) {
     const oldInterval = this.config.updateInterval;
     this.config = { ...this.config, ...newConfig };
     
     // 更新間隔が変更された場合は自動更新を再起動
-    if (oldInterval !== this.config.updateInterval) {
-      this.stopAutoUpdate();
-      this.startAutoUpdate();
+    if (oldInterval !== this.config.updateInterval && this.config.autoRefresh) {
+      this.stopAutoRefresh();
+      this.startAutoRefresh();
+      this.log('info', `表示更新間隔変更: ${oldInterval}ms → ${this.config.updateInterval}ms`);
     }
-    
-    this.log('設定が更新されました', 'info');
   }
 
   /**
-   * 統計データの取得（外部アクセス用）
+   * 現在の表示統計の取得
    */
-  getCurrentStats() {
-    return { ...this.currentStats };
+  getCurrentDisplayStats() {
+    return { ...this.currentDisplayStats };
   }
 
   /**
-   * メトリクスの取得（リファクタリング効果測定用）
+   * UIデバッグ情報の表示
    */
-  getMetrics() {
-    return {
-      updateInterval: this.config.updateInterval,
-      lastUpdate: new Date().toISOString(),
-      isAutoUpdating: !!this.updateIntervalId,
-      currentStats: this.getCurrentStats(),
-      componentStatus: 'active'
-    };
-  }
-
-  /**
-   * デバッグ情報の表示
-   */
-  showDebugInfo() {
-    console.log('=== Dashboard Stats Widget Debug Info ===');
-    console.log('Current Stats:', this.getCurrentStats());
-    console.log('Config:', this.config);
-    console.log('Metrics:', this.getMetrics());
-    console.log('=========================================');
+  showUIDebugInfo() {
+    console.log('=== DashboardStatsWidget UI Debug Info ===');
+    console.log('Available Elements:', this.availableElements);
+    console.log('Current Display Stats:', this.currentDisplayStats);
+    console.log('UI Config:', this.config);
+    console.log('Element Mapping:', this.statElementMap);
+    console.log('Auto Refresh Active:', !!this.updateIntervalId);
+    console.log('==========================================');
   }
 
   /**
    * コンポーネントの破棄
    */
   destroy() {
-    this.stopAutoUpdate();
+    this.log('info', 'DashboardStatsWidget破棄開始');
+    
+    // 自動更新停止
+    this.stopAutoRefresh();
     
     // グローバル関数の削除
-    delete window.updateDashboardStats;
-    delete window.refreshStats;
+    delete window.updateDashboardDisplay;
+    delete window.refreshDashboardDisplay;
     
     // イベントリスナーの削除
-    window.removeEventListener('storage', this.updateStats);
-    document.removeEventListener('visibilitychange', this.updateStats);
+    if (this.visibilityListener) {
+      document.removeEventListener('visibilitychange', this.visibilityListener);
+    }
+    if (this.statsUpdateListener) {
+      document.removeEventListener('statsUpdated', this.statsUpdateListener);
+    }
+    
+    // 状態リセット
+    this.currentDisplayStats = {};
+    this.availableElements = [];
     
     this.initialized = false;
-    this.log('DashboardStatsWidget destroyed', 'info');
+    
+    this.log('info', 'DashboardStatsWidget破棄完了 - UI専門版');
   }
 }
 
@@ -382,8 +505,8 @@ export function getDashboardStatsWidget() {
 }
 
 /**
- * 統計の手動更新
+ * 統計表示の手動更新
  */
-export function refreshDashboardStats() {
-  return getDashboardStatsWidget().refresh();
+export function refreshDashboardDisplay() {
+  return getDashboardStatsWidget().manualRefresh();
 } 

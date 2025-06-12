@@ -20,7 +20,7 @@ const config = {
     prefix: 'rbs_',
     version: '4.0.0',
     
-    // 統一ストレージキー（シンプル版）
+    // 統一ストレージキー（Instagram統合版）
     keys: {
       // コアデータ
       articles: 'rbs_articles',           // 記事データ（統一）
@@ -32,9 +32,14 @@ const config = {
       adminSession: 'rbs_admin_session',  // セッション情報
       
       // 機能別データ
-      instagram: 'rbs_instagram',         // Instagram投稿
+      instagram: 'rbs_instagram_posts',   // Instagram投稿（統一キー）
       lessons: 'rbs_lessons',             // レッスン状況（統一）
       lessonStatus: 'rbs_lessons',        // レッスン状況（旧キー互換性）
+      
+      // Instagram関連（詳細）
+      instagramPosts: 'rbs_instagram_posts',    // Instagram投稿メイン
+      instagramSettings: 'rbs_instagram_settings', // Instagram設定
+      instagramBackup: 'rbs_instagram_backup',     // Instagramバックアップ
       
       // 一時データ
       draft: 'rbs_draft',                 // 下書きデータ

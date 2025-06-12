@@ -1177,46 +1177,19 @@ export class AdminActionService {
   // ===========================================
 
   updateDashboardStats() {
-    this.debug('ダッシュボード統計更新');
+    this.debug('📢 ダッシュボード統計更新: 統一サービスに移管済み');
+    
+    // ⚠️ 重要: この機能は UnifiedDashboardStatsService と DashboardStatsWidget に移管されました
+    // 互換性のため関数は残しますが、実際の処理は行いません
+    
     try {
-      // データの初期化確認
-      this.initializeArticleData();
-      
-      const articles = this.getArticles();
-      const publishedCount = articles.filter(a => a.status === 'published').length;
-      const draftCount = articles.filter(a => a.status === 'draft').length;
-      
-      this.debug(`統計データ: 公開${publishedCount}件、下書き${draftCount}件`);
-      
-      // 統計カードの更新（IDベースでより確実に）
-      const statElements = {
-        published: document.querySelector('#stat-published'),
-        drafts: document.querySelector('#stat-drafts'),
-        instagramVisible: document.querySelector('#stat-instagram-visible'),
-        instagramHidden: document.querySelector('#stat-instagram-hidden')
-      };
-      
-      // 公開記事数
-      if (statElements.published) {
-        statElements.published.textContent = publishedCount;
-        this.debug(`公開記事数を更新: ${publishedCount}`);
+      // グローバル関数経由でDashboardStatsWidgetの更新を呼び出し
+      if (window.updateDashboardStats && typeof window.updateDashboardStats === 'function') {
+        window.updateDashboardStats();
+        this.debug('✅ 統一ダッシュボード統計サービス経由で更新しました');
+      } else {
+        this.debug('⚠️ DashboardStatsWidgetが初期化されていません');
       }
-      
-      // 下書き記事数
-      if (statElements.drafts) {
-        statElements.drafts.textContent = draftCount;
-        this.debug(`下書き記事数を更新: ${draftCount}`);
-      }
-      
-      // Instagram統計（準備中）
-      if (statElements.instagramVisible) {
-        statElements.instagramVisible.textContent = '0';
-      }
-      if (statElements.instagramHidden) {
-        statElements.instagramHidden.textContent = '0';
-      }
-      
-      this.refreshRecentArticles();
       
     } catch (error) {
       this.error('ダッシュボード統計更新エラー:', error);
