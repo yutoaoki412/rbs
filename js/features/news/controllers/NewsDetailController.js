@@ -177,7 +177,7 @@ export default class NewsDetailController {
           message: ERROR_MESSAGES.INVALID_ID,
           actions: [
             { text: 'ニュース一覧へ', href: 'news.html', class: 'btn-primary' },
-            { text: 'ホームへ', href: '../pages/index.html', class: 'btn-secondary' }
+            { text: 'ホームへ', href: './index.html', class: 'btn-secondary' }
           ]
         };
         break;
@@ -189,7 +189,7 @@ export default class NewsDetailController {
           message: ERROR_MESSAGES.ARTICLE_NOT_FOUND,
           actions: [
             { text: 'ニュース一覧へ', href: 'news.html', class: 'btn-primary' },
-            { text: 'ホームへ', href: '../pages/index.html', class: 'btn-secondary' }
+            { text: 'ホームへ', href: './index.html', class: 'btn-secondary' }
           ]
         };
         break;

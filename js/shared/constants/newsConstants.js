@@ -24,7 +24,7 @@ export const SHARE_CONFIG = {
 
 export const META_TAGS = {
   SITE_NAME: 'RBS陸上教室',
-  DEFAULT_IMAGE: '../assets/images/lp-logo.png',
+  DEFAULT_IMAGE: './assets/images/lp-logo.png',
   DEFAULT_DESCRIPTION: 'RBS陸上教室のニュース詳細'
 };
 

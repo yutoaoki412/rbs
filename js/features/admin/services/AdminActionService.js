@@ -2019,7 +2019,7 @@ export class AdminActionService {
     if (confirm('ログアウトしますか？')) {
       this.debug('ログアウト');
       // ログアウト処理
-      window.location.href = '../index.html';
+      window.location.href = './index.html';
     }
   }
 
@@ -2178,7 +2178,7 @@ export class AdminActionService {
     this.showNotification('接続テスト中...', 'info');
     
     // 簡単な接続テスト
-    fetch('../index.html')
+            fetch('./index.html')
       .then(() => this.showNotification('接続テスト成功'))
       .catch(() => this.showNotification('接続テスト失敗', 'error'));
   }

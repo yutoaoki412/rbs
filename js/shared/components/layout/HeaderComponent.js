@@ -524,7 +524,7 @@ class HeaderComponent extends Component {
         const currentPath = window.location.pathname;
         
         if (currentPath.includes('/pages/')) {
-            return '../pages/index.html';
+            return './index.html';
         }
         
         return 'index.html';

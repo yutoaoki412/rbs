@@ -88,7 +88,7 @@ const redirectHistory = {
     // 3秒後にホームページに移動
     setTimeout(() => {
       console.log('🏠 ホームページに移動します');
-      window.location.href = window.location.origin + '/src/public/pages/index.html';
+      window.location.href = window.location.origin + '/index.html';
     }, 3000);
     
     // 警告メッセージ表示
@@ -168,13 +168,13 @@ export const PATHS = {
   // ページパス
   PAGES: {
     // 管理画面関連
-    ADMIN_LOGIN: `${getBasePath()}/pages/admin-login.html`,
-    ADMIN: `${getBasePath()}/pages/admin.html`,
+    ADMIN_LOGIN: `${getBasePath()}/admin-login.html`,
+    ADMIN: `${getBasePath()}/admin.html`,
     
     // 一般ページ
-    HOME: `${getBasePath()}/pages/index.html`,
-    NEWS: `${getBasePath()}/pages/news.html`,
-    NEWS_DETAIL: `${getBasePath()}/pages/news-detail.html`,
+    HOME: `${getBasePath()}/index.html`,
+    NEWS: `${getBasePath()}/news.html`,
+    NEWS_DETAIL: `${getBasePath()}/news-detail.html`,
     
     // 相対パス（同じディレクトリ内）
     RELATIVE: {

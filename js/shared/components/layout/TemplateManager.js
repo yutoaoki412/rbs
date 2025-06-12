@@ -252,8 +252,8 @@ export class TemplateManager extends BaseService {
     getDefaultTemplateVariables() {
         return {
             base_path: PATHS.BASE,
-            logoLink: '../pages/index.html',
-            newsLink: '../pages/index.html#news',
+                    logoLink: './index.html',
+        newsLink: './index.html#news',
             currentYear: new Date().getFullYear(),
             siteName: 'RBS陸上教室',
             companyName: '合同会社VITA'
@@ -276,8 +276,8 @@ export class TemplateManager extends BaseService {
             isNewsPage: pageType.includes('news'),
             isAdminPage: pageType === 'admin',
             currentPath: currentPath,
-            logoLink: isHomePage ? '#hero' : '../pages/index.html',
-            newsLink: isHomePage ? '#news' : '../pages/index.html#news'
+                      logoLink: isHomePage ? '#hero' : './index.html',
+          newsLink: isHomePage ? '#news' : './index.html#news'
         };
     }
 
