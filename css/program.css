@@ -1,0 +1,406 @@
+/* ==========================================================================
+   Program Section - プログラム内容・1日の流れ専用スタイル
+   ========================================================================== */
+
+/* プログラムセクション全体 */
+#program {
+  background: var(--white);
+  padding: var(--section-padding) 0 !important;
+  position: relative;
+  overflow: hidden;
+  scroll-margin-top: var(--scroll-offset) !important;
+}
+
+/* プログラムグリッド - モバイルファーストアプローチ */
+.program-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  margin-bottom: 60px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* プログラムカード */
+.program-card {
+  background: var(--white);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  border: 3px solid var(--primary-blue);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.program-card.advanced {
+  border-color: var(--primary-blue);
+}
+
+.program-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* プログラムヘッダー */
+.program-header {
+  padding: 25px 20px;
+  text-align: center;
+  color: white;
+  background: var(--primary-blue);
+  position: relative;
+  overflow: hidden;
+}
+
+.program-card.advanced .program-header {
+  background: var(--primary-blue);
+}
+
+.program-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: shimmer 4s infinite;
+}
+
+.program-header h3 {
+  font-size: 24px;
+  margin-bottom: 8px;
+  font-weight: 800;
+  position: relative;
+  z-index: 2;
+}
+
+.program-header p {
+  font-size: 16px;
+  font-weight: 600;
+  opacity: 0.9;
+  margin: 5px 0;
+  position: relative;
+  z-index: 2;
+}
+
+/* プログラム本文 */
+.program-body {
+  padding: 30px 20px;
+}
+
+.program-body h4 {
+  color: var(--navy-dark);
+  font-size: 18px;
+  margin-bottom: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 特徴リスト */
+.program-body ul {
+  list-style: none;
+  margin-bottom: 25px;
+  padding: 0;
+}
+
+.program-body li {
+  padding: 6px 0;
+  color: var(--gray-medium);
+  font-size: 14px;
+  position: relative;
+  padding-left: 25px;
+  line-height: 1.5;
+}
+
+.program-body li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--primary-blue);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.program-card.advanced .program-body li::before {
+  color: var(--primary-blue);
+}
+
+/* 1日の流れ */
+.daily-schedule {
+  background: var(--gray-light);
+  padding: 20px;
+  border-radius: 15px;
+  margin-top: 20px;
+}
+
+.schedule-item {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--gray-border);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.schedule-item:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.schedule-time {
+  font-weight: 700;
+  color: var(--primary-blue);
+  font-size: 14px;
+}
+
+.program-card.advanced .schedule-time {
+  color: var(--primary-blue);
+}
+
+.schedule-content {
+  color: var(--gray-medium);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* 共通プログラム要素 */
+.common-programs-section {
+  background: var(--gray-light);
+  padding: 40px 20px;
+  border-radius: 25px;
+  margin-bottom: 40px;
+}
+
+.common-programs-section h3 {
+  text-align: center;
+  color: var(--navy-dark);
+  font-size: 24px;
+  margin-bottom: 30px;
+  font-weight: 800;
+}
+
+.common-programs {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.common-program-card {
+  background: var(--white);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border: 3px solid var(--primary-blue);
+  transition: all 0.3s ease;
+}
+
+.common-program-card:nth-child(2) {
+  border-color: var(--primary-blue);
+}
+
+.common-program-card:nth-child(3) {
+  border-color: var(--primary-blue);
+}
+
+.common-program-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+}
+
+.common-program-media {
+  height: 140px;
+  position: relative;
+  overflow: hidden;
+}
+
+.common-program-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.common-program-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 60%, rgba(0,0,0,0.3));
+}
+
+.common-program-content {
+  padding: 20px;
+  text-align: center;
+}
+
+.common-program-content h4 {
+  color: var(--navy-dark);
+  font-size: 18px;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.common-program-content p {
+  color: var(--gray-medium);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* タブレット以上 (768px以上) */
+@media (min-width: 768px) {
+  #program {
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
+  }
+
+  .program-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
+    margin-bottom: 80px;
+  }
+
+  .program-header {
+    padding: 30px;
+  }
+
+  .program-header h3 {
+    font-size: 28px;
+    margin-bottom: 10px;
+  }
+
+  .program-header p {
+    font-size: 18px;
+  }
+
+  .program-body {
+    padding: 40px;
+  }
+
+  .program-body h4 {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .program-body li {
+    font-size: 16px;
+    padding: 8px 0;
+    padding-left: 30px;
+  }
+
+  .daily-schedule {
+    padding: 25px;
+  }
+
+  .schedule-item {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+  }
+
+  .schedule-time {
+    font-size: 16px;
+    min-width: 150px;
+    flex-shrink: 0;
+  }
+
+  .schedule-content {
+    font-size: 15px;
+    flex: 1;
+  }
+
+  .common-programs-section {
+    padding: 50px;
+  }
+
+  .common-programs-section h3 {
+    font-size: 30px;
+    margin-bottom: 40px;
+  }
+
+  .common-programs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+  }
+
+  .common-program-media {
+    height: 160px;
+  }
+
+  .common-program-content h4 {
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
+
+  .common-program-content p {
+    font-size: 15px;
+  }
+}
+
+/* デスクトップ (1200px以上) */
+@media (min-width: 1200px) {
+  .program-grid {
+    gap: 50px;
+  }
+
+  .program-header {
+    padding: 40px;
+  }
+
+  .program-header h3 {
+    font-size: 32px;
+  }
+
+  .program-header p {
+    font-size: 20px;
+  }
+
+  .program-body {
+    padding: 50px;
+  }
+
+  .common-programs-section {
+    padding: 60px;
+  }
+
+  .common-program-media {
+    height: 180px;
+  }
+}
+
+/* アニメーション */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+/* アクセシビリティ対応 */
+@media (prefers-reduced-motion: reduce) {
+  .program-card,
+  .common-program-card,
+  .program-header::before {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* 高コントラスト対応 */
+@media (prefers-contrast: high) {
+  .program-card,
+  .common-program-card {
+    border-width: 4px;
+  }
+  
+  .schedule-item {
+    border-bottom-width: 3px;
+  }
+} 

@@ -1,0 +1,1019 @@
+/* ==========================================================================
+   ステータスバナー専用スタイル - 完全統合リファクタリング版
+   ========================================================================== */
+
+/* ヒーローセクションとの隙間を完全に削除するためのリセット */
+#hero {
+  margin-bottom: 0 !important;
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+}
+
+#hero + .status-banner,
+#hero + #today-status {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  border-top: none !important;
+}
+
+/* ステータスバナー基本スタイル - 完全統合版 */
+.status-banner,
+#today-status {
+  background: var(--primary-blue);
+  color: white;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 0;
+  box-shadow: 0 4px 20px rgba(74, 144, 226, 0.25);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  display: block;
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+  z-index: 50;
+  width: 100%;
+  scroll-margin-top: var(--header-height);
+  
+  /* ヒーローセクションと完全に統合 */
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  
+  /* ページ読み込み時のアニメーション */
+  animation: slideInFromTop 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* 隙間削除を強制するためのグローバル設定 */
+body.page-index #hero,
+body.page-news #hero,
+body.page-news-detail #hero {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+  border-bottom: none !important;
+}
+
+body.page-index .status-banner,
+body.page-news .status-banner,
+body.page-news-detail .status-banner,
+body.page-index #today-status,
+body.page-news #today-status,
+body.page-news-detail #today-status {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  border-top: none !important;
+}
+
+/* ページ読み込み時のアニメーション定義 */
+@keyframes slideInFromTop {
+  0% {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 初期状態（JavaScript読み込み前） */
+.status-banner.loading {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* 表示状態 */
+.status-banner.loaded {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ヒーローセクションとの統合効果 */
+.status-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.4) 25%, 
+    rgba(255, 255, 255, 0.6) 50%, 
+    rgba(255, 255, 255, 0.4) 75%, 
+    transparent 100%);
+  animation: shimmer 3s ease-in-out infinite;
+  opacity: 0.8;
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* コンテナー */
+.status-banner .container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  position: relative;
+}
+
+/* 表示・非表示制御 */
+.status-banner-visible {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.status-banner-hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ステータスヘッダー */
+.status-header {
+  padding: 18px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  min-height: 68px;
+  border-radius: 0;
+  z-index: 48;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.status-header:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ステータス情報エリア */
+.status-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex: 1;
+}
+
+.status-dot {
+  position: relative;
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.status-dot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: #1abc9c;
+  border-radius: 50%;
+}
+
+.status-dot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  width: 12px;
+  height: 12px;
+  border: 2px solid #1abc9c;
+  border-radius: 50%;
+  opacity: 0.7;
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+.status-text {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: white;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* ステータス表示器 */
+.status-indicator {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.status-indicator.scheduled {
+  background: var(--status-scheduled);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 10px var(--status-scheduled-light);
+}
+
+.status-indicator.cancelled {
+  background: var(--status-cancelled);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 10px var(--status-cancelled-light);
+}
+
+.status-indicator.indoor {
+  background: var(--status-indoor);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 10px var(--status-indoor-light);
+}
+
+.status-indicator.postponed {
+  background: var(--status-postponed);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 10px var(--status-postponed-light);
+}
+
+.status-indicator.error {
+  background: var(--primary-red);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 10px rgba(231, 76, 60, 0.4);
+}
+
+/* トグルアイコン */
+.toggle-icon {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.1);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  margin-left: 15px;
+}
+
+.status-banner.expanded .toggle-icon {
+  transform: rotate(180deg);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* ステータスコンテンツ - 完全版 */
+.status-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 45;
+}
+
+/* 展開時のスタイル */
+.status-banner.expanded .status-content {
+  opacity: 1;
+}
+
+/* ステータス詳細 */
+.status-details {
+  padding: 25px 30px;
+  background: #f8f9fa;
+  border-radius: 0;
+  position: relative;
+  z-index: 40;
+}
+
+.status-details::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+}
+
+/* 読み込み状態 */
+.loading-status {
+  text-align: center;
+  padding: 30px 20px;
+  color: #7f8c8d;
+}
+
+.loading-status i {
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: #4a90e2;
+  animation: spin 1s linear infinite;
+}
+
+.loading-status p {
+  margin: 10px 0 0 0;
+  font-weight: 600;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* グローバルメッセージ */
+.status-message,
+.global-message {
+  background: #e8f4fd;
+  color: #2c3e50;
+  padding: 15px 20px;
+  border-radius: 12px;
+  margin: 15px 0;
+  border-left: 4px solid #4a90e2;
+  box-shadow: 0 2px 10px rgba(74, 144, 226, 0.1);
+}
+
+.status-message::before,
+.global-message::before {
+  content: '📢';
+  margin-right: 10px;
+  font-size: 16px;
+}
+
+.status-message p,
+.global-message p {
+  margin: 0;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.status-message .message-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-message .message-content i {
+  color: #4a90e2;
+  font-size: 18px;
+}
+
+/* コース状況表示 */
+.courses-status {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.course-item {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.course-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: #4a90e2;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.course-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  border-color: #4a90e2;
+}
+
+.course-item:hover::before {
+  transform: scaleX(1);
+}
+
+.course-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.course-info {
+  flex: 1;
+  min-width: 200px;
+}
+
+.course-info h5 {
+  font-size: 18px;
+  color: #2c3e50;
+  margin: 0 0 8px 0;
+  font-weight: 700;
+  line-height: 1.3;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.course-time {
+  color: #7f8c8d;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 4px 0;
+}
+
+.time-slot strong {
+  display: block;
+  font-size: 22px;
+  color: var(--navy-dark);
+  margin-bottom: 8px;
+  font-weight: var(--font-weight-heavy);
+  line-height: 1.2;
+}
+
+.course-name {
+  font-size: 16px;
+  color: var(--gray-medium);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* ステータスバッジ */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 70px;
+  text-align: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.status-badge.running {
+  background: var(--primary-teal);
+  color: white;
+  box-shadow: 0 2px 8px rgba(80, 200, 163, 0.4);
+}
+
+.status-badge.scheduled {
+  background: var(--status-scheduled);
+  color: white;
+  box-shadow: 0 2px 8px var(--status-scheduled-light);
+}
+
+.status-badge.cancelled {
+  background: var(--status-cancelled);
+  color: white;
+  box-shadow: 0 2px 8px var(--status-cancelled-light);
+}
+
+.status-badge.indoor {
+  background: var(--status-indoor);
+  color: white;
+  box-shadow: 0 2px 8px var(--status-indoor-light);
+}
+
+.status-badge.postponed {
+  background: var(--status-postponed);
+  color: white;
+  box-shadow: 0 2px 8px var(--status-postponed-light);
+}
+
+.status-badge.error {
+  background: var(--primary-red);
+  color: white;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.4);
+}
+
+/* ステータスフッター - より具体的なセレクター */
+.status-footer {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e9ecef;
+  text-align: center;
+  background: #f8f9fa;
+  margin-left: -30px;
+  margin-right: -30px;
+  margin-bottom: -25px;
+  padding: 15px 30px;
+}
+
+.status-footer .last-updated,
+.status-banner .last-updated,
+#today-status .last-updated,
+.status-details .last-updated {
+  color: #2c3e50 !important;
+  font-size: 14px;
+  font-weight: 600;
+  text-shadow: none;
+  background: transparent;
+}
+
+.status-footer .update-note,
+.status-banner .update-note,
+#today-status .update-note,
+.status-details .update-note {
+  color: #2c3e50 !important;
+  font-size: 12px;
+  margin-top: 5px;
+  font-weight: 500;
+  background: transparent;
+}
+
+/* 対象日と最終更新のテキスト内容も強制的に色を変更 */
+.status-footer *,
+.status-banner .status-footer *,
+#today-status .status-footer * {
+  color: #2c3e50 !important;
+}
+
+/* より具体的なフッター内テキスト要素 */
+.status-footer span,
+.status-footer p,
+.status-footer div,
+.status-banner .status-footer span,
+.status-banner .status-footer p,
+.status-banner .status-footer div,
+#today-status .status-footer span,
+#today-status .status-footer p,
+#today-status .status-footer div {
+  color: #2c3e50 !important;
+  font-weight: 600;
+}
+
+/* JavaScript生成要素用スタイル */
+.status-info-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 0;
+}
+
+.status-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.status-info-item i {
+  color: #4a90e2 !important;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.status-info-item .info-label,
+.status-footer .info-label,
+.status-banner .info-label,
+#today-status .info-label {
+  color: #2c3e50 !important;
+  font-size: 12px;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.status-info-item .info-value,
+.status-footer .info-value,
+.status-banner .info-value,
+#today-status .info-value {
+  color: #2c3e50 !important;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* エラー状態 */
+.error-status {
+  background: #ffeaea;
+  border: 2px solid var(--status-cancelled);
+  border-radius: 12px;
+  padding: 25px;
+  text-align: center;
+  color: var(--status-cancelled-dark);
+  margin: 20px 0;
+}
+
+.error-status h4 {
+  color: var(--status-cancelled);
+  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.error-status p {
+  margin: 5px 0;
+  font-weight: 500;
+}
+
+/* ステータス項目（一般） */
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px 20px;
+  border-bottom: 2px solid var(--gray-border);
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.status-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary-blue);
+  border-radius: 2px;
+}
+
+.status-item:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+/* タブレット対応 (992px以下) */
+@media (max-width: 992px) {
+  .status-banner .container {
+    padding: 0 15px;
+  }
+  
+  .status-header {
+    padding: 16px 0;
+    min-height: 62px;
+  }
+  
+  .status-text {
+    font-size: 17px;
+  }
+  
+  .courses-status {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 18px;
+  }
+}
+
+/* タブレット・モバイル対応 (768px以下) */
+@media (max-width: 768px) {
+  /* 完全に隙間を削除するモバイル版設定 */
+  #hero {
+    margin-bottom: 0 !important;
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+  }
+  
+  .status-banner,
+  #today-status {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-top: none !important;
+    box-shadow: 0 2px 12px rgba(74, 144, 226, 0.2);
+  }
+  
+  .status-banner .container {
+    padding: 0 15px;
+  }
+  
+  .status-header {
+    padding: 14px 0;
+    min-height: 58px;
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  .status-info {
+    gap: 10px;
+  }
+  
+  .status-text {
+    font-size: 16px;
+  }
+  
+  .status-indicator {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .toggle-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    margin-left: 10px;
+  }
+  
+  .status-details {
+    padding: 20px 15px;
+  }
+  
+  .courses-status {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .course-item {
+    padding: 18px 15px;
+    gap: 12px;
+  }
+  
+  .course-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .course-info {
+    min-width: auto;
+    order: 1;
+  }
+  
+  .course-info h5 {
+    font-size: 16px;
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+  
+  .course-time {
+    font-size: 14px;
+    margin: 2px 0;
+  }
+  
+  .time-slot strong {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+  
+  .status-badge {
+    order: 2;
+    align-self: flex-start;
+    margin-top: 8px;
+  }
+  
+  .status-footer {
+    margin-left: -15px;
+    margin-right: -15px;
+    padding: 15px 20px;
+  }
+  
+  .status-info-grid {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .status-info-item {
+    justify-content: center;
+    gap: 6px;
+  }
+  
+  .status-info-item .info-label {
+    font-size: 11px;
+  }
+  
+  .status-info-item .info-value {
+    font-size: 12px;
+  }
+  
+  .last-updated {
+    font-size: 13px;
+  }
+  
+  .update-note {
+    font-size: 11px;
+  }
+  
+  .status-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+}
+
+/* 小画面モバイル対応 (480px以下) */
+@media (max-width: 480px) {
+  /* 小画面での隙間完全削除 */
+  #hero {
+    margin-bottom: 0 !important;
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+  }
+  
+  .status-banner,
+  #today-status {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-top: none !important;
+    box-shadow: 0 2px 12px rgba(74, 144, 226, 0.2);
+  }
+  
+  .status-header {
+    padding: 12px 0;
+    min-height: 52px;
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  .status-info {
+    gap: 8px;
+  }
+  
+  .status-text {
+    font-size: 15px;
+    letter-spacing: 0.3px;
+  }
+  
+  .status-indicator {
+    padding: 5px 10px;
+    font-size: 11px;
+    border-radius: 15px;
+  }
+  
+  .toggle-icon {
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+    margin-left: 8px;
+  }
+  
+  .status-details {
+    padding: 15px 12px;
+  }
+  
+  .course-item {
+    padding: 15px 12px;
+    border-radius: 8px;
+    gap: 10px;
+  }
+  
+  .course-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  
+  .course-info h5 {
+    font-size: 15px;
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
+  
+  .course-time {
+    font-size: 13px;
+    margin: 1px 0;
+  }
+  
+  .time-slot strong {
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+  
+  .course-name {
+    font-size: 14px;
+    line-height: 1.3;
+  }
+  
+  .status-badge {
+    padding: 5px 10px;
+    font-size: 10px;
+    min-width: 60px;
+    border-radius: 12px;
+    align-self: flex-start;
+    margin-top: 6px;
+  }
+  
+  .status-footer {
+    margin-left: -12px;
+    margin-right: -12px;
+    padding: 12px 15px;
+  }
+  
+  .status-info-grid {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  
+  .status-info-item {
+    justify-content: center;
+    gap: 5px;
+  }
+  
+  .status-info-item i {
+    font-size: 12px;
+  }
+  
+  .status-info-item .info-label {
+    font-size: 10px;
+  }
+  
+  .status-info-item .info-value {
+    font-size: 11px;
+  }
+  
+  .last-updated {
+    font-size: 12px;
+  }
+  
+  .update-note {
+    font-size: 10px;
+  }
+}
+
+/* ヘッダー固定時の追加調整 */
+body.header-fixed .status-banner,
+body.header-fixed #today-status {
+  position: relative;
+  top: 0;
+  margin-top: 0 !important;
+}
+
+/* スムーズスクロール対応 */
+@media (min-width: 769px) {
+  .status-banner,
+  #today-status {
+    scroll-margin-top: var(--header-height);
+  }
+}
+
+@media (max-width: 768px) {
+  .status-banner,
+  #today-status {
+    scroll-margin-top: 58px;
+  }
+}
+
+/* ページタイプ別の追加設定 */
+.page-index .status-banner,
+.page-index #today-status {
+  /* ホームページ専用設定 */
+}
+
+.page-news .status-banner,
+.page-news #today-status,
+.page-news-detail .status-banner,
+.page-news-detail #today-status {
+  /* ニュースページ専用設定 */
+  display: none; /* ニュースページではステータスバナーを非表示 */
+}
+
+/* デバッグ用（開発時のみ） */
+.status-banner.debug {
+  border: 3px solid red !important;
+}
+
+.status-banner.debug::after {
+  content: 'DEBUG MODE';
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: red;
+  color: white;
+  padding: 2px 6px;
+  font-size: 10px;
+  border-radius: 3px;
+  z-index: 1000;
+} 

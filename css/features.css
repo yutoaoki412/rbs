@@ -1,0 +1,308 @@
+/* ==========================================================================
+   Features Section - RBS陸上教室の3つの特徴専用スタイル
+   ========================================================================== */
+
+/* 特徴セクション全体 */
+#about .features {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  margin-top: 60px;
+  position: relative;
+  z-index: 2;
+}
+
+/* 特徴カード - モバイルファーストアプローチ */
+.feature-card {
+  background: var(--white);
+  padding: 30px 20px;
+  border-radius: 20px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 20px;
+  z-index: -1;
+}
+
+.feature-card:nth-child(1)::before {
+  background: var(--primary-blue);
+}
+
+.feature-card:nth-child(2)::before {
+  background: var(--primary-blue);
+}
+
+.feature-card:nth-child(3)::before {
+  background: var(--primary-blue);
+}
+
+.feature-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* 特徴番号 */
+.feature-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  background: var(--primary-blue);
+  color: var(--white);
+  font-size: 24px;
+  font-weight: 800;
+  border-radius: 50%;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card:nth-child(1) .feature-number {
+  background: var(--primary-blue);
+}
+
+.feature-card:nth-child(2) .feature-number {
+  background: var(--primary-blue);
+}
+
+.feature-card:nth-child(3) .feature-number {
+  background: var(--primary-blue);
+}
+
+.feature-number::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 4s infinite;
+}
+
+/* 特徴タイトル */
+.feature-card h3 {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: var(--navy-dark);
+  line-height: 1.4;
+  font-weight: 800;
+  position: relative;
+}
+
+/* 特徴説明 */
+.feature-card p {
+  line-height: 1.7;
+  color: var(--gray-medium);
+  font-size: 15px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.feature-card strong {
+  color: var(--navy-dark);
+  font-weight: 700;
+}
+
+/* 色付きテキストスタイル */
+.text-primary {
+  color: var(--primary-blue);
+  font-weight: 700;
+}
+
+.text-success {
+  color: var(--primary-teal);
+  font-weight: 700;
+}
+
+.text-warning {
+  color: var(--primary-orange);
+  font-weight: 700;
+}
+
+/* 特徴セクションタイトル */
+.features-title {
+  text-align: center;
+  font-size: clamp(24px, 5vw, 42px);
+  color: var(--navy-dark);
+  margin-bottom: 40px;
+  font-weight: 800;
+  position: relative;
+}
+
+.features-title::after {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: var(--primary-blue);
+  border-radius: 2px;
+}
+
+/* タブレット以上 (768px以上) */
+@media (min-width: 768px) {
+  #about .features {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
+    margin-top: 80px;
+  }
+
+  .feature-card {
+    padding: 40px 30px;
+    border-radius: 25px;
+  }
+
+  .feature-card::before {
+    border-radius: 25px;
+  }
+
+  .feature-number {
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+    margin-bottom: 25px;
+  }
+
+  .feature-card h3 {
+    font-size: 22px;
+    margin-bottom: 25px;
+  }
+
+  .feature-card p {
+    font-size: 16px;
+  }
+
+  .features-title {
+    font-size: clamp(28px, 5vw, 42px);
+    margin-bottom: 60px;
+  }
+
+  .features-title::after {
+    width: 100px;
+    height: 6px;
+  }
+}
+
+/* デスクトップ (1200px以上) */
+@media (min-width: 1200px) {
+  #about .features {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 50px;
+    margin-top: 100px;
+  }
+
+  .feature-card {
+    padding: 50px 40px;
+    border-radius: 30px;
+  }
+
+  .feature-card::before {
+    border-radius: 30px;
+  }
+
+  .feature-number {
+    width: 70px;
+    height: 70px;
+    font-size: 32px;
+    margin-bottom: 30px;
+  }
+
+  .feature-card h3 {
+    font-size: 26px;
+    margin-bottom: 30px;
+  }
+
+  .feature-card p {
+    font-size: 17px;
+  }
+}
+
+/* モバイル（480px以下） */
+@media (max-width: 480px) {
+  #about .features {
+    gap: 25px;
+    margin-top: 40px;
+  }
+
+  .feature-card {
+    padding: 25px 20px;
+    border-radius: 15px;
+  }
+
+  .feature-card::before {
+    border-radius: 15px;
+  }
+
+  .feature-number {
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
+
+  .feature-card h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+    line-height: 1.3;
+  }
+
+  .feature-card p {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .features-title {
+    font-size: clamp(20px, 5vw, 28px);
+    margin-bottom: 30px;
+  }
+
+  .features-title::after {
+    width: 60px;
+    height: 3px;
+  }
+}
+
+/* アニメーション */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+/* アクセシビリティ対応 */
+@media (prefers-reduced-motion: reduce) {
+  .feature-card,
+  .feature-number::before {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* 高コントラスト対応 */
+@media (prefers-contrast: high) {
+  .feature-card {
+    border-width: 3px;
+  }
+  
+  .feature-number {
+    box-shadow: 0 0 0 2px var(--white);
+  }
+} 

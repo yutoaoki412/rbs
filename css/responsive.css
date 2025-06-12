@@ -1,0 +1,597 @@
+/* ==========================================================================
+   Responsive Design - モバイルファーストアプローチ
+   ========================================================================== */
+
+/* ブレークポイント定義 */
+/* 
+  xs: 0px - 575px (モバイル)
+  sm: 576px - 767px (大きなモバイル)
+  md: 768px - 991px (タブレット)
+  lg: 992px - 1199px (デスクトップ)
+  xl: 1200px+ (大きなデスクトップ)
+*/
+
+/* タブレット以下 (768px以下) */
+@media (max-width: 768px) {
+  /* CSS変数調整 - モバイル */
+  :root {
+    --header-height: 80px;
+    --status-banner-height: 15px;
+    --scroll-offset: calc(var(--header-height) + var(--status-banner-height)); /* 95px */
+  }
+
+  /* モバイルでのセクション強制適用 */
+  section,
+  #location,
+  #news,
+  #about,
+  #why-junior,
+  #program,
+  #price,
+  #faq,
+  #company,
+  #contact {
+    scroll-margin-top: var(--scroll-offset) !important;
+  }
+
+  /* レイアウト */
+  .container-wide,
+  .container {
+    padding: 0 20px;
+  }
+
+  /* ヘッダー調整 */
+  .header {
+    padding: 8px 0;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .nav {
+    padding: 0 20px;
+    position: relative;
+  }
+
+  /* ロゴ調整 */
+  .logo-image {
+    height: 60px;
+    max-width: 280px;
+  }
+
+  /* モバイルメニューボタン表示 */
+  .mobile-menu-btn {
+    display: flex;
+    order: 3;
+  }
+
+  /* ナビゲーションリンク - モバイル対応 */
+  .nav-links {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: var(--white);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    transform: translateX(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    gap: 0;
+    margin: 0;
+    padding: 80px 40px 40px;
+    overflow-y: auto;
+  }
+
+  .nav-links.mobile-open {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .nav-links li {
+    margin: 0 0 17px 0;
+    width: 100%;
+    max-width: 300px;
+  }
+
+  .nav-links li:last-child {
+    margin: 15px 0 0 0;
+  }
+
+  .nav-links a {
+    font-size: 18px;
+    font-weight: 600;
+    padding: 16px 24px;
+    display: block;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    width: 100%;
+  }
+
+  .nav-links a:hover {
+    background: rgba(74, 144, 226, 0.1);
+    border-color: var(--primary-blue);
+    color: var(--primary-blue);
+  }
+
+  .nav-links a::after {
+    display: none;
+  }
+
+  /* ログインボタンのモバイル調整 */
+  .login-btn {
+    padding: 14px 28px !important;
+    font-size: 16px !important;
+    max-width: 200px;
+    margin: 0 auto;
+  }
+
+  /* bodyクラス - モバイルメニュー開時のスクロール制御 */
+  body.mobile-menu-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+
+  /* 料金・プログラム内容 */
+  .price-tables {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  section {
+    padding: 60px 0;
+  }
+
+  #hero {
+    min-height: calc(100vh - var(--header-height-mobile)) !important;
+    padding: 40px 0 80px !important;
+    margin-bottom: 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .hero-content {
+    margin: 40px 20px 0;
+    padding: 40px 30px;
+    max-width: 95%;
+  }
+
+  .hero-content h1 {
+    font-size: 30px;
+    margin-bottom: 22px;
+  }
+
+  .hero-highlight {
+    margin: 0 1px;
+  }
+
+  .hero-highlight::before {
+    left: -6px;
+    right: -6px;
+    border-radius: 4px;
+  }
+
+  .hero-description p {
+    font-size: 20px;
+    line-height: 1.6;
+  }
+
+  .hero-badge {
+    font-size: 18px;
+    padding: 10px 24px;
+  }
+
+
+
+  .news-item {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+
+  .company-table th,
+  .company-table td {
+    padding: 12px 8px;
+    font-size: 14px;
+  }
+
+  .booking-frame {
+    padding: 30px 20px;
+  }
+
+
+
+  footer a {
+    font-size: 14px;
+    margin: 5px;
+  }
+
+  /* body調整 - モバイル時のヘッダー高さ対応 */
+  body.header-loaded {
+    padding-top: var(--header-height-mobile);
+  }
+
+  /* 動的ヘッダー読み込み後のヒーローセクション調整 - モバイル */
+  body.header-loaded #hero {
+    padding-top: 40px !important;
+    min-height: calc(100vh - var(--header-height-mobile)) !important;
+  }
+
+  .faq-item {
+    margin-bottom: 15px;
+  }
+}
+
+/* 大きなデスクトップ (1200px以上) */
+@media (min-width: 1200px) {
+  .container-wide {
+    padding: 0 40px;
+    max-width: 1600px;
+  }
+
+  .container {
+    padding: 0 40px;
+    max-width: 1400px;
+  }
+
+  .nav {
+    padding: 0 40px;
+  }
+
+  /* より大きな画面でロゴサイズを調整 */
+  .logo-image {
+    max-width: 520px;
+  }
+
+  /* ナビゲーション項目間隔を広げる */
+  .nav-links li {
+    margin-right: 28px;
+  }
+}
+
+/* 大きなタブレット以下 (1200px以下) */
+@media (max-width: 1200px) {
+  .container-wide {
+    padding: 0 30px;
+    max-width: 1200px;
+  }
+
+  .container {
+    padding: 0 30px;
+  }
+
+  .nav {
+    padding: 0 30px;
+  }
+
+  .price-tables {
+    max-width: 900px;
+    gap: 30px;
+  }
+
+  .entry-fees {
+    max-width: 930px;
+  }
+}
+
+/* 小さなモバイル (480px以下) */
+@media (max-width: 480px) {
+  /* CSS変数調整 - 小さなモバイル */
+  :root {
+    --header-height: 70px;
+    --status-banner-height: 10px;
+    --scroll-offset: calc(var(--header-height) + var(--status-banner-height)); /* 80px */
+  }
+
+  /* 小さなモバイルでのセクション強制適用 */
+  section,
+  #location,
+  #news,
+  #about,
+  #why-junior,
+  #program,
+  #price,
+  #faq,
+  #company,
+  #contact {
+    scroll-margin-top: var(--scroll-offset) !important;
+  }
+
+  /* 極小画面でのヘッダー調整 */
+  .header {
+    padding: 6px 0;
+  }
+
+  .nav {
+    padding: 0 15px;
+  }
+
+  .logo-image {
+    height: 50px;
+    max-width: 220px;
+  }
+
+  .mobile-menu-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .hamburger-line {
+    width: 20px;
+  }
+
+  /* ナビゲーションメニューの調整 */
+  .nav-links {
+    padding: 60px 20px 40px;
+  }
+
+  .nav-links a {
+    font-size: 16px;
+    padding: 14px 20px;
+  }
+
+  .login-btn {
+    padding: 12px 20px !important;
+    font-size: 14px !important;
+  }
+
+  /* ヒーローセクション調整 */
+  body.header-loaded {
+    padding-top: 62px; /* より小さなヘッダー高さ */
+  }
+
+  #hero {
+    min-height: calc(100vh - 62px) !important;
+    padding: 30px 0 60px !important;
+  }
+
+  body.header-loaded #hero {
+    padding-top: 30px !important;
+    min-height: calc(100vh - 62px) !important;
+  }
+
+  .hero-content h1 {
+    font-size: 24px;
+    line-height: 1.3;
+    margin-bottom: 15px;
+  }
+
+  .hero-highlight {
+    margin: 0 1px;
+  }
+
+  .hero-highlight::before {
+    left: -6px;
+    right: -6px;
+    border-radius: 4px;
+  }
+
+  .hero-description p {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .btn-primary {
+    padding: 16px 38px;
+    font-size: 16px;
+  }
+
+  .hero-content {
+    margin: 20px 15px 0;
+    padding: 25px 20px;
+    max-width: 95%;
+  }
+
+  .hero-badge {
+    font-size: 14px;
+    padding: 6px 16px;
+    margin-bottom: 20px;
+  }
+
+
+
+  /* 天候情報 */
+  .weather-info {
+    padding: 18px 15px;
+    font-size: 14px;
+    text-align: center;
+    gap: 12px;
+    line-height: 1.4;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    min-height: auto;
+    border-radius: 12px;
+  }
+
+  .weather-icon {
+    font-size: 24px !important;
+    flex-shrink: 0;
+  }
+
+  .weather-text {
+    font-size: 14px !important;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    line-height: 1.3;
+    flex: 1;
+  }
+
+  /* 料金 */
+  .price-header h3 {
+    font-size: 24px;
+  }
+
+  .price-amount {
+    font-size: 20px;
+  }
+
+  .price-amount small {
+    font-size: 12px;
+  }
+
+  .fee-amount {
+    font-size: 28px;
+  }
+
+  .price-item {
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+
+  .price-label {
+    font-size: 13px;
+  }
+
+  .price-body {
+    padding: 25px 15px;
+  }
+
+  .entry-fees {
+    padding: 30px 20px;
+  }
+
+  .feature-card {
+    padding: 25px 20px;
+  }
+
+  footer {
+    padding: 40px 0 20px;
+  }
+
+  footer a {
+    font-size: 14px;
+    margin: 5px;
+  }
+
+  footer p {
+    font-size: 12px;
+  }
+
+  #about [style*="grid-template-columns: repeat(4, 1fr)"] {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+  }
+
+  #about [style*="height: 160px"] {
+    height: 100px !important;
+  }
+
+  #about [style*="padding: 15px"] {
+    padding: 12px !important;
+  }
+
+
+
+  .faq-item {
+    margin-bottom: 15px;
+  }
+}
+
+/* プリント用スタイル */
+@media print {
+  * {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+
+  .header,
+  .status-banner,
+  .mobile-menu-btn,
+  .btn,
+  footer {
+    display: none !important;
+  }
+
+  section {
+    padding: 20px 0 !important;
+    page-break-inside: avoid;
+  }
+
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+}
+
+/* 高コントラストモード対応 */
+@media (prefers-contrast: high) {
+  :root {
+    --primary-blue: #0066cc;
+    --primary-teal: #008866;
+    --primary-orange: #cc6600;
+    --navy-dark: #000000;
+    --gray-medium: #333333;
+  }
+}
+
+/* 動きを減らす設定 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ダークモード対応（将来的な拡張用） */
+@media (prefers-color-scheme: dark) {
+  /* 現在は実装しないが、将来的にダークモード対応時に使用 */
+}
+
+/* 中間画面サイズ対応（画面分割等） - 1000px以下 */
+@media (max-width: 1000px) {
+  body.header-loaded {
+    padding-top: var(--header-height-medium);
+  }
+
+  /* 動的ヘッダー読み込み後のヒーローセクション調整 - 中間画面サイズ */
+  body.header-loaded #hero {
+    padding-top: 35px !important;
+    min-height: calc(100vh - var(--header-height-medium)) !important;
+  }
+}
+
+/* About セクションの4列グリッド */
+#about [style*="grid-template-columns: repeat(4, 1fr)"] {
+  grid-template-columns: 1fr 1fr !important;
+  gap: 20px !important;
+}
+
+#about [style*="height: 160px"] {
+  height: 120px !important;
+}
+
+#about [style*="padding: 20px"] {
+  padding: 15px !important;
+}
+
+/* body調整 - モバイル時のヘッダー高さ対応 */
+body.header-loaded {
+  padding-top: var(--header-height-mobile);
+}
+
+#about [style*="grid-template-columns: repeat(4, 1fr)"] {
+  grid-template-columns: 1fr !important;
+  gap: 15px !important;
+}
+
+#about [style*="height: 160px"] {
+  height: 100px !important;
+}
+
+#about [style*="padding: 15px"] {
+  padding: 12px !important;
+}
+
+footer {
+  padding: 40px 0 20px;
+}

@@ -1,0 +1,1770 @@
+/* ==========================================================================
+   ニュース総合スタイルシート v3.0
+   ニュース一覧ページ + LPニュースセクション + 共通コンポーネント
+   ========================================================================== */
+
+/* ==========================================================================
+   01. 基本設定・変数
+   ========================================================================== */
+
+:root {
+  /* ニュース専用カラー */
+  --news-card-bg: var(--white);
+  --news-card-border: var(--gray-border);
+  --news-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --news-card-shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+  
+  /* カテゴリカラー統一 */
+  --news-category-announcement: #4a90e2;
+  --news-category-event: #50c8a3;
+  --news-category-media: #9b59b6;
+  --news-category-important: #e74c3c;
+}
+
+/* ==========================================================================
+   02. 管理画面用ニュースカードスタイル
+   ========================================================================== */
+
+/* 管理画面専用カード - LPサイドのデザインベース */
+.news-card.admin-card {
+  background: var(--white);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid #e5e7eb;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+}
+
+.news-card.admin-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(74, 144, 226, 0.15);
+  border-color: var(--primary-blue);
+}
+
+.news-card.admin-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-blue), var(--primary-teal));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.news-card.admin-card:hover::before {
+  opacity: 1;
+}
+
+.news-card.admin-card .admin-title-text {
+  color: var(--text-dark);
+  text-decoration: none;
+  cursor: default;
+  display: block;
+  font-weight: 600;
+}
+
+/* ステータス表示 */
+.news-status {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.news-status.published {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.news-status.draft {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* アクションボタン */
+.news-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.news-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.news-action-btn i {
+  font-size: 11px;
+}
+
+.action-text {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.news-action-btn.edit-btn {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.news-action-btn.edit-btn:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: white;
+}
+
+.news-action-btn.preview-btn {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+.news-action-btn.preview-btn:hover {
+  background: #059669;
+  border-color: #059669;
+  color: white;
+}
+
+.news-action-btn.delete-btn {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+.news-action-btn.delete-btn:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: white;
+}
+
+.news-card.admin-card .news-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: auto;
+}
+
+/* 統一ビュー（ダッシュボード・記事管理タブ共通） - LPサイドと完全統一 */
+.news-card.admin-card.unified-view {
+  background: var(--white);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid #e5e7eb;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+}
+
+/* カードヘッダー - LPサイドと統一 */
+.news-card.admin-card.unified-view .news-card-header {
+  padding: 20px 24px 14px;
+  flex-shrink: 0;
+}
+
+/* カードボディ - LPサイドと統一 */
+.news-card.admin-card.unified-view .news-card-body {
+  padding: 0 24px 20px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* メタ情報 - LPサイドと統一 */
+.news-card.admin-card.unified-view .news-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+/* 日付スタイル - LPサイドと統一 */
+.news-card.admin-card.unified-view .news-date {
+  background: var(--primary-blue);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.news-card.admin-card.unified-view .news-date::before {
+  content: '📅';
+  font-size: 10px;
+}
+
+/* カテゴリスタイル - LPサイドと統一 */
+.news-card.admin-card.unified-view .news-category {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: none;
+}
+
+/* タイトルスタイル - LPサイドと統一 */
+.news-card.admin-card.unified-view .news-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy-dark);
+  line-height: 1.4;
+  margin-bottom: 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/* 抜粋スタイル - LPサイドと統一 */
+.news-card.admin-card.unified-view .news-excerpt {
+  color: var(--gray-medium);
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  flex-grow: 1;
+  min-height: 39px;
+}
+
+/* アクションボタンエリア - LPサイドベースで管理機能追加 */
+.news-card.admin-card.unified-view .news-actions {
+  display: flex !important;
+  gap: 8px !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  margin-top: auto !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.news-card.admin-card.unified-view .news-action-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 6px 12px !important;
+  font-size: 11px !important;
+  border-radius: 6px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.news-card.admin-card.unified-view .action-text {
+  display: inline !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* 管理画面メタ情報の調整 */
+.news-card.admin-card .news-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.news-card.admin-card .news-date,
+.news-card.admin-card .news-category,
+.news-card.admin-card .news-status {
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   03. 既存スタイルとの統合調整
+   ========================================================================== */
+
+/* 管理画面ニュースコンテナ - LPサイドと同様のレイアウト */
+.admin-news-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  min-height: 200px;
+}
+
+.admin-news-container .news-card {
+  margin-bottom: 0;
+}
+
+/* ダッシュボードでは最初の3つのみ表示 */
+.admin-news-container .news-card.admin-card.recent-view:nth-child(n+4) {
+  display: none;
+}
+
+/* 記事管理モードでは全記事表示 */
+.admin-main.news-management-active .admin-news-container .news-card.admin-card.recent-view:nth-child(n+4) {
+  display: block;
+}
+
+/* ==========================================================================
+   04. ニュース一覧ページ専用スタイル
+   ========================================================================== */
+
+/* ページヘッダー */
+.page-news .news-page-header {
+  text-align: center;
+  padding-top: 60px;
+  margin-bottom: 60px;
+  position: relative;
+}
+
+.page-news .news-page-title {
+  font-size: clamp(36px, 7vw, 56px);
+  line-height: 1.2;
+  margin-bottom: 40px;
+  color: var(--navy-dark);
+  font-weight: var(--font-weight-heavy);
+  letter-spacing: -0.02em;
+  position: relative;
+  padding-bottom: 25px;
+}
+
+.page-news .news-page-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 8px;
+  background: var(--primary-blue);
+  border-radius: var(--radius-xs);
+}
+
+.page-news .news-page-description {
+  font-size: 18px;
+  color: var(--gray-medium);
+  margin-top: 15px;
+}
+
+/* フィルター機能 */
+.news-filters {
+  background: var(--news-card-bg);
+  border-radius: 20px;
+  padding: 40px;
+  margin-bottom: 50px;
+  box-shadow: var(--news-card-shadow);
+  border: 3px solid var(--news-card-border);
+}
+
+.filter-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 25px;
+  color: var(--navy-dark);
+  position: relative;
+  padding-left: 20px;
+}
+
+.filter-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 100%;
+  background: var(--primary-blue);
+  border-radius: 3px;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 12px 24px;
+  border-radius: 25px;
+  background: var(--gray-light);
+  color: var(--text-dark);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 2px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+  background: var(--primary-blue);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);
+}
+
+/* グリッドレイアウト */
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 30px;
+  margin-bottom: 60px;
+}
+
+/* 検索結果表示 */
+.search-results {
+  background: var(--gray-light);
+  padding: 20px 30px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+  border-left: 4px solid var(--primary-blue);
+}
+
+.search-results-text {
+  font-size: 16px;
+  color: var(--navy-dark);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   05. LPニュースセクション専用スタイル
+   ========================================================================== */
+
+#news {
+  background: var(--gray-light);
+  padding: var(--section-padding) 0 !important;
+  position: relative;
+  overflow: hidden;
+  scroll-margin-top: var(--scroll-offset) !important; /* 明示的に強制適用 */
+}
+
+#news::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  right: -20%;
+  width: 300px;
+  height: 300px;
+  background: var(--primary-teal);
+  border-radius: 50%;
+  opacity: 0.06;
+  animation: float 20s ease-in-out infinite;
+}
+
+#news .container {
+  position: relative;
+  z-index: 2;
+}
+
+/* セクションヘッダー */
+.news-section-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+/* ニュース一覧ボタン */
+.news-list-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 30px;
+  padding: 20px 0;
+}
+
+.news-list-button .btn-outline {
+  background: var(--white);
+  color: var(--primary-blue);
+  border: 2px solid var(--primary-blue);
+  padding: 16px 32px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 50px;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.2);
+  white-space: nowrap;
+}
+
+.news-list-button .btn-outline::after {
+  content: '→';
+  font-size: 14px;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.news-list-button .btn-outline:hover {
+  background: var(--primary-blue);
+  color: var(--white);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
+}
+
+.news-list-button .btn-outline:hover::after {
+  transform: translateX(3px);
+}
+
+/* ==========================================================================
+   06. 共通ニュースコンポーネント
+   ========================================================================== */
+
+/* ニュースリスト */
+.news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  min-height: 200px;
+}
+
+/* ニュースカード（統一デザイン） */
+.news-card {
+  background: var(--news-card-bg);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--news-card-shadow);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid var(--news-card-border);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+}
+
+.news-card.fade-in {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.news-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--news-card-shadow-hover);
+  border-color: var(--primary-blue);
+}
+
+/* カードヘッダー */
+.news-card-header {
+  padding: 20px 24px 14px;
+  flex-shrink: 0;
+}
+
+/* カードボディ */
+.news-card-body {
+  padding: 0 24px 20px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* メタ情報 */
+.news-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+/* 日付 */
+.news-date {
+  background: var(--primary-blue);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.news-date::before {
+  content: '📅';
+  font-size: 10px;
+}
+
+/* カテゴリ（統一カラー） */
+.news-category {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: none;
+}
+
+.news-category.announcement {
+  background: var(--news-category-announcement);
+}
+
+.news-category.event {
+  background: var(--news-category-event);
+}
+
+.news-category.media {
+  background: var(--news-category-media);
+}
+
+.news-category.important {
+  background: var(--news-category-important);
+}
+
+/* タイトル */
+.news-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy-dark);
+  line-height: 1.4;
+  margin-bottom: 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.news-title a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.news-title a:hover {
+  color: var(--primary-blue);
+}
+
+/* 抜粋 */
+.news-excerpt {
+  color: var(--gray-medium);
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  flex-grow: 1;
+  min-height: 39px;
+}
+
+/* 続きを読むボタン */
+.news-read-more {
+  color: var(--primary-blue);
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  padding: 8px 16px;
+  border: 1px solid var(--primary-blue);
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+.news-read-more:hover {
+  background: var(--primary-blue);
+  color: white;
+  transform: translateX(3px);
+}
+
+.news-read-more::after {
+  content: '→';
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.news-read-more:hover::after {
+  transform: translateX(2px);
+}
+
+/* ==========================================================================
+   07. ステータス・エラー表示
+   ========================================================================== */
+
+/* ローディング状況 */
+.news-loading-status {
+  background: var(--news-card-bg);
+  border-radius: 15px;
+  padding: 30px;
+  margin-bottom: 30px;
+  text-align: center;
+  box-shadow: var(--news-card-shadow);
+  border: 2px solid var(--news-card-border);
+}
+
+.status-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 16px;
+  color: var(--gray-medium);
+  font-weight: 600;
+  flex-wrap: wrap;
+}
+
+.status-message i {
+  color: var(--primary-blue);
+  flex-shrink: 0;
+}
+
+/* エラー・空状態メッセージ */
+.loading-message,
+.error-message,
+.empty-message,
+.no-news-message,
+.news-error,
+.initialization-error {
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--news-card-bg);
+  border-radius: 20px;
+  border: 3px solid var(--news-card-border);
+  box-shadow: var(--news-card-shadow);
+  margin: 40px 0;
+}
+
+.loading-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-medium);
+}
+
+.loading-message h3,
+.error-message h3,
+.empty-message h3,
+.no-news-message h3 {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  color: var(--navy-dark);
+}
+
+.error-message h3,
+.news-error h3 {
+  color: var(--primary-red);
+}
+
+.initialization-error h3 {
+  color: var(--primary-orange);
+}
+
+.loading-message p,
+.error-message p,
+.empty-message p,
+.no-news-message p,
+.news-error p,
+.initialization-error p {
+  font-size: 16px;
+  color: var(--gray-medium);
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.error-details {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: var(--gray-medium);
+  background: var(--gray-light);
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin: 15px 0;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+.error-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 25px;
+}
+
+/* ローディングスピナー */
+.loading-spinner {
+  border: 4px solid var(--gray-light);
+  border-top: 4px solid var(--primary-blue);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 25px;
+}
+
+/* 空の状態 */
+.news-empty {
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--news-card-bg);
+  border-radius: 16px;
+  box-shadow: var(--news-card-shadow);
+}
+
+.news-empty h3 {
+  color: var(--gray-medium);
+  font-size: 18px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.news-empty p {
+  color: var(--gray-light);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   08. ボタンコンポーネント
+   ========================================================================== */
+
+/* 汎用ボタン */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  cursor: pointer;
+  background: none;
+}
+
+.btn-secondary {
+  background: var(--gray-medium);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: var(--gray-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-retry {
+  background: var(--primary-blue);
+  color: white;
+}
+
+.btn-retry:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3);
+}
+
+/* ==========================================================================
+   09. アニメーション
+   ========================================================================== */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* ==========================================================================
+   10. レスポンシブデザイン
+   ========================================================================== */
+
+/* タブレット (768px以上) */
+@media (min-width: 768px) {
+  /* LPニュースセクション */
+  #news {
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
+  }
+
+  #news::after {
+    width: 400px;
+    height: 400px;
+  }
+
+  .news-section-header {
+    margin-bottom: 35px;
+  }
+
+  .news-loading-status {
+    padding: 30px;
+    border-radius: 16px;
+  }
+
+  .news-list {
+    gap: 20px;
+  }
+
+  .news-card {
+    border-radius: 16px;
+    min-height: 200px;
+  }
+
+  .news-card-header {
+    padding: 20px 24px 14px;
+  }
+
+  .news-card-body {
+    padding: 0 24px 20px;
+  }
+
+  .news-title {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .news-excerpt {
+    font-size: 14px;
+    margin-bottom: 14px;
+    min-height: 42px;
+  }
+
+  .news-read-more {
+    font-size: 13px;
+    padding: 8px 16px;
+  }
+
+  .news-empty {
+    padding: 60px 40px;
+    border-radius: 20px;
+  }
+
+  .news-list-button {
+    margin-top: 40px;
+  }
+
+  .news-list-button .btn-outline {
+    padding: 18px 40px;
+    font-size: 18px;
+    gap: 10px;
+  }
+}
+
+/* デスクトップ (1200px以上) */
+@media (min-width: 1200px) {
+  #news {
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
+  }
+
+  .news-section-header {
+    margin-bottom: 40px;
+  }
+
+  .news-card {
+    border-radius: 20px;
+    min-height: 220px;
+  }
+
+  .news-card-header {
+    padding: 24px 30px 16px;
+  }
+
+  .news-card-body {
+    padding: 0 30px 24px;
+  }
+
+  .news-title {
+    font-size: 17px;
+  }
+
+  .news-excerpt {
+    font-size: 15px;
+    min-height: 45px;
+  }
+
+  .news-read-more {
+    font-size: 14px;
+    padding: 10px 20px;
+  }
+
+  .news-list-button .btn-outline {
+    padding: 20px 50px;
+    font-size: 20px;
+  }
+}
+
+/* モバイル (768px以下) */
+@media (max-width: 768px) {
+  .page-news .news-page-header {
+    padding-top: 40px;
+    margin-bottom: 40px;
+  }
+
+  .page-news .news-page-title {
+    font-size: clamp(28px, 6vw, 44px);
+  }
+
+  .page-news .news-page-title::after {
+    width: 80px;
+    height: 6px;
+  }
+
+  .page-news .news-page-description {
+    font-size: 16px;
+  }
+
+  .news-filters {
+    padding: 30px 20px;
+    margin-bottom: 40px;
+  }
+
+  .filter-buttons {
+    gap: 10px;
+  }
+
+  .filter-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  .news-grid {
+    gap: 20px;
+  }
+
+  .news-list {
+    gap: 16px;
+  }
+
+  .news-card {
+    min-height: 180px;
+  }
+
+  .news-card-header {
+    padding: 16px 20px 12px;
+  }
+
+  .news-card-body {
+    padding: 0 20px 16px;
+  }
+
+  .news-meta {
+    margin-bottom: 10px;
+    gap: 6px;
+  }
+
+  .news-title {
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+
+  .news-excerpt {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .news-date,
+  .news-category {
+    font-size: 9px;
+  }
+
+  .news-read-more {
+    font-size: 11px;
+    padding: 6px 12px;
+  }
+
+  #news {
+    padding: 40px 0;
+  }
+
+  #news::after {
+    display: none;
+  }
+
+  .loading-message,
+  .error-message,
+  .news-empty {
+    padding: 20px;
+  }
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+  }
+
+  .error-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn {
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+
+  /* 管理画面のモバイル対応改善 */
+  .news-card.admin-card {
+    min-height: 160px;
+  }
+
+  .news-card.admin-card .news-meta {
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .news-card.admin-card .news-actions {
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  .news-card.admin-card .news-action-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    min-height: 40px;
+  }
+
+  .news-card.admin-card.recent-view .news-action-btn {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.75rem;
+    min-height: 32px;
+  }
+
+  .news-card.admin-card.list-view .news-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .news-card.admin-card.list-view .news-action-btn {
+    justify-content: center;
+  }
+
+  .admin-news-container {
+    gap: 0.75rem;
+  }
+
+  /* 統一ビューのレスポンシブ対応 */
+  .news-card.admin-card.unified-view .news-actions {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .news-card.admin-card.unified-view .news-action-btn {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.75rem;
+    min-height: 32px;
+  }
+
+  .news-card.admin-card.unified-view .news-card-header {
+    padding: 0.75rem 1rem 0.5rem;
+  }
+
+  .news-card.admin-card.unified-view .news-card-body {
+    padding: 0 1rem 0.75rem;
+  }
+}
+
+/* モバイル小 (480px以下) */
+@media (max-width: 480px) {
+  /* ページタイトル */
+  .page-news .news-page-title {
+    font-size: 28px;
+  }
+
+  .page-news .news-page-description {
+    font-size: 14px;
+  }
+
+  /* カード */
+  .news-card {
+    min-height: 170px;
+    border-radius: 10px;
+  }
+
+  .news-card-header {
+    padding: 14px 16px 10px;
+  }
+
+  .news-card-body {
+    padding: 0 16px 14px;
+  }
+
+  .news-title {
+    font-size: 14px;
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+
+  .news-excerpt {
+    font-size: 12px;
+    margin-bottom: 10px;
+    line-height: 1.5;
+    min-height: 36px;
+  }
+
+  .news-read-more {
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 15px;
+  }
+
+  /* LPセクション */
+  #news {
+    padding: var(--section-padding) 0 !important;
+    scroll-margin-top: var(--scroll-offset) !important;
+  }
+
+  #news::after {
+    width: 200px;
+    height: 200px;
+    top: -10%;
+    right: -10%;
+  }
+
+  .news-loading-status {
+    padding: 20px 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+
+  .status-message {
+    font-size: 14px;
+    gap: 8px;
+  }
+
+  .news-list-button {
+    margin-top: 20px;
+    padding: 15px 0;
+  }
+
+  .news-list-button .btn-outline {
+    padding: 14px 28px;
+    font-size: 15px;
+    gap: 6px;
+    border-radius: 25px;
+  }
+
+  .filter-btn {
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
+
+/* ==========================================================================
+   11. アクセシビリティ対応
+   ========================================================================== */
+
+/* アニメーション無効化 */
+@media (prefers-reduced-motion: reduce) {
+  #news::after {
+    animation: none;
+  }
+
+  .news-card,
+  .news-list-button .btn-outline,
+  .filter-btn,
+  .btn {
+    transition: none;
+  }
+
+  .news-card.fade-in {
+    animation: none;
+  }
+}
+
+/* 高コントラスト対応 */
+@media (prefers-contrast: high) {
+  .news-card {
+    border-width: 2px;
+    border-color: var(--navy-dark);
+  }
+
+  .news-category,
+  .news-date {
+    border: 1px solid var(--white);
+  }
+
+  .news-list-button .btn-outline {
+    border-width: 3px;
+  }
+
+  .filter-btn {
+    border-width: 2px;
+    border-color: var(--gray-dark);
+  }
+}
+
+/* 管理画面全体で記事ボタンを強制表示 */
+.admin-main .news-actions {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.admin-main .news-action-btn {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.admin-main .action-text {
+  display: inline !important;
+  visibility: visible !important;
+}
+
+/* インラインスタイルを上書き */
+.news-card[style*="display: none"] .news-actions,
+.news-actions[style*="display: none"],
+.news-action-btn[style*="display: none"] {
+  display: flex !important;
+}
+
+.news-action-btn[style*="visibility: hidden"],
+.action-text[style*="visibility: hidden"] {
+  visibility: visible !important;
+}
+
+/* ==========================================================================
+   Instagram投稿横スクロール表示（Newsセクション内）
+   ========================================================================== */
+
+/* Instagram投稿セクション */
+.instagram-posts-section {
+  margin: 20px 0;
+  position: relative;
+}
+
+.instagram-posts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.instagram-posts-title {
+  color: var(--text-dark);
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.instagram-posts-title i {
+  color: #e1306c;
+  font-size: 22px;
+}
+
+.instagram-posts-subtitle {
+  color: var(--text-light);
+  font-size: 14px;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* 横スクロールコンテナ */
+.instagram-posts-container {
+  position: relative;
+  overflow: hidden;
+  margin: 0 -16px; /* コンテナ外まで拡張 */
+  padding: 0 16px;
+}
+
+.instagram-posts-scroll {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 0 0 16px 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.instagram-posts-scroll::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* Instagram投稿アイテム */
+.instagram-post-item {
+  flex: 0 0 auto;
+  width: 320px;
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--white);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.instagram-post-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(225, 48, 108, 0.15);
+}
+
+/* Instagram埋め込みラッパー */
+.instagram-post-item .instagram-embed-wrapper {
+  width: 100%;
+  aspect-ratio: 9 / 14;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: var(--gray-lightest);
+  position: relative;
+}
+
+/* Instagram埋め込みコンテンツのスタイル調整（管理画面と同じ） */
+.instagram-post-item .instagram-embed-wrapper blockquote.instagram-media {
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 16px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+/* Instagram埋め込み後のiframe調整 */
+.instagram-post-item .instagram-embed-wrapper iframe {
+  width: 100% !important;
+  height: 600px !important;
+  max-height: 600px !important;
+  border: none !important;
+  border-radius: 16px !important;
+}
+
+/* スクロールナビゲーションボタン */
+.instagram-scroll-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background: var(--white);
+  border: 2px solid var(--gray-border);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  visibility: hidden;
+}
+
+.instagram-scroll-nav:hover {
+  background: var(--primary-blue);
+  border-color: var(--primary-blue);
+  color: var(--white);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.instagram-scroll-nav.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.instagram-scroll-nav.prev {
+  left: -6px;
+}
+
+.instagram-scroll-nav.next {
+  right: -6px;
+}
+
+.instagram-scroll-nav i {
+  font-size: 16px;
+  color: inherit;
+}
+
+/* ローディング状態 */
+.instagram-posts-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  background: var(--gray-lightest);
+  border-radius: 16px;
+  margin: 20px 0;
+}
+
+.instagram-posts-loading i {
+  color: #e1306c;
+  font-size: 24px;
+  margin-right: 12px;
+  animation: spin 1s linear infinite;
+}
+
+.instagram-posts-loading span {
+  color: var(--text-light);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* 空状態 */
+.instagram-posts-empty {
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--gray-lightest);
+  border-radius: 16px;
+  margin: 20px 0;
+}
+
+.instagram-posts-empty i {
+  color: #e1306c;
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.instagram-posts-empty h4 {
+  color: var(--text-dark);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.instagram-posts-empty p {
+  color: var(--text-light);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* スクロールインジケーター */
+.instagram-scroll-indicators {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.instagram-scroll-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gray-border);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.instagram-scroll-dot.active {
+  background: #e1306c;
+  transform: scale(1.2);
+}
+
+/* レスポンシブ対応 */
+@media (min-width: 768px) {
+  .instagram-posts-container {
+    margin: 0 -24px;
+    padding: 0 24px;
+  }
+  
+  .instagram-posts-scroll {
+    gap: 24px;
+  }
+  
+  .instagram-post-item {
+    width: 360px;
+  }
+  
+  .instagram-scroll-nav {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .instagram-scroll-nav i {
+    font-size: 18px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .instagram-posts-container {
+    margin: 0 -40px;
+    padding: 0 40px;
+  }
+  
+  .instagram-posts-scroll {
+    gap: 28px;
+  }
+  
+  .instagram-post-item {
+    width: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .instagram-posts-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .instagram-posts-title {
+    font-size: 18px;
+  }
+  
+  .instagram-posts-container {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .instagram-posts-scroll {
+    gap: 20px;
+    padding: 0 20px;
+  }
+  
+  .instagram-post-item {
+    width: calc(100vw - 60px);
+    flex-shrink: 0;
+  }
+
+  .instagram-post-item .instagram-embed-wrapper {
+    aspect-ratio: 9 / 16;
+    height: min(65vh, calc((100vw - 60px) * 16 / 9));
+    width: 100%;
+  }
+
+  .instagram-post-item .instagram-embed-wrapper blockquote.instagram-media {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+  
+  .instagram-scroll-nav {
+    display: none; /* モバイルではナビゲーションボタンを非表示 */
+  }
+}
+
+@media (max-width: 480px) {
+  .instagram-posts-container {
+    margin: 0;
+    padding: 0;
+  }
+
+  .instagram-posts-scroll {
+    gap: 15px;
+    padding: 0 15px;
+  }
+
+  .instagram-post-item {
+    width: calc(100vw - 50px);
+    flex-shrink: 0;
+  }
+
+  .instagram-post-item .instagram-embed-wrapper {
+    aspect-ratio: 9 / 16;
+    height: min(70vh, calc((100vw - 50px) * 16 / 9));
+    width: 100%;
+  }
+
+  .instagram-post-item .instagram-embed-wrapper blockquote.instagram-media {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+}
+
+/* Instagram埋め込みスクリプト読み込み対応 */
+.instagram-post-item[data-instgrm-loaded="true"] {
+  /* 読み込み完了後の最適化 */
+}
+
+/* タッチデバイス対応 */
+@media (hover: none) and (pointer: coarse) {
+  .instagram-posts-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+  
+  .instagram-post-item {
+    scroll-snap-align: start;
+  }
+} 

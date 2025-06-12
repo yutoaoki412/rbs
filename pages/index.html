@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RBS陸上教室 - 運動と脳トレで走力と非認知能力を育成</title>
+  <meta name="description" content="年長〜小6対象のRBS陸上教室。運動と脳トレを組み合わせた独自メソッドで走力と非認知能力を同時に育成します。">
+  <meta name="keywords" content="RBS,陸上教室,Running,Brain,School,子ども,スポーツ,非認知能力,走力向上">
+  <meta name="robots" content="index, follow">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="../assets/images/rds-logo.png">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&family=Nunito+Sans:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/common.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/status-banner.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/features.css">
+  <link rel="stylesheet" href="../css/why-junior.css">
+  <link rel="stylesheet" href="../css/program.css">
+
+  <link rel="stylesheet" href="../css/location.css">
+  <link rel="stylesheet" href="../css/pricing.css">
+  <link rel="stylesheet" href="../css/news.css">
+  <link rel="stylesheet" href="../css/contact.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body class="page-index">
+  <!-- ヘッダーコンテナ -->
+  <div id="header-container"></div>
+
+  <!-- ヒーローセクション -->
+  <section id="hero">
+    <video id="hero-video" autoplay muted loop playsinline>
+      <source src="../assets/videos/hero-movie.mp4" type="video/mp4">
+      お使いのブラウザは動画再生に対応していません。
+    </video>
+    <div class="hero-content">
+      <div class="hero-badge">年長〜小6対象</div>
+      <h1>走って学ぶ！<br><span class="text-primary-blue">RBS陸上教室</span></h1>
+      <div class="hero-description">
+        <p>運動と脳トレを組み合わせた独自メソッドで<br><span class="hero-highlight">走力</span> と <span class="hero-highlight">非認知能力</span> を同時に育成</p>
+      </div>
+      <div class="hero-cta">
+        <p class="cta-message">楽しく走って <span class="hero-highlight">心も体も</span> たくましく成長！</p>
+        <a href="https://vita-health.hacomono.jp/home" target="_blank" rel="noopener noreferrer" class="btn-primary">無料体験に申し込む</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 本日の開催状況 -->
+  <section id="today-status" class="status-banner">
+    <div class="container">
+      <div class="status-header pointer-cursor" data-action="toggle-status" aria-expanded="false">
+        <div class="status-info">
+          <span class="status-dot"></span>
+          <span class="status-text">本日のレッスン開催状況</span>
+          <span class="status-indicator" id="global-status-indicator">読み込み中...</span>
+        </div>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="status-content">
+        <div class="status-details" id="status-details">
+          <div class="loading-status">
+            <p>レッスン状況を読み込み中...</p>
+          </div>
+        </div>
+        
+        <!-- 全体メッセージ表示エリア -->
+        <div class="status-message hidden" id="global-status-message">
+          <div class="message-content">
+            <i class="fas fa-info-circle"></i>
+            <span id="global-message-text"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEWS -->
+  <section id="news" data-news-dynamic="true">
+    <div class="container">
+
+      
+      <div class="news-section-header">
+        <h2>NEWS</h2>
+      </div>
+      
+      <!-- ニュース読み込み状況 -->
+      <div class="news-loading-status" id="news-loading-status">
+        <div class="status-message">
+          <i class="fas fa-spinner fa-spin"></i>
+          <span id="news-status-text">ニュースを読み込み中...</span>
+        </div>
+      </div>
+
+      <!-- Instagram投稿セクション -->
+      <div class="instagram-posts-section" id="instagram-posts-section" style="display: none;">
+        
+        <div class="instagram-posts-container">
+          <!-- スクロールナビゲーション -->
+          <button class="instagram-scroll-nav prev" id="instagram-scroll-prev" aria-label="前のInstagram投稿を表示">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button class="instagram-scroll-nav next" id="instagram-scroll-next" aria-label="次のInstagram投稿を表示">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+          
+          <!-- 投稿スクロールエリア -->
+          <div class="instagram-posts-scroll" id="instagram-posts-scroll">
+            <!-- Instagram投稿は動的に生成されます -->
+          </div>
+          
+          <!-- ローディング状態 -->
+          <div class="instagram-posts-loading" id="instagram-posts-loading">
+            <i class="fab fa-instagram fa-spin"></i>
+            <span>Instagram投稿を読み込み中...</span>
+          </div>
+          
+          <!-- 空状態 -->
+          <div class="instagram-posts-empty" id="instagram-posts-empty" style="display: none;">
+            <i class="fab fa-instagram"></i>
+            <h4>Instagram投稿がありません</h4>
+            <p>まだInstagram投稿が登録されていません</p>
+          </div>
+        </div>
+        
+        <!-- スクロールインジケーター -->
+        <div class="instagram-scroll-indicators" id="instagram-scroll-indicators">
+          <!-- インジケーターは動的に生成されます -->
+        </div>
+      </div>
+      
+      <div class="news-list" id="news-list">
+        <!-- ニュース記事は動的に生成されます -->
+      </div>
+      
+      <!-- ニュース一覧へのリンク -->
+      <div class="news-list-button">
+        <a href="news.html" class="btn-outline">
+          ニュース一覧を見る
+        </a>
+      </div>
+      
+
+    </div>
+  </section>
+
+  <!-- RBSとは -->
+  <section id="about">
+    <div class="container-wide">
+      <div class="about-section-container">
+        <!-- 装飾的な背景要素 -->
+        <div class="decorative-triangle"></div>
+        <div class="decorative-square"></div>
+        
+        <h2 class="section-title">RBS陸上教室とは</h2>
+        
+        <p class="section-subtitle">
+          運動と脳トレを掛け合わせた独自メソッドで開発！
+        </p>
+        
+        <p class="section-description">
+          <strong>「足が速くなりたい」「運動が得意になりたい」</strong>そんなお子さまの願いを叶える<br>
+          <strong>走力向上</strong>と<strong>非認知能力開発</strong>を融合した
+        </p>
+        
+        <div class="next-gen-badge">
+          <span>次世代型陸上教室</span>
+        </div>
+        
+        <p class="section-content-wide">
+          さらに<strong>集中力・判断力・挑戦心</strong>を一緒に育てるプログラムだから、運動会やスポーツだけでなく、日々の学習や生活面でも<strong class="text-blue-emphasis">前向きに挑戦できる子</strong>へと成長します。
+        </p>
+        
+        <!-- 動画ギャラリー -->
+        <div class="video-gallery">
+          <div class="video-card">
+            <div class="video-card-media">
+              <video autoplay muted loop playsinline>
+                <source src="../assets/videos/start&dash.mp4" type="video/mp4">
+              </video>
+              <div class="video-card-overlay"></div>
+            </div>
+            <div class="video-card-content">
+              <h3 class="video-card-title">スタート&ダッシュ<br>基本フォーム習得</h3>
+            </div>
+          </div>
+          <div class="video-card">
+            <div class="video-card-media">
+              <video autoplay muted loop playsinline>
+                <source src="../assets/videos/brain-training.mp4" type="video/mp4">
+              </video>
+              <div class="video-card-overlay"></div>
+            </div>
+            <div class="video-card-content">
+              <h3 class="video-card-title">脳トレ＆判断力<br>集中力向上</h3>
+            </div>
+          </div>
+          <div class="video-card">
+            <div class="video-card-media">
+              <video autoplay muted loop playsinline>
+                <source src="../assets/videos/teamwork-build.mp4" type="video/mp4">
+              </video>
+              <div class="video-card-overlay"></div>
+            </div>
+            <div class="video-card-content">
+              <h3 class="video-card-title">チームワーク<br>協調性育成</h3>
+            </div>
+          </div>
+          <div class="video-card">
+            <div class="video-card-media">
+              <video autoplay muted loop playsinline>
+                <source src="../assets/videos/confidence-build.mp4" type="video/mp4">
+              </video>
+              <div class="video-card-overlay"></div>
+            </div>
+            <div class="video-card-content">
+              <h3 class="video-card-title">自信&成功体験<br>挑戦心の育成</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 3つの特徴 -->
+      <h3 class="features-title">
+        RBS陸上教室の3つの特徴
+      </h3>
+      <div class="features">
+        <div class="feature-card animate-on-scroll">
+          <span class="feature-number">1</span>
+          <h3>どのスポーツにも活きる<br><span class="text-primary">走りの土台</span>を育てる陸上教室</h3>
+          <p>
+            スタート・ダッシュ・加速・トップスピード・リズム・フォーム改善など、
+            あらゆるスポーツに必要な<strong>"走りのスキル"</strong>を、専門的な指導で徹底的に磨きます。<br>
+            将来どんなスポーツを選んでも活きる<span class="text-primary">「運動の土台」</span>が自然と身につきます。
+          </p>
+        </div>
+        <div class="feature-card animate-on-scroll">
+          <span class="feature-number">2</span>
+          <h3><span class="text-primary">"集中力・判断力・挑戦心"</span>を育てる<br>非認知能力開発プログラム</h3>
+          <p>
+            21世紀を生きる子どもたちに欠かせない「考える力」「やり抜く力」「他人と協力する力」などを、
+            運動と脳トレを組み合わせた独自メソッドで伸ばします。<br>
+            「走りが速くなる」だけでなく、<strong>学習面や日常生活にも良い変化</strong>が現れます。
+          </p>
+        </div>
+        <div class="feature-card animate-on-scroll">
+          <span class="feature-number">3</span>
+          <h3>少人数制で一人ひとりに<br>寄り添う<span class="text-primary">丁寧な指導</span></h3>
+          <p>
+            最大8名の少人数制だから、お子様一人ひとりの個性や成長段階に合わせた指導が可能です。<br>
+            「できた！」の成功体験を積み重ねながら、<strong>自信と挑戦心</strong>を育てていきます。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- なぜジュニア期に -->
+  <section id="why-junior">
+    <div class="container-wide">
+      <h2>RBS陸上教室がジュニア期におすすめな理由</h2>
+      <div class="why-junior-content">
+        <div class="reason-list">
+          <div class="reason-item animate-on-scroll">
+            <h4>「走る力」はすべてのスポーツの基本！</h4>
+            <p>サッカー・野球・バスケなど、すべての競技の土台となる<span class="text-primary">運動能力</span>を高められます。</p>
+          </div>
+          <div class="reason-item animate-on-scroll">
+            <h4>自分のペースで成長できる個人競技だから、比べずに続けやすい</h4>
+            <p>自分の目標に向かってコツコツ頑張る<span class="text-primary">習慣</span>が育ちます。</p>
+          </div>
+          <div class="reason-item animate-on-scroll">
+            <h4>シンプルで始めやすいから、運動が苦手な子も安心</h4>
+            <p>専門的な技術がなくてもOK。<span class="text-primary">「できた！」の成功体験</span>が積み重なります。</p>
+          </div>
+          <div class="reason-item animate-on-scroll">
+            <h4>道具いらずで、気軽にスタートできる</h4>
+            <p>特別な準備は不要。手軽に始められて、<span class="text-primary">習い事が初めて</span>のご家庭にもぴったりです。</p>
+          </div>
+        </div>
+        <div class="bottom-message animate-on-scroll">
+          ジュニア期こそ「正しい走り方」を学び、<br>
+          運動の楽しさと自信を手に入れるチャンス！<br>
+          RBS陸上教室は、お子さまの"はじめてのスポーツ"にも最適です。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- プログラム内容・1日の流れ -->
+  <section id="program">
+    <div class="container-wide">
+      <h2>プログラム内容・1日の流れ</h2>
+      
+      <!-- コース紹介 -->
+      <div class="program-grid">
+        
+        <!-- ベーシックコース -->
+        <div class="program-card">
+          <div class="program-header">
+            <h3>ベーシックコース</h3>
+            <p>年長〜小学3年生対象</p>
+            <p>月曜日 17:00〜17:50 (50分)</p>
+          </div>
+          
+          <div class="program-body">
+            <h4>🎯 コースの特徴</h4>
+            <ul>
+              <li>楽しく走る基本を身につける</li>
+              <li>遊び感覚で運動能力を向上</li>
+              <li>集中力・協調性を育成</li>
+              <li>成功体験を積み重ねる</li>
+            </ul>
+            
+            <h4>⏱️ 1日の流れ</h4>
+            <div class="daily-schedule">
+              <div class="schedule-item">
+                <div class="schedule-time">17:00-17:10 (10分)</div>
+                <div class="schedule-content">ウォーミングアップ・あいさつ</div>
+              </div>
+              <div class="schedule-item">
+                <div class="schedule-time">17:10-17:25 (15分)</div>
+                <div class="schedule-content">基本動作・フォーム練習</div>
+              </div>
+              <div class="schedule-item">
+                <div class="schedule-time">17:25-17:40 (15分)</div>
+                <div class="schedule-content">脳トレ&走力向上トレーニング</div>
+              </div>
+              <div class="schedule-item">
+                <div class="schedule-time">17:40-17:50 (10分)</div>
+                <div class="schedule-content">ゲーム・クールダウン・振り返り</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- アドバンスコース -->
+        <div class="program-card advanced">
+          <div class="program-header">
+            <h3>アドバンスコース</h3>
+            <p>小学4年生〜6年生対象</p>
+            <p>月曜日 18:00〜18:50 (50分)</p>
+          </div>
+          
+          <div class="program-body">
+            <h4>🎯 コースの特徴</h4>
+            <ul>
+              <li>より専門的な走り方をマスター</li>
+              <li>競技力向上と記録への挑戦</li>
+              <li>リーダーシップ・判断力強化</li>
+              <li>目標設定と達成の習慣化</li>
+            </ul>
+            
+            <h4>⏱️ 1日の流れ</h4>
+            <div class="daily-schedule">
+              <div class="schedule-item">
+                <div class="schedule-time">18:00-18:10 (10分)</div>
+                <div class="schedule-content">ウォーミングアップ・目標確認</div>
+              </div>
+              <div class="schedule-item">
+                <div class="schedule-time">18:10-18:30 (20分)</div>
+                <div class="schedule-content">専門技術・スピード強化</div>
+              </div>
+              <div class="schedule-item">
+                <div class="schedule-time">18:30-18:45 (15分)</div>
+                <div class="schedule-content">脳トレ&実戦練習</div>
+              </div>
+              <div class="schedule-item">
+                <div class="schedule-time">18:45-18:50 (5分)</div>
+                <div class="schedule-content">クールダウン・目標振り返り</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 共通プログラム要素 -->
+      <div class="common-programs-section">
+        <h3>両コース共通の特別プログラム</h3>
+        
+        <div class="common-programs">
+          <div class="common-program-card">
+            <div class="common-program-media">
+              <video autoplay muted loop playsinline>
+                <source src="../assets/videos/brain-training.mp4" type="video/mp4">
+              </video>
+              <div class="common-program-overlay"></div>
+            </div>
+            <div class="common-program-content">
+              <h4>脳トレメニュー</h4>
+              <p>判断力・集中力を向上させる認知トレーニング</p>
+            </div>
+          </div>
+          
+          <div class="common-program-card">
+            <div class="common-program-media">
+              <video autoplay muted loop playsinline>
+                <source src="../assets/videos/record-measurement.mp4" type="video/mp4">
+              </video>
+              <div class="common-program-overlay"></div>
+            </div>
+            <div class="common-program-content">
+              <h4>記録測定</h4>
+              <p>定期的な記録測定で成長を実感</p>
+            </div>
+          </div>
+          
+          <div class="common-program-card">
+            <div class="common-program-media">
+              <video autoplay muted loop playsinline>
+                <source src="../assets/videos/goal-achievement.mp4" type="video/mp4">
+              </video>
+              <div class="common-program-overlay"></div>
+            </div>
+            <div class="common-program-content">
+              <h4>目標達成システム</h4>
+              <p>個人目標を設定し、達成を祝う仕組み</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- 教室情報 -->
+  <section id="location">
+    <div class="container-wide">
+      <h2>教室開催地</h2>
+      <div class="location-content">
+        <div class="location-info card-base">
+          <h3>RBS陸上教室 大泉学園校</h3>
+          <div class="info-item">
+            <strong>開催日</strong>
+            <span>毎週月曜日</span>
+          </div>
+          <div class="info-item">
+            <strong>場所</strong>
+            <span>練馬区立大泉中央公園（陸上エリア）</span>
+          </div>
+          <div class="info-item access-item">
+            <strong>アクセス</strong>
+            <span>西武池袋線「大泉学園駅」より徒歩約15分</span>
+          </div>
+          <div class="course-schedule">
+            <h4>対象コースと時間割</h4>
+            <div class="course-items">
+              <div class="course-item">
+                <strong>ベーシックコース<br>（年長〜小3対象）</strong>
+                <div class="course-time">17:00〜17:50</div>
+              </div>
+              <div class="course-item">
+                <strong>アドバンスコース<br>（小4〜小6対象）</strong>
+                <div class="course-time">18:00〜18:50</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="map-wrapper">
+          <iframe 
+            src="https://maps.google.com/maps?q=練馬区立大泉中央公園&t=&z=16&ie=UTF8&iwloc=&output=embed"
+            width="100%"
+            height="100%"
+            class="borderless-iframe"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="練馬区立大泉中央公園（陸上エリア）の地図">
+          </iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 料金 -->
+  <section id="price">
+    <div class="container-wide">
+      <h2>料金プラン</h2>
+      <div class="price-tables">
+        <div class="price-card">
+          <div class="price-header">
+            <h3>ベーシックコース</h3>
+            <p>（年長〜小3）</p>
+          </div>
+          <div class="price-body">
+            <div class="price-item">
+              <span class="price-label">週1回コース<br>月4回・60分/回</span>
+              <span class="price-amount">¥8,800<small>/月（税込）</small></span>
+            </div>
+            <div class="price-item">
+              <span class="price-label">週2回コース<br>月8回・60分/回</span>
+              <span class="price-amount">¥14,200<small>/月（税込）</small></span>
+            </div>
+          </div>
+        </div>
+        <div class="price-card">
+          <div class="price-header">
+            <h3>アドバンスコース</h3>
+            <p>（小4〜小6）</p>
+          </div>
+          <div class="price-body">
+            <div class="price-item">
+              <span class="price-label">週1回コース<br>月4回・60分/回</span>
+              <span class="price-amount">¥8,800<small>/月（税込）</small></span>
+            </div>
+            <div class="price-item">
+              <span class="price-label">週2回コース<br>月8回・60分/回</span>
+              <span class="price-amount">¥14,200<small>/月（税込）</small></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="entry-fees">
+        <h4>初期費用</h4>
+        <div class="fee-items-container">
+          <div class="fee-item">
+            <span class="fee-label">入会金</span>
+            <span class="fee-amount">¥13,200</span>
+          </div>
+          <div class="fee-item">
+            <span class="fee-label">年会費</span>
+            <span class="fee-amount">¥9,900</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="container">
+      <h2>よくあるご質問</h2>
+      <div class="faq-list">
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-1" aria-expanded="false" aria-controls="faq-1" tabindex="0" role="button">
+            Q1. レッスンではどのような内容を行いますか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer" id="faq-1" aria-labelledby="faq-question-1" role="region" aria-hidden="true">
+            <p>
+              RBS陸上教室では、「走る・跳ぶ・投げる」といった陸上競技の基本動作を中心に、遊び感覚も取り入れたトレーニングを通じて自然と運動能力を高めていきます。短距離を中心に、他の球技にも活きるトレーニングを楽しく体験しながら基礎を習得できるカリキュラムです。<br><br>
+              また、非認知能力（挑戦する力・集中力・協調性など）を育むプログラムも導入しており、競技力だけでなく人間力の向上にも力を入れています。少人数制クラスで、一人ひとりの成長に寄り添った丁寧な指導を行っています。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-2" aria-expanded="false" aria-controls="faq-2" tabindex="0" role="button">
+            Q2. 無料体験は可能ですか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer" id="faq-2" aria-labelledby="faq-question-2" role="region" aria-hidden="true">
+            <p>
+              はい、<span class="text-primary">無料体験レッスン</span>を随時受け付けております。体験をご希望の方は、当教室のウェブサイトにてお申し込みください。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-3" aria-expanded="false" aria-controls="faq-3" tabindex="0" role="button">
+            Q3. 他の陸上クラブとの違いは何ですか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer" id="faq-3" aria-labelledby="faq-question-3" role="region" aria-hidden="true">
+            <p>
+              RBS陸上教室は、単なる技術指導だけでなく、子どもたちの<span class="text-primary">非認知能力</span>（自己肯定感、協調性、課題解決能力など）を育むことにも重点を置いています。また、個々の成長に合わせた指導を行い、子どもたち一人ひとりの可能性を最大限に引き出します。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-4" aria-expanded="false" aria-controls="faq-4" tabindex="0" role="button">
+            Q4. 持ち物は何が必要ですか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer" id="faq-4" aria-labelledby="faq-question-4" role="region" aria-hidden="true">
+            <p>
+              運動に適した服装、運動に適したシューズ、飲み物（給水用）をご持参ください。また、屋内施設を利用する場合は、室内履きが必要となることがありますので、事前にご確認ください。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-5" aria-expanded="false" aria-controls="faq-5" tabindex="0" role="button">
+            Q5. 欠席した場合、振替はできますか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer" id="faq-5" aria-labelledby="faq-question-5" role="region" aria-hidden="true">
+            <p>
+              はい、月に<span class="text-primary">1回まで</span>他のクラスへの振替が可能です。また、天候不良など教室側の都合でレッスンが中止となった場合は、別日に振替を行います。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-6" aria-expanded="false" aria-controls="faq-6" tabindex="0" role="button">
+            Q6. 雨天時のレッスン開催についてはどうなりますか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer" id="faq-6" aria-labelledby="faq-question-6" role="region" aria-hidden="true">
+            <p>
+              屋外でのレッスンの場合、雨天時は中止となることがあります。レッスンの開催可否は、開始<span class="text-primary">1時間半前まで</span>に当教室のウェブサイトの「本日のレッスン開催状況」セクションにてお知らせいたします。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-7" aria-expanded="false" aria-controls="faq-7" tabindex="0" role="button">
+            Q7. 休会は可能ですか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer" id="faq-7" aria-labelledby="faq-question-7" role="region" aria-hidden="true">
+            <p>
+              はい、休会をご希望の場合は、休会される<span class="text-primary">前月の20日まで</span>にご申告ください。休会は月単位で承っており、復帰月を事前にお知らせいただく必要があります。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-8" aria-expanded="false" aria-controls="faq-8" tabindex="0" role="button">
+            Q8. 月謝の支払い方法は？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer" id="faq-8" aria-labelledby="faq-question-8" role="region" aria-hidden="true">
+            <p>
+              基本的には<span class="text-primary">自動口座引き落とし</span>をお願いしております。一部の教室では、銀行振込など他の支払い方法にも対応しておりますので、詳細はお問い合わせください。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-9" aria-expanded="false" aria-controls="faq-9" tabindex="0" role="button">
+            Q9. 何歳から参加できますか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer" id="faq-9" aria-labelledby="faq-question-9" role="region" aria-hidden="true">
+            <p>
+              当教室では、<span class="text-primary">年長から</span>ご参加いただけます。体験レッスンは、該当年度の4月1日時点で年長を迎えているお子様が対象となります。
+            </p>
+          </div>
+        </div>
+        <div class="faq-item animate-on-scroll">
+          <div class="faq-question" data-action="toggle-faq" data-target="faq-10" aria-expanded="false" aria-controls="faq-10" tabindex="0" role="button">
+            Q10. 保護者の見学は可能ですか？
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-answer" id="faq-10" aria-labelledby="faq-question-10" role="region" aria-hidden="true">
+            <p>
+              はい、レッスンの<span class="text-primary">見学は可能</span>です。お子様が緊張している場合など、保護者の方が一緒に参加いただくこともできますので、ご相談ください。
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+  <!-- 会社概要 -->
+  <section id="company">
+    <div class="container">
+      <h2>会社概要</h2>
+      <div class="company-info">
+        <table class="company-table">
+          <tr>
+            <th>会社名</th>
+            <td><strong>合同会社VITA（VITA,LLC）</strong></td>
+          </tr>
+          <tr>
+            <th>所在地</th>
+            <td>〒356-0051 埼玉県ふじみ野市駒西1-9-18</td>
+          </tr>
+          <tr>
+            <th>設立</th>
+            <td>2023年9月1日</td>
+          </tr>
+          <tr>
+            <th>代表</th>
+            <td><strong>今井 悠太</strong></td>
+          </tr>
+        </table>
+        <div class="company-philosophy">
+          <h4>企業理念</h4>
+          <p>健康と成長をデザインする</p>
+        </div>
+        <h4 class="business-content-heading">事業内容</h4>
+        <ul class="business-list">
+          <li>RBS陸上教室の企画・運営</li>
+          <li>FBK methodの企画・運営</li>
+          <li>企業向け健康セミナーの実施</li>
+          <li>各種スクールの企画・運営</li>
+          <li>教室・トレーニングコンサルティング</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- お問い合わせ -->
+  <section id="contact">
+    <div class="container">
+      <h2>お問い合わせ</h2>
+      <div class="contact-content">
+        <div class="contact-intro">
+          <p>RBS陸上教室に関するご質問・ご相談はお気軽にお問い合わせください。</p>
+          <p>体験レッスンのお申し込みや、教室に関する詳細についてもご案内いたします。</p>
+        </div>
+        
+        <div class="contact-info">
+          <div class="contact-method">
+            <div class="contact-icon">
+              <i class="fas fa-envelope"></i>
+            </div>
+            <div class="contact-details">
+              <h3>メールでのお問い合わせ</h3>
+              <p class="contact-email">
+                <a href="mailto:info@vita-health.jp">info@vita-health.jp</a>
+              </p>
+              <p class="contact-note">
+                お返事には2〜3営業日お時間をいただく場合がございます。<br>
+                お急ぎの場合は、体験レッスンお申し込みフォームをご利用ください。
+              </p>
+            </div>
+          </div>
+          
+          <div class="contact-cta">
+            <h3>体験レッスンのお申し込み</h3>
+            <p>無料体験レッスンは専用フォームからお申し込みいただけます</p>
+            <a href="https://vita-health.hacomono.jp/home" target="_blank" rel="noopener noreferrer" class="btn-primary">
+              体験レッスンに申し込む
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- フッターコンテナ -->
+  <div id="footer-container"></div>
+
+  <!-- LP統一ニュースコントローラー -->
+  <script type="module" src="../js/features/news/controllers/LPNewsController.js"></script>
+  
+  <!-- メインアプリケーション（ES6モジュール） -->
+  <script type="module" src="../js/app/main.js"></script>
+</body>
+</html> 

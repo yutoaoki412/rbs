@@ -1,0 +1,1210 @@
+/* ==========================================================================
+   Components - 再利用可能なコンポーネントスタイル
+   ========================================================================== */
+
+/* ヘッダー */
+.header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-fixed);
+  padding: 12px 0;
+  border-bottom: 3px solid var(--primary-blue);
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 100px; /* ヘッダーの最小高さを確保 */
+}
+
+.logo {
+  flex-shrink: 1; /* ロゴは必要に応じて縮小可能 */
+  max-width: 50%; /* ロゴがヘッダーの50%以上を占めないように */
+}
+
+.logo a {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  transition: var(--transition-slow);
+}
+
+.logo a:hover {
+  transform: translateY(-3px) scale(1.02);
+}
+
+.logo-image {
+  height: 100px;
+  width: auto;
+  max-width: 480px;
+  object-fit: cover;
+  object-position: center;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+/* ナビゲーション */
+.nav-links {
+  display: flex;
+  gap: 0;
+  list-style: none;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.nav-links li {
+  margin-right: 24px;
+  position: relative;
+}
+
+.nav-links li:last-child {
+  margin-right: 0;
+  margin-left: 50px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--navy-dark);
+  font-weight: var(--font-weight-bold);
+  font-size: 16px;
+  transition: color 0.3s ease;
+  position: relative;
+  padding: 12px;
+  white-space: nowrap;
+  border-radius: var(--radius-sm);
+  display: block;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--primary-blue);
+  transition: width 0.3s ease;
+  transform: translateX(-50%);
+  border-radius: 1px;
+}
+
+.nav-links a:hover {
+  color: var(--primary-blue);
+}
+
+.nav-links a:hover::after {
+  width: 80%;
+}
+
+/* ログインボタン */
+.login-btn {
+  background: var(--primary-orange) !important;
+  color: white !important;
+  padding: 14px 32px !important;
+  border-radius: var(--radius-round) !important;
+  font-size: 15px !important;
+  font-weight: var(--font-weight-heavy) !important;
+  transition: all 0.3s ease !important;
+  border: none !important;
+  box-shadow: 0 8px 25px rgba(245, 167, 35, 0.3) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.login-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.login-btn:hover {
+  background: #e6941f !important;
+  color: white !important;
+  box-shadow: 0 10px 25px rgba(245, 167, 35, 0.4) !important;
+}
+
+.login-btn:hover::before {
+  left: 100%;
+}
+
+.login-btn::after {
+  display: none !important;
+}
+
+/* ボタン - 統一デザイン */
+.btn-primary {
+  display: inline-block;
+  padding: 18px 45px; /* 要求されたサイズ */
+  background: var(--primary-orange) !important; /* オレンジ色を強制適用 */
+  color: var(--white) !important;
+  text-decoration: none;
+  border-radius: var(--radius-full);
+  font-size: 18px; /* 要求されたサイズ */
+  font-weight: var(--font-weight-heavy);
+  transition: var(--transition-slow);
+  box-shadow: 
+    0 12px 28px rgba(245, 167, 35, 0.4), /* オレンジ系シャドウ */
+    0 6px 16px rgba(0, 0, 0, 0.15);
+  position: relative;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.5px;
+  overflow: hidden;
+  cursor: pointer;
+  border: none; /* ボーダーをリセット */
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.6s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px) scale(1.02);
+  background: #e6941f !important; /* より濃いオレンジを強制適用 */
+  box-shadow: 
+    0 18px 35px rgba(245, 167, 35, 0.5),
+    0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary:hover::before {
+  left: 100%;
+}
+
+.btn-primary:active {
+  transform: translateY(-1px) scale(1.01);
+}
+
+/* カード */
+.card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-slow);
+  position: relative;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-xl);
+}
+
+.card-header {
+  padding: var(--spacing-xl);
+  text-align: center;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-body {
+  padding: var(--spacing-xl);
+}
+
+/* フィーチャーカード */
+.feature-card {
+  background: var(--white);
+  padding: 50px 40px;
+  border-radius: 30px;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+  border: 2px solid transparent;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--primary-blue);
+  border-radius: 30px 30px 0 0;
+}
+
+.feature-card:nth-child(1)::before {
+  background: var(--primary-blue);
+}
+
+.feature-card:nth-child(2)::before {
+  background: var(--primary-teal);
+}
+
+.feature-card:nth-child(3)::before {
+  background: var(--primary-orange);
+}
+
+.feature-card::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background: var(--primary-blue);
+  border-radius: 50%;
+  opacity: 0.1;
+  transition: all 0.3s ease;
+}
+
+.feature-card:nth-child(1)::after {
+  background: var(--primary-blue);
+}
+
+.feature-card:nth-child(2)::after {
+  background: var(--primary-teal);
+}
+
+.feature-card:nth-child(3)::after {
+  background: var(--primary-orange);
+}
+
+.feature-card:hover {
+  transform: translateY(-15px) scale(1.02);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.15);
+}
+
+.feature-card:hover::after {
+  transform: scale(1.5);
+  opacity: 0.2;
+}
+
+.feature-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: var(--primary-blue);
+  color: white;
+  border-radius: 50%;
+  text-align: center;
+  font-weight: 900;
+  font-size: 32px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card:nth-child(1) .feature-number {
+  background: var(--primary-blue);
+}
+
+.feature-card:nth-child(2) .feature-number {
+  background: var(--primary-teal);
+}
+
+.feature-card:nth-child(3) .feature-number {
+  background: var(--primary-orange);
+}
+
+.feature-number::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 4s infinite;
+}
+
+.feature-card h3 {
+  font-size: 28px;
+  margin-bottom: 25px;
+  color: var(--navy-dark);
+  line-height: 1.3;
+  font-weight: 800;
+}
+
+.feature-card p {
+  line-height: 1.8;
+  color: var(--gray-medium);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.feature-card strong {
+  color: var(--navy-dark);
+  font-weight: 800;
+}
+
+/* FAQ */
+.faq-item {
+  background: var(--white);
+  margin-bottom: 20px;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 2px solid var(--gray-border);
+  position: relative;
+}
+
+.faq-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  border-color: var(--primary-blue);
+}
+
+.faq-item.active {
+  border-color: var(--primary-blue);
+  box-shadow: 0 8px 30px rgba(74, 144, 226, 0.15);
+}
+
+.faq-question {
+  padding: 25px 30px;
+  padding-left: 75px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+  color: var(--navy-dark);
+  position: relative;
+  background: var(--white);
+}
+
+.faq-question::before {
+  content: 'Q';
+  position: absolute;
+  left: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  background: var(--primary-blue);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.faq-question:hover {
+  background: var(--gray-light);
+}
+
+.faq-item.active .faq-question {
+  background: var(--primary-blue);
+  color: white;
+}
+
+.faq-item.active .faq-question::before {
+  background: white;
+  color: var(--primary-blue);
+}
+
+.faq-icon {
+  font-size: 24px;
+  color: var(--primary-blue);
+  transition: all 0.3s ease;
+  font-weight: 900;
+  min-width: 24px;
+}
+
+.faq-item.active .faq-icon {
+  transform: rotate(45deg);
+  color: white;
+}
+
+.faq-answer {
+  padding: 0 30px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              padding 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.3s ease;
+  background: var(--gray-light);
+  opacity: 0;
+}
+
+.faq-item.active .faq-answer {
+  padding: 25px 30px 30px 75px;
+  opacity: 1;
+  /* max-heightはJavaScriptで動的に設定 */
+}
+
+.faq-answer p {
+  line-height: 1.8;
+  color: var(--navy-dark);
+  font-size: 15px;
+  font-weight: 500;
+  margin: 0 0 12px 0;
+}
+
+.faq-answer p:last-child {
+  margin-bottom: 0;
+}
+
+/* ニュース */
+.news-item {
+  background: var(--white);
+  padding: 30px;
+  margin-bottom: 20px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+  transition: var(--transition-normal);
+  border: 2px solid transparent;
+}
+
+.news-item:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-blue);
+}
+
+.news-date {
+  background: var(--primary-blue);
+  color: white;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-bold);
+  font-size: 14px;
+  white-space: nowrap;
+  min-width: 120px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+}
+
+.news-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.news-category {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: var(--font-weight-bold);
+  color: white;
+  align-self: flex-start;
+}
+
+.news-content a {
+  color: var(--navy-dark);
+  text-decoration: none;
+  font-weight: var(--font-weight-bold);
+  font-size: 18px;
+  line-height: 1.4;
+  transition: color 0.3s ease;
+}
+
+.news-content a:hover {
+  color: var(--primary-blue);
+}
+
+/* モバイルメニュー */
+.mobile-menu-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 1001;
+  position: relative;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.mobile-menu-btn:hover {
+  background-color: rgba(74, 144, 226, 0.1);
+}
+
+.mobile-menu-btn:focus {
+  outline: 2px solid var(--primary-blue);
+  outline-offset: 2px;
+}
+
+/* ハンバーガーラインスタイル */
+.hamburger-line {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background-color: var(--navy-dark);
+  margin: 3px 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 1px;
+}
+
+/* アクティブ状態（メニューが開いている時）のハンバーガーアイコン */
+.mobile-menu-btn.active .hamburger-line:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.mobile-menu-btn.active .hamburger-line:nth-child(2) {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.mobile-menu-btn.active .hamburger-line:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -6px);
+}
+
+/* セクション共通 */
+.section-subtitle {
+  font-size: clamp(18px, 3vw, 26px);
+  color: var(--navy-dark);
+  margin-bottom: 15px;
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+}
+
+/* テキストユーティリティ */
+.text-primary {
+  color: var(--primary-blue);
+}
+
+.text-success {
+  color: var(--primary-teal);
+}
+
+.text-warning {
+  color: var(--primary-orange);
+}
+
+/* ステータスバナーのドット（二重丸デザイン） */
+.status-dot {
+  position: relative;
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+}
+.status-dot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: var(--secondary-mint);
+  border-radius: 50%;
+}
+.status-dot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--secondary-mint);
+  border-radius: 50%;
+  opacity: 0.7;
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+/* レッスン開催状況 - メッセージ表示 */
+.status-message {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(74, 144, 226, 0.08);
+  border: 1px solid rgba(74, 144, 226, 0.2);
+  border-radius: 8px;
+}
+
+.status-message .message-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  color: var(--navy-dark);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.status-message .message-content i {
+  color: var(--primary-blue);
+  font-size: 1rem;
+  margin-top: 0.1rem;
+  flex-shrink: 0;
+}
+
+/* メッセージタイプ別スタイル */
+.status-message.cancelled {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.status-message.cancelled .message-content i {
+  color: var(--error);
+}
+
+.status-message.indoor {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.status-message.indoor .message-content i {
+  color: var(--warning);
+}
+
+.status-message.postponed {
+  background: rgba(64, 224, 208, 0.08);
+  border-color: rgba(64, 224, 208, 0.2);
+}
+
+.status-message.postponed .message-content i {
+  color: var(--primary-teal);
+}
+
+@media (max-width: 768px) {
+  .status-message {
+    padding: 0.875rem;
+  }
+  
+  .status-message .message-content {
+    font-size: 0.875rem;
+    gap: 0.5rem;
+  }
+}
+
+/* レッスン状況表示 */
+.lesson-status-container {
+  margin: 1.5rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.lesson-status-container.visible {
+  animation: slideInDown 0.4s ease-out;
+}
+
+.lesson-status-display {
+  background: #fff;
+}
+
+.lesson-status-display .main-status {
+  display: flex;
+  align-items: center;
+  padding: 1.5rem;
+  border-radius: 8px 8px 0 0;
+}
+
+.lesson-status-display .main-status.scheduled {
+  background: linear-gradient(135deg, var(--status-scheduled), var(--status-scheduled-dark));
+  color: white;
+}
+
+.lesson-status-display .main-status.cancelled {
+  background: linear-gradient(135deg, var(--status-cancelled), var(--status-cancelled-dark));
+  color: white;
+}
+
+.lesson-status-display .main-status.indoor {
+  background: linear-gradient(135deg, var(--status-indoor), var(--status-indoor-dark));
+  color: white;
+}
+
+.lesson-status-display .main-status.postponed {
+  background: linear-gradient(135deg, var(--status-postponed), var(--status-postponed-dark));
+  color: white;
+}
+
+.lesson-status-display .status-icon {
+  font-size: 2rem;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.lesson-status-display .status-text h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.lesson-status-display .status-message {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 0.95rem;
+}
+
+.lesson-status-display .courses-detail {
+  padding: 1.5rem;
+  background: #f8f9fa;
+}
+
+.lesson-status-display .courses-detail h4 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.lesson-status-display .courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.lesson-status-display .course-item {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lesson-status-display .course-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.lesson-status-display .course-header {
+  margin-bottom: 0.75rem;
+}
+
+.lesson-status-display .course-header h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.lesson-status-display .course-time {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.lesson-status-display .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.lesson-status-display .status-badge.scheduled {
+  background: var(--status-scheduled);
+  color: white;
+}
+
+.lesson-status-display .status-badge.cancelled {
+  background: var(--status-cancelled);
+  color: white;
+}
+
+.lesson-status-display .status-badge.indoor {
+  background: var(--status-indoor);
+  color: white;
+}
+
+.lesson-status-display .status-badge.postponed {
+  background: var(--status-postponed);
+  color: white;
+}
+
+
+.lesson-status-display .refresh-btn:hover {
+  background: var(--status-postponed);
+  border-color: var(--status-postponed);
+  color: white;
+  transform: scale(1.05);
+}
+
+.lesson-status-display .refresh-btn:active {
+  transform: scale(0.95);
+}
+
+.lesson-status-display .refresh-btn i {
+  margin-right: 0.3rem;
+}
+
+/* ローディング状態 */
+.lesson-status-display .status-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #7f8c8d;
+}
+
+.lesson-status-display .status-loading i {
+  margin-right: 0.5rem;
+  font-size: 1.2rem;
+}
+
+/* エラー状態 */
+.lesson-status-display.error .main-status.error {
+  background: linear-gradient(135deg, #e67e22, #d35400);
+  color: white;
+}
+
+.lesson-status-display .retry {
+  background: var(--status-cancelled);
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.lesson-status-display .retry:hover {
+  background: var(--status-cancelled-dark);
+}
+
+/* アニメーション */
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.lesson-status-container.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.lesson-status-container.slide-in {
+  animation: slideIn 0.5s ease-out;
+}
+
+.lesson-status-container.bounce-in {
+  animation: bounceIn 0.6s ease-out;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .lesson-status-display .main-status {
+    padding: 1rem;
+  }
+  
+  .lesson-status-display .status-icon {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+  }
+  
+  .lesson-status-display .status-text h3 {
+    font-size: 1.1rem;
+  }
+  
+  .lesson-status-display .courses-detail {
+    padding: 1rem;
+  }
+  
+  .lesson-status-display .courses-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .lesson-status-display .course-item {
+    padding: 0.75rem;
+  }
+  
+  .lesson-status-display .status-footer {
+    padding: 0.75rem 1rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .lesson-status-container {
+    margin: 1rem 0;
+  }
+  
+  .lesson-status-display .main-status {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  
+  .lesson-status-display .status-icon {
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+  
+  .lesson-status-display .courses-detail h4 {
+    text-align: center;
+  }
+}
+
+/* レッスン状況プレビュー */
+.lesson-status-preview {
+  max-width: 600px;
+  margin: 0 auto;
+  font-family: inherit;
+}
+
+.lesson-status-preview .preview-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.lesson-status-preview .preview-header h3 {
+  margin: 0;
+  color: var(--navy-dark);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.lesson-status-preview .global-status-display {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.lesson-status-preview .status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.lesson-status-preview .status-indicator.scheduled {
+  background: var(--status-scheduled);
+  color: white;
+}
+
+.lesson-status-preview .status-indicator.cancelled {
+  background: var(--status-cancelled);
+  color: white;
+}
+
+.lesson-status-preview .status-indicator.indoor {
+  background: var(--status-indoor);
+  color: white;
+}
+
+.lesson-status-preview .status-indicator.postponed {
+  background: var(--status-postponed);
+  color: white;
+}
+
+.lesson-status-preview .status-icon {
+  font-size: 1.2rem;
+}
+
+.lesson-status-preview .global-message {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(74, 144, 226, 0.08);
+  border: 1px solid rgba(74, 144, 226, 0.2);
+  border-radius: 8px;
+  text-align: left;
+}
+
+.lesson-status-preview .global-message .message-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  color: var(--navy-dark);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.lesson-status-preview .global-message .message-content i {
+  color: var(--primary-blue);
+  font-size: 1rem;
+  margin-top: 0.1rem;
+  flex-shrink: 0;
+}
+
+.lesson-status-preview .courses-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.lesson-status-preview .course-preview-item {
+  background: #f8f9fa;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.lesson-status-preview .course-preview-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.lesson-status-preview .course-header {
+  margin-bottom: 1rem;
+}
+
+.lesson-status-preview .course-header h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--navy-dark);
+}
+
+.lesson-status-preview .course-time {
+  font-size: 0.875rem;
+  color: #7f8c8d;
+  font-weight: 500;
+}
+
+.lesson-status-preview .course-status {
+  margin-bottom: 0.75rem;
+}
+
+.lesson-status-preview .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.lesson-status-preview .status-badge.scheduled {
+  background: var(--status-scheduled);
+  color: white;
+}
+
+.lesson-status-preview .status-badge.cancelled {
+  background: var(--status-cancelled);
+  color: white;
+}
+
+.lesson-status-preview .status-badge.indoor {
+  background: var(--status-indoor);
+  color: white;
+}
+
+.lesson-status-preview .status-badge.postponed {
+  background: var(--status-postponed);
+  color: white;
+}
+
+.lesson-status-preview .preview-footer {
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.lesson-status-preview .preview-note {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #7f8c8d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.lesson-status-preview .preview-note i {
+  color: var(--primary-blue);
+}
+
+/* モーダル内でのプレビュー調整 */
+.modal .lesson-status-preview {
+  max-width: none;
+}
+
+@media (max-width: 768px) {
+  .lesson-status-preview .status-indicator {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .lesson-status-preview .course-preview-item {
+    padding: 1rem;
+  }
+  
+  .lesson-status-preview .courses-grid {
+    gap: 1rem;
+  }
+}

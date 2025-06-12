@@ -1,0 +1,603 @@
+/**
+ * 管理者ログインページ専用スタイル
+ * admin-login.htmlのスタイル定義
+ * @version 2.0.0 - adminフォルダ移動・UI改善版
+ */
+
+/* =============================================================================
+ * フリッカー防止とベース設定
+ * ============================================================================= */
+
+/* フリッカー防止のための初期表示制御 */
+body.admin-layout {
+  background: var(--admin-gray-50);
+  visibility: hidden;
+  transition: visibility 0.2s ease;
+}
+
+body.admin-layout.loaded {
+  visibility: visible;
+}
+
+/* ページ読み込み時のアニメーション */
+.login-main {
+  margin-left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - var(--admin-header-height));
+  padding: 2rem;
+  opacity: 0;
+  animation: fadeIn 0.4s ease-out forwards;
+  animation-delay: 0.1s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =============================================================================
+ * ログインカード
+ * ============================================================================= */
+
+.login-card {
+  max-width: 450px;
+  width: 100%;
+  margin: 2rem auto;
+  padding: 3rem 2.5rem;
+  background: var(--admin-white);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  position: relative;
+  transition: var(--admin-transition);
+  opacity: 0;
+  animation: slideInUp 0.5s ease-out 0.3s forwards;
+}
+
+.login-card:hover {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 25px 25px -5px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--admin-primary);
+  border-radius: var(--admin-border-radius) var(--admin-border-radius) 0 0;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =============================================================================
+ * セクションヘッダー
+ * ============================================================================= */
+
+.section-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.section-header h1 {
+  color: var(--admin-gray-900);
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.section-header h1 i {
+  color: var(--admin-primary);
+  font-size: 1.5rem;
+}
+
+/* =============================================================================
+ * ヘッダーの「サイトに戻る」ボタン
+ * ============================================================================= */
+
+.admin-header .back-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--admin-gray-100);
+  color: var(--admin-gray-700);
+  border: 1px solid var(--admin-gray-300);
+  border-radius: var(--admin-border-radius-sm);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: var(--admin-transition);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-header .back-link:hover {
+  background: var(--admin-gray-200);
+  border-color: var(--admin-gray-500);
+  color: var(--admin-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--admin-shadow-lg);
+}
+
+.admin-header .back-link i {
+  font-size: 0.875rem;
+}
+
+/* =============================================================================
+ * ログインフォーム
+ * ============================================================================= */
+
+.login-form {
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--admin-gray-700);
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.form-label i {
+  color: var(--admin-primary);
+  font-size: 0.875rem;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.form-input {
+  width: 100%;
+  padding: 1rem 3rem 1rem 1rem;
+  border: 2px solid var(--admin-gray-300);
+  border-radius: var(--admin-border-radius-sm);
+  font-size: 1rem;
+  transition: var(--admin-transition);
+  background: var(--admin-white);
+  color: var(--admin-gray-900);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12), 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.form-input::placeholder {
+  color: var(--admin-gray-500);
+}
+
+.password-toggle {
+  position: absolute;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: var(--admin-gray-500);
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: var(--admin-transition);
+  border-radius: 4px;
+}
+
+.password-toggle:hover {
+  color: var(--admin-primary);
+  background: var(--admin-gray-100);
+}
+
+/* =============================================================================
+ * ログインボタン
+ * ============================================================================= */
+
+.form-actions {
+  margin-top: 2rem;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: var(--admin-primary);
+  color: var(--admin-white);
+  border: none;
+  border-radius: var(--admin-border-radius-sm);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--admin-transition);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--admin-shadow);
+}
+
+.login-btn:hover:not(.loading) {
+  background: var(--admin-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -4px rgba(59, 130, 246, 0.3), 0 8px 16px -4px rgba(59, 130, 246, 0.1);
+}
+
+.login-btn:active {
+  transform: translateY(0);
+  box-shadow: var(--admin-shadow);
+}
+
+.login-btn.loading {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.btn-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.btn-loading {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.login-btn.loading .btn-text {
+  display: none;
+}
+
+.login-btn.loading .btn-loading {
+  display: flex;
+}
+
+/* =============================================================================
+ * 通知メッセージ
+ * ============================================================================= */
+
+.admin-notification {
+  padding: 1rem 1.25rem;
+  border-radius: var(--admin-border-radius-sm);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: var(--admin-transition);
+  border: 1px solid transparent;
+}
+
+.admin-notification.hidden {
+  display: none;
+}
+
+.notification-error {
+  background-color: #fee2e2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.notification-success {
+  background-color: #d1fae5;
+  border-color: #a7f3d0;
+  color: #059669;
+}
+
+.notification-error i,
+.notification-success i {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* =============================================================================
+ * リダイレクトループエラー表示
+ * ============================================================================= */
+
+#redirect-loop-error {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  z-index: 10000;
+  background: #fee2e2;
+  border: 2px solid #dc2626;
+  border-radius: var(--admin-border-radius-sm);
+  padding: 1.5rem;
+  font-family: var(--font-primary);
+  box-shadow: var(--admin-shadow-lg);
+  animation: slideInFromTop 0.4s ease-out;
+}
+
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+#redirect-loop-error h3 {
+  margin: 0 0 0.75rem 0;
+  color: #dc2626;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+#redirect-loop-error p {
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+  color: #991b1b;
+}
+
+#redirect-loop-error .error-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+#redirect-loop-error button {
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--admin-border-radius-sm);
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 600;
+  transition: var(--admin-transition);
+}
+
+#redirect-loop-error button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--admin-shadow);
+}
+
+#redirect-loop-error .btn-primary {
+  background: #dc2626;
+  color: white;
+}
+
+#redirect-loop-error .btn-primary:hover {
+  background: #b91c1c;
+}
+
+#redirect-loop-error .btn-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+#redirect-loop-error .btn-secondary:hover {
+  background: #4b5563;
+}
+
+/* =============================================================================
+ * スピナーアニメーション
+ * ============================================================================= */
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fa-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* =============================================================================
+ * ページ切り替えエフェクト
+ * ============================================================================= */
+
+.page-transition {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.page-transition.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* =============================================================================
+ * レスポンシブデザイン
+ * ============================================================================= */
+
+@media (max-width: 768px) {
+  .login-main {
+    padding: 1.5rem;
+  }
+  
+  .login-card {
+    padding: 2.5rem 2rem;
+    margin: 1rem;
+    max-width: 100%;
+  }
+  
+  .section-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .admin-logo-text {
+    display: none;
+  }
+  
+  .admin-header {
+    padding: 0 1rem;
+  }
+  
+  #redirect-loop-error {
+    left: 10px;
+    right: 10px;
+    top: 10px;
+    padding: 1.25rem;
+  }
+  
+  #redirect-loop-error .error-actions {
+    flex-direction: column;
+  }
+  
+  #redirect-loop-error button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-main {
+    padding: 1rem;
+  }
+  
+  .login-card {
+    margin: 0.5rem;
+    padding: 2rem 1.5rem;
+  }
+  
+  .section-header h1 {
+    font-size: 1.375rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .admin-header .back-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+  
+  .form-input {
+    padding: 0.875rem 2.5rem 0.875rem 0.875rem;
+  }
+  
+  .login-btn {
+    padding: 0.875rem 1.25rem;
+  }
+  
+  #redirect-loop-error {
+    left: 5px;
+    right: 5px;
+    top: 5px;
+    padding: 1rem;
+  }
+}
+
+/* =============================================================================
+ * アニメーション設定（モーション設定を考慮）
+ * ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .login-main,
+  .login-card {
+    animation: none;
+  }
+  
+  .login-card {
+    opacity: 1;
+  }
+  
+  .login-main {
+    opacity: 1;
+  }
+}
+
+/* =============================================================================
+ * ダークモード対応
+ * ============================================================================= */
+
+@media (prefers-color-scheme: dark) {
+  body.admin-layout {
+    background: #1f2937;
+  }
+  
+  .login-card {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+  }
+  
+  .section-header h1 {
+    color: #f9fafb;
+  }
+  
+  .form-label {
+    color: #d1d5db;
+  }
+  
+  .form-input {
+    background: #4b5563;
+    border-color: #6b7280;
+    color: #f9fafb;
+  }
+  
+  .form-input::placeholder {
+    color: #9ca3af;
+  }
+  
+  .admin-header .back-link {
+    background: #4b5563;
+    color: #d1d5db;
+    border-color: #6b7280;
+  }
+  
+  .admin-header .back-link:hover {
+    background: #6b7280;
+    color: #f9fafb;
+  }
+}
+
+/* =============================================================================
+ * アクセシビリティ向上
+ * ============================================================================= */
+
+.login-btn:focus-visible,
+.form-input:focus-visible,
+.password-toggle:focus-visible,
+.admin-header .back-link:focus-visible {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 2px;
+}
+
+/* 高コントラスト設定対応 */
+@media (prefers-contrast: high) {
+  .login-card {
+    border-width: 2px;
+  }
+  
+  .form-input {
+    border-width: 2px;
+  }
+  
+  .admin-notification {
+    border-width: 2px;
+  }
+} 

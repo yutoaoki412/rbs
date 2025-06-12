@@ -1,0 +1,1614 @@
+/**
+ * 管理画面機能 - 機能固有スタイル
+ * RBS陸上教室 管理画面の機能別スタイル
+ * @version 2.0.0 - Phase 2リファクタリング版
+ */
+
+/* =============================================================================
+ * ダッシュボード機能
+ * ============================================================================= */
+
+/* 記事一覧は news.css の統一スタイルを使用 */
+
+/* =============================================================================
+ * 記事管理機能
+ * ============================================================================= */
+
+/* サブナビゲーション */
+.sub-nav {
+  display: flex;
+  background: var(--admin-white);
+  border-bottom: 1px solid var(--admin-gray-200);
+  margin-bottom: 2rem;
+  border-radius: var(--admin-border-radius) var(--admin-border-radius) 0 0;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sub-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: var(--admin-gray-50);
+  color: var(--admin-gray-600);
+  cursor: pointer;
+  border-right: 1px solid var(--admin-gray-200);
+  transition: all 0.2s ease;
+  font-weight: 500;
+  border: none;
+  position: relative;
+}
+
+.sub-nav-item:last-child {
+  border-right: none;
+}
+
+.sub-nav-item:hover {
+  background: var(--admin-gray-100);
+  color: var(--admin-gray-800);
+}
+
+.sub-nav-item.active {
+  background: var(--admin-white);
+  color: var(--admin-primary);
+  font-weight: 600;
+}
+
+.sub-nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--admin-primary);
+}
+
+.sub-nav-item i {
+  font-size: 1rem;
+}
+
+/* タブコンテンツ */
+.news-tab-content {
+  display: none;
+}
+
+.news-tab-content.active {
+  display: block;
+  animation: fadeInUp 0.3s ease;
+}
+
+/* エディターパネル */
+.editor-panel {
+  background: var(--admin-white);
+  border-radius: var(--admin-border-radius);
+  box-shadow: var(--admin-shadow);
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--admin-gray-200);
+  background: var(--admin-white);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: var(--admin-border-radius) var(--admin-border-radius) 0 0;
+}
+
+.panel-header h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.panel-header h2 i {
+  color: var(--admin-primary);
+  font-size: 1rem;
+}
+
+.panel-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.editor-form {
+  padding: 2rem;
+}
+
+/* エディターツールバー */
+.editor-toolbar {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  background: var(--admin-gray-50);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius-sm) var(--admin-border-radius-sm) 0 0;
+  border-bottom: none;
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--admin-gray-300);
+  background: var(--admin-white);
+  border-radius: 4px;
+  color: var(--admin-gray-600);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.toolbar-btn:hover {
+  background: var(--admin-primary);
+  border-color: var(--admin-primary);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 24px;
+  background: var(--admin-gray-300);
+  margin: 0 0.5rem;
+}
+
+.help-btn {
+  margin-left: auto;
+  width: auto;
+  padding: 0 0.75rem;
+  gap: 0.5rem;
+}
+
+.help-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.guide-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
+}
+
+.guide-btn:hover {
+  background: var(--admin-primary);
+  color: var(--admin-white);
+  border-color: var(--admin-primary);
+}
+
+/* 公開設定情報 */
+.publish-info {
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  border: 1px solid #bbdefb;
+  border-radius: var(--admin-border-radius-sm);
+  margin-top: 0.25rem;
+}
+
+.status-note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--admin-gray-700);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.status-note i {
+  color: var(--admin-primary);
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+/* リストパネル */
+.list-panel {
+  background: var(--admin-white);
+  border-radius: var(--admin-border-radius);
+  border: 1px solid var(--admin-gray-200);
+  box-shadow: var(--admin-shadow);
+}
+
+.list-panel.full-width {
+  grid-column: 1 / -1;
+}
+
+.panel-filters {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--admin-gray-200);
+  background: var(--admin-gray-50);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.list-content {
+  padding: 1.5rem;
+  max-height: 700px;
+  overflow-y: auto;
+}
+
+/* 設定タブでは高さ制限とスクロールを無効化 */
+.settings-tab-content .list-content {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* 記事一覧は統一されたnews-cardスタイルを使用 */
+
+/* クイックアクションはadmin-components.cssで統一管理 */
+
+/* =============================================================================
+ * Instagram管理機能
+ * ============================================================================= */
+
+/* タブコンテンツ */
+.instagram-tab-content {
+  display: none;
+}
+
+.instagram-tab-content.active {
+  display: block;
+  animation: fadeInUp 0.3s ease;
+}
+
+/* シンプルレイアウト */
+.instagram-simple-layout {
+  max-width: none;
+  margin: 0;
+  padding: 2rem 0;
+  width: 100%;
+}
+
+/* フォームセクション */
+.instagram-add-form {
+  background: var(--admin-white);
+  border: 2px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--admin-shadow);
+}
+
+.form-header h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--admin-gray-900);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.form-header h2 i {
+  color: var(--admin-primary);
+  font-size: 1.75rem;
+}
+
+.form-header p {
+  margin: 0;
+  color: var(--admin-gray-600);
+  font-size: 1rem;
+}
+
+.simple-form {
+  margin-top: 1.5rem;
+}
+
+/* 埋め込みコード入力用の新しいスタイル */
+.embed-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.embed-textarea {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: 2px solid var(--admin-gray-300);
+  border-radius: var(--admin-border-radius);
+  background: var(--admin-white);
+  color: var(--admin-gray-900);
+  font-size: 0.9rem;
+  font-family: 'Fira Code', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 150px;
+  transition: all 0.3s ease;
+}
+
+.embed-textarea:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.embed-textarea::placeholder {
+  color: var(--admin-gray-500);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 400;
+}
+
+.embed-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: var(--admin-gray-600);
+  line-height: 1.4;
+}
+
+.embed-hint i {
+  color: var(--admin-primary);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* 既存のURL入力スタイル（互換性維持） */
+.url-input-group {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.url-input {
+  flex: 1;
+  padding: 1rem 1.25rem;
+  border: 2px solid var(--admin-gray-300);
+  border-radius: var(--admin-border-radius);
+  background: var(--admin-white);
+  color: var(--admin-gray-900);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.url-input:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.url-input::placeholder {
+  color: var(--admin-gray-500);
+}
+
+.add-btn {
+  padding: 1rem 2rem;
+  background: var(--admin-primary);
+  color: white;
+  border: none;
+  border-radius: var(--admin-border-radius);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  box-shadow: var(--admin-shadow);
+  align-self: flex-start;
+}
+
+.add-btn:hover {
+  background: var(--admin-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+/* 設定行 */
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+/* トグルスイッチ - 基本スタイル（設定タブ専用の改善版はadmin-components.cssで定義） */
+.toggle-switch {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: relative;
+  width: 50px;
+  height: 24px;
+  background: var(--admin-gray-300);
+  border-radius: 24px;
+  transition: 0.3s;
+  border: 2px solid var(--admin-gray-300);
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  top: 2px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--admin-success);
+  border-color: var(--admin-success);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(26px);
+}
+
+.toggle-label {
+  font-weight: 500;
+  color: var(--admin-gray-700);
+}
+
+/* 注目投稿チェックボックス */
+.featured-checkbox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.featured-checkbox input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkmark {
+  height: 20px;
+  width: 20px;
+  background: var(--admin-white);
+  border: 2px solid var(--admin-gray-300);
+  border-radius: 4px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.featured-checkbox input:checked + .checkmark {
+  background: #fbbf24;
+  border-color: #fbbf24;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.featured-checkbox input:checked + .checkmark:after {
+  display: block;
+}
+
+.featured-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: var(--admin-gray-700);
+}
+
+/* 投稿一覧 */
+.instagram-posts-container {
+  background: var(--admin-white);
+  border: 2px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius);
+  padding: 2rem;
+  box-shadow: var(--admin-shadow);
+}
+
+.posts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--admin-gray-100);
+}
+
+.posts-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--admin-gray-900);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.posts-header h3 i {
+  color: var(--admin-primary);
+}
+
+.filter-select {
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--admin-gray-200);
+  border-radius: 8px;
+  background: white;
+  color: var(--admin-gray-700);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+
+.instagram-post-card {
+  background: var(--admin-white);
+  border: 2px solid var(--admin-gray-100);
+  border-radius: 16px;
+  padding: 0.875rem 1rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+}
+
+.instagram-post-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%);
+  transform: scaleY(0);
+  transition: transform 0.3s ease;
+}
+
+.instagram-post-card:hover {
+  border-color: var(--admin-primary);
+  box-shadow: 0 8px 25px rgba(74, 144, 226, 0.18);
+  transform: translateY(-3px);
+}
+
+.instagram-post-card:hover::before {
+  transform: scaleY(1);
+}
+
+.post-url {
+  font-size: 0.75rem;
+  color: var(--admin-primary);
+  text-decoration: none;
+  word-break: break-all;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.post-url:hover {
+  text-decoration: underline;
+}
+
+.post-badges {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.post-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--admin-gray-500);
+}
+
+.post-date {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.post-date i {
+  color: var(--admin-gray-400);
+}
+
+.featured-indicator {
+  color: var(--admin-orange);
+}
+
+.featured-indicator i {
+  color: var(--admin-orange);
+}
+
+/* Instagram投稿アクションボタンはadmin-components.cssで管理 */
+
+/* 統計概要 */
+.stats-overview {
+  margin-bottom: 1.5rem;
+}
+
+.stats-overview h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.display-settings {
+  background: var(--admin-white);
+  border-radius: var(--admin-border-radius);
+  border: 1px solid var(--admin-gray-200);
+  padding: 1.5rem;
+}
+
+.display-settings h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--admin-gray-200);
+}
+
+.setting-row:last-of-type {
+  border-bottom: none;
+}
+
+.setting-label {
+  font-size: 0.875rem;
+  color: var(--admin-gray-700);
+}
+
+.setting-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--admin-gray-300);
+  border-radius: var(--admin-border-radius-sm);
+  background: var(--admin-white);
+  color: var(--admin-gray-700);
+  font-size: 0.875rem;
+}
+
+.setting-select:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.save-settings-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--admin-success);
+  color: var(--admin-white);
+  border: none;
+  border-radius: var(--admin-border-radius-sm);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: var(--admin-transition);
+  margin-top: 1rem;
+}
+
+.save-settings-btn:hover {
+  background: var(--status-scheduled-dark);
+  transform: translateY(-1px);
+}
+
+/* =============================================================================
+ * レッスンステータス管理機能
+ * ============================================================================= */
+
+/* ウィザードステップ */
+.lesson-status-wizard {
+  background: var(--admin-white);
+  border-radius: var(--admin-border-radius);
+  border: 1px solid var(--admin-gray-200);
+  overflow: hidden;
+}
+
+.wizard-steps {
+  display: flex;
+  position: relative;
+  background: var(--admin-gray-50);
+  border-bottom: 1px solid var(--admin-gray-200);
+}
+
+.wizard-steps::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 2rem;
+  right: 2rem;
+  height: 2px;
+  background: var(--admin-gray-300);
+  z-index: 1;
+}
+
+.step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -1px;
+  width: 2px;
+  height: 2rem;
+  background: var(--admin-gray-300);
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.step.active {
+  color: var(--admin-primary);
+}
+
+.step.active::after {
+  background: var(--admin-primary);
+}
+
+.step.completed {
+  color: var(--admin-success);
+}
+
+.step-number {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--admin-gray-300);
+  color: var(--admin-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  transition: var(--admin-transition);
+}
+
+.step.active .step-number {
+  background: var(--admin-primary);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+.step.completed .step-number {
+  background: var(--admin-success);
+}
+
+.step span {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.step.active span {
+  color: var(--admin-primary);
+  font-weight: 600;
+}
+
+/* ウィザードコンテンツ */
+.wizard-content {
+  display: none;
+  padding: 2rem;
+}
+
+.wizard-content.active {
+  display: block;
+}
+
+.step-panel {
+  max-width: none;
+}
+
+.step-header {
+  margin-bottom: 1.5rem;
+}
+
+.step-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.step-header h3 i {
+  color: var(--admin-primary);
+}
+
+.step-header p {
+  font-size: 0.875rem;
+  color: var(--admin-gray-600);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ステータス選択グリッド */
+.status-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.status-option {
+  position: relative;
+}
+
+.status-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+}
+
+.option-card {
+  position: relative;
+  padding: 1.5rem;
+  border: 2px solid var(--admin-gray-300);
+  border-radius: var(--admin-border-radius);
+  background: var(--admin-white);
+  cursor: pointer;
+  transition: var(--admin-transition);
+  overflow: hidden;
+}
+
+.option-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: transparent;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: subtract;
+}
+
+.option-card:hover {
+  border-color: var(--admin-gray-400);
+  transform: translateY(-2px);
+  box-shadow: var(--admin-shadow);
+}
+
+.option-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--admin-gray-100);
+  color: var(--admin-gray-600);
+  margin: 0 auto 1rem auto;
+  transition: var(--admin-transition);
+}
+
+.option-icon i {
+  font-size: 1.25rem;
+}
+
+.option-content h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+  margin: 0 0 0.5rem 0;
+  text-align: center;
+}
+
+.option-content p {
+  font-size: 0.875rem;
+  color: var(--admin-gray-600);
+  margin: 0;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.option-check {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--admin-gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: var(--admin-transition);
+}
+
+.option-check i {
+  font-size: 0.75rem;
+  color: var(--admin-white);
+}
+
+/* チェック状態のスタイル */
+.status-option.scheduled input:checked ~ .option-card {
+  border-color: var(--status-scheduled);
+  background: rgba(39, 174, 96, 0.05);
+}
+
+.status-option.scheduled input:checked ~ .option-card::before {
+  background: linear-gradient(135deg, var(--status-scheduled), var(--status-scheduled-light));
+}
+
+.status-option.scheduled input:checked ~ .option-card .option-icon {
+  background: var(--status-scheduled);
+  color: var(--admin-white);
+}
+
+.status-option.scheduled input:checked ~ .option-card .option-icon i {
+  color: var(--admin-white);
+}
+
+.status-option.scheduled input:checked ~ .option-card .option-check {
+  background: var(--status-scheduled);
+  opacity: 1;
+}
+
+/* 詳細設定グリッド */
+.detail-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.setting-card {
+  background: var(--admin-white);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius);
+  padding: 1.5rem;
+  transition: var(--admin-transition);
+}
+
+.setting-card:hover {
+  box-shadow: var(--admin-shadow);
+}
+
+.setting-card.full-width {
+  grid-column: 1 / -1;
+}
+
+.setting-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.setting-header i {
+  color: var(--admin-primary);
+}
+
+.setting-header h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+  margin: 0;
+}
+
+.date-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--admin-gray-300);
+  border-radius: var(--admin-border-radius-sm);
+  background: var(--admin-white);
+  color: var(--admin-gray-900);
+  font-size: 0.875rem;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.message-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 0.75rem;
+  border: 1px solid var(--admin-gray-300);
+  border-radius: var(--admin-border-radius-sm);
+  background: var(--admin-white);
+  color: var(--admin-gray-900);
+  font-size: 0.875rem;
+  resize: vertical;
+}
+
+.message-textarea:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.textarea-help {
+  margin-top: 0.5rem;
+}
+
+.textarea-help small {
+  font-size: 0.75rem;
+  color: var(--admin-gray-500);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.textarea-help i {
+  color: var(--admin-primary);
+}
+
+/* コース設定 */
+.courses-settings {
+  grid-column: 1 / -1;
+}
+
+.course-setting-card {
+  background: var(--admin-gray-50);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  transition: var(--admin-transition);
+}
+
+.course-setting-card:hover {
+  background: var(--admin-white);
+  box-shadow: var(--admin-shadow);
+}
+
+.course-setting-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.course-info h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+  margin: 0;
+}
+
+.course-detail {
+  font-size: 0.75rem;
+  color: var(--admin-gray-600);
+  margin: 0.25rem 0 0 0;
+}
+
+.course-status-options {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.mini-status-option {
+  position: relative;
+}
+
+.mini-status-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+}
+
+.option-text {
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--admin-gray-300);
+  border-radius: var(--admin-border-radius-sm);
+  background: var(--admin-white);
+  color: var(--admin-gray-700);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--admin-transition);
+  white-space: nowrap;
+}
+
+.option-text:hover {
+  border-color: var(--admin-gray-400);
+  background: var(--admin-gray-50);
+}
+
+.mini-status-option input:checked + .option-text {
+  background: var(--admin-primary);
+  color: var(--admin-white);
+  border-color: var(--admin-primary);
+}
+
+/* ウィザードアクション */
+.wizard-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--admin-gray-200);
+  background: var(--admin-gray-50);
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.wizard-prev,
+.wizard-next {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid var(--admin-gray-300);
+  border-radius: var(--admin-border-radius-sm);
+  background: var(--admin-white);
+  color: var(--admin-gray-700);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: var(--admin-transition);
+}
+
+.wizard-prev:hover:not(:disabled),
+.wizard-next:hover {
+  background: var(--admin-gray-100);
+  border-color: var(--admin-gray-400);
+  transform: translateY(-1px);
+}
+
+.wizard-prev:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--admin-gray-100);
+  color: var(--admin-gray-500);
+}
+
+.wizard-prev:disabled:hover {
+  transform: none;
+}
+
+.wizard-next {
+  background: var(--admin-primary);
+  color: var(--admin-white);
+  border-color: var(--admin-primary);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* ステータスプレビューパネル */
+.status-preview-panel {
+  background: var(--admin-white);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius);
+  overflow: hidden;
+}
+
+.preview-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--admin-gray-200);
+  background: var(--admin-gray-50);
+}
+
+.preview-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+  margin: 0 0 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.preview-header p {
+  font-size: 0.875rem;
+  color: var(--admin-gray-600);
+  margin: 0;
+}
+
+.preview-content {
+  padding: 1.25rem;
+}
+
+.preview-status-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--admin-gray-50);
+  border-radius: var(--admin-border-radius-sm);
+  margin-bottom: 1rem;
+}
+
+.preview-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--admin-primary);
+  color: var(--admin-white);
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.preview-text h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--admin-gray-900);
+  margin: 0 0 0.25rem 0;
+}
+
+.preview-date {
+  font-size: 0.875rem;
+  color: var(--admin-gray-600);
+  margin: 0.25rem 0;
+}
+
+.preview-message {
+  font-size: 0.875rem;
+  color: var(--admin-gray-700);
+  margin: 0.5rem 0 0 0;
+  line-height: 1.4;
+  background: var(--admin-white);
+  padding: 0.75rem;
+  border-radius: var(--admin-border-radius-sm);
+  border: 1px solid var(--admin-gray-200);
+}
+
+.preview-courses {
+  margin-top: 1rem;
+}
+
+.preview-course {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: var(--admin-white);
+  border: 1px solid var(--admin-gray-200);
+  border-radius: var(--admin-border-radius-sm);
+  margin-bottom: 0.5rem;
+  transition: var(--admin-transition);
+}
+
+.course-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--admin-gray-900);
+}
+
+.course-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--admin-border-radius-sm);
+}
+
+.course-status.scheduled {
+  background: var(--status-scheduled-light);
+  color: var(--status-scheduled-dark);
+}
+
+/* =============================================================================
+ * レスポンシブ対応（記事管理・Instagram管理・設定）
+ * ============================================================================= */
+
+@media (max-width: 1024px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .panel-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .panel-actions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .sub-nav {
+    flex-direction: column;
+  }
+  
+  .sub-nav-item {
+    border-right: none;
+    border-bottom: 1px solid var(--admin-gray-200);
+    justify-content: center;
+  }
+  
+  .sub-nav-item:last-child {
+    border-bottom: none;
+  }
+  
+  .editor-form {
+    padding: 1.5rem;
+  }
+  
+  .panel-header {
+    padding: 1rem 1.5rem;
+  }
+  
+  .panel-actions {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .help-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  
+  .btn {
+    font-size: 0.8125rem;
+    padding: 0.625rem 1.25rem;
+  }
+  
+  .editor-toolbar {
+    flex-wrap: wrap;
+  }
+  
+  .form-textarea.editor-content {
+    min-height: 250px;
+    font-size: 0.75rem;
+  }
+  
+  .instagram-simple-layout {
+    padding: 1rem 0;
+    max-width: none;
+    width: 100%;
+  }
+  
+  .instagram-add-form,
+  .instagram-posts-container {
+    padding: 1.5rem;
+  }
+  
+  .posts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .editor-form {
+    padding: 1rem;
+  }
+  
+  .panel-header {
+    padding: 1rem;
+  }
+  
+  .panel-header h2 {
+    font-size: 1.125rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+  }
+  
+  .form-textarea.editor-content {
+    min-height: 200px;
+  }
+  
+  .instagram-add-form,
+  .instagram-posts-container {
+    padding: 1rem;
+  }
+  
+  .form-header h2 {
+    font-size: 1.25rem;
+  }
+  
+  .setting-actions {
+    flex-direction: column;
+  }
+}
+
+/* =============================================================================
+ * 記事エディター専用ボタンシステム（統一デザイン）
+ * ============================================================================= */
+
+/* 基本ボタンクラス */
+.btn-editor {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+  background: var(--admin-white);
+  font-family: inherit;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 共通のホバー・アクティブ効果 */
+.btn-editor:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-editor:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-editor:focus {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 2px;
+}
+
+.btn-editor:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
+  box-shadow: none;
+}
+
+/* 色別バリエーション */
+.btn-clear {
+  background: var(--admin-gray-100);
+  color: var(--admin-gray-700);
+  border-color: var(--admin-gray-300);
+}
+
+.btn-clear:hover {
+  background: var(--admin-gray-200);
+  color: var(--admin-gray-800);
+  border-color: var(--admin-gray-400);
+}
+
+.btn-preview {
+  background: var(--admin-secondary);
+  color: var(--admin-white);
+  border-color: var(--admin-secondary);
+}
+
+.btn-preview:hover {
+  background: var(--admin-secondary-dark);
+  border-color: var(--admin-secondary-dark);
+}
+
+.btn-save {
+  background: var(--admin-primary);
+  color: var(--admin-white);
+  border-color: var(--admin-primary);
+}
+
+.btn-save:hover {
+  background: var(--admin-primary-dark);
+  border-color: var(--admin-primary-dark);
+}
+
+.btn-publish {
+  background: var(--admin-success);
+  color: var(--admin-white);
+  border-color: var(--admin-success);
+}
+
+.btn-publish:hover {
+  background: #22c55e;
+  border-color: #22c55e;
+}
+
+/* パネルアクション内のレイアウト調整 */
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .panel-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  
+  .btn-editor {
+    padding: 0.625rem 1rem;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-editor {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.75rem;
+  }
+} 
