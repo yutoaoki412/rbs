@@ -182,7 +182,7 @@ const config = {
   admin: {
     // 認証
     auth: {
-      password: 'rbs2024admin',
+      password: 'rbs2025admin',
       sessionDuration: 86400000     // 24時間
     },
     
