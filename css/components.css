@@ -117,15 +117,23 @@
 .login-btn {
   background: var(--primary-orange) !important;
   color: white !important;
-  padding: 14px 32px !important;
+  padding: 16px 36px !important;
   border-radius: var(--radius-round) !important;
-  font-size: 15px !important;
+  font-size: 16px !important;
   font-weight: var(--font-weight-heavy) !important;
   transition: all 0.3s ease !important;
   border: none !important;
   box-shadow: 0 8px 25px rgba(245, 167, 35, 0.3) !important;
   position: relative !important;
   overflow: hidden !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  letter-spacing: 0.5px !important;
+  min-height: 56px !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
 }
 
 .login-btn::before {
@@ -142,11 +150,17 @@
 .login-btn:hover {
   background: #e6941f !important;
   color: white !important;
-  box-shadow: 0 10px 25px rgba(245, 167, 35, 0.4) !important;
+  box-shadow: 0 12px 30px rgba(245, 167, 35, 0.4) !important;
+  transform: translateY(-2px) !important;
 }
 
 .login-btn:hover::before {
   left: 100%;
+}
+
+.login-btn:active {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 20px rgba(245, 167, 35, 0.3) !important;
 }
 
 .login-btn::after {
