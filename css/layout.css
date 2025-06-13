@@ -408,6 +408,7 @@ body.header-loaded #hero {
 .company-philosophy p {
   font-size: 22px;
   font-weight: var(--font-weight-black);
+  color: #ffffff !important;
 }
 
 .business-list {
