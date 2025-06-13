@@ -28,95 +28,584 @@
   <link rel="stylesheet" href="./css/responsive.css">
 </head>
 <body class="page-news-detail">
-  <!-- ヘッダーコンテナ（新アーキテクチャ対応） -->
+  <!-- ヘッダーコンテナ -->
   <div id="header-container"></div>
 
-  <main>
-    <div class="container">
-      <!-- パンくずナビ -->
-      <nav class="breadcrumb">
-        <ul class="breadcrumb-list">
-          <li>
-            <a href="./index.html">ホーム</a>
-          </li>
-          <li>
-            <span class="breadcrumb-separator">></span>
-          </li>
-          <li>
-            <a href="news.html">ニュース</a>
-          </li>
-          <li>
-            <span class="breadcrumb-separator">></span>
-          </li>
-          <li>
-            <span id="breadcrumb-title">記事詳細</span>
-          </li>
-        </ul>
-      </nav>
-
-      <!-- 記事ヘッダー -->
-      <header class="article-header" id="article-header">
-        <div class="article-meta">
-          <span class="article-date" id="article-date">読み込み中...</span>
-          <span class="article-category" id="article-category">読み込み中...</span>
-        </div>
-        <h1 class="article-title" id="article-title">記事を読み込み中...</h1>
-        
-
-      </header>
-
-      <!-- 記事本文 -->
-      <article class="article-content" id="article-content">
-        <!-- コンテンツは動的に読み込まれます -->
-      </article>
-
-      <!-- シェアセクション -->
-      <section class="share-section hidden-section" id="share-section">
-        <h3 class="share-title">この記事をシェア</h3>
-        <div class="share-buttons">
-          <button data-action="share-twitter" class="share-btn twitter">
-            <img src="./assets/images/sns/x.png" alt="X (Twitter)" width="16" height="16">
-            X
-          </button>
-          <button data-action="share-facebook" class="share-btn facebook">
-            <img src="./assets/images/sns/facebook.png" alt="Facebook" width="16" height="16">
-            Facebook
-          </button>
-          <button data-action="share-line" class="share-btn line">
-            <img src="./assets/images/sns/line.png" alt="LINE" width="16" height="16">
-            LINE
-          </button>
-          <button data-action="copy-url" class="share-btn copy">
-            <i class="fas fa-link"></i>
-            URL をコピー
-          </button>
-        </div>
-      </section>
-
-      <!-- 関連記事 -->
-      <section class="related-articles hidden-section" id="related-articles">
-        <h3 class="related-title">関連記事</h3>
-        <div class="related-grid" id="related-articles-container">
-          <!-- 関連記事は動的に生成されます -->
-        </div>
-      </section>
-
-      <!-- 一覧に戻る -->
-      <div class="article-nav">
-        <a href="news.html" class="nav-btn">
-          <i class="fas fa-arrow-left"></i> ニュース一覧に戻る
-        </a>
+  <main class="news-detail-content">
+    <!-- パンくずナビ -->
+    <section class="breadcrumb-section">
+      <div class="container">
+        <nav class="breadcrumb card-base">
+          <ul class="breadcrumb-list">
+            <li><a href="./index.html">ホーム</a></li>
+            <li><span class="breadcrumb-separator">&gt;</span></li>
+            <li><a href="news.html">ニュース</a></li>
+            <li><span class="breadcrumb-separator">&gt;</span></li>
+            <li><span id="breadcrumb-title">記事詳細</span></li>
+          </ul>
+        </nav>
       </div>
-    </div>
+    </section>
+
+    <!-- 記事ヘッダー（タイトル部分） -->
+    <section class="article-header-section">
+      <div class="container">
+        <div class="article-header-card card-base">
+          <div class="article-meta">
+            <span class="news-date" id="article-date">
+              <i class="fas fa-calendar"></i> 読み込み中...
+            </span>
+            <span class="news-category" id="article-category">読み込み中...</span>
+          </div>
+          <h1 class="article-title" id="article-title">記事を読み込み中...</h1>
+        </div>
+      </div>
+    </section>
+
+    <!-- 記事概要セクション -->
+    <section id="article-summary-section" class="article-summary-section hidden">
+      <div class="container">
+        <div class="article-summary-card card-base">
+          <div class="summary-header">
+            <h2 class="summary-title">
+              <i class="fas fa-info-circle"></i>
+              記事の概要
+            </h2>
+          </div>
+          <div class="summary-content" id="article-summary">
+            <!-- 概要は動的に生成されます -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 記事コンテンツ -->
+    <section class="article-content-section">
+      <div class="container">
+        <div class="article-content-card card-base">
+          <div class="article-content" id="article-content">
+            <div class="loading-message">
+              <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+              </div>
+              <h3>記事を読み込み中...</h3>
+              <p>しばらくお待ちください</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- シェアセクション -->
+    <section id="share-section" class="share-section hidden">
+      <div class="container">
+        <div class="share-container card-base">
+          <h3 class="section-title">この記事をシェア</h3>
+          <div class="share-buttons">
+            <button data-action="share-twitter" class="share-btn twitter">
+              <img src="./assets/images/sns/x.png" alt="X (Twitter)" width="20" height="20">
+              <span>X でシェア</span>
+            </button>
+            <button data-action="share-facebook" class="share-btn facebook">
+              <img src="./assets/images/sns/facebook.png" alt="Facebook" width="20" height="20">
+              <span>Facebook でシェア</span>
+            </button>
+            <button data-action="share-line" class="share-btn line">
+              <img src="./assets/images/sns/line.png" alt="LINE" width="20" height="20">
+              <span>LINE で送る</span>
+            </button>
+            <button data-action="copy-url" class="share-btn copy">
+              <i class="fas fa-link"></i>
+              <span>URL をコピー</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 関連記事セクション -->
+    <section id="related-articles" class="related-articles-section hidden">
+      <div class="container">
+        <div class="related-articles-container">
+          <h2 class="section-title">関連記事</h2>
+          <div class="news-grid" id="related-articles-container">
+            <!-- 関連記事は動的に生成されます -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ナビゲーション -->
+    <section class="article-navigation-section">
+      <div class="container">
+        <div class="article-nav">
+          <a href="news.html" class="btn-primary nav-btn">
+            <i class="fas fa-arrow-left"></i>
+            ニュース一覧に戻る
+          </a>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <!-- フッターコンテナ（新アーキテクチャ対応） -->
+  <!-- フッターコンテナ -->
   <div id="footer-container"></div>
 
-  <!-- LP統一ニュースコントローラー -->
-  <script type="module" src="./js/features/news/controllers/LPNewsController.js"></script>
-  
   <!-- メインアプリケーション（ES6モジュール） -->
-  <script type="module" src="./js/app/main.js"></script>
+  <script type="module" src="./js/app/main.js?v=1.0.3"></script>
+  
+  <!-- GitHub Pages対応: 非モジュール版フォールバック -->
+  <script>
+    // エラーハンドリング付きモジュール読み込み
+    window.RBSNewsDetail = {
+      errors: [],
+      initialized: false,
+      
+      logError: function(error, context) {
+        console.error(`[RBS News Detail Error - ${context}]:`, error);
+        this.errors.push({ error, context, timestamp: new Date() });
+      }
+    };
+    
+    // マークダウン処理関数（NewsUtils.formatContentの簡易版）
+    function formatMarkdownContent(content) {
+      if (!content) return '<p>記事の内容がありません。</p>';
+      
+      // 改行を統一（\r\nや\rを\nに変換）
+      let formattedContent = content.replace(/\r\n|\r/g, '\n');
+      
+      // ヘッダーの処理（段階的に処理 - h6からh1の順で処理）
+      formattedContent = formattedContent
+        .replace(/^###### (.*$)/gm, '<h6>$1</h6>')
+        .replace(/^##### (.*$)/gm, '<h5>$1</h5>')
+        .replace(/^#### (.*$)/gm, '<h4>$1</h4>')
+        .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+        .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+        .replace(/^# (.*$)/gm, '<h1>$1</h1>');
+      
+      // 太字・イタリックの処理
+      formattedContent = formattedContent
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>');
+      
+      // リンクの処理
+      formattedContent = formattedContent
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+      
+      // 水平線の処理
+      formattedContent = formattedContent
+        .replace(/^---$/gm, '<hr>')
+        .replace(/^\*\*\*$/gm, '<hr>')
+        .replace(/^___$/gm, '<hr>');
+      
+      // コードブロックの処理
+      formattedContent = formattedContent
+        .replace(/```([^`]*?)```/g, '<pre><code>$1</code></pre>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
+      
+      // 行ごとに処理してリストと段落を適切に生成
+      const lines = formattedContent.split('\n');
+      const processedLines = [];
+      let inList = false;
+      let listType = null; // 'ul' or 'ol'
+      let inBlockquote = false;
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        
+        // 空行の処理
+        if (!line) {
+          if (inList) {
+            processedLines.push(listType === 'ul' ? '</ul>' : '</ol>');
+            inList = false;
+            listType = null;
+          }
+          if (inBlockquote) {
+            processedLines.push('</blockquote>');
+            inBlockquote = false;
+          }
+          processedLines.push(''); // 空行を保持
+          continue;
+        }
+        
+        // 引用の処理
+        const blockquoteMatch = line.match(/^>\s+(.*)$/);
+        if (blockquoteMatch) {
+          if (inList) {
+            processedLines.push(listType === 'ul' ? '</ul>' : '</ol>');
+            inList = false;
+            listType = null;
+          }
+          if (!inBlockquote) {
+            processedLines.push('<blockquote>');
+            inBlockquote = true;
+          }
+          processedLines.push(`<p>${blockquoteMatch[1]}</p>`);
+          continue;
+        } else if (inBlockquote) {
+          processedLines.push('</blockquote>');
+          inBlockquote = false;
+        }
+        
+        // ヘッダーまたは水平線の場合はそのまま追加
+        if (line.match(/^<(h[1-6]|hr)>/)) {
+          if (inList) {
+            processedLines.push(listType === 'ul' ? '</ul>' : '</ol>');
+            inList = false;
+            listType = null;
+          }
+          processedLines.push(line);
+          continue;
+        }
+        
+        // リスト項目の処理
+        const unorderedListMatch = line.match(/^[-*+]\s+(.*)$/);
+        const orderedListMatch = line.match(/^(\d+)\.\s+(.*)$/);
+        
+        if (unorderedListMatch || orderedListMatch) {
+          const isUnordered = !!unorderedListMatch;
+          const currentListType = isUnordered ? 'ul' : 'ol';
+          const listContent = isUnordered ? unorderedListMatch[1] : orderedListMatch[2];
+          
+          // リストタイプが変わった場合、前のリストを閉じる
+          if (inList && listType !== currentListType) {
+            processedLines.push(listType === 'ul' ? '</ul>' : '</ol>');
+            inList = false;
+          }
+          
+          // 新しいリストを開始
+          if (!inList) {
+            processedLines.push(currentListType === 'ul' ? '<ul>' : '<ol>');
+            inList = true;
+            listType = currentListType;
+          }
+          
+          processedLines.push(`<li>${listContent}</li>`);
+        } else {
+          // 通常のテキスト
+          if (inList) {
+            processedLines.push(listType === 'ul' ? '</ul>' : '</ol>');
+            inList = false;
+            listType = null;
+          }
+          
+          // コードブロックやヘッダーでなければ段落で囲む
+          if (!line.match(/^<(pre|h[1-6]|ul|ol|li|blockquote|hr)/)) {
+            processedLines.push(`<p>${line}</p>`);
+          } else {
+            processedLines.push(line);
+          }
+        }
+      }
+      
+      // 最後のリストを閉じる
+      if (inList) {
+        processedLines.push(listType === 'ul' ? '</ul>' : '</ol>');
+      }
+      
+      // 最後の引用を閉じる
+      if (inBlockquote) {
+        processedLines.push('</blockquote>');
+      }
+      
+      // 連続する空の段落を削除し、結果を結合
+      return processedLines
+        .filter((line, index, array) => {
+          // 空行と空段落の連続を避ける
+          if (line === '' || line === '<p></p>') {
+            const prevLine = array[index - 1];
+            const nextLine = array[index + 1];
+            // 前後が段落タグでない場合のみ空行を保持
+            return !(prevLine && prevLine.match(/<\/(p|h[1-6]|ul|ol)>/)) && 
+                   !(nextLine && nextLine.match(/^<(p|h[1-6]|ul|ol)/));
+          }
+          return true;
+        })
+        .join('\n')
+        .replace(/\n{3,}/g, '\n\n') // 3個以上の連続改行を2個に制限
+        .trim();
+    }
+    
+    // 概要生成関数
+    function generateSummary(content, maxLength = 200) {
+      if (!content) return '';
+      
+      // HTMLタグとマークダウン記法を除去
+      let textContent = content
+        .replace(/<[^>]*>/g, '') // HTMLタグを除去
+        .replace(/#{1,6}\s+/g, '') // マークダウンのヘッダーを除去
+        .replace(/\*\*(.*?)\*\*/g, '$1') // 太字マークダウンを除去
+        .replace(/\*(.*?)\*/g, '$1') // イタリックマークダウンを除去
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // リンクマークダウンを除去
+        .replace(/```[\s\S]*?```/g, '') // コードブロックを除去
+        .replace(/`([^`]+)`/g, '$1') // インラインコードを除去
+        .replace(/^\s*[-*+]\s+/gm, '') // リスト記号を除去
+        .replace(/^\s*\d+\.\s+/gm, '') // 数字リスト記号を除去
+        .replace(/^\s*>\s+/gm, '') // 引用記号を除去
+        .replace(/^---$|^\*\*\*$|^___$/gm, '') // 水平線を除去
+        .replace(/\n\s*\n/g, ' ') // 改行を空白に変換
+        .replace(/\s+/g, ' ') // 複数の空白を1つに
+        .trim();
+      
+      if (textContent.length <= maxLength) return textContent;
+      
+      // 単語境界で切り詰め（日本語対応）
+      const truncated = textContent.substring(0, maxLength);
+      
+      // 最後の句読点や空白で区切る
+      const lastPunctuation = Math.max(
+        truncated.lastIndexOf('。'),
+        truncated.lastIndexOf('、'),
+        truncated.lastIndexOf('！'),
+        truncated.lastIndexOf('？'),
+        truncated.lastIndexOf(' ')
+      );
+      
+      if (lastPunctuation > maxLength * 0.7) {
+        return truncated.substring(0, lastPunctuation + 1);
+      }
+      
+      return truncated + '...';
+    }
+    
+    // モジュール読み込み失敗時のフォールバック
+    let moduleLoadTimeout = setTimeout(() => {
+      console.warn('[GitHub Pages] ES Modules読み込みがタイムアウトしました。フォールバック処理を実行します。');
+      
+      // 基本的な記事表示処理（非モジュール版）
+      const articleTitle = document.getElementById('article-title');
+      const articleContent = document.getElementById('article-content');
+      const articleDate = document.getElementById('article-date');
+      const articleCategory = document.getElementById('article-category');
+      const articleSummary = document.getElementById('article-summary');
+      const summarySection = document.getElementById('article-summary-section');
+      
+      if (articleTitle && articleContent) {
+        // URLパラメータから記事IDを取得
+        const urlParams = new URLSearchParams(window.location.search);
+        const articleId = urlParams.get('id');
+        
+        if (articleId) {
+          try {
+            // ローカルストレージからニュースデータを読み込み
+            const articlesData = localStorage.getItem('rbs_articles');
+            const articles = articlesData ? JSON.parse(articlesData) : [];
+            
+            // 記事を検索
+            const article = articles.find(a => a.id === articleId);
+            
+            if (article) {
+              // メタデータ更新
+              document.title = `${article.title} - RBS陸上教室`;
+              
+              // 記事表示
+              const categoryInfo = getCategoryInfo(article.category);
+              const formattedDate = formatDate(article.publishedAt || article.createdAt);
+              
+              articleTitle.textContent = article.title;
+              articleDate.innerHTML = `<i class="fas fa-calendar"></i> ${formattedDate}`;
+              articleCategory.textContent = categoryInfo.label;
+              articleCategory.className = `news-category ${article.category}`;
+              
+              // 記事内容をマークダウン処理
+              const content = formatMarkdownContent(article.content || '<p>記事の内容がありません。</p>');
+              articleContent.innerHTML = content;
+              
+              // 概要表示
+              if (article.summary || article.content) {
+                const summaryText = article.summary || generateSummary(article.content);
+                if (summaryText && summaryText.trim() !== '') {
+                  articleSummary.innerHTML = `<p>${summaryText}</p>`;
+                  summarySection.classList.remove('hidden');
+                }
+              }
+              
+              // パンくず更新
+              const breadcrumbTitle = document.getElementById('breadcrumb-title');
+              if (breadcrumbTitle) {
+                breadcrumbTitle.textContent = article.title;
+              }
+              
+              // シェアセクションを表示
+              const shareSection = document.getElementById('share-section');
+              if (shareSection) {
+                shareSection.classList.remove('hidden');
+              }
+              
+              // 関連記事の表示
+              showRelatedArticles(articles, article);
+              
+            } else {
+              // 記事が見つからない場合
+              showArticleNotFound();
+            }
+            
+          } catch (error) {
+            console.error('[Fallback] 記事読み込みエラー:', error);
+            showLoadError();
+          }
+        } else {
+          // 記事IDが指定されていない場合
+          showInvalidId();
+        }
+      }
+    }, 2000);
+    
+    // ヘルパー関数
+    function getCategoryInfo(categoryId) {
+      const categories = {
+        'announcement': { label: 'お知らせ', color: '#4a90e2' },
+        'event': { label: '体験会', color: '#50c8a3' },
+        'media': { label: 'メディア', color: '#f5a623' },
+        'important': { label: '重要', color: '#e74c3c' }
+      };
+      return categories[categoryId] || { label: 'その他', color: '#6c757d' };
+    }
+    
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
+    }
+    
+    function showRelatedArticles(allArticles, currentArticle) {
+      const relatedSection = document.getElementById('related-articles');
+      const relatedContainer = document.getElementById('related-articles-container');
+      
+      if (!relatedSection || !relatedContainer) return;
+      
+      // 関連記事を検索（同じカテゴリーで異なる記事）
+      const relatedArticles = allArticles
+        .filter(article => 
+          article.id !== currentArticle.id && 
+          article.category === currentArticle.category &&
+          article.status === 'published'
+        )
+        .slice(0, 3);
+        
+      if (relatedArticles.length > 0) {
+        const relatedHTML = relatedArticles.map(article => {
+          const categoryInfo = getCategoryInfo(article.category);
+          const formattedDate = formatDate(article.publishedAt || article.createdAt);
+          
+          return `
+            <article class="news-card related-card">
+              <div class="news-card-header">
+                <div class="news-meta">
+                  <div class="news-date">${formattedDate}</div>
+                  <div class="related-category ${article.category}">${categoryInfo.label}</div>
+                </div>
+                <h3 class="news-title">
+                  <a href="news-detail.html?id=${article.id}">${article.title}</a>
+                </h3>
+              </div>
+              <div class="news-card-body">
+                <p class="news-excerpt">${(article.summary || generateSummary(article.content)) + '...'}</p>
+                <div class="news-actions">
+                  <a href="news-detail.html?id=${article.id}" class="news-read-more">続きを読む</a>
+                </div>
+              </div>
+            </article>
+          `;
+        }).join('');
+        
+        relatedContainer.innerHTML = relatedHTML;
+        relatedSection.classList.remove('hidden');
+      }
+    }
+    
+    function showArticleNotFound() {
+      const articleContent = document.getElementById('article-content');
+      articleContent.innerHTML = `
+        <div class="error-message">
+          <div class="error-icon">🔍</div>
+          <h3>記事が見つかりません</h3>
+          <p>指定された記事が見つかりませんでした。</p>
+          <div class="error-actions">
+            <a href="news.html" class="btn-primary">ニュース一覧に戻る</a>
+            <a href="./index.html" class="btn-outline">ホームに戻る</a>
+          </div>
+        </div>
+      `;
+      
+      const articleTitle = document.getElementById('article-title');
+      const articleDate = document.getElementById('article-date');
+      const articleCategory = document.getElementById('article-category');
+      
+      articleTitle.textContent = '記事が見つかりません';
+      articleDate.innerHTML = '<i class="fas fa-calendar"></i> -';
+      articleCategory.textContent = '-';
+    }
+    
+    function showLoadError() {
+      const articleContent = document.getElementById('article-content');
+      articleContent.innerHTML = `
+        <div class="error-message">
+          <div class="error-icon">❌</div>
+          <h3>エラーが発生しました</h3>
+          <p>記事の読み込み中にエラーが発生しました。</p>
+          <div class="error-actions">
+            <button onclick="location.reload()" class="btn-primary">再読み込み</button>
+            <a href="news.html" class="btn-outline">ニュース一覧に戻る</a>
+          </div>
+        </div>
+      `;
+    }
+    
+    function showInvalidId() {
+      const articleContent = document.getElementById('article-content');
+      articleContent.innerHTML = `
+        <div class="error-message">
+          <div class="error-icon">🔗</div>
+          <h3>無効なリンクです</h3>
+          <p>記事IDが指定されていません。</p>
+          <div class="error-actions">
+            <a href="news.html" class="btn-primary">ニュース一覧に戻る</a>
+            <a href="./index.html" class="btn-outline">ホームに戻る</a>
+          </div>
+        </div>
+      `;
+    }
+    
+    // モジュールが正常に読み込まれた場合はタイムアウトをクリア
+    window.addEventListener('RBSAppLoaded', function() {
+      clearTimeout(moduleLoadTimeout);
+      console.log('[GitHub Pages] ES Modules正常読み込み完了');
+    });
+  </script>
+  
+  <!-- シェア機能 -->
+  <script>
+    document.addEventListener('click', function(e) {
+      const shareBtn = e.target.closest('[data-action^="share"]');
+      if (!shareBtn) return;
+      
+      e.preventDefault();
+      
+      const action = shareBtn.dataset.action;
+      const url = encodeURIComponent(window.location.href);
+      const title = encodeURIComponent(document.title);
+      
+      switch (action) {
+        case 'share-twitter':
+          window.open(`https://twitter.com/intent/tweet?url=${url}&text=${title}`, '_blank');
+          break;
+        case 'share-facebook':
+          window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+          break;
+        case 'share-line':
+          window.open(`https://social-plugins.line.me/lineit/share?url=${url}`, '_blank');
+          break;
+        case 'copy-url':
+          navigator.clipboard.writeText(window.location.href).then(() => {
+            const originalText = shareBtn.querySelector('span').textContent;
+            shareBtn.querySelector('span').textContent = 'コピーしました！';
+            setTimeout(() => {
+              shareBtn.querySelector('span').textContent = originalText;
+            }, 2000);
+          });
+          break;
+      }
+    });
+  </script>
 </body>
 </html> 

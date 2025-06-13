@@ -168,9 +168,9 @@
   
   /* 共通レイアウト */
   .container {
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 0 var(--spacing-xl);
+    padding: 0 40px;
   }
   
   .container-wide {
@@ -243,6 +243,73 @@
     height: 8px;
     background: var(--primary-blue);
     border-radius: var(--radius-xs);
+  }
+  
+  h3 {
+    font-size: 28px;
+    margin-bottom: 25px;
+    color: var(--navy-dark);
+    font-weight: 800;
+    line-height: 1.3;
+  }
+  
+  h4 {
+    font-size: 20px;
+    margin-bottom: 18px;
+    color: var(--navy-dark);
+    font-weight: 700;
+  }
+  
+  p {
+    font-size: 16px;
+    color: var(--gray-medium);
+    line-height: 1.8;
+    margin-bottom: 18px;
+  }
+  
+  ul, ol {
+    margin: 18px 0 18px 24px;
+    padding: 0;
+    color: var(--gray-medium);
+    font-size: 16px;
+    line-height: 1.8;
+  }
+  
+  li {
+    margin-bottom: 8px;
+  }
+  
+  blockquote {
+    border-left: 4px solid var(--primary-blue);
+    margin: 25px 0;
+    padding: 15px 20px;
+    background: rgba(66, 153, 225, 0.05);
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+    color: var(--gray-dark);
+  }
+  
+  pre {
+    background: var(--gray-light);
+    border: 1px solid var(--gray-border);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 25px 0;
+    overflow-x: auto;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  code {
+    background: var(--gray-light);
+    border: 1px solid var(--gray-border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 14px;
+    color: var(--primary-blue);
+    word-break: break-word;
   }
   
   /* ユーティリティクラス */
@@ -676,5 +743,51 @@
 .borderless-iframe {
   border: 0;
   min-height: 500px;
+}
+
+/* 共通カテゴリタグ（LPルールに統一） */
+.article-category, .news-category {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: fit-content;
+  border: none;
+  display: inline-block;
+}
+.article-category.announcement, .news-category.announcement { background: #4a90e2; }
+.article-category.event, .news-category.event { background: #50c8a3; }
+.article-category.media, .news-category.media { background: #9b59b6; }
+.article-category.important, .news-category.important { background: #e74c3c; }
+
+.related-category {
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  min-width: fit-content;
+  border: none;
+  display: inline-block;
+}
+.related-category.announcement { background: #4a90e2; }
+.related-category.event { background: #50c8a3; }
+.related-category.media { background: #9b59b6; }
+.related-category.important { background: #e74c3c; }
+
+/* ユーティリティ */
+.hidden { display: none !important; }
+.pointer-cursor { cursor: pointer; }
+.text-primary-blue { color: var(--primary-blue); }
+
+/* container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 40px;
 }
 
