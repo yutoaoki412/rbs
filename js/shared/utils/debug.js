@@ -4,7 +4,8 @@
  */
 
 import { CONFIG } from '../constants/config.js';
-import { getAuthSupabaseService } from '../../features/auth/AuthManager.js';
+import { getAuthSupabaseService } from '../services/AuthSupabaseService.js';
+import { debugAdminAuth, getAdminAuthDetails } from './adminAuth.js';
 
 /**
  * 認証状態のフル診断
@@ -13,21 +14,29 @@ export async function diagnosisAuth() {
   console.group('🩺 認証システム診断 (Supabase統合版)');
   
   try {
-    const authService = await getAuthSupabaseService();
+    const authService = getAuthSupabaseService();
+    await authService.init();
+    
     const authState = await authService.getCurrentSession();
     const user = await authService.getCurrentUser();
     
     console.log('📋 基本情報');
     console.log('  環境:', CONFIG.app.environment);
-    console.log('  認証方式: Supabase Auth');
-    console.log('  パスワード:', CONFIG.admin.auth.password);
-    console.log('  セッション時間:', CONFIG.admin.auth.sessionDuration / (60*60*1000) + '時間');
+    console.log('  認証方式: Supabase Auth + セキュアアーキテクチャ');
+    console.log('  管理者メール:', CONFIG.admin.auth.adminCredentials.email);
+    console.log('  セッション時間:', CONFIG.admin.auth.session.duration / (60*60*1000) + '時間');
     
     console.log('\n🔐 Supabase認証状態');
     console.log('  認証サービス初期化:', !!authService);
     console.log('  現在のユーザー:', user ? user.email : 'なし');
     console.log('  セッション有効:', authService.isSessionValid());
     console.log('  管理者権限:', authService.isAdmin());
+    
+    // セキュアアーキテクチャの詳細権限情報
+    if (user) {
+      console.log('\n🛡️ セキュア権限詳細');
+      debugAdminAuth(user);
+    }
     
     if (authState) {
       console.log('\n📊 セッション詳細');

@@ -246,15 +246,28 @@ export class AuthSupabaseService {
   }
 
   /**
-   * 管理者権限を確認
+   * 管理者権限を確認（セキュアアーキテクチャ対応）
    */
   isAdmin() {
     if (!this.currentUser) return false;
     
-    // 管理者権限の確認ロジック
-    // 例: 特定のメールドメインや役割をチェック
-    const adminEmails = ['admin@rbs.com', 'manager@rbs.com'];
-    return adminEmails.includes(this.currentUser.email);
+    // 1. メタデータのroleをチェック（優先）
+    if (this.currentUser.user_metadata && this.currentUser.user_metadata.role === 'admin') {
+      console.log('[AuthSupabaseService] 管理者権限確認: メタデータ権限 ✅');
+      return true;
+    }
+    
+    // 2. フォールバック: 管理者メールアドレスの確認
+    const adminEmails = ['yaoki412rad@gmail.com'];
+    const hasAdminEmail = adminEmails.includes(this.currentUser.email);
+    
+    if (hasAdminEmail) {
+      console.log('[AuthSupabaseService] 管理者権限確認: メールアドレス権限 ✅');
+    } else {
+      console.log('[AuthSupabaseService] 管理者権限確認: 権限なし ❌');
+    }
+    
+    return hasAdminEmail;
   }
 
   /**

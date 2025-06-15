@@ -6,12 +6,15 @@
 
 import { getArticleSupabaseService } from '../../../shared/services/ArticleSupabaseService.js';
 import { CONFIG } from '../../../shared/constants/config.js';
+import { requireAdminUser, isAdminUser } from '../../../shared/utils/adminAuth.js';
+import { getSupabaseClient } from '../../../lib/supabase.js';
 
 export class AdminNewsSupabaseService {
   constructor() {
     this.serviceName = 'AdminNewsSupabaseService';
     this.initialized = false;
     this.articleService = null;
+    this.supabase = null;
     
     // キャッシュ管理
     this.articlesCache = new Map();
@@ -24,6 +27,35 @@ export class AdminNewsSupabaseService {
     
     // カテゴリー定義（schema.sql準拠）
     this.categoryDefinitions = CONFIG.articles.categories;
+  }
+
+  /**
+   * 管理者権限チェック（統一）
+   * @returns {Promise<Object>} 現在のユーザー情報
+   * @throws {Error} 管理者権限がない場合
+   */
+  async requireAdminAuth() {
+    try {
+      if (!this.supabase) {
+        this.supabase = getSupabaseClient();
+      }
+      
+      const { data: { user }, error } = await this.supabase.auth.getUser();
+      
+      if (error) {
+        throw new Error(`認証エラー: ${error.message}`);
+      }
+      
+      // 統一的な管理者権限チェック
+      requireAdminUser(user);
+      
+      console.log(`[${this.serviceName}] 管理者権限確認完了: ${user.email}`);
+      return user;
+      
+    } catch (error) {
+      console.error(`[${this.serviceName}] 管理者権限チェック失敗:`, error.message);
+      throw error;
+    }
   }
 
   /**
@@ -83,6 +115,9 @@ export class AdminNewsSupabaseService {
    */
   async createArticle(articleData) {
     try {
+      // 管理者権限チェック
+      await this.requireAdminAuth();
+      
       await this.init();
       
       if (!this.articleService) {
@@ -121,6 +156,9 @@ export class AdminNewsSupabaseService {
    */
   async updateArticle(articleId, updateData) {
     try {
+      // 管理者権限チェック
+      await this.requireAdminAuth();
+      
       await this.init();
       
       if (!this.articleService) {
@@ -158,6 +196,9 @@ export class AdminNewsSupabaseService {
    */
   async deleteArticle(articleId) {
     try {
+      // 管理者権限チェック
+      await this.requireAdminAuth();
+      
       await this.init();
       
       if (!this.articleService) {

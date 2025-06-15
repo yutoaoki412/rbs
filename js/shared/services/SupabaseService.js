@@ -6,6 +6,7 @@
 
 import { getSupabaseClient } from '../../lib/supabase.js';
 import { EventBus } from './EventBus.js';
+import { isAdminUser, requireAdminUser } from '../utils/adminAuth.js';
 
 export class SupabaseService {
   constructor(tableName, serviceName) {
@@ -48,6 +49,51 @@ export class SupabaseService {
     } catch (error) {
       this.error('Failed to initialize service:', error);
       throw error;
+    }
+  }
+
+  /**
+   * 管理者権限チェック（統一）
+   * @returns {Promise<Object>} 現在のユーザー情報
+   * @throws {Error} 管理者権限がない場合
+   */
+  async requireAdminAuth() {
+    try {
+      const { data: { user }, error } = await this.client.auth.getUser();
+      
+      if (error) {
+        throw new Error(`認証エラー: ${error.message}`);
+      }
+      
+      // 統一的な管理者権限チェック
+      requireAdminUser(user);
+      
+      this.log(`管理者権限確認完了: ${user.email}`);
+      return user;
+      
+    } catch (error) {
+      this.error('管理者権限チェック失敗:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * 管理者権限チェック（boolean版）
+   * @returns {Promise<boolean>} 管理者権限の有無
+   */
+  async checkAdminAuth() {
+    try {
+      const { data: { user }, error } = await this.client.auth.getUser();
+      
+      if (error || !user) {
+        return false;
+      }
+      
+      return isAdminUser(user);
+      
+    } catch (error) {
+      this.error('管理者権限チェックエラー:', error);
+      return false;
     }
   }
 

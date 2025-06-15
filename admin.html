@@ -1187,185 +1187,78 @@
         }
       }
 
-      async initializeSupabase() {
+            async initializeSupabase() {
         try {
-          // 統合認証サービスを使用
-          const { getAdminAuthService } = await import('./js/features/admin/services/AdminAuthService.js');
-          this.adminAuthService = getAdminAuthService();
-          await this.adminAuthService.init();
+          console.log('🔐 認証システム初期化開始');
           
-          // Supabaseクライアント取得
-          this.supabase = this.adminAuthService.supabase;
-          
-          if (this.supabase) {
-            console.log('✅ Supabase統合認証初期化完了');
-            this.state.supabaseConnected = true;
-            
-            // 認証状態確認
-            await this.checkAuthenticationStatus();
-            
+          // Supabaseクライアント初期化
+          if (window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+            this.supabase = window.supabase.createClient(
+              window.SUPABASE_URL,
+              window.SUPABASE_ANON_KEY
+            );
+            console.log('✅ Supabaseクライアント初期化完了');
           } else {
-            console.warn('⚠️ Supabase設定が見つかりません');
-            this.state.supabaseConnected = false;
-            
-            // 開発環境でのフォールバック
-            if (window.location.hostname === 'localhost' || window.location.protocol === 'file:') {
-              console.log('🔧 開発環境: モックモードで動作します');
-              this.setupMockSupabase();
-            }
+            throw new Error('Supabase設定が見つかりません');
           }
-        } catch (error) {
-          console.error('❌ Supabase統合認証初期化エラー:', error);
-          this.state.supabaseConnected = false;
-          this.showNotification('認証システムの初期化に失敗しました', 'warning');
           
-          // 開発環境でのフォールバック
-          if (window.location.hostname === 'localhost' || window.location.protocol === 'file:') {
-            this.setupMockSupabase();
-          }
-        }
-      }
-
-      // 認証状態確認（統合認証サービス使用）
-      async checkAuthenticationStatus(autoAuthenticate = true) {
-        try {
-          if (!this.adminAuthService) {
-            console.error('統合認証サービスが初期化されていません');
-            this.state.authenticated = false;
-            return false;
-          }
-
-          // 統合認証サービスで認証状態確認
-          const isAuthenticated = this.adminAuthService.isAuthenticatedUser();
+          this.state.supabaseConnected = true;
           
-          if (isAuthenticated) {
-            const user = this.adminAuthService.getCurrentUser();
-            console.log('✅ 有効な管理者セッションを確認:', user.email);
-            this.state.authenticated = true;
-            this.state.currentUser = user;
-            
-            // 接続テスト（認証済み状態で）
-            await this.testDatabaseConnection();
-            return true;
-          } else if (autoAuthenticate) {
-            console.log('🔐 認証が必要です');
-            await this.initiateAuthentication();
-            return this.state.authenticated;
-          } else {
-            console.log('🔐 認証が必要ですが、自動認証は無効です');
-            this.state.authenticated = false;
-            return false;
-          }
-
-        } catch (error) {
-          console.error('認証状態確認エラー:', error);
-          this.state.authenticated = false;
-          if (autoAuthenticate) {
-            throw error;
-          }
-          return false;
-        }
-      }
-
-      // 認証開始（統合認証サービス使用）
-      async initiateAuthentication() {
-        try {
-          if (!this.adminAuthService) {
-            throw new Error('統合認証サービスが初期化されていません');
-          }
-
-          console.log('🔐 Supabase Auth認証中...');
+          // 認証状態確認
+          const { data: { session }, error } = await this.supabase.auth.getSession();
           
-          // 統合認証サービスでサインイン（デフォルト認証情報使用）
-          const result = await this.adminAuthService.signIn();
-          
-          if (!result.success) {
-            throw new Error(result.error || '認証に失敗しました');
+          if (error || !session || !this.isAdminUser(session.user)) {
+            console.log('🔐 認証が必要です → ログイン画面にリダイレクト');
+            this.redirectToLogin();
+            return;
           }
-
+          
           // 認証成功
           this.state.authenticated = true;
-          this.state.currentUser = result.user;
+          this.state.currentUser = session.user;
+          console.log('✅ 認証確認完了:', session.user.email);
           
-          this.showNotification('認証に成功しました', 'success');
-          console.log('✅ 認証成功 (Supabase Auth統合):', result.user.email);
-
         } catch (error) {
-          console.error('認証処理エラー:', error);
-          this.state.authenticated = false;
-          this.showNotification(`認証に失敗しました: ${error.message}`, 'error');
-          throw error;
+          console.error('❌ 認証システム初期化エラー:', error);
+          this.showNotification('認証システムの初期化に失敗しました', 'error');
+          this.redirectToLogin();
+          return;
         }
       }
 
-      // 統合認証サービス使用により、これらのメソッドは不要
-
-
-
-      // データベース接続テスト（認証済み）
-      async testDatabaseConnection() {
-        try {
-          // articlesテーブルへのアクセステスト
-          const { data, error } = await this.supabase
-            .from('articles')
-            .select('id')
-            .limit(1);
-          
-          if (error) {
-            console.warn('記事テーブルアクセステスト:', error.message);
-          } else {
-            console.log('✅ 記事テーブルアクセス可能');
-          }
-
-          // instagram_postsテーブルへのアクセステスト
-          const { data: igData, error: igError } = await this.supabase
-            .from('instagram_posts')
-            .select('id')
-            .limit(1);
-          
-          if (igError) {
-            console.warn('Instagram投稿テーブルアクセステスト:', igError.message);
-          } else {
-            console.log('✅ Instagram投稿テーブルアクセス可能');
-          }
-
-        } catch (error) {
-          console.error('データベース接続テストエラー:', error);
+      // 管理者権限確認
+      isAdminUser(user) {
+        if (!user) return false;
+        
+        // 1. メタデータのroleをチェック（優先）
+        if (user.user_metadata && user.user_metadata.role === 'admin') {
+          return true;
         }
+        
+        // 2. フォールバック: 管理者メールアドレスの確認
+        const adminEmails = ['yaoki412rad@gmail.com'];
+        return adminEmails.includes(user.email);
       }
 
 
 
-      // 開発環境用のモックSupabase
-      setupMockSupabase() {
-        console.log('🔧 モックSupabaseを設定中...');
-        this.supabase = {
-          from: (table) => ({
-            insert: async (data) => {
-              console.log(`モック: ${table}テーブルに挿入:`, data);
-              return { data: { ...data, id: Date.now() }, error: null };
-            },
-            upsert: async (data) => {
-              console.log(`モック: ${table}テーブルにupsert:`, data);
-              return { data: { ...data, id: data.id || Date.now() }, error: null };
-            },
-            select: async (columns) => {
-              console.log(`モック: ${table}テーブルから選択:`, columns);
-              return { data: [], error: null };
-            },
-            update: async (data) => {
-              console.log(`モック: ${table}テーブルを更新:`, data);
-              return { data, error: null };
-            },
-            delete: async () => {
-              console.log(`モック: ${table}テーブルから削除`);
-              return { data: null, error: null };
-            }
-          })
-        };
-        this.state.supabaseConnected = true;
-        console.log('✅ モックSupabase設定完了');
-      }
+      // ログイン画面へのリダイレクト
+      redirectToLogin() {
+        console.log('🔐 ログイン画面にリダイレクト中...');
+        this.showNotification('認証が必要です。ログイン画面に移動します...', 'warning');
+        
+        setTimeout(() => {
+          window.location.href = 'admin-login.html?from=admin';
+        }, 1500);
+              }
+
+
+
+
+
+
+
+
 
       initializeBasicServices() {
         // 通知サービス
@@ -2761,28 +2654,21 @@
         // 追加のアクション処理をここに実装
       }
 
-      // ログアウト処理（Supabase統合版）
+      // ログアウト処理
       async handleLogout() {
         if (confirm('ログアウトしますか？')) {
           try {
             console.log('🔐 ログアウト実行中...');
             
-            // Supabaseセッション管理の場合
-            if (this.supabase && this.supabase.auth) {
-              try {
-                await this.supabase.auth.signOut();
-                console.log('✅ Supabaseセッション終了');
-              } catch (supabaseError) {
-                console.warn('Supabaseログアウト警告:', supabaseError.message);
-              }
+            // Supabaseログアウト
+            if (this.supabase) {
+              await this.supabase.auth.signOut();
+              console.log('✅ Supabaseログアウト完了');
             }
             
-            // 状態クリア（完全メモリベース）
+            // 状態クリア
             this.state.authenticated = false;
             this.state.currentUser = null;
-            this.state.currentSession = null;
-            this.state.authFailures = [];
-            this.state.authLockUntil = null;
             this.state.currentTab = 'dashboard';
             
             console.log('✅ ログアウト完了');
@@ -3159,18 +3045,9 @@
 
       // データ操作前の認証チェック
       async ensureAuthenticated() {
-        // 認証ロック確認
-        const lockStatus = this.isAuthenticationLocked();
-        if (lockStatus.locked) {
-          throw new Error(`認証がロックされています。あと${lockStatus.remainingMinutes}分お待ちください。`);
-        }
-
-        if (!this.state.authenticated || !this.isSessionValid()) {
+        if (!this.state.authenticated || !this.state.currentUser) {
           this.showNotification('操作には認証が必要です', 'warning');
-          await this.initiateAuthentication();
-        }
-        
-        if (!this.state.authenticated) {
+          this.redirectToLogin();
           throw new Error('認証が必要です');
         }
         
@@ -3366,6 +3243,6 @@
         `;
       }
     }
-  </script>
-</body>
+      </script>
+  </body>
 </html>

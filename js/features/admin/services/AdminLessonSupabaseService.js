@@ -7,6 +7,7 @@
 import { SupabaseService } from '../../../shared/services/SupabaseService.js';
 import { EventBus } from '../../../shared/services/EventBus.js';
 import { CONFIG } from '../../../shared/constants/config.js';
+import { requireAdminUser } from '../../../shared/utils/adminAuth.js';
 
 export class AdminLessonSupabaseService extends SupabaseService {
   constructor() {

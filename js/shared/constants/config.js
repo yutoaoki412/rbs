@@ -245,10 +245,12 @@ const config = {
         persistSession: true
       },
       
-      // RLSポリシー設定
+      // RLSポリシー設定（セキュアアーキテクチャ）
       rls: {
         enabled: true,
         requireAuthentication: true,
+        requireAdminRole: true,
+        metadataRoleCheck: true,
         adminRole: 'authenticated'
       },
       
