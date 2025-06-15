@@ -38,54 +38,7 @@
     html { visibility: hidden; }
     html.loaded { visibility: visible; }
     
-    /* 管理者ユーザー作成ボタンのスタイル */
-    .btn-success {
-      background: linear-gradient(135deg, #27ae60, #2ecc71);
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-    }
 
-    .btn-success:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3);
-    }
-
-    .btn-success:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .setup-instructions {
-      border-left: 4px solid #3498db;
-      background: #f8f9fa !important;
-    }
-
-    .setup-instructions h4 {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #2c3e50 !important;
-    }
-
-    .setup-instructions ol {
-      color: #34495e;
-    }
-
-    .setup-instructions li {
-      margin-bottom: 5px;
-    }
   </style>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -180,28 +133,7 @@
                 </span>
               </button>
               
-              <!-- 管理者ユーザー作成ボタン -->
-              <button type="button" class="btn btn-success create-admin-btn" id="create-admin-btn" style="margin-top: 15px;">
-                <span class="btn-text">
-                  <i class="fas fa-user-plus"></i>
-                  管理者ユーザーを作成
-                </span>
-                <span class="btn-loading" id="create-btn-loading" style="display: none;">
-                  <i class="fas fa-spinner fa-spin"></i>
-                  作成中...
-                </span>
-              </button>
-              
-              <!-- セットアップ手順 -->
-              <div id="setup-instructions" class="setup-instructions" style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 13px; line-height: 1.5; display: none;">
-                <h4 style="margin: 0 0 10px 0; color: #2c3e50;">🔧 初回セットアップ手順</h4>
-                <ol style="margin: 0; padding-left: 20px;">
-                  <li>「管理者ユーザーを作成」ボタンをクリック</li>
-                  <li>Supabaseでユーザー作成を実行</li>
-                  <li>メール確認が必要な場合は、Supabaseダッシュボードで確認</li>
-                  <li>作成完了後、通常のログインを実行</li>
-                </ol>
-              </div>
+
             </div>
           </form>
         </div>
@@ -341,67 +273,7 @@
         return adminEmails.includes(user.email);
       }
 
-      async createAdminUser() {
-        try {
-          console.log('👤 管理者ユーザー作成開始');
-          
-          const adminCredentials = {
-            email: 'yaoki412rad@gmail.com',
-            password: 'rbs2025admin'
-          };
-          
-          // ユーザー登録（管理者メタデータ付き）
-          const { data, error } = await this.supabase.auth.signUp({
-            email: adminCredentials.email,
-            password: adminCredentials.password,
-            options: {
-              emailRedirectTo: window.location.origin + '/admin.html',
-              data: {
-                role: 'admin',
-                name: 'RBS管理者',
-                created_by: 'admin-setup'
-              }
-            }
-          });
-          
-          if (error) {
-            if (error.message.includes('User already registered')) {
-              console.log('✅ ユーザーは既に登録済みです');
-              return {
-                success: true,
-                message: 'ユーザーは既に登録済みです。ログインを試行してください。',
-                alreadyExists: true
-              };
-            } else {
-              throw error;
-            }
-          }
-          
-          console.log('✅ ユーザー作成成功:', data.user?.email);
-          
-          if (data.user && !data.user.email_confirmed_at) {
-            return {
-              success: true,
-              message: 'ユーザーを作成しました。メール確認が必要です。',
-              needsConfirmation: true,
-              user: data.user
-            };
-          }
-          
-          return {
-            success: true,
-            message: 'ユーザーを作成しました。ログインできます。',
-            user: data.user
-          };
-          
-        } catch (error) {
-          console.error('❌ ユーザー作成エラー:', error);
-          return {
-            success: false,
-            error: this.getErrorMessage(error)
-          };
-        }
-      }
+
 
       getErrorMessage(error) {
         const errorMessages = {
@@ -455,7 +327,6 @@
 
     function setupEventListeners() {
       document.getElementById('login-form').addEventListener('submit', handleLogin);
-      document.getElementById('create-admin-btn').addEventListener('click', handleCreateAdmin);
       
       // Enter キーでログイン
       ['email', 'password'].forEach(id => {
@@ -533,41 +404,7 @@
       }
     }
 
-    async function handleCreateAdmin(e) {
-      e.preventDefault();
-      if (isLoading) return;
 
-      console.log('👤 管理者ユーザー作成処理開始');
-      
-      setCreateLoadingState(true);
-      hideError();
-      hideSuccess();
-
-      try {
-        const createResult = await authSystem.createAdminUser();
-        
-        if (createResult.success) {
-          console.log('✅ ユーザー作成成功');
-          
-          if (createResult.alreadyExists) {
-            showMessage('ユーザーは既に存在します。ログインを試行してください。', 'success');
-          } else if (createResult.needsConfirmation) {
-            showMessage('ユーザーを作成しました。Supabaseダッシュボードでメール確認を完了してください。', 'success');
-            showSetupInstructions();
-          } else {
-            showMessage('ユーザーを作成しました。ログインできます。', 'success');
-          }
-        } else {
-          console.log('❌ ユーザー作成失敗:', createResult.error);
-          showError(createResult.error);
-        }
-      } catch (error) {
-        console.error('❌ ユーザー作成エラー:', error);
-        showError('ユーザー作成に失敗しました。しばらく時間をおいて再試行してください。');
-      } finally {
-        setCreateLoadingState(false);
-      }
-    }
 
     function clearForm() {
       document.getElementById('password').value = '';
@@ -587,26 +424,7 @@
       }
     }
 
-    function setCreateLoadingState(loading) {
-      const createBtn = document.getElementById('create-admin-btn');
-      const btnText = createBtn.querySelector('.btn-text');
-      const btnLoading = createBtn.querySelector('.btn-loading');
-      
-      if (loading) {
-        createBtn.disabled = true;
-        btnText.style.display = 'none';
-        btnLoading.style.display = 'flex';
-      } else {
-        createBtn.disabled = false;
-        btnText.style.display = 'flex';
-        btnLoading.style.display = 'none';
-      }
-    }
 
-    function showSetupInstructions() {
-      const instructions = document.getElementById('setup-instructions');
-      instructions.style.display = 'block';
-    }
 
     function showError(message) {
       console.log('❌ エラー表示:', message);
