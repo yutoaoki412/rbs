@@ -1,98 +1,62 @@
 /**
  * 統一認証システム デバッグユーティリティ
- * @version 2.0.0 - AuthManager対応
+ * @version 3.0.0 - Supabase完全統合版（LocalStorage削除）
  */
 
 import { CONFIG } from '../constants/config.js';
-import { authManager } from '../../features/auth/AuthManager.js';
+import { getAuthSupabaseService } from '../../features/auth/AuthManager.js';
 
 /**
  * 認証状態のフル診断
  */
-export function diagnosisAuth() {
-  console.group('🩺 認証システム診断 (CONFIG統一版)');
+export async function diagnosisAuth() {
+  console.group('🩺 認証システム診断 (Supabase統合版)');
   
   try {
-    const authData = localStorage.getItem(CONFIG.storage.keys.adminSession);
-    const now = Date.now();
+    const authService = await getAuthSupabaseService();
+    const authState = await authService.getCurrentSession();
+    const user = await authService.getCurrentUser();
     
     console.log('📋 基本情報');
     console.log('  環境:', CONFIG.app.environment);
-    console.log('  ストレージキー:', CONFIG.storage.keys.adminSession);
-      console.log('  パスワード:', CONFIG.admin.auth.password);
-  console.log('  セッション時間:', CONFIG.admin.auth.sessionDuration / (60*60*1000) + '時間');
+    console.log('  認証方式: Supabase Auth');
+    console.log('  パスワード:', CONFIG.admin.auth.password);
+    console.log('  セッション時間:', CONFIG.admin.auth.sessionDuration / (60*60*1000) + '時間');
     
-    console.log('\n💾 ストレージ状態');
-    console.log('  認証データ存在:', !!authData);
+    console.log('\n🔐 Supabase認証状態');
+    console.log('  認証サービス初期化:', !!authService);
+    console.log('  現在のユーザー:', user ? user.email : 'なし');
+    console.log('  セッション有効:', authService.isSessionValid());
+    console.log('  管理者権限:', authService.isAdmin());
     
-    if (authData) {
-      try {
-        const parsed = JSON.parse(authData);
-        
-        console.log('  データ構造:');
-        console.log('    token:', parsed.token ? parsed.token.substring(0, 30) + '...' : 'なし');
-        console.log('    created:', parsed.created ? new Date(parsed.created) : 'なし');
-        console.log('    expires:', parsed.expires ? new Date(parsed.expires) : 'なし');
-        console.log('    lastActivity:', parsed.lastActivity ? new Date(parsed.lastActivity) : 'なし');
-        console.log('    version:', parsed.version || 'なし');
-        
-        console.log('  有効性チェック:');
-        console.log('    hasToken:', !!parsed.token);
-        console.log('    hasCreated:', !!parsed.created);
-        console.log('    hasExpires:', !!parsed.expires);
-        console.log('    hasLastActivity:', !!parsed.lastActivity);
-        
-        if (parsed.expires) {
-          const isExpired = now >= parsed.expires;
-          const remainingMs = parsed.expires - now;
-          const remainingMinutes = Math.round(remainingMs / 60000);
-          
-          console.log('    期限切れ:', isExpired);
-          console.log('    残り時間:', remainingMinutes + '分');
-          
-          if (isExpired) {
-            console.log('    期限切れ時刻:', new Date(parsed.expires));
-            console.log('    経過時間:', Math.round((now - parsed.expires) / 60000) + '分');
-          }
-        }
-        
-        // 統一判定ロジック
-        const isValid = parsed.token && 
-                       parsed.created && 
-                       parsed.expires && 
-                       (now < parsed.expires);
-        
-        console.log('\n✅ 最終判定');
-        console.log('  認証状態:', isValid ? '有効' : '無効');
-        
-        if (!isValid) {
-          console.log('  無効理由:');
-          if (!parsed.token) console.log('    - トークンなし');
-          if (!parsed.created) console.log('    - 作成日時なし');
-          if (!parsed.expires) console.log('    - 有効期限なし');
-          if (parsed.expires && now >= parsed.expires) console.log('    - 期限切れ');
-        }
-        
-      } catch (parseError) {
-        console.error('❌ データ解析エラー:', parseError);
-        console.log('  生データ:', authData);
+    if (authState) {
+      console.log('\n📊 セッション詳細');
+      console.log('  アクセストークン:', authState.access_token ? '存在' : 'なし');
+      console.log('  リフレッシュトークン:', authState.refresh_token ? '存在' : 'なし');
+      console.log('  有効期限:', new Date(authState.expires_at * 1000).toLocaleString());
+      console.log('  トークンタイプ:', authState.token_type);
+      
+      const now = Date.now();
+      const expiresAt = authState.expires_at * 1000;
+      const isValid = now < expiresAt;
+      
+      console.log('\n✅ セッション検証');
+      console.log('  現在時刻:', new Date(now).toLocaleString());
+      console.log('  有効期限:', new Date(expiresAt).toLocaleString());
+      console.log('  セッション有効:', isValid);
+      console.log('  残り時間:', Math.max(0, Math.floor((expiresAt - now) / 1000 / 60)) + '分');
+      
+      if (!isValid) {
+        console.log('  ⚠️ セッションが期限切れです');
       }
     } else {
-      console.log('  → 認証データが存在しません');
+      console.log('  → 認証セッションが存在しません');
     }
     
     console.log('\n🌐 ページ状態');
     console.log('  URL:', window.location.href);
     console.log('  pathname:', window.location.pathname);
     console.log('  search:', window.location.search);
-    
-    console.log('\n🔧 その他のストレージ');
-    Object.entries(CONFIG.storage.keys).forEach(([key, value]) => {
-      if (key !== 'adminSession') {
-        const data = localStorage.getItem(value);
-        console.log(`  ${key} (${value}):`, data ? '存在' : 'なし');
-      }
-    });
     
   } catch (error) {
     console.error('❌ 診断中にエラー:', error);
@@ -102,80 +66,130 @@ export function diagnosisAuth() {
 }
 
 /**
- * 認証データクリア（完全）
+ * 認証状態の簡易確認
  */
-export function clearAllAuth() {
-  console.log('🧹 認証データ完全クリア開始');
+export async function checkAuth() {
+  console.group('🔍 認証状態確認 (Supabase版)');
   
   try {
-    // AuthManagerを使用してクリア
-    authManager.logout();
+    const authService = await getAuthSupabaseService();
+    const user = await authService.getCurrentUser();
+    const isValid = authService.isSessionValid();
+    const isAdmin = authService.isAdmin();
     
-    console.log('✅ 認証データクリア完了');
+    console.log('認証状態:', {
+      user: user ? user.email : null,
+      isAuthenticated: !!user,
+      isSessionValid: isValid,
+      isAdmin: isAdmin,
+      timestamp: new Date().toISOString()
+    });
     
-    // 現在の状態確認
-    setTimeout(() => {
-      authManager.debug();
-    }, 100);
+    return {
+      isAuthenticated: !!user,
+      isSessionValid: isValid,
+      isAdmin: isAdmin,
+      user: user
+    };
     
   } catch (error) {
-    console.error('❌ クリア中にエラー:', error);
+    console.error('❌ 認証確認エラー:', error);
+    return {
+      isAuthenticated: false,
+      isSessionValid: false,
+      isAdmin: false,
+      user: null,
+      error: error.message
+    };
+  } finally {
+    console.groupEnd();
   }
 }
 
 /**
- * テスト用認証セッション作成
+ * 認証トークンの詳細表示
  */
-export function createTestSession(hoursFromNow = 24) {
-  console.log('🧪 テスト用セッション作成開始');
+export async function showTokenDetails() {
+  console.group('🎫 認証トークン詳細');
   
   try {
-    // テスト用パスワードでログイン
-    const success = authManager.login('dev');
+    const authService = await getAuthSupabaseService();
+    const session = await authService.getCurrentSession();
     
-    if (success) {
-      console.log('✅ テストセッション作成完了:', {
-        duration: hoursFromNow + '時間'
-      });
-      
-      // 作成結果確認
-      setTimeout(() => {
-        authManager.debug();
-      }, 100);
+    if (session) {
+      console.log('アクセストークン (最初の50文字):', session.access_token.substring(0, 50) + '...');
+      console.log('リフレッシュトークン (最初の50文字):', session.refresh_token.substring(0, 50) + '...');
+      console.log('トークンタイプ:', session.token_type);
+      console.log('発行時刻:', new Date(session.expires_at * 1000 - session.expires_in * 1000).toLocaleString());
+      console.log('有効期限:', new Date(session.expires_at * 1000).toLocaleString());
+      console.log('有効期間:', session.expires_in + '秒');
     } else {
-      console.error('❌ テストセッション作成失敗');
+      console.log('認証トークンが存在しません');
     }
     
   } catch (error) {
-    console.error('❌ テストセッション作成エラー:', error);
+    console.error('❌ トークン詳細取得エラー:', error);
   }
+  
+  console.groupEnd();
 }
 
 /**
- * 認証システムリセット
+ * 強制ログアウト（デバッグ用）
  */
-export function resetAuthSystem() {
-  console.log('🔄 認証システムリセット開始');
+export async function forceLogout() {
+  console.group('🚪 強制ログアウト');
   
   try {
-    // 認証データクリア
-    authManager.logout();
+    const authService = await getAuthSupabaseService();
+    const result = await authService.signOut();
     
-    // ページリロード
-    setTimeout(() => {
-      console.log('🔄 ページリロード実行');
-      window.location.reload();
-    }, 1000);
+    if (result.success) {
+      console.log('✅ ログアウト成功');
+      console.log('ログインページにリダイレクトします...');
+      
+      setTimeout(() => {
+        window.location.href = 'admin-login.html';
+      }, 1000);
+    } else {
+      console.error('❌ ログアウト失敗:', result.error);
+    }
     
   } catch (error) {
-    console.error('❌ リセットエラー:', error);
+    console.error('❌ 強制ログアウトエラー:', error);
   }
+  
+  console.groupEnd();
+}
+
+/**
+ * セッション更新テスト
+ */
+export async function testSessionRefresh() {
+  console.group('🔄 セッション更新テスト');
+  
+  try {
+    const authService = await getAuthSupabaseService();
+    const result = await authService.refreshSession();
+    
+    if (result.success) {
+      console.log('✅ セッション更新成功');
+      console.log('新しいセッション:', result.session);
+    } else {
+      console.error('❌ セッション更新失敗:', result.error);
+    }
+    
+  } catch (error) {
+    console.error('❌ セッション更新テストエラー:', error);
+  }
+  
+  console.groupEnd();
 }
 
 /**
  * リダイレクト状態確認
  */
-export function checkRedirectState() {
+export async function checkRedirectState() {
   console.group('🔀 リダイレクト状態確認');
   
   try {
@@ -184,19 +198,13 @@ export function checkRedirectState() {
     console.log('クエリパラメータ:', window.location.search);
     console.log('ハッシュ:', window.location.hash);
     
-    // セッション判定
-    const authData = localStorage.getItem(CONFIG.storage.keys.adminSession);
-    const hasValidSession = authData && (() => {
-      try {
-        const parsed = JSON.parse(authData);
-        const now = Date.now();
-        return parsed.token && parsed.created && parsed.expires && (now < parsed.expires);
-      } catch {
-        return false;
-      }
-    })();
+    // Supabase認証状態確認
+    const authService = await getAuthSupabaseService();
+    const hasValidSession = authService.isSessionValid();
+    const user = await authService.getCurrentUser();
     
     console.log('認証セッション有効:', hasValidSession);
+    console.log('認証ユーザー:', user ? user.email : 'なし');
     
     // 推奨アクション
     const isLoginPage = window.location.pathname.includes('admin-login');
@@ -224,18 +232,12 @@ export function checkRedirectState() {
   console.groupEnd();
 }
 
-// デバッグ環境でのグローバル登録
-if (CONFIG.debug.enabled) {
+// グローバル関数として登録（開発環境のみ）
+if (CONFIG.app.environment === 'development') {
   window.diagnosisAuth = diagnosisAuth;
-  window.clearAllAuth = clearAllAuth;
-  window.createTestSession = createTestSession;
-  window.resetAuthSystem = resetAuthSystem;
+  window.checkAuth = checkAuth;
+  window.showTokenDetails = showTokenDetails;
+  window.forceLogout = forceLogout;
+  window.testSessionRefresh = testSessionRefresh;
   window.checkRedirectState = checkRedirectState;
-  
-  console.log('🔧 デバッグ機能が利用可能です:');
-  console.log('  diagnosisAuth() - 認証システム診断');
-  console.log('  clearAllAuth() - 認証データクリア');
-  console.log('  createTestSession() - テストセッション作成');
-  console.log('  resetAuthSystem() - システムリセット');
-  console.log('  checkRedirectState() - リダイレクト状態確認');
 } 

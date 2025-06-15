@@ -1,451 +1,363 @@
 /**
- * 統合ニュース管理システム エントリーポイント
- * 洗練されたアーキテクチャで機能別に分割
- * @version 4.0.0 - リファクタリング完了版
+ * ニュース機能メインエントリーポイント
+ * @version 3.0.0 - Supabase完全統合版
  */
 
-import { CONFIG } from '../../shared/constants/config.js';
 import { EventBus } from '../../shared/services/EventBus.js';
-import { getUnifiedNewsService } from './services/UnifiedNewsService.js';
-import NewsPageRenderer from './components/NewsPageRenderer.js';
+import { getLPNewsSupabaseService } from './services/LPNewsSupabaseService.js';
+import { getArticleSupabaseService } from '../../shared/services/ArticleSupabaseService.js';
+import { LPNewsController } from './controllers/LPNewsController.js';
+import { NewsDetailController } from './controllers/NewsDetailController.js';
 
 /**
- * localStorage可用性チェック
- * @returns {boolean} localStorageが使用可能かどうか
+ * ニュース機能アプリケーションクラス
  */
-function isLocalStorageAvailable() {
-  try {
-    const test = '__localStorage_test__';
-    localStorage.setItem(test, test);
-    localStorage.removeItem(test);
-    return true;
-  } catch (e) {
-    console.warn('⚠️ localStorage is not available:', e.message);
-    return false;
+class NewsApp {
+  constructor() {
+    this.componentName = 'NewsApp';
+    this.initialized = false;
+    this.controllers = new Map();
+    this.services = new Map();
+    
+    // パフォーマンス追跡
+    this.performanceMetrics = {
+      initStartTime: null,
+      initEndTime: null,
+      serviceLoadTimes: new Map()
+    };
   }
-}
 
-/**
- * 統合ニュースシステムの初期化
- * @returns {Promise<Object>} 初期化されたサービスとコンポーネント
- */
-export async function initUnifiedNewsSystem() {
-  try {
-    console.log('🚀 統合ニュースシステム初期化開始');
-    
-    // エラーレポート機能を追加
-    window.lastNewsError = null;
-    
-    // localStorage可用性チェック
-    if (!isLocalStorageAvailable()) {
-      const storageError = new Error('localStorage is not available. This may be due to browser privacy settings or incognito mode.');
-      window.lastNewsError = {
-        error: storageError,
-        timestamp: new Date().toISOString(),
-        location: 'initUnifiedNewsSystem:storageCheck'
-      };
-      throw storageError;
+  /**
+   * アプリケーション初期化
+   */
+  async init() {
+    if (this.initialized) {
+      console.log('⚠️ NewsApp: 既に初期化済み');
+      return;
     }
-    
-    // デバッグ: LocalStorageの直接確認
-    console.group('🔍 LocalStorage デバッグ情報');
+
+    this.performanceMetrics.initStartTime = performance.now();
+    console.log('📰 ニュース機能初期化開始');
+
     try {
-      const articlesKey = CONFIG.storage.keys.articles;
-      console.log('📝 使用中のキー:', articlesKey);
+      // Supabaseサービス初期化
+      await this.initializeSupabaseServices();
       
-      const rawData = localStorage.getItem(articlesKey);
-      console.log('💾 Raw データ長:', rawData ? rawData.length : 0);
+      // コントローラー初期化
+      await this.initializeControllers();
       
-      if (rawData) {
-        const parsedData = JSON.parse(rawData);
-        console.log('📊 パースされたデータ:', {
-          type: Array.isArray(parsedData) ? 'Array' : typeof parsedData,
-          length: Array.isArray(parsedData) ? parsedData.length : 'N/A',
-          sample: Array.isArray(parsedData) && parsedData.length > 0 ? 
-            parsedData.slice(0, 2).map(a => ({
-              id: a?.id,
-              title: a?.title?.substring(0, 30) + '...',
-              status: a?.status,
-              category: a?.category
-            })) : 'データなし'
-        });
-      } else {
-        console.log('⚠️ LocalStorageにデータが見つかりません');
-      }
+      // イベント設定
+      this.setupEventHandlers();
       
-      // 全LocalStorageキーを確認
-      const allKeys = Object.keys(localStorage);
-      const rbsKeys = allKeys.filter(key => key.includes('rbs') || key.includes('article'));
-      console.log('🗂️ 関連キー一覧:', rbsKeys);
+      // 初期データ読み込み
+      await this.loadInitialData();
+      
+      this.performanceMetrics.initEndTime = performance.now();
+      this.initialized = true;
+      
+      console.log(`✅ ニュース機能初期化完了 (${Math.round(this.performanceMetrics.initEndTime - this.performanceMetrics.initStartTime)}ms)`);
+      
+      // 初期化完了イベント
+      EventBus.emit('newsApp:initialized', {
+        performance: this.getPerformanceInfo()
+      });
       
     } catch (error) {
-      console.error('❌ LocalStorage確認エラー:', error);
-      window.lastNewsError = error;
+      console.error('❌ ニュース機能初期化エラー:', error);
+      this.handleInitializationError(error);
+      throw error;
     }
-    console.groupEnd();
-    
-    // 1. メインサービス初期化
-    console.log('🔧 統合ニュースサービス初期化中...');
-    const newsService = getUnifiedNewsService();
-    await newsService.init();
-    console.log('✅ 統合ニュースサービス初期化完了');
-    
-    // 2. ページレンダラー初期化
-    console.log('🎨 ページレンダラー初期化中...');
-    const pageRenderer = new NewsPageRenderer(newsService);
-    await pageRenderer.initializePage();
-    console.log('✅ ページレンダラー初期化完了');
-    
-    // 3. グローバルアクセス設定
-    window.UnifiedNewsService = newsService;
-    window.NewsPageRenderer = pageRenderer;
-    
+  }
 
+  /**
+   * Supabaseサービス初期化
+   */
+  async initializeSupabaseServices() {
+    console.log('🗄️ Supabaseサービス初期化中...');
     
-    console.log('✅ 統合ニュースシステム初期化完了');
-    
-    // 初期化完了イベント
-    EventBus.emit('unifiedNews:initialized', {
-      service: newsService,
-      renderer: pageRenderer,
-      pageType: newsService.pageType
-    });
-    
-    return {
-      service: newsService,
-      renderer: pageRenderer
-    };
-    
-  } catch (error) {
-    console.error('❌ 統合ニュースシステム初期化エラー:', error);
-    console.error('📋 エラー詳細:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    });
-    
-    // エラーレポートに記録
-    window.lastNewsError = {
-      error,
-      timestamp: new Date().toISOString(),
-      location: 'initUnifiedNewsSystem'
-    };
-    
-    // フォールバック: 基本的なニュース表示機能を提供
-    const newsContainer = document.getElementById('news-list');
-    const loadingStatus = document.getElementById('news-loading-status');
-    
-    if (loadingStatus) {
-      loadingStatus.style.display = 'none';
+    const supabaseServices = [
+      { name: 'lpNewsService', service: getLPNewsSupabaseService() },
+      { name: 'articleService', service: getArticleSupabaseService() }
+    ];
+
+    for (const { name, service } of supabaseServices) {
+      try {
+        const startTime = performance.now();
+        
+        if (!service.initialized) {
+          await service.init();
+        }
+        
+        this.services.set(name, service);
+        this.performanceMetrics.serviceLoadTimes.set(name, performance.now() - startTime);
+        
+        console.log(`✅ ${name} 初期化完了`);
+      } catch (error) {
+        console.error(`❌ ${name} 初期化エラー:`, error);
+        // 個別のサービス初期化失敗は警告レベルで継続
+      }
     }
     
+    console.log('✅ Supabaseサービス初期化完了');
+  }
+
+  /**
+   * コントローラー初期化（ページタイプ判定）
+   */
+  async initializeControllers() {
+    console.log('🎮 コントローラー初期化中...');
+    
+    try {
+      // ページタイプを判定
+      const pageType = this.detectPageType();
+      console.log('📄 ページタイプ:', pageType);
+      
+      // LPニュースコントローラー（全ページで初期化）
+      const lpNewsController = new LPNewsController();
+      await lpNewsController.init();
+      this.controllers.set('lpNewsController', lpNewsController);
+      
+      // ニュース詳細コントローラー（詳細ページのみ）
+      if (pageType === 'news-detail') {
+        const newsDetailController = new NewsDetailController();
+        await newsDetailController.init();
+        this.controllers.set('newsDetailController', newsDetailController);
+        console.log('✅ NewsDetailController初期化完了');
+      } else {
+        console.log('ℹ️ NewsDetailController初期化スキップ（詳細ページ以外）');
+      }
+      
+      console.log('✅ コントローラー初期化完了');
+    } catch (error) {
+      console.error('❌ コントローラー初期化エラー:', error);
+    }
+  }
+
+  /**
+   * ページタイプ検出
+   */
+  detectPageType() {
+    const path = window.location.pathname;
+    const fileName = path.split('/').pop() || 'index.html';
+    const search = window.location.search;
+    
+    if (fileName.includes('news-detail') || (fileName.includes('news.html') && search.includes('id='))) {
+      return 'news-detail';
+    }
+    if (fileName.includes('news.html')) {
+      return 'news-list';
+    }
+    return 'home'; // index.html またはルート
+  }
+
+  /**
+   * イベントハンドラー設定
+   */
+  setupEventHandlers() {
+    console.log('📡 イベントハンドラー設定中...');
+    
+    // 記事データ変更イベント
+    EventBus.on('article:saved', () => {
+      this.refreshNews();
+    });
+    
+    EventBus.on('article:deleted', () => {
+      this.refreshNews();
+    });
+    
+    EventBus.on('article:published', () => {
+      this.refreshNews();
+    });
+    
+    // エラーハンドリング
+    EventBus.on('error:critical', (data) => {
+      this.handleCriticalError(data.error);
+    });
+    
+    console.log('✅ イベントハンドラー設定完了');
+  }
+
+  /**
+   * 初期データ読み込み
+   */
+  async loadInitialData() {
+    console.log('📊 初期データ読み込み中...');
+    
+    try {
+      // LPニュースの初期読み込み
+      const lpNewsController = this.controllers.get('lpNewsController');
+      if (lpNewsController) {
+        await lpNewsController.loadNews();
+      }
+      
+      console.log('✅ 初期データ読み込み完了');
+    } catch (error) {
+      console.error('❌ 初期データ読み込みエラー:', error);
+    }
+  }
+
+  /**
+   * ニュース更新
+   */
+  async refreshNews() {
+    try {
+      const lpNewsController = this.controllers.get('lpNewsController');
+      if (lpNewsController) {
+        await lpNewsController.refresh();
+      }
+    } catch (error) {
+      console.error('❌ ニュース更新エラー:', error);
+    }
+  }
+
+  /**
+   * 重大エラー処理
+   */
+  handleCriticalError(error) {
+    console.error('🚨 重大エラー:', error);
+    
+    // エラー表示
+    const errorMessage = `
+      <div class="news-error-overlay">
+        <div class="news-error-dialog">
+          <h2>⚠️ ニュース読み込みエラー</h2>
+          <p>ニュースの読み込みでエラーが発生しました。</p>
+          <div class="error-detail">${error.message}</div>
+          <button onclick="window.location.reload()" class="news-error-btn">
+            🔄 再読み込み
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', errorMessage);
+  }
+
+  /**
+   * 初期化エラー処理
+   */
+  handleInitializationError(error) {
+    console.error('🚨 初期化エラー:', error);
+    
+    // フォールバック表示
+    const newsContainer = document.querySelector('.news-container, #news-container, .news-section');
     if (newsContainer) {
       newsContainer.innerHTML = `
-        <div class="news-error">
-          <h3>⚠️ ニュースの読み込みに失敗しました</h3>
-          <p>システムの初期化中にエラーが発生しました。</p>
-          <div class="error-details">
-            <details>
-              <summary>エラー詳細</summary>
-              <pre>${error.message}</pre>
-              <p><strong>場所:</strong> ${window.lastNewsError?.location || 'unknown'}</p>
-              <p><strong>時刻:</strong> ${window.lastNewsError?.timestamp || new Date().toISOString()}</p>
-            </details>
-          </div>
-          <div class="error-actions">
-            <button onclick="location.reload()" class="btn btn-primary">再読み込み</button>
-
-          </div>
+        <div class="news-init-error">
+          <h2>⚠️ ニュース初期化エラー</h2>
+          <p>ニュース機能の初期化に失敗しました。</p>
+          <div class="error-detail">${error.message}</div>
+          <button onclick="window.location.reload()">🔄 再読み込み</button>
         </div>
       `;
     }
+  }
+
+  /**
+   * パフォーマンス情報取得
+   */
+  getPerformanceInfo() {
+    return {
+      totalInitTime: this.performanceMetrics.initEndTime - this.performanceMetrics.initStartTime,
+      serviceLoadTimes: Object.fromEntries(this.performanceMetrics.serviceLoadTimes),
+      servicesCount: this.services.size,
+      controllersCount: this.controllers.size
+    };
+  }
+
+  /**
+   * サービス取得
+   */
+  getService(name) {
+    return this.services.get(name);
+  }
+
+  /**
+   * コントローラー取得
+   */
+  getController(name) {
+    return this.controllers.get(name);
+  }
+
+  /**
+   * アプリケーション破棄
+   */
+  destroy() {
+    console.log('🧹 ニュース機能クリーンアップ中...');
     
+    // コントローラーの破棄
+    this.controllers.forEach((controller, name) => {
+      try {
+        if (typeof controller.destroy === 'function') {
+          controller.destroy();
+        }
+      } catch (error) {
+        console.warn(`⚠️ ${name} 破棄エラー:`, error);
+      }
+    });
+    
+    // サービスの破棄
+    this.services.forEach((service, name) => {
+      try {
+        if (typeof service.destroy === 'function') {
+          service.destroy();
+        }
+      } catch (error) {
+        console.warn(`⚠️ ${name} 破棄エラー:`, error);
+      }
+    });
+    
+    // イベントリスナーのクリーンアップ
+    EventBus.off('article:saved');
+    EventBus.off('article:deleted');
+    EventBus.off('article:published');
+    EventBus.off('error:critical');
+    
+    // 状態リセット
+    this.initialized = false;
+    this.controllers.clear();
+    this.services.clear();
+    
+    console.log('✅ ニュース機能クリーンアップ完了');
+  }
+}
+
+// アプリケーションインスタンス作成
+const newsApp = new NewsApp();
+
+/**
+ * ニュース機能を初期化（Application.js用のエントリーポイント）
+ * @returns {Promise<NewsApp>}
+ */
+export async function initNewsFeature() {
+  console.log('📰 ニュース機能初期化開始 (統一版)');
+  
+  try {
+    await newsApp.init();
+    console.log('✅ ニュース機能初期化完了');
+    return newsApp;
+  } catch (error) {
+    console.error('❌ ニュース機能初期化エラー:', error);
     throw error;
   }
 }
 
-
-
-/**
- * ニュースシステムのリフレッシュ
- */
-export async function refreshNewsSystem() {
+// DOMContentLoaded時に初期化（スタンドアローン用）
+document.addEventListener('DOMContentLoaded', async () => {
   try {
-    const newsService = getUnifiedNewsService();
-    const pageRenderer = window.NewsPageRenderer;
-    
-    if (newsService && pageRenderer) {
-      await newsService.refresh();
-      await pageRenderer.refreshPage();
-      console.log('🔄 ニュースシステムリフレッシュ完了');
-    } else {
-      console.warn('⚠️ ニュースシステムが初期化されていません');
+    // Application.jsから呼ばれる場合は重複初期化を避ける
+    if (!newsApp.initialized) {
+      await newsApp.init();
     }
+    
+    // グローバルアクセス用
+    window.newsApp = newsApp;
     
   } catch (error) {
-    console.error('❌ ニュースシステムリフレッシュエラー:', error);
+    console.error('❌ ニュース機能起動エラー:', error);
   }
-}
+});
 
-/**
- * デバッグ情報を表示
- */
-export function debugNewsSystem() {
-  if (!CONFIG.debug.enabled) {
-    console.log('デバッグモードが無効です');
-    return;
-  }
-  
-  const newsService = getUnifiedNewsService();
-  const pageRenderer = window.NewsPageRenderer;
-  
-  console.group('🔍 統合ニュースシステム デバッグ情報');
-  console.log('サービス初期化状態:', newsService?.initialized || false);
-  console.log('ページタイプ:', newsService?.pageType || 'unknown');
-  console.log('記事数:', newsService?.articles?.length || 0);
-  console.log('レンダラー状態:', !!pageRenderer);
-  console.log('カテゴリー統計:', newsService?.getCategoryStats() || {});
-  console.groupEnd();
-  
-  return {
-    service: newsService,
-    renderer: pageRenderer,
-    stats: newsService?.getCategoryStats()
-  };
-}
-
-/**
- * 統合ニュースシステムの動作確認
- * 各ページでlocal storageの参照状況を確認
- */
-export function verifyNewsSystemIntegration() {
-  try {
-    console.group('🔍 統合ニュースシステム動作確認');
-    
-    // 1. CONFIG確認
-    console.log('📋 CONFIG確認:');
-    console.log('  - storage key:', CONFIG.storage.keys.articles);
-    console.log('  - debug enabled:', CONFIG.debug.enabled);
-    
-    // 2. Local Storage確認
-    console.log('💾 Local Storage確認:');
-    const articlesData = localStorage.getItem(CONFIG.storage.keys.articles);
-    const articleCount = articlesData ? JSON.parse(articlesData).length : 0;
-    console.log(`  - ${CONFIG.storage.keys.articles}:`, articleCount + '件の記事');
-    
-    // 3. サービス確認
-    console.log('🔧 サービス確認:');
-    const newsService = getUnifiedNewsService();
-    console.log('  - UnifiedNewsService初期化:', newsService?.initialized || false);
-    console.log('  - ページタイプ:', newsService?.pageType || 'unknown');
-    console.log('  - 記事数:', newsService?.articles?.length || 0);
-    
-    // 4. DOM要素確認
-    console.log('🎯 DOM要素確認:');
-    const pageType = newsService?.pageType || 'unknown';
-    const targetElements = getTargetElementsForPage(pageType);
-    Object.entries(targetElements).forEach(([key, selector]) => {
-      const element = document.querySelector(selector);
-      console.log(`  - ${key} (${selector}):`, element ? '✅ 存在' : '❌ 未発見');
-    });
-    
-    // 5. イベントバス確認
-    console.log('📡 EventBus確認:');
-    const eventBusStatus = EventBus.getStatus?.() || { listeners: 'unknown' };
-    console.log('  - イベントリスナー数:', eventBusStatus.listeners || 'unknown');
-    
-    console.groupEnd();
-    
-    return {
-      configOk: !!CONFIG.storage.keys.articles,
-      storageOk: articleCount > 0,
-      serviceOk: newsService?.initialized || false,
-      domOk: Object.values(targetElements).some(selector => document.querySelector(selector)),
-      pageType,
-      articleCount
-    };
-    
-  } catch (error) {
-    console.error('❌ 統合ニュースシステム確認エラー:', error);
-    return { error: error.message };
-  }
-}
-
-/**
- * ページタイプ別のターゲット要素を取得
- * @private
- */
-function getTargetElementsForPage(pageType) {
-  const commonTargets = {
-    newsSection: '#news, [data-news-dynamic="true"]',
-    newsContainer: '.news-container, .news-section'
-  };
-  
-  switch (pageType) {
-    case 'home':
-      return {
-        ...commonTargets,
-        newsList: '#news-list',
-        newsLoadingStatus: '#news-loading-status'
-      };
-    case 'news-list':
-      return {
-        ...commonTargets,
-        newsGrid: '#news-grid',
-        filterButtons: '.filter-btn[data-category]',
-        searchResults: '#search-results'
-      };
-    case 'news-detail':
-      return {
-        ...commonTargets,
-        articleContent: '#article-content',
-        articleTitle: '#article-title',
-        relatedArticles: '#related-articles-container'
-      };
-    case 'admin':
-      return {
-        newsEditor: '#news-content',
-        newsList: '#news-list',
-        newsFilter: '#news-filter'
-      };
-    default:
-      return commonTargets;
-  }
-}
-
-/**
- * ニュースデータの詳細表示
- */
-export function showNewsDataDetails() {
-  if (!CONFIG.debug.enabled) {
-    console.log('デバッグモードが無効です。CONFIG.debug.enabledをtrueに設定してください。');
-    return;
-  }
-  
-  try {
-    const newsService = getUnifiedNewsService();
-    const articles = newsService?.articles || [];
-    
-    console.group('📰 ニュースデータ詳細');
-    console.log('記事一覧:', articles);
-    
-    if (articles.length > 0) {
-      console.log('最新記事:', articles[0]);
-      console.log('カテゴリー統計:', newsService.getCategoryStats());
-    }
-    
-    // Local Storageの生データも表示
-    const rawData = localStorage.getItem(CONFIG.storage.keys.articles);
-    if (rawData) {
-      console.log('Local Storage生データ:', JSON.parse(rawData));
-    }
-    
-    console.groupEnd();
-    
-  } catch (error) {
-    console.error('❌ ニュースデータ詳細表示エラー:', error);
-  }
-}
-
-// 後方互換性用のエイリアス
-export { initUnifiedNewsSystem as initNewsFeature };
-export { getUnifiedNewsService as getNewsDataService };
-
-// 主要なエクスポート
-export { getUnifiedNewsService } from './services/UnifiedNewsService.js';
-export { default as NewsPageRenderer } from './components/NewsPageRenderer.js';
-export { default as NewsUtils } from './utils/NewsUtils.js';
-
-// 開発環境でのグローバルヘルパー
-if (CONFIG.debug.enabled && typeof window !== 'undefined') {
-  window.verifyNewsSystem = verifyNewsSystemIntegration;
-  window.showNewsDataDetails = showNewsDataDetails;
-  window.debugUnifiedNews = debugNewsSystem;
-  window.refreshNewsSystem = refreshNewsSystem;
-  
-  console.log('🔧 開発モード: ニュースシステム確認ヘルパー関数を設定しました');
-  console.log('   - window.verifyNewsSystem() で統合確認');
-  console.log('   - window.showNewsDataDetails() でデータ詳細表示');
-  console.log('   - window.debugUnifiedNews() でデバッグ情報表示');
-  console.log('   - window.refreshNewsSystem() でシステムリフレッシュ');
-}
-
-/**
- * 手動デバッグ関数 - ブラウザコンソールから実行可能
- */
-export function manualDebugNews() {
-  console.group('🔧 手動ニュースデバッグ');
-  
-  try {
-    // 1. LocalStorage確認
-    console.log('1️⃣ LocalStorage状況:');
-    const articlesKey = CONFIG.storage.keys.articles;
-    const rawData = localStorage.getItem(articlesKey);
-    console.log('   キー:', articlesKey);
-    console.log('   データ有無:', !!rawData);
-    console.log('   データ長:', rawData ? rawData.length : 0);
-    
-    if (rawData) {
-      const parsedData = JSON.parse(rawData);
-      console.log('   記事数:', Array.isArray(parsedData) ? parsedData.length : 'N/A');
-    }
-    
-    // 2. サービス状況
-    console.log('\n2️⃣ サービス状況:');
-    const newsService = window.UnifiedNewsService;
-    console.log('   サービス有無:', !!newsService);
-    if (newsService) {
-      console.log('   初期化済み:', newsService.initialized);
-      console.log('   記事数:', newsService.articles?.length || 0);
-      console.log('   ページタイプ:', newsService.pageType);
-    }
-    
-    // 3. DOM要素確認
-    console.log('\n3️⃣ DOM要素確認:');
-    const newsElements = {
-      'news-list (ホーム)': document.getElementById('news-list'),
-      'news-grid (一覧)': document.getElementById('news-grid'),
-      'news-loading-status': document.getElementById('news-loading-status')
-    };
-    
-    Object.entries(newsElements).forEach(([name, element]) => {
-      console.log(`   ${name}:`, element ? '✅ 存在' : '❌ 未発見');
-      if (element) {
-        console.log(`     - 可視性: ${element.offsetHeight > 0 ? '可視' : '非可視'}`);
-        console.log(`     - 子要素数: ${element.children.length}`);
-      }
-    });
-    
-    // 4. 記事カード確認
-    console.log('\n4️⃣ 記事カード確認:');
-    const cards = document.querySelectorAll('.news-card');
-    console.log('   カード数:', cards.length);
-    
-    if (cards.length > 0) {
-      const firstCard = cards[0];
-      const style = window.getComputedStyle(firstCard);
-      console.log('   最初のカード状態:');
-      console.log('     - opacity:', style.opacity);
-      console.log('     - transform:', style.transform);
-      console.log('     - display:', style.display);
-      console.log('     - 可視性:', firstCard.offsetHeight > 0 && firstCard.offsetWidth > 0);
-    }
-    
-    // 5. CSS変数確認
-    console.log('\n5️⃣ CSS変数確認:');
-    const rootStyle = window.getComputedStyle(document.documentElement);
-    const cssVars = ['--primary-blue', '--white', '--gray-light'];
-    cssVars.forEach(varName => {
-      const value = rootStyle.getPropertyValue(varName).trim();
-      console.log(`   ${varName}: ${value || '未定義'}`);
-    });
-    
-  } catch (error) {
-    console.error('❌ デバッグ実行エラー:', error);
-  }
-  
-  console.groupEnd();
-}
-
-// デバッグ関数をグローバルに公開
-window.debugNews = manualDebugNews;
+// エクスポート
+export { newsApp };
+export default NewsApp;

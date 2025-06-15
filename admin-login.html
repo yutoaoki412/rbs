@@ -27,6 +27,12 @@
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   
+  <!-- Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Supabase統合設定 -->
+  <script src="./js/config/supabase-config.js"></script>
+  
   <!-- フリッカー防止 -->
   <style>
     html { visibility: hidden; }
@@ -127,25 +133,30 @@
       console.log('🔐 ログインページ初期化開始');
       
       // AuthManager初期化
-      authManager.init();
+      await authManager.init();
       
       // リダイレクトループ防止
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('from') === 'admin') {
         console.log('🔄 管理画面からのリダイレクトを検出 - セッションクリア実行');
-        authManager.logout();
+        await authManager.logout();
       }
       
       autoFixLinks();
       
-      // 既存セッションチェック
-      if (!urlParams.get('from') && authManager.isAuthenticated()) {
-        console.log('✅ 有効なセッションを検出 → 管理画面にリダイレクト');
-        showMessage('既にログイン済みです。管理画面に移動します...', 'success');
-        setTimeout(() => {
-          window.location.replace('admin.html');
-        }, 1000);
-        return;
+      // 既存セッションチェック（厳格化）
+      if (!urlParams.get('from')) {
+        const authState = await authManager.checkAuthState();
+        if (authState.isAuthenticated && authState.mode === 'production') {
+          console.log('✅ 有効なセッションを検出 → 管理画面にリダイレクト');
+          showMessage('既にログイン済みです。管理画面に移動します...', 'success');
+          setTimeout(() => {
+            window.location.replace('admin.html');
+          }, 1000);
+          return;
+        } else {
+          console.log('🔐 認証が必要です（開発モードは無効）');
+        }
       }
       
       setupEventListeners();
@@ -191,9 +202,12 @@
         await new Promise(resolve => setTimeout(resolve, 500)); 
         
         // AuthManagerでログイン処理
-        const loginSuccess = authManager.login(password);
+        const loginResult = await authManager.login({ 
+          email: 'admin@rbs.com', // デフォルト管理者メール
+          password: password 
+        });
         
-        if (loginSuccess) {
+        if (loginResult.success) {
           console.log('✅ ログイン成功');
           showMessage('ログインしました。管理画面に移動します...', 'success');
           
@@ -201,8 +215,8 @@
             window.location.replace('admin.html');
           }, 1000);
         } else {
-          console.log('❌ ログイン失敗');
-          showError('パスワードが正しくありません');
+          console.log('❌ ログイン失敗:', loginResult.error);
+          showError(loginResult.error || 'パスワードが正しくありません');
           document.getElementById('password').value = '';
           document.getElementById('password').focus();
         }

@@ -19,7 +19,7 @@ export async function initAuthFeature() {
     console.log('📄 ページタイプ:', pageType);
     
     // AuthManager初期化
-    authManager.init();
+    await authManager.init();
     
     console.log('✅ 認証機能初期化完了');
     return authManager;
@@ -36,10 +36,9 @@ export async function initAuthFeature() {
  */
 export function getAuthStatus() {
   return {
-    isAuthenticated: authManager.isAuthenticated(),
+    isAuthenticated: authManager.isAuthenticatedMethod(),
     sessionInfo: authManager.getSessionInfo(),
-    environment: CONFIG.app.environment,
-          storageKey: CONFIG.storage.keys.adminSession
+    environment: CONFIG.app.environment
   };
 }
 

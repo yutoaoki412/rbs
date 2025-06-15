@@ -3573,3 +3573,82 @@
   font-weight: 900; /* FontAwesome Solid icons */
   font-family: "Font Awesome 6 Free";
 }
+
+/* =============================================================================
+ * 改善された通知システム
+ * ============================================================================= */
+
+/* 通知コンテナの固定位置（右上） */
+.notification-container.fixed-top-right {
+  position: fixed !important;
+  top: 80px !important; /* ヘッダーの下 */
+  right: 20px !important;
+  z-index: 10000 !important;
+  max-width: 400px !important;
+  pointer-events: none !important;
+}
+
+/* 通知アイテム自体はクリック可能 */
+.notification-container.fixed-top-right > div {
+  pointer-events: auto !important;
+}
+
+/* 通知のスライドインアニメーション */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* 通知のスライドアウトアニメーション */
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* 改善された通知スタイル */
+.notification-item-enhanced {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  margin-bottom: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  border-left: 4px solid var(--notification-color, #2196f3) !important;
+  animation: slideInRight 0.3s ease-out !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+}
+
+.notification-item-enhanced:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 通知タイプ別の色設定 */
+.notification-item-enhanced.success {
+  --notification-color: #4caf50;
+}
+
+.notification-item-enhanced.error {
+  --notification-color: #f44336;
+}
+
+.notification-item-enhanced.warning {
+  --notification-color: #ff9800;
+}
+
+.notification-item-enhanced.info {
+  --notification-color: #2196f3;
+}

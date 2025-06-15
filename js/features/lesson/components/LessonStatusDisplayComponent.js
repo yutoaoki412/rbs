@@ -5,7 +5,7 @@
  */
 
 import { Component } from '../../../lib/base/Component.js';
-import { getLessonStatusStorageService } from '../../../shared/services/LessonStatusStorageService.js';
+import { getLessonStatusSupabaseService } from '../../../shared/services/LessonStatusSupabaseService.js';
 import { EventBus } from '../../../shared/services/EventBus.js';
 
 export class LessonStatusDisplayComponent extends Component {
@@ -252,13 +252,13 @@ export class LessonStatusDisplayComponent extends Component {
    */
   async initializeService() {
     try {
-      this.lessonStatusService = getLessonStatusStorageService();
+      this.lessonStatusService = getLessonStatusSupabaseService();
       if (!this.lessonStatusService.initialized) {
         await this.lessonStatusService.init();
       }
-      this.debug('レッスン状況サービス初期化完了');
+      this.debug('レッスン状況Supabaseサービス初期化完了');
     } catch (error) {
-      this.warn('レッスン状況サービス初期化失敗:', error);
+      this.warn('レッスン状況Supabaseサービス初期化失敗:', error);
       this.lessonStatusService = null;
     }
   }

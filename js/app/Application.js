@@ -409,14 +409,14 @@ export default class Application {
     try {
       console.log('🏃‍♂️ レッスン状況機能初期化開始');
       
-      // 統合レッスン状況ストレージサービス初期化
-      const { getLessonStatusStorageService } = await import('../shared/services/LessonStatusStorageService.js');
-      const lessonStatusService = getLessonStatusStorageService();
+      // 統合レッスン状況Supabaseサービス初期化
+      const { getLessonStatusSupabaseService } = await import('../shared/services/LessonStatusSupabaseService.js');
+      const lessonStatusService = getLessonStatusSupabaseService();
       
       // サービス初期化
       if (!lessonStatusService.initialized) {
         await lessonStatusService.init();
-        console.log('🏃‍♂️ レッスンステータスストレージサービス初期化完了');
+        console.log('🏃‍♂️ レッスンステータスSupabaseサービス初期化完了');
       }
       
       // ページタイプに応じた初期化
@@ -733,10 +733,10 @@ export default class Application {
     try {
       console.log('🚀 ニュース機能初期化開始 (core/Application)');
       
-      await initNewsFeature();
+      const newsFeature = await initNewsFeature();
       this.features.set('news', true);
       
-      console.log('✅ ニュース機能初期化完了 (core/Application)');
+      console.log('✅ ニュース機能初期化完了 (core/Application)', newsFeature ? 'with instance' : 'without instance');
       
     } catch (error) {
       console.error('❌ ニュース機能初期化エラー (core/Application):', error);

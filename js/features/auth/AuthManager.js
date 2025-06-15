@@ -1,225 +1,388 @@
 /**
- * 統一認証マネージャー
- * ログイン、ログアウト、セッション管理を一元化
- * @version 1.0.0 - 完全統一実装
+ * 認証管理クラス
+ * @version 3.0.0 - Supabase完全統合版（LocalStorage削除）
  */
 
-import { CONFIG } from '../../shared/constants/config.js';
+import { getAuthSupabaseService } from '../../shared/services/AuthSupabaseService.js';
+import { EventBus } from '../../shared/services/EventBus.js';
 
 export class AuthManager {
   constructor() {
-    this.storageKey = CONFIG.storage.keys.adminSession; // 最適化版に対応
-    this.password = CONFIG.admin.auth.password;
-    this.sessionDuration = CONFIG.admin.auth.sessionDuration;
+    this.componentName = 'AuthManager';
     this.initialized = false;
+    this.authService = null;
+    this.eventBus = EventBus;
     
-    console.log('🔐 AuthManager初期化', {
-      storageKey: this.storageKey,
-      sessionDuration: this.sessionDuration / (60*60*1000) + '時間'
-    });
+    // 認証状態
+    this.isAuthenticated = false;
+    this.currentUser = null;
+    this.currentSession = null;
   }
 
   /**
    * 初期化
    */
-  init() {
-    if (this.initialized) {
-      console.log('⚠️ AuthManager: 既に初期化済み');
-      return;
-    }
-    
-    this.cleanupOldSessions();
-    this.initialized = true;
-    console.log('✅ AuthManager初期化完了');
-  }
+  async init() {
+    if (this.initialized) return;
 
-  /**
-   * ログイン処理
-   * @param {string} password - パスワード
-   * @returns {boolean} ログイン成功/失敗
-   */
-  login(password) {
-    if (!password) {
-      console.error('❌ パスワードが入力されていません');
-      return false;
-    }
-
-    // パスワード検証
-    const isValidPassword = (password === this.password) || 
-                           (CONFIG.app.environment === 'development' && password === 'dev');
-
-    if (!isValidPassword) {
-      console.error('❌ パスワードが正しくありません');
-      return false;
-    }
-
-    // セッション作成
-    this.createSession();
-    console.log('✅ ログイン成功');
-    return true;
-  }
-
-  /**
-   * ログアウト処理
-   */
-  logout() {
-    this.clearSession();
-    console.log('✅ ログアウト完了');
-  }
-
-  /**
-   * 認証状態チェック
-   * @returns {boolean} 認証済みかどうか
-   */
-  isAuthenticated() {
     try {
-      const sessionData = this.getSessionData();
+      console.log('[AuthManager] 初期化開始');
       
-      if (!sessionData) {
-        return false;
-      }
-
-      // 必須フィールドチェック
-      if (!sessionData.token || !sessionData.expires || !sessionData.created) {
-        console.log('🔐 セッションデータが不完全です');
-        this.clearSession();
-        return false;
-      }
-
-      // 期限チェック
-      const now = Date.now();
-      if (now >= sessionData.expires) {
-        console.log('🔐 セッションが期限切れです');
-        this.clearSession();
-        return false;
-      }
-
-      // セッション延長
-      this.updateLastActivity(sessionData);
+      // Supabase認証サービス初期化
+      this.authService = getAuthSupabaseService();
+      await this.authService.init();
       
-      return true;
+      // 認証状態の変更を監視
+      this.setupAuthStateListener();
+      
+      // 現在の認証状態を確認
+      await this.checkAuthState();
+      
+      this.initialized = true;
+      console.log('[AuthManager] 初期化完了');
+      
     } catch (error) {
-      console.error('❌ 認証チェックエラー:', error);
-      this.clearSession();
-      return false;
+      console.error('[AuthManager] 初期化エラー:', error);
+      this.initialized = true; // エラーでもアプリ停止を防ぐ
     }
   }
 
   /**
-   * セッション情報取得
-   * @returns {Object|null} セッション情報
+   * 認証状態変更リスナーを設定
    */
-  getSessionInfo() {
-    const sessionData = this.getSessionData();
-    if (!sessionData || !this.isAuthenticated()) {
-      return null;
-    }
-
-    const now = Date.now();
-    return {
-      created: new Date(sessionData.created),
-      expires: new Date(sessionData.expires),
-      lastActivity: new Date(sessionData.lastActivity || sessionData.created),
-      remainingMinutes: Math.round((sessionData.expires - now) / 60000),
-      isValid: true
-    };
-  }
-
-  /**
-   * セッション作成
-   * @private
-   */
-  createSession() {
-    const now = Date.now();
-    const sessionData = {
-      token: this.generateToken(),
-      created: now,
-      expires: now + this.sessionDuration,
-      lastActivity: now,
-      version: CONFIG.storage.version
-    };
-
-    localStorage.setItem(this.storageKey, JSON.stringify(sessionData));
+  setupAuthStateListener() {
+    // Supabase認証状態の変更を監視
+    this.eventBus.on('auth:stateChange', (data) => {
+      console.log('[AuthManager] 認証状態変更:', data.event);
+      
+      this.isAuthenticated = data.isAuthenticated;
+      this.currentUser = data.user;
+      this.currentSession = data.session;
+      
+      // 認証状態変更イベントを発火
+      this.eventBus.emit('authManager:stateChange', {
+        isAuthenticated: this.isAuthenticated,
+        user: this.currentUser,
+        session: this.currentSession
+      });
+    });
     
-    console.log('🔐 セッション作成完了:', {
-      expires: new Date(sessionData.expires),
-      duration: this.sessionDuration / (60*60*1000) + '時間'
+    this.eventBus.on('auth:signedIn', (data) => {
+      console.log('[AuthManager] サインイン完了:', data.user.email);
+      this.eventBus.emit('authManager:signedIn', data);
+    });
+    
+    this.eventBus.on('auth:signedOut', () => {
+      console.log('[AuthManager] サインアウト完了');
+      this.eventBus.emit('authManager:signedOut');
     });
   }
 
   /**
-   * セッションクリア
-   * @private
+   * 現在の認証状態を確認（開発モード対応）
    */
-  clearSession() {
-    localStorage.removeItem(this.storageKey);
-    console.log('🧹 セッションクリア完了');
-  }
-
-  /**
-   * セッションデータ取得
-   * @private
-   */
-  getSessionData() {
+  async checkAuthState() {
     try {
-      const data = localStorage.getItem(this.storageKey);
-      return data ? JSON.parse(data) : null;
+      // 開発モードでの認証チェック
+      if (this.isDevelopmentMode()) {
+        console.log('[AuthManager] 開発モードで認証状態を設定');
+        this.isAuthenticated = false; // 開発時は認証なしで動作
+        this.currentUser = { 
+          id: 'dev-user', 
+          email: 'dev@rbs.local',
+          role: 'admin' 
+        };
+        this.currentSession = { 
+          access_token: 'dev-token',
+          refresh_token: 'dev-refresh'
+        };
+        
+        return {
+          isAuthenticated: this.isAuthenticated,
+          user: this.currentUser,
+          session: this.currentSession,
+          mode: 'development'
+        };
+      }
+      
+      // 本番モードでの認証チェック
+      const session = await this.authService.getCurrentSession();
+      const user = await this.authService.getCurrentUser();
+      
+      this.isAuthenticated = this.authService.isAuthenticated();
+      this.currentUser = user;
+      this.currentSession = session;
+      
+      console.log('[AuthManager] 認証状態確認:', {
+        isAuthenticated: this.isAuthenticated,
+        userEmail: user?.email,
+        hasSession: !!session,
+        mode: 'production'
+      });
+      
+      return {
+        isAuthenticated: this.isAuthenticated,
+        user: this.currentUser,
+        session: this.currentSession,
+        mode: 'production'
+      };
+      
     } catch (error) {
-      console.error('❌ セッションデータ取得エラー:', error);
-      return null;
+      console.log('[AuthManager] 認証エラー、開発モードで継続:', error.message);
+      
+      // エラー時は開発モードとして継続
+      this.isAuthenticated = false;
+      this.currentUser = { 
+        id: 'dev-user-fallback', 
+        email: 'dev@rbs.local',
+        role: 'admin' 
+      };
+      this.currentSession = null;
+      
+      return {
+        isAuthenticated: this.isAuthenticated,
+        user: this.currentUser,
+        session: this.currentSession,
+        mode: 'development_fallback'
+      };
     }
   }
 
   /**
-   * 最終活動時刻更新
-   * @private
+   * 開発モードかどうかを判定
    */
-  updateLastActivity(sessionData) {
-    const now = Date.now();
-    if (!sessionData.lastActivity || (now - sessionData.lastActivity > 60000)) {
-      sessionData.lastActivity = now;
-      localStorage.setItem(this.storageKey, JSON.stringify(sessionData));
+  isDevelopmentMode() {
+    return (
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.port === '3000' ||
+      window.location.port === '8080' ||
+      process?.env?.NODE_ENV === 'development'
+    );
+  }
+
+  /**
+   * ログイン
+   * @param {Object} credentials - 認証情報
+   * @param {string} credentials.email - メールアドレス
+   * @param {string} credentials.password - パスワード
+   */
+  async login(credentials) {
+    try {
+      console.log('[AuthManager] ログイン開始:', credentials.email);
+      
+      const result = await this.authService.signIn(credentials);
+      
+      if (result.success) {
+        this.isAuthenticated = true;
+        this.currentUser = result.user;
+        this.currentSession = result.session;
+        
+        console.log('[AuthManager] ログイン成功:', result.user.email);
+        
+        return {
+          success: true,
+          user: result.user,
+          session: result.session
+        };
+      } else {
+        console.error('[AuthManager] ログイン失敗:', result.error);
+        return {
+          success: false,
+          error: result.error
+        };
+      }
+      
+    } catch (error) {
+      console.error('[AuthManager] ログインエラー:', error);
+      return {
+        success: false,
+        error: error.message
+      };
     }
   }
 
   /**
-   * トークン生成
-   * @private
+   * ログアウト
    */
-  generateToken() {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2);
-    return btoa(`rbs_admin_${timestamp}_${random}`);
-  }
-
-  /**
-   * 古いセッションのクリーンアップ
-   * @private
-   */
-  cleanupOldSessions() {
-    const sessionData = this.getSessionData();
-    if (sessionData && Date.now() >= sessionData.expires) {
-      console.log('🧹 期限切れセッションをクリーンアップ');
-      this.clearSession();
+  async logout() {
+    try {
+      console.log('[AuthManager] ログアウト開始');
+      
+      const result = await this.authService.signOut();
+      
+      if (result.success) {
+        this.isAuthenticated = false;
+        this.currentUser = null;
+        this.currentSession = null;
+        
+        console.log('[AuthManager] ログアウト成功');
+        
+        return { success: true };
+      } else {
+        console.error('[AuthManager] ログアウト失敗:', result.error);
+        return {
+          success: false,
+          error: result.error
+        };
+      }
+      
+    } catch (error) {
+      console.error('[AuthManager] ログアウトエラー:', error);
+      return {
+        success: false,
+        error: error.message
+      };
     }
   }
 
   /**
-   * デバッグ情報表示
+   * セッションを更新
    */
-  debug() {
-    const sessionData = this.getSessionData();
-    const sessionInfo = this.getSessionInfo();
+  async refreshSession() {
+    try {
+      console.log('[AuthManager] セッション更新開始');
+      
+      const result = await this.authService.refreshSession();
+      
+      if (result.success) {
+        this.currentUser = result.user;
+        this.currentSession = result.session;
+        
+        console.log('[AuthManager] セッション更新成功');
+        return result;
+      } else {
+        console.error('[AuthManager] セッション更新失敗:', result.error);
+        return result;
+      }
+      
+    } catch (error) {
+      console.error('[AuthManager] セッション更新エラー:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * 認証状態を確認
+   */
+  isAuthenticatedMethod() {
+    return this.isAuthenticated;
+  }
+
+  /**
+   * セッション情報を取得
+   */
+  getSessionInfo() {
+    return {
+      user: this.currentUser,
+      session: this.currentSession,
+      isValid: this.isSessionValid()
+    };
+  }
+
+  /**
+   * 認証状態を取得
+   */
+  getAuthState() {
+    return {
+      isAuthenticated: this.isAuthenticated,
+      user: this.currentUser,
+      session: this.currentSession,
+      isAdmin: this.authService?.isAdmin() || false,
+      isSessionValid: this.authService?.isSessionValid() || false
+    };
+  }
+
+  /**
+   * 管理者権限を確認
+   */
+  isAdmin() {
+    return this.authService?.isAdmin() || false;
+  }
+
+  /**
+   * セッションの有効性を確認
+   */
+  isSessionValid() {
+    return this.authService?.isSessionValid() || false;
+  }
+
+  /**
+   * 認証情報を取得（デバッグ用）
+   */
+  getAuthInfo() {
+    return this.authService?.getAuthInfo() || {
+      isAuthenticated: false,
+      isAdmin: false,
+      isSessionValid: false,
+      user: null,
+      session: null
+    };
+  }
+
+  /**
+   * 認証が必要な処理を実行
+   * @param {Function} callback - 実行する処理
+   */
+  async requireAuth(callback) {
+    if (!this.isAuthenticated) {
+      console.warn('[AuthManager] 認証が必要です');
+      throw new Error('認証が必要です');
+    }
     
-    console.group('🔍 AuthManager Debug Info');
-    console.log('初期化済み:', this.initialized);
-    console.log('ストレージキー:', this.storageKey);
-    console.log('セッションデータ:', sessionData);
-    console.log('セッション情報:', sessionInfo);
-    console.log('認証状態:', this.isAuthenticated());
-    console.groupEnd();
+    if (!this.isSessionValid()) {
+      console.warn('[AuthManager] セッションが無効です');
+      
+      // セッション更新を試行
+      const refreshResult = await this.refreshSession();
+      if (!refreshResult.success) {
+        throw new Error('セッションの更新に失敗しました');
+      }
+    }
+    
+    return await callback();
+  }
+
+  /**
+   * サービス破棄
+   */
+  destroy() {
+    console.log('[AuthManager] サービス破棄');
+    
+    // イベントリスナーを削除
+    this.eventBus.off('auth:stateChange');
+    this.eventBus.off('auth:signedIn');
+    this.eventBus.off('auth:signedOut');
+    
+    // 認証サービスを破棄
+    if (this.authService) {
+      this.authService.destroy();
+      this.authService = null;
+    }
+    
+    this.isAuthenticated = false;
+    this.currentUser = null;
+    this.currentSession = null;
+    this.initialized = false;
   }
 }
 
 // シングルトンインスタンス
-export const authManager = new AuthManager(); 
+let authManagerInstance = null;
+
+/**
+ * AuthManagerのシングルトンインスタンスを取得
+ * @returns {AuthManager}
+ */
+export function getAuthManager() {
+  if (!authManagerInstance) {
+    authManagerInstance = new AuthManager();
+  }
+  return authManagerInstance;
+}
+
+// デフォルトエクスポート用のインスタンス
+export const authManager = getAuthManager(); 

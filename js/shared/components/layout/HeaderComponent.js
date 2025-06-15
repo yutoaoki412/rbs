@@ -507,7 +507,7 @@ class HeaderComponent extends Component {
             
             // セッションストレージに遷移先セクションを保存
             if (section) {
-                sessionStorage.setItem(CONFIG.storage.keys.targetSection, section);
+                this.saveTargetSection(section);
             }
             
             window.location.href = fullUrl;
@@ -917,6 +917,26 @@ class HeaderComponent extends Component {
      */
     addEventListenerToChild(element, event, handler, options = {}) {
         this.addEventListener(element, event, handler, options);
+    }
+
+    /**
+     * セクション保存（スムーススクロール用）
+     * @param {string} section - 保存するセクション名
+     */
+    async saveTargetSection(section) {
+        try {
+            // AdminSettingsSupabaseServiceを使用してセクションを保存
+            const { getAdminSettingsSupabaseService } = await import('../../services/AdminSettingsSupabaseService.js');
+            const settingsService = await getAdminSettingsSupabaseService();
+            
+            await settingsService.saveSetting('targetSection', section);
+            this.debug('セクション保存:', section);
+            
+        } catch (error) {
+            this.warn('セクション保存エラー:', error);
+            // フォールバック：メモリに保存
+            this.targetSection = section;
+        }
     }
 }
 

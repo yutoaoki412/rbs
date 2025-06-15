@@ -1,16 +1,16 @@
 /**
  * LP側統一ニュースサービス
- * 最適化されたconfig.jsのデータを使用してLP側のnews表示を統合
- * @version 1.0.0 - 最適化統合版
+ * @version 2.0.0 - Supabase完全統合版
  */
 
 import { CONFIG } from '../../../shared/constants/config.js';
+import { getArticleSupabaseService } from '../../../shared/services/ArticleSupabaseService.js';
 
 export class LPNewsService {
   constructor() {
     this.serviceName = 'LPNewsService';
     this.initialized = false;
-    this.storageKey = CONFIG.storage.keys.articles; // 'rbs_articles'
+    this.articleService = null;
     this.articles = [];
   }
 
@@ -23,8 +23,12 @@ export class LPNewsService {
     try {
       console.log('[LPNewsService] 初期化開始');
       
+      // Supabaseサービス初期化
+      this.articleService = getArticleSupabaseService();
+      await this.articleService.init();
+      
       // 記事データを読み込み
-      this.loadArticles();
+      await this.loadArticles();
       
       this.initialized = true;
       console.log('[LPNewsService] 初期化完了');
@@ -36,27 +40,22 @@ export class LPNewsService {
   }
 
   /**
-   * 記事データを読み込み
+   * 記事データを読み込み（Supabaseから）
    */
-  loadArticles() {
+  async loadArticles() {
     try {
-      const data = localStorage.getItem(this.storageKey);
-      this.articles = data ? JSON.parse(data) : [];
+      console.log('[LPNewsService] Supabaseから記事データを読み込み中...');
+      
+      const result = await this.articleService.getAllArticles();
+      this.articles = result || [];
       
       console.log(`[LPNewsService] 記事データを読み込み: ${this.articles.length}件`);
-      
-      // データが空の場合は空配列のまま
-      // テストデータの自動作成は削除
       
     } catch (error) {
       console.error('[LPNewsService] 記事データ読み込みエラー:', error);
       this.articles = [];
-      // エラー時もテストデータは作成しない
     }
   }
-
-  // テストデータ作成機能は削除されました
-  // 記事は管理画面からのみ作成・管理されます
 
   /**
    * 公開済み記事を取得
@@ -80,8 +79,8 @@ export class LPNewsService {
     
     // 日付順にソート（新しい順）
     articles.sort((a, b) => {
-      const dateA = new Date(a.publishedAt || a.createdAt);
-      const dateB = new Date(b.publishedAt || b.createdAt);
+      const dateA = new Date(a.published_at || a.created_at);
+      const dateB = new Date(b.published_at || b.created_at);
       return dateB - dateA;
     });
     
@@ -98,10 +97,14 @@ export class LPNewsService {
    * @param {string} articleId - 記事ID
    * @returns {Object|null} 記事データ
    */
-  getArticleById(articleId) {
-    return this.articles.find(article => 
-      article.id === articleId && article.status === 'published'
-    ) || null;
+  async getArticleById(articleId) {
+    try {
+      const article = await this.articleService.getArticleById(articleId);
+      return (article && article.status === 'published') ? article : null;
+    } catch (error) {
+      console.error('[LPNewsService] 記事取得エラー:', error);
+      return null;
+    }
   }
 
   /**
@@ -110,8 +113,8 @@ export class LPNewsService {
    * @param {number} limit - 取得件数
    * @returns {Array} 関連記事配列
    */
-  getRelatedArticles(currentArticleId, limit = 3) {
-    const currentArticle = this.getArticleById(currentArticleId);
+  async getRelatedArticles(currentArticleId, limit = 3) {
+    const currentArticle = await this.getArticleById(currentArticleId);
     if (!currentArticle) return [];
 
     // 同カテゴリーの記事を優先
@@ -145,7 +148,7 @@ export class LPNewsService {
   generateArticleCard(article, options = {}) {
     const { showSummary = true, showCategory = true, isHomeVersion = false } = options;
     const categoryInfo = this.getCategoryInfo(article.category);
-    const formattedDate = CONFIG.helpers.formatDate(article.publishedAt || article.createdAt);
+    const formattedDate = CONFIG.helpers.formatDate(article.published_at || article.created_at);
     
     return `
       <article class="news-card ${isHomeVersion ? 'home-news-card' : ''}" data-article-id="${article.id}">
@@ -160,7 +163,7 @@ export class LPNewsService {
           </h3>
         </div>
         <div class="news-card-body">
-          ${showSummary && article.summary ? `<p class="news-excerpt">${article.summary}</p>` : ''}
+          ${showSummary && article.excerpt ? `<p class="news-excerpt">${article.excerpt}</p>` : ''}
           <div class="news-actions">
             <a href="news-detail.html?id=${article.id}" class="news-read-more">続きを読む</a>
           </div>
@@ -199,104 +202,98 @@ export class LPNewsService {
   /**
    * ニュース詳細ページ用HTMLを生成
    * @param {string} articleId - 記事ID
-   * @returns {Object} 記事データとHTML
+   * @returns {Promise<string>} HTML文字列
    */
-  generateNewsDetail(articleId) {
-    const article = this.getArticleById(articleId);
+  async generateNewsDetail(articleId) {
+    const article = await this.getArticleById(articleId);
     
     if (!article) {
-      return {
-        article: null,
-        html: '<div class="article-not-found">記事が見つかりません</div>',
-        relatedHtml: ''
-      };
-    }
-    
-    const categoryInfo = this.getCategoryInfo(article.category);
-    const formattedDate = CONFIG.helpers.formatDate(article.publishedAt || article.createdAt);
-    const content = this.markdownToHtml(article.content);
-    
-    const articleHtml = `
-      <article class="article-detail">
-        <header class="article-header">
-          <div class="article-category" style="background-color: ${categoryInfo.color}">
-            ${categoryInfo.name}
-          </div>
-          <h1 class="article-title">${article.title}</h1>
-          <div class="article-meta">
-            <time class="article-date">${formattedDate}</time>
-            ${article.featured ? '<span class="article-featured">注目記事</span>' : ''}
-          </div>
-        </header>
-        <div class="article-content">
-          ${content}
+      return `
+        <div class="news-detail-error">
+          <h2>記事が見つかりません</h2>
+          <p>指定された記事は存在しないか、現在公開されていません。</p>
+          <a href="news.html" class="btn btn-primary">ニュース一覧に戻る</a>
         </div>
+      `;
+    }
+
+    const categoryInfo = this.getCategoryInfo(article.category);
+    const formattedDate = CONFIG.helpers.formatDateTime(article.published_at || article.created_at);
+    const relatedArticles = await this.getRelatedArticles(articleId, 3);
+
+    return `
+      <article class="news-detail">
+        <header class="news-detail-header">
+          <div class="news-detail-meta">
+            <div class="news-detail-date">${formattedDate}</div>
+            <div class="news-detail-category ${article.category}" style="background-color: ${categoryInfo.color}">
+              ${categoryInfo.name}
+            </div>
+            ${article.featured ? '<span class="news-detail-featured">注目記事</span>' : ''}
+          </div>
+          <h1 class="news-detail-title">${CONFIG.helpers.escapeHtml(article.title)}</h1>
+          ${article.excerpt ? `<div class="news-detail-excerpt">${CONFIG.helpers.escapeHtml(article.excerpt)}</div>` : ''}
+        </header>
+        
+        <div class="news-detail-content">
+          ${this.markdownToHtml(article.content)}
+        </div>
+        
+        <footer class="news-detail-footer">
+          <div class="news-detail-actions">
+            <a href="news.html" class="btn btn-outline">ニュース一覧に戻る</a>
+            <button onclick="window.print()" class="btn btn-outline">印刷</button>
+            <button onclick="navigator.share && navigator.share({title: '${CONFIG.helpers.escapeHtml(article.title)}', url: location.href})" class="btn btn-outline">共有</button>
+          </div>
+        </footer>
+        
+        ${relatedArticles.length > 0 ? `
+          <section class="related-articles">
+            <h3>関連記事</h3>
+            <div class="related-articles-grid">
+              ${relatedArticles.map(related => this.generateArticleCard(related, { showSummary: false })).join('')}
+            </div>
+          </section>
+        ` : ''}
       </article>
     `;
-    
-    // 関連記事HTML生成
-    const relatedArticles = this.getRelatedArticles(articleId, 3);
-    const relatedHtml = relatedArticles.length > 0 
-      ? `
-        <section class="related-articles">
-          <h3>関連記事</h3>
-          <div class="related-articles-list">
-            ${relatedArticles.map(article => 
-              this.generateArticleCard(article, { 
-                showSummary: false, 
-                showCategory: true 
-              })
-            ).join('')}
-          </div>
-        </section>
-      `
-      : '';
-    
-    return {
-      article,
-      html: articleHtml,
-      relatedHtml
-    };
   }
 
   /**
-   * マークダウンをHTMLに変換（シンプル版）
-   * @param {string} markdown - マークダウンテキスト
+   * Markdownを簡易HTMLに変換
+   * @param {string} markdown - Markdown文字列
    * @returns {string} HTML文字列
    */
   markdownToHtml(markdown) {
+    if (!markdown) return '';
+    
     return markdown
-      .replace(/^### (.*$)/gm, '<h4>$1</h4>')
-      .replace(/^## (.*$)/gm, '<h3>$1</h3>')
-      .replace(/^# (.*$)/gm, '<h2>$1</h2>')
+      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/^- (.*$)/gm, '<li>$1</li>')
-      .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/^(?!<[hul])/gm, '<p>')
-      .replace(/(?!>)$/gm, '</p>')
-      .replace(/<p><\/p>/g, '')
-      .replace(/<p>(<[hul])/g, '$1')
-      .replace(/(<\/[hul]>)<\/p>/g, '$1');
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+      .replace(/^- (.*$)/gim, '<li>$1</li>')
+      .replace(/\n/g, '<br>');
   }
 
   /**
-   * データ更新
+   * データを再読み込み
    */
-  refresh() {
-    this.loadArticles();
-    console.log('[LPNewsService] データを更新しました');
+  async refresh() {
+    console.log('[LPNewsService] データ再読み込み');
+    await this.loadArticles();
   }
 
   /**
    * サービス破棄
    */
   destroy() {
-    this.articles = [];
+    console.log('[LPNewsService] サービス破棄');
     this.initialized = false;
-    console.log('[LPNewsService] サービスを破棄しました');
+    this.articles = [];
+    this.articleService = null;
   }
 }
 

@@ -368,10 +368,17 @@ export const redirect = {
       document.body.insertAdjacentHTML('beforeend', errorHtml);
       
       // グローバル関数を追加
-      window.clearSessionAndRetry = () => {
-        // 認証関連のストレージをクリア
-                  localStorage.removeItem(CONFIG.storage.keys.adminSession);
-        sessionStorage.clear();
+      window.clearSessionAndRetry = async () => {
+        try {
+          // Supabase認証をクリア
+          const { getAuthSupabaseService } = await import('../../features/auth/AuthManager.js');
+          const authService = await getAuthSupabaseService();
+          await authService.signOut();
+          
+          console.log('✅ Supabaseセッションクリア完了');
+        } catch (error) {
+          console.error('❌ セッションクリアエラー:', error);
+        }
         
         // リダイレクト履歴をクリア
         redirectHistory.clear();

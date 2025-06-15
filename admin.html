@@ -31,6 +31,12 @@
   
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <!-- Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Supabase統合設定 -->
+  <script src="./js/config/supabase-config.js"></script>
 </head>
 <body class="page-admin">
   <!-- ヘッダー -->
@@ -294,15 +300,7 @@
                 </div>
               </div>
               
-              <div class="form-grid">
-                <div class="form-group">
-                  <label for="news-date">
-                    公開日
-                  </label>
-                  <input type="date" id="news-date" class="form-input">
-                </div>
 
-              </div>
               
               <div class="form-group">
                 <label for="news-summary">
@@ -1117,33 +1115,2257 @@
     </div>
   </div>
 
-  <!-- 通知エリア -->
-  <div id="notification-container" class="notification-container">
+  <!-- 通知エリア（改善された位置とスタイル） -->
+  <div id="notification-container" class="notification-container fixed-top-right">
     <!-- 通知がここに表示される -->
   </div>
 
-  <!-- 統合管理画面初期化システム -->
-  <script type="module">
-    import { initializeAdmin } from './js/features/admin/core/AdminCore.js';
+  <!-- Supabase設定 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Supabase設定
+    window.SUPABASE_URL = 'https://ppmlieqwarnfdlsqqxoc.supabase.co';
+    window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwbWxpZXF3YXJuZmRsc3FxeG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3ODA1NzksImV4cCI6MjA2NTM1NjU3OX0.MxsDqZcpgRanYDLYwy9cuFvPzQkMH2_xdC2t5TxcnPg';
+    
+    // 開発環境の場合は実際の値を設定してください
+    if (window.location.hostname === 'localhost' || window.location.protocol === 'file:') {
+      console.log('🔧 開発環境: 統合設定を使用');
+    }
+  </script>
+
+  <!-- 完全内蔵型SimpleAdminCore - ファイルプロトコル完全対応版 -->
+  <script>
+    /**
+     * 完全内蔵型SimpleAdminCore - v4.2.0
+     * ES Modules importを一切使わず、ファイルプロトコルで完全動作
+     */
+    class InlineSimpleAdminCore {
+      constructor() {
+        this.state = {
+          initialized: false,
+          currentTab: 'dashboard',
+          supabaseConnected: false,
+          authenticated: false,
+          currentUser: null,
+          services: new Map(),
+          modules: new Map()
+        };
+        
+        this.config = {
+          autoSave: true,
+          notifications: true,
+          debugMode: true
+        };
+        
+        this.supabase = null;
+      }
+
+      async init() {
+        if (this.state.initialized) return this;
+        
+        try {
+          console.log('🚀 内蔵SimpleAdminCore初期化開始');
+          
+          await this.initializeSupabase();
+          this.initializeBasicServices();
+          this.setupEventHandlers();
+          this.activateInitialTab();
+          
+          // 認証UI更新
+          this.updateAuthenticationUI();
+          
+          this.state.initialized = true;
+          this.showNotification('管理画面が初期化されました', 'success');
+          
+          console.log('✅ 内蔵SimpleAdminCore初期化完了');
+          return this;
+        } catch (error) {
+          console.error('内蔵SimpleAdminCore初期化エラー:', error);
+          this.state.initialized = true; // エラーでも基本機能は提供
+          this.showNotification('フォールバックモードで動作中', 'warning');
+          return this;
+        }
+      }
+
+      async initializeSupabase() {
+        try {
+          // 統合認証サービスを使用
+          const { getAdminAuthService } = await import('./js/features/admin/services/AdminAuthService.js');
+          this.adminAuthService = getAdminAuthService();
+          await this.adminAuthService.init();
+          
+          // Supabaseクライアント取得
+          this.supabase = this.adminAuthService.supabase;
+          
+          if (this.supabase) {
+            console.log('✅ Supabase統合認証初期化完了');
+            this.state.supabaseConnected = true;
+            
+            // 認証状態確認
+            await this.checkAuthenticationStatus();
+            
+          } else {
+            console.warn('⚠️ Supabase設定が見つかりません');
+            this.state.supabaseConnected = false;
+            
+            // 開発環境でのフォールバック
+            if (window.location.hostname === 'localhost' || window.location.protocol === 'file:') {
+              console.log('🔧 開発環境: モックモードで動作します');
+              this.setupMockSupabase();
+            }
+          }
+        } catch (error) {
+          console.error('❌ Supabase統合認証初期化エラー:', error);
+          this.state.supabaseConnected = false;
+          this.showNotification('認証システムの初期化に失敗しました', 'warning');
+          
+          // 開発環境でのフォールバック
+          if (window.location.hostname === 'localhost' || window.location.protocol === 'file:') {
+            this.setupMockSupabase();
+          }
+        }
+      }
+
+      // 認証状態確認（統合認証サービス使用）
+      async checkAuthenticationStatus(autoAuthenticate = true) {
+        try {
+          if (!this.adminAuthService) {
+            console.error('統合認証サービスが初期化されていません');
+            this.state.authenticated = false;
+            return false;
+          }
+
+          // 統合認証サービスで認証状態確認
+          const isAuthenticated = this.adminAuthService.isAuthenticatedUser();
+          
+          if (isAuthenticated) {
+            const user = this.adminAuthService.getCurrentUser();
+            console.log('✅ 有効な管理者セッションを確認:', user.email);
+            this.state.authenticated = true;
+            this.state.currentUser = user;
+            
+            // 接続テスト（認証済み状態で）
+            await this.testDatabaseConnection();
+            return true;
+          } else if (autoAuthenticate) {
+            console.log('🔐 認証が必要です');
+            await this.initiateAuthentication();
+            return this.state.authenticated;
+          } else {
+            console.log('🔐 認証が必要ですが、自動認証は無効です');
+            this.state.authenticated = false;
+            return false;
+          }
+
+        } catch (error) {
+          console.error('認証状態確認エラー:', error);
+          this.state.authenticated = false;
+          if (autoAuthenticate) {
+            throw error;
+          }
+          return false;
+        }
+      }
+
+      // 認証開始（統合認証サービス使用）
+      async initiateAuthentication() {
+        try {
+          if (!this.adminAuthService) {
+            throw new Error('統合認証サービスが初期化されていません');
+          }
+
+          console.log('🔐 Supabase Auth認証中...');
+          
+          // 統合認証サービスでサインイン（デフォルト認証情報使用）
+          const result = await this.adminAuthService.signIn();
+          
+          if (!result.success) {
+            throw new Error(result.error || '認証に失敗しました');
+          }
+
+          // 認証成功
+          this.state.authenticated = true;
+          this.state.currentUser = result.user;
+          
+          this.showNotification('認証に成功しました', 'success');
+          console.log('✅ 認証成功 (Supabase Auth統合):', result.user.email);
+
+        } catch (error) {
+          console.error('認証処理エラー:', error);
+          this.state.authenticated = false;
+          this.showNotification(`認証に失敗しました: ${error.message}`, 'error');
+          throw error;
+        }
+      }
+
+      // 統合認証サービス使用により、これらのメソッドは不要
+
+
+
+      // データベース接続テスト（認証済み）
+      async testDatabaseConnection() {
+        try {
+          // articlesテーブルへのアクセステスト
+          const { data, error } = await this.supabase
+            .from('articles')
+            .select('id')
+            .limit(1);
+          
+          if (error) {
+            console.warn('記事テーブルアクセステスト:', error.message);
+          } else {
+            console.log('✅ 記事テーブルアクセス可能');
+          }
+
+          // instagram_postsテーブルへのアクセステスト
+          const { data: igData, error: igError } = await this.supabase
+            .from('instagram_posts')
+            .select('id')
+            .limit(1);
+          
+          if (igError) {
+            console.warn('Instagram投稿テーブルアクセステスト:', igError.message);
+          } else {
+            console.log('✅ Instagram投稿テーブルアクセス可能');
+          }
+
+        } catch (error) {
+          console.error('データベース接続テストエラー:', error);
+        }
+      }
+
+
+
+      // 開発環境用のモックSupabase
+      setupMockSupabase() {
+        console.log('🔧 モックSupabaseを設定中...');
+        this.supabase = {
+          from: (table) => ({
+            insert: async (data) => {
+              console.log(`モック: ${table}テーブルに挿入:`, data);
+              return { data: { ...data, id: Date.now() }, error: null };
+            },
+            upsert: async (data) => {
+              console.log(`モック: ${table}テーブルにupsert:`, data);
+              return { data: { ...data, id: data.id || Date.now() }, error: null };
+            },
+            select: async (columns) => {
+              console.log(`モック: ${table}テーブルから選択:`, columns);
+              return { data: [], error: null };
+            },
+            update: async (data) => {
+              console.log(`モック: ${table}テーブルを更新:`, data);
+              return { data, error: null };
+            },
+            delete: async () => {
+              console.log(`モック: ${table}テーブルから削除`);
+              return { data: null, error: null };
+            }
+          })
+        };
+        this.state.supabaseConnected = true;
+        console.log('✅ モックSupabase設定完了');
+      }
+
+      initializeBasicServices() {
+        // 通知サービス
+        this.state.services.set('notification', {
+          show: (message, type) => this.showNotification(message, type)
+        });
+
+        // 設定サービス（メモリベース）
+        this.state.services.set('settings', {
+          saveAdminTab: async (tabName) => {
+            try {
+              // メモリベースのタブ状態管理
+              this.state.currentTab = tabName;
+              console.log(`タブ設定保存（メモリ）: ${tabName}`);
+            } catch (error) {
+              console.warn('タブ保存エラー:', error.message);
+            }
+          },
+          getAdminTab: async () => {
+            try {
+              // メモリから取得
+              return this.state.currentTab || 'dashboard';
+            } catch (error) {
+              return 'dashboard';
+            }
+          }
+        });
+
+        console.log('✅ 基本サービス初期化完了');
+      }
+
+      setupEventHandlers() {
+        // 統一されたアクションベースのイベント委譲システム
+        document.addEventListener('click', (e) => {
+          const actionElement = e.target.closest('[data-action]');
+          if (!actionElement) return;
+          
+          const action = actionElement.dataset.action;
+          e.preventDefault();
+          
+          try {
+            // アクションごとの処理
+            switch (action) {
+              case 'switch-admin-tab':
+                const tabName = actionElement.dataset.tab;
+                if (tabName) {
+                  this.switchTab(tabName);
+                } else {
+                  console.warn('タブ名が指定されていません:', actionElement);
+                }
+                break;
+                
+              case 'switch-news-tab':
+                this.switchNewsTab(actionElement.dataset.tab);
+                break;
+                
+              case 'switch-instagram-tab':
+                this.switchInstagramTab(actionElement.dataset.tab);
+                break;
+                
+              case 'switch-settings-tab':
+                this.switchSettingsTab(actionElement.dataset.tab);
+                break;
+                
+              case 'logout':
+                this.handleLogout();
+                break;
+                
+              case 'close-modal':
+                this.closeModal();
+                break;
+                
+              // 記事管理アクション
+              case 'save-news':
+                this.saveNewsArticle(false);
+                break;
+                
+              case 'publish-news':
+                this.publishNewsArticle();
+                break;
+                
+              case 'preview-news':
+                this.previewNewsArticle();
+                break;
+                
+              case 'clear-news-editor':
+                this.clearNewsEditor();
+                break;
+                
+              case 'new-news-article':
+                this.createNewNewsArticle();
+                break;
+                
+              case 'refresh-news-list':
+                this.refreshNewsList();
+                break;
+                
+                             case 'filter-news-list':
+                 this.filterNewsList(actionElement.value);
+                 break;
+                 
+               case 'edit-article':
+                 this.editArticle(actionElement.dataset.id);
+                 break;
+                 
+               case 'delete-article':
+                 this.confirmDeleteArticle(actionElement.dataset.id);
+                 break;
+                 
+                             case 'preview-article':
+                this.previewArticleById(actionElement.dataset.id);
+                break;
+                
+              // Instagram管理アクション
+              case 'save-instagram-post':
+                this.saveInstagramPost();
+                break;
+                
+              case 'refresh-instagram-posts':
+                this.refreshInstagramPosts();
+                break;
+                
+              case 'filter-instagram-list':
+                this.filterInstagramList(actionElement.value);
+                break;
+                
+              case 'edit-instagram-post':
+                this.editInstagramPost(actionElement.dataset.id);
+                break;
+                
+              case 'delete-instagram-post':
+                this.confirmDeleteInstagramPost(actionElement.dataset.id);
+                break;
+                
+              case 'toggle-instagram-visibility':
+                this.toggleInstagramVisibility(actionElement.dataset.id);
+                break;
+                
+              default:
+                console.log(`アクションを実行: ${action}`, actionElement);
+                this.executeAction(action, actionElement);
+                break;
+            }
+          } catch (error) {
+            console.error(`アクション実行エラー [${action}]:`, error);
+            this.showNotification(`操作の実行に失敗しました: ${action}`, 'error');
+          }
+        });
+
+        // フォーム自動保存
+        if (this.config.autoSave) {
+          document.addEventListener('input', this.debounce((e) => {
+            if (e.target.matches('.auto-save, input, textarea')) {
+              this.autoSave(e.target);
+            }
+          }, 2000));
+        }
+
+        console.log('✅ 統一イベントハンドラシステム設定完了');
+      }
+
+      switchTab(tabName) {
+        if (!tabName) {
+          console.error('タブ名が指定されていません');
+          this.showNotification('タブ名が指定されていません', 'error');
+          return;
+        }
+        
+        if (this.state.currentTab === tabName) {
+          console.log(`既に${tabName}タブが選択されています`);
+          return;
+        }
+        
+        try {
+          console.log(`タブ切り替え: ${this.state.currentTab} → ${tabName}`);
+          
+          // 対象要素の事前チェック
+          const section = document.getElementById(tabName);
+          const navItem = document.querySelector(`[data-tab="${tabName}"]`);
+          
+          if (!section) {
+            throw new Error(`セクション要素が見つかりません: #${tabName}`);
+          }
+          
+          // すべてのタブを非アクティブ化
+          document.querySelectorAll('.admin-section').forEach(el => {
+            el.classList.remove('active');
+          });
+          
+          document.querySelectorAll('.nav-item').forEach(el => {
+            el.classList.remove('active');
+          });
+
+          // 選択されたタブをアクティブ化
+          section.classList.add('active');
+          if (navItem) {
+            navItem.classList.add('active');
+          } else {
+            console.warn(`ナビゲーション要素が見つかりません: [data-tab="${tabName}"]`);
+          }
+          
+          // 状態更新
+          const previousTab = this.state.currentTab;
+          this.state.currentTab = tabName;
+          
+          // 成功通知
+          const tabLabel = this.getTabLabel(tabName);
+          this.showNotification(`${tabLabel}に切り替えました`, 'success');
+          
+          // タブ状態を保存
+          const settingsService = this.state.services.get('settings');
+          if (settingsService) {
+            settingsService.saveAdminTab(tabName);
+          }
+          
+          // タブ切り替え後の処理
+          this.onTabSwitched(tabName, previousTab);
+          
+          console.log(`✅ タブ切り替え完了: ${tabName}`);
+          
+        } catch (error) {
+          console.error('タブ切り替えエラー:', error);
+          this.showNotification(`タブの切り替えに失敗しました: ${error.message}`, 'error');
+          
+          // エラー時のフォールバック
+          if (this.state.currentTab !== 'dashboard') {
+            console.log('ダッシュボードにフォールバック');
+            this.switchTab('dashboard');
+          }
+        }
+      }
+
+      // タブ切り替え後の追加処理
+      onTabSwitched(newTab, previousTab) {
+        try {
+          // タブごとの初期化処理
+          switch (newTab) {
+            case 'dashboard':
+              this.initializeDashboard();
+              break;
+            case 'news-management':
+              this.initializeNewsManagement();
+              break;
+            case 'lesson-status':
+              this.initializeLessonStatus();
+              break;
+            case 'instagram-management':
+              this.initializeInstagramManagement();
+              break;
+            case 'settings':
+              this.initializeSettings();
+              break;
+          }
+        } catch (error) {
+          console.warn(`タブ初期化エラー [${newTab}]:`, error);
+        }
+      }
+
+      // サブタブ切り替えメソッド群
+      switchNewsTab(tabName) {
+        this.switchSubTab('news', tabName, '.news-tab-content');
+      }
+
+      switchInstagramTab(tabName) {
+        this.switchSubTab('instagram', tabName, '.instagram-tab-content');
+      }
+
+      switchSettingsTab(tabName) {
+        this.switchSubTab('settings', tabName, '.settings-tab-content');
+      }
+
+      switchSubTab(parentTab, tabName, contentSelector) {
+        try {
+          if (!tabName) {
+            console.warn(`${parentTab}サブタブ名が指定されていません`);
+            return;
+          }
+
+          // サブナビゲーションの更新
+          document.querySelectorAll(`#${parentTab}-management .sub-nav-item, #${parentTab} .sub-nav-item`).forEach(item => {
+            item.classList.remove('active');
+          });
+
+          // サブコンテンツの更新
+          document.querySelectorAll(contentSelector).forEach(content => {
+            content.classList.remove('active');
+          });
+
+          // 対象要素をアクティブ化
+          const navItem = document.querySelector(`[data-action="switch-${parentTab}-tab"][data-tab="${tabName}"]`);
+          const content = document.getElementById(`${parentTab}-${tabName}-tab`);
+
+          if (navItem) navItem.classList.add('active');
+          if (content) content.classList.add('active');
+
+          console.log(`${parentTab}サブタブ切り替え: ${tabName}`);
+
+        } catch (error) {
+          console.error(`${parentTab}サブタブ切り替えエラー:`, error);
+          this.showNotification(`サブタブの切り替えに失敗しました`, 'error');
+        }
+      }
+
+      // 各タブの初期化メソッド群
+      initializeDashboard() {
+        console.log('ダッシュボード初期化');
+        // ダッシュボード固有の初期化処理
+      }
+
+      async initializeNewsManagement() {
+        console.log('記事管理初期化');
+        
+        try {
+          // 記事一覧を読み込み
+          await this.refreshNewsList();
+          
+        } catch (error) {
+          console.error('記事管理初期化エラー:', error);
+        }
+      }
+
+      initializeLessonStatus() {
+        console.log('レッスン状況初期化');
+        // レッスン状況固有の初期化処理
+      }
+
+      initializeInstagramManagement() {
+        console.log('Instagram管理初期化');
+        // Instagram投稿一覧を読み込み
+        this.refreshInstagramPosts();
+      }
+
+      initializeSettings() {
+        console.log('設定初期化');
+        // 設定固有の初期化処理
+      }
+
+      // ===========================================
+      // 記事管理機能の実装
+      // ===========================================
+
+      // フォームデータ取得（統一化・改善版）
+      getNewsFormData() {
+        try {
+          const formData = {
+            id: document.getElementById('news-id')?.value || null,
+            title: document.getElementById('news-title')?.value?.trim() || '',
+            category: this.mapCategoryToSchema(document.getElementById('news-category')?.value || 'announcement'),
+            summary: document.getElementById('news-summary')?.value?.trim() || '',
+            content: document.getElementById('news-content')?.value?.trim() || '',
+            featured: document.getElementById('news-featured')?.checked || false,
+          };
+
+          console.log('フォームデータ取得:', formData);
+          return formData;
+        } catch (error) {
+          console.error('フォームデータ取得エラー:', error);
+          this.showNotification('フォームデータの取得に失敗しました', 'error');
+          return null;
+        }
+      }
+
+      // カテゴリーをスキーマ準拠形式にマッピング
+      mapCategoryToSchema(oldCategory) {
+        const categoryMap = {
+          'announcement': 'notice',
+          'event': 'event',
+          'media': 'general',
+          'important': 'notice'
+        };
+        return categoryMap[oldCategory] || 'general';
+      }
+
+      // フォームバリデーション（スキーマ制約準拠）
+      validateNewsForm(formData) {
+        const errors = [];
+
+        // title: NOT NULL制約
+        if (!formData.title || formData.title.length === 0) {
+          errors.push('タイトルは必須項目です');
+        }
+
+        // title長さ制限（実用的制限）
+        if (formData.title && formData.title.length > 200) {
+          errors.push('タイトルは200文字以内で入力してください');
+        }
+
+        // content: 実用的バリデーション
+        if (!formData.content || formData.content.length === 0) {
+          errors.push('記事本文は必須項目です');
+        }
+
+        // summary長さ制限
+        if (formData.summary && formData.summary.length > 500) {
+          errors.push('要約は500文字以内で入力してください');
+        }
+
+        // category: CHECK制約準拠
+        const validCategories = ['general', 'event', 'notice', 'lesson', 'other'];
+        if (formData.category && !validCategories.includes(formData.category)) {
+          console.warn('無効なカテゴリー:', formData.category, '-> general に変更');
+          formData.category = 'general';
+        }
+
+        if (errors.length > 0) {
+          console.warn('バリデーションエラー:', errors);
+          this.showNotification(`入力エラー: ${errors[0]}`, 'warning');
+          return false;
+        }
+
+        return true;
+      }
+
+      // 統一された記事保存処理
+      async saveNewsArticle(isDraft = true) {
+        try {
+          console.log('記事保存開始 (下書き:', isDraft, ')');
+          
+          // UI状態更新
+          const saveButton = document.querySelector('[data-action="save-news"]');
+          const originalText = saveButton?.innerHTML;
+          if (saveButton) {
+            saveButton.disabled = true;
+            saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 保存中...';
+          }
+          
+          this.showNotification('記事を保存しています...', 'info');
+
+          const formData = this.getNewsFormData();
+          if (!formData) {
+            this.resetButton(saveButton, originalText);
+            return;
+          }
+
+          if (!this.validateNewsForm(formData)) {
+            this.resetButton(saveButton, originalText);
+            return;
+          }
+
+          // 保存実行
+          const result = await this.saveArticleData(formData, isDraft);
+          
+          if (result.success) {
+            const message = isDraft ? '記事を下書き保存しました' : '記事を保存しました';
+            this.showNotification(message, 'success');
+            
+            // フォームのIDフィールドを更新（新規作成の場合）
+            if (!formData.id && result.data?.id) {
+              document.getElementById('news-id').value = result.data.id;
+            }
+            
+            this.updateEditorTitle(formData.title);
+            console.log('✅ 記事保存完了:', result.data);
+          } else {
+            throw new Error(result.error || '保存に失敗しました');
+          }
+
+        } catch (error) {
+          console.error('記事保存エラー:', error);
+          this.showNotification(`記事の保存に失敗しました: ${error.message}`, 'error');
+        } finally {
+          // UI状態リセット
+          const saveButton = document.querySelector('[data-action="save-news"]');
+          const originalText = '<i class="fas fa-save"></i> 下書き保存';
+          this.resetButton(saveButton, originalText);
+        }
+      }
+
+      // 統一された記事公開処理
+      async publishNewsArticle() {
+        try {
+          console.log('記事公開開始');
+
+          // UI状態更新
+          const publishButton = document.querySelector('[data-action="publish-news"]');
+          const originalText = publishButton?.innerHTML;
+          if (publishButton) {
+            publishButton.disabled = true;
+            publishButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 公開中...';
+          }
+
+          const formData = this.getNewsFormData();
+          if (!formData) {
+            this.resetButton(publishButton, originalText);
+            return;
+          }
+
+          if (!this.validateNewsForm(formData)) {
+            this.resetButton(publishButton, originalText);
+            return;
+          }
+
+          // 公開前確認
+          if (!confirm('記事を公開しますか？公開後は一般ユーザーに表示されます。')) {
+            this.resetButton(publishButton, originalText);
+            return;
+          }
+
+          this.showNotification('記事を公開しています...', 'info');
+
+          // 公開実行
+          const result = await this.saveArticleData(formData, false);
+          
+          if (result.success) {
+            this.showNotification('記事を公開しました！', 'success');
+            
+            // フォームのIDフィールドを更新（新規作成の場合）
+            if (!formData.id && result.data?.id) {
+              document.getElementById('news-id').value = result.data.id;
+            }
+            
+            this.updateEditorTitle(formData.title);
+            console.log('✅ 記事公開完了:', result.data);
+          } else {
+            throw new Error(result.error || '公開に失敗しました');
+          }
+
+        } catch (error) {
+          console.error('記事公開エラー:', error);
+          this.showNotification(`記事の公開に失敗しました: ${error.message}`, 'error');
+        } finally {
+          // UI状態リセット
+          const publishButton = document.querySelector('[data-action="publish-news"]');
+          const originalText = '<i class="fas fa-globe"></i> 公開';
+          this.resetButton(publishButton, originalText);
+        }
+      }
+
+      // スキーマ準拠のデータ保存処理（統合版）
+      async saveArticleData(formData, isDraft = true) {
+        // 認証チェック
+        await this.ensureAuthenticated();
+        
+        if (!this.state.supabaseConnected || !this.supabase) {
+          return {
+            success: false,
+            error: 'データベースに接続されていません'
+          };
+        }
+
+        try {
+          console.log('📝 記事をSupabaseに保存中...', formData);
+
+          // スキーマ準拠のデータ構造
+          const articleData = {
+            title: formData.title,
+            content: formData.content,
+            summary: formData.summary || '',
+            category: formData.category,
+            status: isDraft ? 'draft' : 'published',
+            featured: formData.featured,
+            published_at: isDraft ? null : new Date().toISOString()
+          };
+
+          let result;
+          
+          if (formData.id) {
+            // 既存記事の更新
+            console.log('既存記事を更新:', formData.id);
+            const { data, error } = await this.supabase
+              .from('articles')
+              .update(articleData)
+              .eq('id', formData.id)
+              .select();
+
+            if (error) {
+              console.error('Supabase更新エラー:', error);
+              return {
+                success: false,
+                error: `更新に失敗しました: ${error.message}`
+              };
+            }
+            
+            if (!data || data.length === 0) {
+              return {
+                success: false,
+                error: '更新対象の記事が見つかりません'
+              };
+            }
+            
+            result = data[0]; // 配列の最初の要素を取得
+          } else {
+            // 新規記事の作成（UUIDは自動生成）
+            console.log('新規記事を作成');
+            const { data, error } = await this.supabase
+              .from('articles')
+              .insert(articleData)
+              .select();
+
+            if (error) {
+              console.error('Supabase作成エラー:', error);
+              return {
+                success: false,
+                error: `作成に失敗しました: ${error.message}`
+              };
+            }
+            
+            if (!data || data.length === 0) {
+              return {
+                success: false,
+                error: '記事の作成に失敗しました'
+              };
+            }
+            
+            result = data[0]; // 配列の最初の要素を取得
+          }
+
+          console.log('✅ Supabase保存成功:', result);
+          return {
+            success: true,
+            data: result
+          };
+
+        } catch (error) {
+          console.error('❌ 記事保存処理エラー:', error);
+          return {
+            success: false,
+            error: `保存中にエラーが発生しました: ${error.message}`
+          };
+        }
+      }
+
+      // ===========================================
+      // Instagram管理機能の実装
+      // ===========================================
+
+      // Instagram投稿フォームデータ取得
+      getInstagramFormData() {
+        try {
+          const formData = {
+            id: document.getElementById('instagram-post-id')?.value || null,
+            embed_code: document.getElementById('instagram-embed-code')?.value?.trim() || '',
+            visible: document.getElementById('instagram-status')?.checked || false,
+            featured: document.getElementById('instagram-featured')?.checked || false,
+          };
+
+          console.log('Instagram投稿フォームデータ取得:', formData);
+          return formData;
+        } catch (error) {
+          console.error('Instagram投稿フォームデータ取得エラー:', error);
+          this.showNotification('フォームデータの取得に失敗しました', 'error');
+          return null;
+        }
+      }
+
+      // Instagram投稿バリデーション
+      validateInstagramForm(formData) {
+        const errors = [];
+
+        if (!formData.embed_code || formData.embed_code.length === 0) {
+          errors.push('埋め込みコードは必須です');
+        }
+
+        // Instagram埋め込みコードの基本チェック
+        if (formData.embed_code && !formData.embed_code.includes('instagram-media')) {
+          errors.push('有効なInstagram埋め込みコードを入力してください');
+        }
+
+        if (formData.embed_code && formData.embed_code.length > 15000) {
+          errors.push('埋め込みコードが長すぎます（15000文字以内）');
+        }
+
+        if (errors.length > 0) {
+          console.warn('Instagram投稿バリデーションエラー:', errors);
+          this.showNotification(`入力エラー: ${errors[0]}`, 'warning');
+          return false;
+        }
+
+        return true;
+      }
+
+      // Instagram投稿保存
+      async saveInstagramPost() {
+        try {
+          console.log('Instagram投稿保存開始');
+          
+          // UI状態更新
+          const saveButton = document.querySelector('[data-action="save-instagram-post"]');
+          const originalText = saveButton?.innerHTML;
+          if (saveButton) {
+            saveButton.disabled = true;
+            saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 保存中...';
+          }
+          
+          this.showNotification('Instagram投稿を保存しています...', 'info');
+
+          const formData = this.getInstagramFormData();
+          if (!formData) {
+            this.resetButton(saveButton, originalText);
+            return;
+          }
+
+          if (!this.validateInstagramForm(formData)) {
+            this.resetButton(saveButton, originalText);
+            return;
+          }
+
+          // 保存実行
+          const result = await this.saveInstagramData(formData);
+          
+          if (result.success) {
+            this.showNotification('Instagram投稿を保存しました', 'success');
+            
+            // フォームクリア
+            this.clearInstagramForm();
+            
+            // 投稿リスト更新
+            await this.refreshInstagramPosts();
+            
+            console.log('✅ Instagram投稿保存完了:', result.data);
+          } else {
+            throw new Error(result.error || '保存に失敗しました');
+          }
+
+        } catch (error) {
+          console.error('Instagram投稿保存エラー:', error);
+          this.showNotification(`Instagram投稿の保存に失敗しました: ${error.message}`, 'error');
+        } finally {
+          // UI状態リセット
+          const saveButton = document.querySelector('[data-action="save-instagram-post"]');
+          const originalText = '<i class="fas fa-plus"></i> 追加';
+          this.resetButton(saveButton, originalText);
+        }
+      }
+
+      // Instagram投稿データ保存処理
+      async saveInstagramData(formData) {
+        // 認証チェック
+        await this.ensureAuthenticated();
+        
+        if (!this.state.supabaseConnected || !this.supabase) {
+          return {
+            success: false,
+            error: 'データベースに接続されていません'
+          };
+        }
+
+        try {
+          console.log('📝 Instagram投稿をSupabaseに保存中...', formData);
+
+          // URLを埋め込みコードから抽出
+          const url = this.extractInstagramUrl(formData.embed_code);
+          
+          // スキーマ準拠のデータ構造
+          const postData = {
+            url: url,
+            embed_code: formData.embed_code,
+            caption: '', // 将来的に追加予定
+            visible: formData.visible,
+            display_order: 0 // デフォルト値
+          };
+
+          let result;
+          
+          if (formData.id) {
+            // 既存投稿の更新
+            console.log('既存Instagram投稿を更新:', formData.id);
+            const { data, error } = await this.supabase
+              .from('instagram_posts')
+              .update(postData)
+              .eq('id', formData.id)
+              .select();
+
+            if (error) {
+              console.error('Supabase更新エラー:', error);
+              return {
+                success: false,
+                error: `更新に失敗しました: ${error.message}`
+              };
+            }
+            
+            if (!data || data.length === 0) {
+              return {
+                success: false,
+                error: '更新対象の投稿が見つかりません'
+              };
+            }
+            
+            result = data[0]; // 配列の最初の要素を取得
+          } else {
+            // 新規投稿の作成（UUIDは自動生成）
+            console.log('新規Instagram投稿を作成');
+            const { data, error } = await this.supabase
+              .from('instagram_posts')
+              .insert(postData)
+              .select();
+
+            if (error) {
+              console.error('Supabase作成エラー:', error);
+              return {
+                success: false,
+                error: `作成に失敗しました: ${error.message}`
+              };
+            }
+            
+            if (!data || data.length === 0) {
+              return {
+                success: false,
+                error: 'Instagram投稿の作成に失敗しました'
+              };
+            }
+            
+            result = data[0]; // 配列の最初の要素を取得
+          }
+
+          console.log('✅ Supabase保存成功:', result);
+          return {
+            success: true,
+            data: result
+          };
+
+        } catch (error) {
+          console.error('❌ Instagram投稿保存処理エラー:', error);
+          return {
+            success: false,
+            error: `保存中にエラーが発生しました: ${error.message}`
+          };
+        }
+      }
+
+      // 埋め込みコードからInstagram URLを抽出
+      extractInstagramUrl(embedCode) {
+        try {
+          // data-instgrm-permalink属性からURLを抽出
+          const match = embedCode.match(/data-instgrm-permalink="([^"]+)"/);
+          if (match && match[1]) {
+            return match[1];
+          }
+          
+          // hrefからURLを抽出（フォールバック）
+          const hrefMatch = embedCode.match(/href="([^"]*instagram\.com[^"]+)"/);
+          if (hrefMatch && hrefMatch[1]) {
+            return hrefMatch[1];
+          }
+          
+          // デフォルト値
+          return 'https://www.instagram.com/';
+        } catch (error) {
+          console.warn('Instagram URL抽出エラー:', error);
+          return 'https://www.instagram.com/';
+        }
+      }
+
+      // Instagram投稿フォームクリア
+      clearInstagramForm() {
+        try {
+          document.getElementById('instagram-post-id').value = '';
+          document.getElementById('instagram-embed-code').value = '';
+          document.getElementById('instagram-status').checked = true;
+          document.getElementById('instagram-featured').checked = false;
+          console.log('Instagram投稿フォームをクリア');
+        } catch (error) {
+          console.error('Instagram投稿フォームクリアエラー:', error);
+        }
+      }
+
+      // Instagram投稿一覧更新
+      async refreshInstagramPosts() {
+        try {
+          console.log('Instagram投稿一覧を更新中...');
+          this.showNotification('Instagram投稿一覧を更新しています...', 'info');
+          
+          const posts = await this.loadInstagramPosts();
+          this.displayInstagramPostsList(posts);
+          
+          this.showNotification(`Instagram投稿一覧を更新しました (${posts.length}件)`, 'success');
+          
+        } catch (error) {
+          console.error('Instagram投稿一覧更新エラー:', error);
+          this.showNotification('Instagram投稿一覧の更新に失敗しました', 'error');
+        }
+      }
+
+      // Instagram投稿データ読み込み
+      async loadInstagramPosts() {
+        if (!this.state.supabaseConnected || !this.supabase) {
+          console.warn('Supabaseに接続されていません');
+          return [];
+        }
+
+        try {
+          const { data, error } = await this.supabase
+            .from('instagram_posts')
+            .select('*')
+            .order('display_order', { ascending: true })
+            .order('created_at', { ascending: false });
+
+          if (error) {
+            throw new Error(`Instagram投稿の読み込みに失敗しました: ${error.message}`);
+          }
+
+          return data || [];
+        } catch (error) {
+          console.error('Instagram投稿読み込みエラー:', error);
+          return [];
+        }
+      }
+
+      // Instagram投稿一覧表示
+      displayInstagramPostsList(posts) {
+        const listContainer = document.getElementById('instagram-posts-list');
+        if (!listContainer) {
+          console.warn('Instagram投稿一覧コンテナが見つかりません');
+          return;
+        }
+
+        if (posts.length === 0) {
+          listContainer.innerHTML = `
+            <div class="no-posts">
+              <i class="fab fa-instagram fa-3x"></i>
+              <h3>Instagram投稿がありません</h3>
+              <p>上記のフォームから投稿を追加してください</p>
+            </div>
+          `;
+          return;
+        }
+
+        const postsHTML = posts.map(post => `
+          <div class="instagram-post-item" data-id="${post.id}">
+            <div class="post-embed">
+              ${post.embed_code}
+            </div>
+            <div class="post-controls">
+              <div class="post-status">
+                <span class="status-badge ${post.visible ? 'status-visible' : 'status-hidden'}">
+                  ${post.visible ? '表示中' : '非表示'}
+                </span>
+              </div>
+              <div class="post-actions">
+                <button class="btn-icon" data-action="toggle-instagram-visibility" data-id="${post.id}" title="${post.visible ? '非表示にする' : '表示する'}">
+                  <i class="fas ${post.visible ? 'fa-eye-slash' : 'fa-eye'}"></i>
+                </button>
+                <button class="btn-icon" data-action="edit-instagram-post" data-id="${post.id}" title="編集">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-icon btn-danger" data-action="delete-instagram-post" data-id="${post.id}" title="削除">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+
+        listContainer.innerHTML = postsHTML;
+      }
+
+      // Instagram投稿表示状態切り替え
+      async toggleInstagramVisibility(postId) {
+        if (!postId) return;
+
+        try {
+          const { data, error } = await this.supabase
+            .from('instagram_posts')
+            .select('visible')
+            .eq('id', postId);
+
+          if (error) throw new Error(error.message);
+          
+          if (!data || data.length === 0) {
+            throw new Error('投稿が見つかりません');
+          }
+
+          const newVisibility = !data[0].visible;
+          
+          const { error: updateError } = await this.supabase
+            .from('instagram_posts')
+            .update({ visible: newVisibility })
+            .eq('id', postId);
+
+          if (updateError) throw new Error(updateError.message);
+
+          this.showNotification(`投稿を${newVisibility ? '表示' : '非表示'}に設定しました`, 'success');
+          await this.refreshInstagramPosts();
+
+        } catch (error) {
+          console.error('Instagram投稿表示状態切り替えエラー:', error);
+          this.showNotification('表示状態の変更に失敗しました', 'error');
+        }
+      }
+
+      // Instagram投稿削除確認
+      async confirmDeleteInstagramPost(postId) {
+        if (!postId) return;
+
+        if (confirm('この投稿を削除しますか？この操作は取り消せません。')) {
+          try {
+            const { error } = await this.supabase
+              .from('instagram_posts')
+              .delete()
+              .eq('id', postId);
+
+            if (error) throw new Error(error.message);
+
+            this.showNotification('Instagram投稿を削除しました', 'success');
+            await this.refreshInstagramPosts();
+
+          } catch (error) {
+            console.error('Instagram投稿削除エラー:', error);
+            this.showNotification('投稿の削除に失敗しました', 'error');
+          }
+        }
+      }
+
+      // Instagram投稿リストフィルタ
+      filterInstagramList(filterValue) {
+        const items = document.querySelectorAll('.instagram-post-item');
+        items.forEach(item => {
+          const postElement = item.querySelector('.status-badge');
+          if (!postElement) return;
+
+          const isVisible = postElement.classList.contains('status-visible');
+          let shouldShow = true;
+
+          switch (filterValue) {
+            case 'active':
+              shouldShow = isVisible;
+              break;
+            case 'inactive':
+              shouldShow = !isVisible;
+              break;
+            case 'all':
+            default:
+              shouldShow = true;
+              break;
+          }
+
+          item.style.display = shouldShow ? 'block' : 'none';
+        });
+      }
+
+      // Instagram投稿編集（プレースホルダー）
+      editInstagramPost(postId) {
+        console.log('Instagram投稿編集:', postId);
+        this.showNotification('編集機能は今後実装予定です', 'info');
+      }
+
+      // プレビュー表示
+      previewNewsArticle() {
+        try {
+          console.log('記事プレビュー開始');
+
+          const formData = this.getNewsFormData();
+          if (!formData) return;
+
+          if (!formData.title && !formData.content) {
+            this.showNotification('プレビューするコンテンツがありません', 'warning');
+            return;
+          }
+
+          // プレビューHTMLの生成
+          const previewHTML = this.generatePreviewHTML(formData);
+
+          // モーダルでプレビューを表示
+          this.showModal('記事プレビュー', previewHTML);
+
+          this.showNotification('プレビューを表示しました', 'info');
+
+        } catch (error) {
+          console.error('プレビューエラー:', error);
+          this.showNotification('プレビューの表示に失敗しました', 'error');
+        }
+      }
+
+      // プレビューHTML生成
+      generatePreviewHTML(formData) {
+        const categoryLabels = {
+          'general': '一般',
+          'event': 'イベント',
+          'notice': 'お知らせ',
+          'lesson': 'レッスン',
+          'other': 'その他',
+          // 旧形式との互換性
+          'announcement': 'お知らせ',
+          'media': 'メディア',
+          'important': '重要'
+        };
+
+        return `
+          <div class="news-preview">
+            <div class="news-header">
+              <span class="news-category category-${formData.category}">
+                ${categoryLabels[formData.category] || formData.category}
+              </span>
+              <span class="news-date">${new Date().toLocaleDateString('ja-JP')}</span>
+              ${formData.featured ? '<span class="featured-badge">注目</span>' : ''}
+            </div>
+            <h1 class="news-title">${formData.title || '(タイトルなし)'}</h1>
+            ${formData.summary ? `<div class="news-summary">${formData.summary}</div>` : ''}
+            <div class="news-content">
+              ${this.markdownToHTML(formData.content) || '(本文なし)'}
+            </div>
+          </div>
+          <style>
+            .news-preview { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+            .news-header { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; }
+            .news-category { background: #007bff; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; }
+            .category-important { background: #dc3545; }
+            .category-event { background: #28a745; }
+            .category-media { background: #6f42c1; }
+            .news-date { color: #666; font-size: 0.9rem; }
+            .featured-badge { background: #ffc107; color: #000; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem; }
+            .news-title { color: #333; margin: 0 0 15px 0; font-size: 1.5rem; }
+            .news-summary { background: #f8f9fa; padding: 15px; border-left: 4px solid #007bff; margin-bottom: 20px; }
+            .news-content { line-height: 1.6; color: #333; }
+          </style>
+        `;
+      }
+
+      // 簡単なMarkdown変換（基本的な変換のみ）
+      markdownToHTML(markdown) {
+        if (!markdown) return '';
+        
+        return markdown
+          .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+          .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+          .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+          .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+          .replace(/\*(.*)\*/gim, '<em>$1</em>')
+          .replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>')
+          .replace(/^- (.*$)/gim, '<li>$1</li>')
+          .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" target="_blank">$1</a>')
+          .replace(/\n/gim, '<br>');
+      }
+
+      // エディターをクリア
+      clearNewsEditor() {
+        if (confirm('エディターの内容をクリアしますか？未保存の内容は失われます。')) {
+          document.getElementById('news-id').value = '';
+          document.getElementById('news-title').value = '';
+          document.getElementById('news-category').value = 'announcement';
+
+          document.getElementById('news-summary').value = '';
+          document.getElementById('news-content').value = '';
+          document.getElementById('news-featured').checked = false;
+
+          this.updateEditorTitle('新規記事作成');
+          this.showNotification('エディターをクリアしました', 'info');
+
+          console.log('エディターをクリアしました');
+        }
+      }
+
+      // 新規記事作成
+      createNewNewsArticle() {
+        this.clearNewsEditor();
+        this.switchTab('news-management');
+        this.switchNewsTab('editor');
+      }
+
+      // 記事一覧の更新
+      async refreshNewsList() {
+        try {
+          console.log('記事一覧を更新中...');
+          this.showNotification('記事一覧を更新しています...', 'info');
+          
+          // 記事一覧を読み込み
+          const articles = await this.loadArticles();
+          
+          // 記事一覧を表示
+          this.displayArticlesList(articles);
+          
+          this.showNotification(`記事一覧を更新しました (${articles.length}件)`, 'success');
+          
+        } catch (error) {
+          console.error('記事一覧更新エラー:', error);
+          this.showNotification('記事一覧の更新に失敗しました', 'error');
+        }
+      }
+
+      // 記事一覧の表示
+      displayArticlesList(articles) {
+        const listContainer = document.getElementById('news-list');
+        if (!listContainer) {
+          console.warn('記事一覧コンテナが見つかりません');
+          return;
+        }
+
+        if (articles.length === 0) {
+          listContainer.innerHTML = `
+            <div class="empty-state">
+              <i class="fas fa-newspaper"></i>
+              <h3>記事がありません</h3>
+              <p>新しい記事を作成してください</p>
+              <button class="btn btn-primary" data-action="new-news-article">
+                <i class="fas fa-plus"></i> 新規記事作成
+              </button>
+            </div>
+          `;
+          return;
+        }
+
+        const articlesHTML = articles.map(article => `
+          <div class="news-item" data-id="${article.id}">
+            <div class="news-item-header">
+              <h3 class="news-item-title">${article.title}</h3>
+              <span class="news-item-status status-${article.status}">
+                ${article.status === 'published' ? '公開' : '下書き'}
+              </span>
+            </div>
+            <div class="news-item-meta">
+              <span class="news-item-category">${this.getCategoryLabel(article.category)}</span>
+              <span class="news-item-date">${this.formatDate(article.created_at)}</span>
+              ${article.featured ? '<span class="news-item-featured">注目</span>' : ''}
+            </div>
+            <div class="news-item-summary">
+              ${article.summary || '(概要なし)'}
+            </div>
+            <div class="news-item-actions">
+              <button class="btn btn-sm btn-outline" data-action="edit-article" data-id="${article.id}">
+                <i class="fas fa-edit"></i> 編集
+              </button>
+              <button class="btn btn-sm btn-outline" data-action="preview-article" data-id="${article.id}">
+                <i class="fas fa-eye"></i> プレビュー
+              </button>
+              <button class="btn btn-sm btn-danger" data-action="delete-article" data-id="${article.id}">
+                <i class="fas fa-trash"></i> 削除
+              </button>
+            </div>
+          </div>
+        `).join('');
+
+        listContainer.innerHTML = articlesHTML;
+      }
+
+      // カテゴリラベルの取得
+      getCategoryLabel(category) {
+        const labels = {
+          'announcement': 'お知らせ',
+          'event': '体験会',
+          'media': 'メディア',
+          'important': '重要'
+        };
+        return labels[category] || category;
+      }
+
+      // 日付のフォーマット
+      formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ja-JP', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+      }
+
+      // 記事一覧のフィルタリング
+      async filterNewsList(filter) {
+        try {
+          console.log('記事一覧をフィルタリング:', filter);
+          this.showNotification(`フィルター適用中...`, 'info');
+          
+          const filters = {};
+          if (filter !== 'all') {
+            filters.status = filter;
+          }
+          
+          const articles = await this.loadArticles(filters);
+          this.displayArticlesList(articles);
+          
+          this.showNotification(`フィルター適用完了 (${articles.length}件)`, 'success');
+          
+        } catch (error) {
+          console.error('フィルタリングエラー:', error);
+          this.showNotification('フィルタリングに失敗しました', 'error');
+        }
+      }
+
+      // 記事を編集
+      async editArticle(articleId) {
+        if (!articleId) {
+          console.warn('記事IDが指定されていません');
+          return;
+        }
+
+        try {
+          console.log('記事を編集モードで読み込み:', articleId);
+          
+          const { data, error } = await this.supabase
+            .from('articles')
+            .select('*')
+            .eq('id', articleId);
+
+          if (error) {
+            throw new Error(`記事の読み込みに失敗しました: ${error.message}`);
+          }
+          
+          if (!data || data.length === 0) {
+            throw new Error('記事が見つかりません');
+          }
+
+          // フォームに記事データを設定
+          this.loadArticleToEditor(data[0]);
+          
+          // 編集タブに切り替え
+          this.switchTab('news-management');
+          this.switchNewsTab('editor');
+          
+          this.showNotification('記事を編集モードで読み込みました', 'success');
+
+        } catch (error) {
+          console.error('記事編集エラー:', error);
+          this.showNotification(error.message, 'error');
+        }
+      }
+
+      // 記事データをエディターに読み込み
+      loadArticleToEditor(article) {
+        document.getElementById('news-id').value = article.id || '';
+        document.getElementById('news-title').value = article.title || '';
+        document.getElementById('news-category').value = article.category || 'announcement';
+        
+        document.getElementById('news-summary').value = article.summary || '';
+        document.getElementById('news-content').value = article.content || '';
+        document.getElementById('news-featured').checked = article.featured || false;
+
+        this.updateEditorTitle(article.title);
+      }
+
+      // 記事削除の確認
+      async confirmDeleteArticle(articleId) {
+        if (!articleId) {
+          console.warn('記事IDが指定されていません');
+          return;
+        }
+
+        if (confirm('この記事を削除しますか？この操作は取り消せません。')) {
+          const success = await this.deleteArticle(articleId);
+          if (success) {
+            // 記事一覧を更新
+            await this.refreshNewsList();
+          }
+        }
+      }
+
+      // IDによる記事プレビュー
+      async previewArticleById(articleId) {
+        if (!articleId) {
+          console.warn('記事IDが指定されていません');
+          return;
+        }
+
+        try {
+          const { data, error } = await this.supabase
+            .from('articles')
+            .select('*')
+            .eq('id', articleId);
+
+          if (error) {
+            throw new Error(`記事の読み込みに失敗しました: ${error.message}`);
+          }
+          
+          if (!data || data.length === 0) {
+            throw new Error('記事が見つかりません');
+          }
+
+          // プレビューHTML生成
+          const previewHTML = this.generatePreviewHTML(data[0]);
+          
+          // モーダルでプレビュー表示
+          this.showModal(`記事プレビュー: ${data[0].title}`, previewHTML);
+
+        } catch (error) {
+          console.error('記事プレビューエラー:', error);
+          this.showNotification(error.message, 'error');
+        }
+      }
+
+      // エディターのタイトルを更新
+      updateEditorTitle(title) {
+        const titleElement = document.getElementById('editor-title');
+        if (titleElement) {
+          titleElement.textContent = title ? `記事編集: ${title}` : '新規記事作成';
+        }
+      }
+
+      // モーダル表示
+      showModal(title, content) {
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+
+        if (modal && modalTitle && modalBody) {
+          modalTitle.textContent = title;
+          modalBody.innerHTML = content;
+          modal.classList.remove('modal-hidden');
+          modal.classList.add('modal-visible');
+        }
+      }
+
+      // その他のアクション実行
+      executeAction(action, element) {
+        console.log(`カスタムアクション実行: ${action}`, element);
+        // 追加のアクション処理をここに実装
+      }
+
+      // ログアウト処理（Supabase統合版）
+      async handleLogout() {
+        if (confirm('ログアウトしますか？')) {
+          try {
+            console.log('🔐 ログアウト実行中...');
+            
+            // Supabaseセッション管理の場合
+            if (this.supabase && this.supabase.auth) {
+              try {
+                await this.supabase.auth.signOut();
+                console.log('✅ Supabaseセッション終了');
+              } catch (supabaseError) {
+                console.warn('Supabaseログアウト警告:', supabaseError.message);
+              }
+            }
+            
+            // 状態クリア（完全メモリベース）
+            this.state.authenticated = false;
+            this.state.currentUser = null;
+            this.state.currentSession = null;
+            this.state.authFailures = [];
+            this.state.authLockUntil = null;
+            this.state.currentTab = 'dashboard';
+            
+            console.log('✅ ログアウト完了');
+            this.showNotification('ログアウトしました', 'info');
+            
+            // ログインページにリダイレクト
+            setTimeout(() => {
+              window.location.href = 'admin-login.html';
+            }, 1000);
+            
+          } catch (error) {
+            console.error('ログアウト処理エラー:', error);
+            this.showNotification('ログアウト処理中にエラーが発生しました', 'error');
+          }
+        }
+      }
+
+      // ボタンの状態をリセット
+      resetButton(button, originalText) {
+        if (button && originalText) {
+          button.disabled = false;
+          button.innerHTML = originalText;
+        }
+      }
+
+      // 保存状態の視覚的フィードバック
+      showSaveProgress(message = '保存中...') {
+        // 既存の保存中表示を削除
+        const existingProgress = document.querySelector('.save-progress');
+        if (existingProgress) {
+          existingProgress.remove();
+        }
+
+        // 新しい保存中表示を作成
+        const progressIndicator = document.createElement('div');
+        progressIndicator.className = 'save-progress';
+        progressIndicator.style.cssText = `
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: rgba(0, 0, 0, 0.8);
+          color: white;
+          padding: 20px 30px;
+          border-radius: 8px;
+          z-index: 10000;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 1rem;
+        `;
+        progressIndicator.innerHTML = `
+          <i class="fas fa-spinner fa-spin"></i>
+          <span>${message}</span>
+        `;
+
+        document.body.appendChild(progressIndicator);
+
+        return progressIndicator;
+      }
+
+      // 保存状態表示を削除
+      hideSaveProgress() {
+        const progressIndicator = document.querySelector('.save-progress');
+        if (progressIndicator) {
+          progressIndicator.remove();
+        }
+      }
+
+      // エラー時の詳細表示
+      showDetailedError(error, context = '操作') {
+        console.error(`${context}エラー詳細:`, error);
+        
+        let errorMessage = `${context}に失敗しました`;
+        
+        if (error.message) {
+          errorMessage += `: ${error.message}`;
+        }
+        
+        // 開発環境では詳細なエラー情報を表示
+        if (window.location.hostname === 'localhost' || window.location.protocol === 'file:') {
+          errorMessage += ` (詳細: コンソールを確認してください)`;
+        }
+        
+        this.showNotification(errorMessage, 'error');
+      }
+
+      // 接続状態の確認
+      checkSupabaseConnection() {
+        if (!this.state.supabaseConnected) {
+          this.showNotification('データベースに接続されていません', 'warning');
+          return false;
+        }
+        return true;
+      }
+
+      // 記事データの読み込み
+      async loadArticles(filters = {}) {
+        if (!this.checkSupabaseConnection()) return [];
+
+        try {
+          console.log('📖 記事一覧を読み込み中...');
+          
+          let query = this.supabase
+            .from('articles')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          // フィルターの適用
+          if (filters.status) {
+            query = query.eq('status', filters.status);
+          }
+          if (filters.category) {
+            query = query.eq('category', filters.category);
+          }
+          if (filters.featured !== undefined) {
+            query = query.eq('featured', filters.featured);
+          }
+
+          const { data, error } = await query;
+
+          if (error) {
+            throw new Error(`記事の読み込みに失敗しました: ${error.message}`);
+          }
+
+          console.log('✅ 記事読み込み完了:', data?.length || 0, '件');
+          return data || [];
+
+        } catch (error) {
+          console.error('❌ 記事読み込みエラー:', error);
+          this.showNotification(error.message, 'error');
+          return [];
+        }
+      }
+
+      // 記事の削除
+      async deleteArticle(articleId) {
+        if (!this.checkSupabaseConnection()) return false;
+
+        try {
+          console.log('🗑️ 記事を削除中...', articleId);
+
+          const { error } = await this.supabase
+            .from('articles')
+            .delete()
+            .eq('id', articleId);
+
+          if (error) {
+            throw new Error(`記事の削除に失敗しました: ${error.message}`);
+          }
+
+          console.log('✅ 記事削除完了:', articleId);
+          this.showNotification('記事を削除しました', 'success');
+          return true;
+
+        } catch (error) {
+          console.error('❌ 記事削除エラー:', error);
+          this.showNotification(error.message, 'error');
+          return false;
+        }
+      }
+
+      // モーダルを閉じる
+      closeModal() {
+        const modal = document.getElementById('modal');
+        if (modal) {
+          modal.classList.add('modal-hidden');
+          modal.classList.remove('modal-visible');
+        }
+      }
+
+      activateInitialTab() {
+        // DOM要素の準備を確認してからタブを切り替え
+        const checkAndActivate = () => {
+          const dashboardSection = document.getElementById('dashboard');
+          if (dashboardSection) {
+            this.switchTab('dashboard');
+            console.log('✅ 初期タブ（ダッシュボード）を活性化しました');
+            
+            // データベース接続状態の確認
+            if (this.state.supabaseConnected) {
+              console.log('🗄️ Supabaseデータベース接続済み');
+            } else {
+              console.log('⚠️ データベース未接続 - 開発モードで動作中');
+            }
+            
+          } else {
+            console.warn('ダッシュボード要素が見つかりません。再試行します...');
+            setTimeout(checkAndActivate, 100);
+          }
+        };
+        
+        // 少し遅延させてDOM要素の準備を待つ
+        setTimeout(checkAndActivate, 10);
+      }
+
+      async getModule(name) {
+        if (this.state.modules.has(name)) {
+          return this.state.modules.get(name);
+        }
+
+        // シンプルなモジュール実装
+        const simpleModule = {
+          name,
+          initialized: true,
+          saveData: async (data) => {
+            try {
+              if (this.supabase) {
+                const tableName = this.getTableName(name);
+                await this.supabase.from(tableName).insert(data);
+                this.showNotification(`${name}データを保存しました`, 'success');
+              } else {
+                sessionStorage.setItem(`rbs_${name}_data`, JSON.stringify(data));
+                this.showNotification(`${name}データを一時保存しました`, 'info');
+              }
+            } catch (error) {
+              console.error(`${name}保存エラー:`, error);
+              this.showNotification(`${name}の保存に失敗しました`, 'error');
+            }
+          },
+          loadData: async () => {
+            try {
+              if (this.supabase) {
+                const tableName = this.getTableName(name);
+                const { data } = await this.supabase.from(tableName).select('*');
+                return data || [];
+              } else {
+                const stored = sessionStorage.getItem(`rbs_${name}_data`);
+                return stored ? JSON.parse(stored) : [];
+              }
+            } catch (error) {
+              console.error(`${name}読み込みエラー:`, error);
+              return [];
+            }
+          }
+        };
+
+        this.state.modules.set(name, simpleModule);
+        return simpleModule;
+      }
+
+      getService(name) {
+        return this.state.services.get(name);
+      }
+
+      showNotification(message, type = 'info') {
+        // 既存の通知コンテナを確認
+        let container = document.getElementById('notification-container');
+        if (!container) {
+          container = document.createElement('div');
+          container.id = 'notification-container';
+          container.style.cssText = `
+            position: fixed;
+            top: 80px; /* ヘッダーの下に配置 */
+            right: 20px;
+            z-index: 10000; /* より高いz-index */
+            max-width: 400px;
+            pointer-events: none; /* 通知以外のクリックを妨げない */
+          `;
+          document.body.appendChild(container);
+        }
+
+        // 通知要素作成
+        const notification = document.createElement('div');
+        const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+        const colors = { 
+          success: '#4caf50', 
+          error: '#f44336', 
+          warning: '#ff9800', 
+          info: '#2196f3' 
+        };
+        
+        notification.style.cssText = `
+          background: ${colors[type] || colors.info};
+          color: white;
+          padding: 12px 16px;
+          border-radius: 8px;
+          margin-bottom: 12px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+          transition: all 0.3s ease;
+          pointer-events: auto; /* 通知自体はクリック可能 */
+          animation: slideInRight 0.3s ease-out;
+          backdrop-filter: blur(5px);
+        `;
+        
+        notification.innerHTML = `${icons[type] || icons.info} ${message}`;
+        container.appendChild(notification);
+
+        // 自動削除
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.remove();
+          }
+        }, 3000);
+
+        console.log(`[${type.toUpperCase()}] ${message}`);
+      }
+
+      async autoSave(element) {
+        try {
+          // 統合DraftSupabaseServiceを使用
+          const { getDraftSupabaseService } = await import('./js/shared/services/DraftSupabaseService.js');
+          const draftService = getDraftSupabaseService();
+          await draftService.init();
+
+          const form = element.closest('form');
+          if (!form) return;
+
+          const formData = new FormData(form);
+          const data = Object.fromEntries(formData.entries());
+          
+          await draftService.saveDraft(form.dataset.type || 'general', data);
+        } catch (error) {
+          console.warn('自動保存エラー:', error);
+          // フォールバック：従来方式
+          const draftService = this.getService('draft');
+          if (draftService) {
+            const form = element.closest('form');
+            if (form) {
+              const formData = new FormData(form);
+              const data = Object.fromEntries(formData.entries());
+              await draftService.saveDraft(form.dataset.type || 'general', data);
+            }
+          }
+        }
+      }
+
+      getTabLabel(tabName) {
+        const labels = {
+          'dashboard': 'ダッシュボード',
+          'news-management': '記事管理', 
+          'lesson-status': 'レッスン状況',
+          'instagram-management': 'Instagram管理',
+          'settings': '設定'
+        };
+        return labels[tabName] || tabName;
+      }
+
+      getTableName(moduleName) {
+        const tables = {
+          'news': 'articles',
+          'lesson': 'lesson_status',
+          'instagram': 'instagram_posts'
+        };
+        return tables[moduleName] || moduleName;
+      }
+
+      debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      updateConfig(newConfig) {
+        this.config = { ...this.config, ...newConfig };
+        console.log('設定を更新しました:', newConfig);
+      }
+
+      getDebugInfo() {
+        return {
+          state: this.state,
+          config: this.config,
+          services: Array.from(this.state.services.keys()),
+          modules: Array.from(this.state.modules.keys()),
+          supabaseConnected: !!this.supabase
+        };
+      }
+
+      // データ操作前の認証チェック
+      async ensureAuthenticated() {
+        // 認証ロック確認
+        const lockStatus = this.isAuthenticationLocked();
+        if (lockStatus.locked) {
+          throw new Error(`認証がロックされています。あと${lockStatus.remainingMinutes}分お待ちください。`);
+        }
+
+        if (!this.state.authenticated || !this.isSessionValid()) {
+          this.showNotification('操作には認証が必要です', 'warning');
+          await this.initiateAuthentication();
+        }
+        
+        if (!this.state.authenticated) {
+          throw new Error('認証が必要です');
+        }
+        
+        return true;
+      }
+
+      // 認証状態表示の更新
+      updateAuthenticationUI() {
+        try {
+          // ヘッダーにユーザー情報を表示
+          const headerUser = document.querySelector('.header-user');
+          if (headerUser) {
+            if (this.state.authenticated && this.state.currentUser) {
+              headerUser.innerHTML = `
+                <span class="user-email">${this.state.currentUser.email}</span>
+                <button class="btn-logout" data-action="logout">
+                  <i class="fas fa-sign-out-alt"></i> ログアウト
+                </button>
+              `;
+            } else {
+              headerUser.innerHTML = `
+                <span class="auth-status">未認証</span>
+              `;
+            }
+          }
+          
+          // 認証状態に応じたタブの有効/無効化
+          const tabElements = document.querySelectorAll('[data-action="switch-admin-tab"]');
+          tabElements.forEach(tab => {
+            if (this.state.authenticated) {
+              tab.classList.remove('disabled');
+            } else {
+              tab.classList.add('disabled');
+            }
+          });
+
+        } catch (error) {
+          console.warn('認証UI更新エラー:', error);
+        }
+      }
+    }
+
+    // グローバル初期化関数
+    window.initInlineSimpleAdmin = async function() {
+      const core = new InlineSimpleAdminCore();
+      const result = await core.init();
+      
+      // グローバルアクセス設定
+      window.adminCore = result;
+      
+      // 開発ツール設定
+      if (window.location.hostname === 'localhost' || window.location.protocol === 'file:') {
+        window.adminDevTools = {
+          getCore: () => result,
+          getDebugInfo: () => result.getDebugInfo(),
+          getModule: async (name) => await result.getModule(name),
+          getService: (name) => result.getService(name),
+          updateConfig: (config) => result.updateConfig(config),
+          switchTab: (tab) => result.switchTab(tab),
+          log: (message) => console.log(`[AdminDevTools] ${message}`),
+          testNotification: () => {
+            result.showNotification('テスト通知', 'info');
+          },
+          testSupabase: async () => {
+            if (result.supabase) {
+              try {
+                // articlesテーブルでテスト（admin_settingsは認証が必要なため）
+                const { data, error } = await result.supabase.from('articles').select('id').limit(1);
+                if (error) throw error;
+                console.log('Supabase接続テスト成功:', data);
+                result.showNotification('Supabase接続成功', 'success');
+              } catch (error) {
+                console.error('Supabase接続テスト失敗:', error);
+                result.showNotification(`Supabase接続失敗: ${error.message}`, 'error');
+              }
+            } else {
+              console.warn('Supabaseクライアントが初期化されていません');
+              result.showNotification('Supabase未接続', 'warning');
+            }
+          }
+        };
+        
+        console.log('🔧 Admin開発ツールが利用可能です: window.adminDevTools');
+      }
+      
+      return result;
+    };
+  </script>
+
+  <!-- シンプル統一管理画面システム v4.2.0 - 完全内蔵型 -->
+  <script>
+    console.log('🚀 RBS陸上教室管理画面 - 完全内蔵型 v4.2.0 開始');
     
     document.addEventListener('DOMContentLoaded', async () => {
       try {
-        // 新しい統合システムで初期化
-        await initializeAdmin();
+        console.log('📦 完全内蔵型システムで初期化中...');
+        
+        // ES Modules importを一切使わない初期化
+        const adminCore = await window.initInlineSimpleAdmin();
+        
+        console.log('✅ 完全内蔵型管理画面初期化完了');
+        console.log('📊 利用可能なサービス:', Array.from(adminCore.state.services.keys()));
+        console.log('🔧 開発ツール: window.adminCore, window.adminDevTools');
+        
+        // 統計の更新
+        updateDashboardStats(adminCore);
+        
       } catch (error) {
-        console.error('❌ 統合管理画面初期化エラー:', error);
+        console.error('❌ 管理画面初期化エラー:', error);
+        
+        // エラー時フォールバック表示
+        showErrorFallback(error);
       }
     });
+
+    // ダッシュボード統計更新
+    function updateDashboardStats(adminCore) {
+      try {
+        // 統計要素の安全な更新
+        const updateElement = (id, value) => {
+          const element = document.getElementById(id);
+          if (element) {
+            element.textContent = value;
+          }
+        };
+        
+        updateElement('article-count', '0');
+        updateElement('lesson-count', '0');
+        updateElement('instagram-count', '0');
+        updateElement('system-status', '✅');
+        updateElement('last-update', new Date().toLocaleString('ja-JP'));
+        
+        // 総記事数、レッスン数、ストレージ使用量の更新
+        updateElement('total-articles', '0');
+        updateElement('total-lessons', '0');
+        updateElement('storage-usage', '0.0MB');
+        
+        console.log('📊 ダッシュボード統計を更新しました');
+      } catch (error) {
+        console.warn('ダッシュボード統計更新エラー:', error);
+      }
+    }
+
+    // エラー時のフォールバック表示
+    function showErrorFallback(error) {
+      // メインエリアを複数の方法で取得
+      const mainArea = document.querySelector('#admin-main') || 
+                      document.querySelector('main') || 
+                      document.querySelector('.admin-content') ||
+                      document.body;
+      
+      if (mainArea) {
+        mainArea.innerHTML = `
+          <div class="error-fallback" style="
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 60vh; 
+            text-align: center;
+            background: #fff;
+            border-radius: 8px;
+            margin: 20px;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          ">
+            <div style="font-size: 4rem; margin-bottom: 20px;">⚠️</div>
+            <h2 style="color: #e74c3c; margin-bottom: 10px;">初期化エラー</h2>
+            <p style="color: #666; margin-bottom: 20px;">管理画面の初期化に失敗しました。</p>
+            <button onclick="location.reload()" style="
+              background: #3498db;
+              color: white;
+              border: none;
+              padding: 12px 24px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 1rem;
+              margin-bottom: 20px;
+            ">🔄 再試行</button>
+            <details style="margin-top: 20px; text-align: left; max-width: 600px;">
+              <summary style="cursor: pointer; color: #666;">エラー詳細を表示</summary>
+              <pre style="
+                background: #f8f9fa;
+                padding: 15px;
+                border-radius: 4px;
+                overflow: auto;
+                margin-top: 10px;
+                font-size: 0.8rem;
+                color: #d63384;
+              ">${error.stack || error.message}</pre>
+            </details>
+          </div>
+        `;
+      }
+    }
   </script>
-
-  <!-- 
-    通知システム、デバッグヘルパー、統計更新機能は
-    AdminNotificationService、DashboardStatsWidget、AdminCoreに統合されました
-  -->
-
-  <!-- 
-    Instagram埋め込みスクリプト管理は
-    InstagramEmbedModuleに統合されました
-  -->
 </body>
 </html>

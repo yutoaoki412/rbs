@@ -1,13 +1,13 @@
 /**
  * 管理システム統合サービス
  * AdminCore.jsの後継として、管理画面の統合管理とシステム連携を担当
- * @version 2.1.0 - 統一パス設定対応
+ * @version 3.0.0 - Supabase完全統合版
  */
 
 import { EventBus } from '../../../shared/services/EventBus.js';
-import { articleDataService } from './ArticleDataService.js';
-import { instagramDataService } from './InstagramDataService.js';
-import { getLessonStatusStorageService } from '../../../shared/services/LessonStatusStorageService.js';
+import { getArticleSupabaseService } from '../../../shared/services/ArticleSupabaseService.js';
+import { getLessonStatusSupabaseService } from '../../../shared/services/LessonStatusSupabaseService.js';
+import { getInstagramSupabaseService } from '../../../shared/services/InstagramSupabaseService.js';
 import { uiManagerService } from './UIManagerService.js';
 import { newsFormManager } from '../components/NewsFormManager.js';
 import { authManager } from '../../auth/AuthManager.js';
@@ -17,11 +17,6 @@ import { redirect } from '../../../shared/constants/paths.js';
 export class AdminSystemService {
   constructor() {
     this.componentName = 'AdminSystemService';
-    
-    // 統一ストレージキー（CONFIG.storage.keysから取得）
-    this.storageKeys = {
-      auth: CONFIG.storage.keys.adminSession // adminSessionキーに統一
-    };
     
     // システム状態
     this.systemStatus = {
@@ -58,9 +53,13 @@ export class AdminSystemService {
 
     try {
       // AuthManagerの状態確認
+      if (!authManager.initialized) {
+        await authManager.init();
+      }
+      
       if (authManager.initialized) {
         this.systemStatus.authManager = true;
-        this.isAuthenticated = authManager.isAuthenticated();
+        this.isAuthenticated = authManager.isAuthenticatedMethod();
         console.log('✅ AuthManagerが利用可能');
       } else {
         console.warn('⚠️ AuthManagerが初期化されていません');
@@ -97,12 +96,14 @@ export class AdminSystemService {
   async initializeServices() {
     console.log('🔧 管理サービス群を初期化中...');
     
-    // LessonStatusStorageServiceのインスタンスを取得
-    const lessonStatusService = getLessonStatusStorageService();
+    // Supabaseサービスのインスタンスを取得
+    const articleService = getArticleSupabaseService();
+    const lessonStatusService = getLessonStatusSupabaseService();
+    const instagramService = getInstagramSupabaseService();
     
     const services = [
-      { name: 'articleService', service: articleDataService },
-      { name: 'instagramService', service: instagramDataService },
+      { name: 'articleService', service: articleService },
+      { name: 'instagramService', service: instagramService },
       { name: 'lessonService', service: lessonStatusService },
       { name: 'uiManagerService', service: uiManagerService },
       { name: 'newsFormManager', service: newsFormManager }
@@ -111,7 +112,7 @@ export class AdminSystemService {
     for (const { name, service } of services) {
       try {
         if (!service.initialized) {
-          service.init();
+          await service.init();
         }
         this.systemStatus[name] = service.initialized;
         console.log(`✅ ${name} 初期化完了`);
@@ -197,41 +198,40 @@ export class AdminSystemService {
 
     // 自動保存の通知
     EventBus.on('newsForm:autoSaved', (data) => {
-      console.log('💾 記事フォーム自動保存完了');
-    });
-
-    // フォームクリア時の処理
-    EventBus.on('newsForm:cleared', () => {
-      uiManagerService.clearFormChanges('news-form');
+      uiManagerService.showNotification('success', '自動保存されました');
     });
   }
 
   /**
-   * データ変更時の処理
+   * データ変更の処理
    * @private
    * @param {string} type - データタイプ
    * @param {Object} data - データ
    */
   handleDataChange(type, data) {
-    console.log(`📊 ${type} データが変更されました:`, data);
+    console.log(`📊 ${type}データが変更されました:`, data);
     
     // 統計情報の更新
     this.updateSystemStats();
     
-    // UI更新の通知
+    // UI更新通知
     EventBus.emit('adminSystem:dataChanged', { type, data });
   }
 
   /**
    * システム統計情報の更新
-   * @private
    */
-  updateSystemStats() {
+  async updateSystemStats() {
     try {
+      // Supabaseサービスから統計情報を取得
+      const articleService = getArticleSupabaseService();
+      const instagramService = getInstagramSupabaseService();
+      const lessonStatusService = getLessonStatusSupabaseService();
+      
       const stats = {
-        articles: articleDataService.getStats(),
-        instagram: instagramDataService.getStats(),
-        lessons: getLessonStatusStorageService().getStatus()
+        articles: await articleService.getStats(),
+        instagram: await instagramService.getStats(),
+        lessons: await lessonStatusService.getStatus()
       };
       
       uiManagerService.updateStats(stats);
@@ -246,7 +246,7 @@ export class AdminSystemService {
    */
   async loadLessonStatusToForm() {
     try {
-      console.log('📅 レッスン状況読み込み（統一モジュール使用）');
+      console.log('📅 レッスン状況読み込み（Supabaseベース）');
       
       // 統一レッスン状況管理モジュールが利用可能な場合はそれを使用
       if (window.adminCore) {
@@ -258,12 +258,13 @@ export class AdminSystemService {
         }
       }
       
-      // フォールバック（従来の方法）
+      // Supabaseベースの処理
       const today = new Date().toISOString().slice(0, 10);
-      const status = getLessonStatusStorageService().getStatusByDate(today);
+      const lessonService = getLessonStatusSupabaseService();
+      const status = await lessonService.getStatusByDate(today);
       
       if (status) {
-        console.log('📅 本日のレッスン状況を読み込み（フォールバック）:', status);
+        console.log('📅 本日のレッスン状況を読み込み:', status);
         EventBus.emit('lessonStatus:formLoaded', status);
       } else {
         console.log('📅 本日のレッスン状況は設定されていません');
@@ -310,23 +311,28 @@ export class AdminSystemService {
       }
       
       // AuthManagerからのログアウト
-      if (authManager?.initialized) {
-        try {
-          authManager.logout();
-          console.log('✅ AuthManagerからのログアウト成功');
-          
-          // システムクリーンアップ
-          this.destroy();
-          
-          // ログインページへリダイレクト
-          this.redirectToLogin();
-        } catch (error) {
-          console.error('❌ AuthManagerログアウトエラー:', error);
-          // フォールバック処理
+      try {
+        if (authManager.initialized) {
+          const result = await authManager.logout();
+          if (result.success) {
+            console.log('✅ AuthManagerからのログアウト成功');
+            
+            // システムクリーンアップ
+            this.destroy();
+            
+            // ログインページへリダイレクト
+            this.redirectToLogin();
+          } else {
+            console.error('❌ AuthManagerログアウトエラー:', result.error);
+            await this.performFallbackLogout();
+          }
+        } else {
+          console.warn('⚠️ AuthManagerが利用できません。フォールバック処理を実行');
           await this.performFallbackLogout();
         }
-      } else {
-        console.warn('⚠️ AuthManagerが利用できません。フォールバック処理を実行');
+      } catch (error) {
+        console.error('❌ AuthManagerログアウトエラー:', error);
+        // フォールバック処理
         await this.performFallbackLogout();
       }
       
@@ -345,9 +351,15 @@ export class AdminSystemService {
     try {
       console.log('🔄 フォールバック ログアウト処理開始');
       
-      // 手動で認証データをクリア（統一ストレージキーを使用）
-      localStorage.removeItem(this.storageKeys.auth);
-      sessionStorage.clear();
+      // AuthManager認証をクリア
+      try {
+        if (authManager.initialized) {
+          await authManager.logout();
+          console.log('✅ AuthManager認証クリア完了');
+        }
+      } catch (authError) {
+        console.error('❌ AuthManager認証クリアエラー:', authError);
+      }
       
       // システムクリーンアップ
       this.destroy();
@@ -425,85 +437,98 @@ export class AdminSystemService {
       </div>
     `;
     
-    document.body.insertAdjacentHTML('beforeend', errorHtml);
+    // 既存のコンテンツを置き換え
+    document.body.innerHTML = errorHtml;
   }
 
   /**
    * システム状態の取得
-   * @returns {Object}
+   * @returns {Object} システム状態
    */
   getSystemStatus() {
     return {
       initialized: this.initialized,
       authenticated: this.isAuthenticated,
       services: { ...this.systemStatus },
-      performance: { ...this.performanceMetrics },
-      timestamp: new Date().toISOString()
+      performance: { ...this.performanceMetrics }
     };
   }
 
   /**
    * パフォーマンス情報の取得
-   * @returns {Object}
+   * @returns {Object} パフォーマンス情報
    */
   getPerformanceInfo() {
-    const performance = window.performance;
-    const navigation = performance.getEntriesByType('navigation')[0];
-    
     return {
       ...this.performanceMetrics,
-      pageLoad: navigation ? navigation.loadEventEnd - navigation.loadEventStart : 0,
-      domContentLoaded: navigation ? navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart : 0,
-      memory: performance.memory ? {
-        used: Math.round(performance.memory.usedJSHeapSize / 1024 / 1024),
-        total: Math.round(performance.memory.totalJSHeapSize / 1024 / 1024),
-        limit: Math.round(performance.memory.jsHeapSizeLimit / 1024 / 1024)
-      } : null
+      uptime: this.performanceMetrics.initTime ? 
+        Date.now() - this.performanceMetrics.initTime : 0
     };
   }
 
   /**
-   * システム破棄処理
+   * システムの破棄
    */
   destroy() {
-    try {
-      console.log('🗑️ 管理システム破棄中...');
-      
-      // LessonStatusStorageServiceのインスタンスを取得
-      const lessonStatusService = getLessonStatusStorageService();
-      
-      // 各サービスの破棄
-      const services = [
-        { name: 'newsFormManager', service: newsFormManager },
-        { name: 'uiManagerService', service: uiManagerService },
-        { name: 'articleService', service: articleDataService },
-        { name: 'instagramService', service: instagramDataService },
-        { name: 'lessonService', service: lessonStatusService }
-      ];
-
-      services.forEach(({ name, service }) => {
+    console.log('🧹 管理システムクリーンアップ中...');
+    
+    // Supabaseサービスのクリーンアップ
+    const services = [
+      getLessonStatusSupabaseService(),
+      getInstagramSupabaseService(),
+      getArticleSupabaseService()
+    ];
+    
+    services.forEach(service => {
+      if (service && typeof service.destroy === 'function') {
         try {
-          if (service && typeof service.destroy === 'function') {
-            service.destroy();
-            this.systemStatus[name] = false;
-          }
+          service.destroy();
         } catch (error) {
-          console.warn(`⚠️ ${name} 破棄エラー:`, error);
+          console.warn('⚠️ サービス破棄エラー:', error);
         }
-      });
-      
-      // システム状態リセット
-      this.initialized = false;
-      this.isAuthenticated = false;
-      
-      EventBus.emit('adminSystem:destroyed');
-      console.log('✅ 管理システム破棄完了');
-      
-    } catch (error) {
-      console.error('❌ システム破棄エラー:', error);
-    }
+      }
+    });
+    
+    // イベントリスナーのクリーンアップ
+    EventBus.off('auth:stateChanged');
+    EventBus.off('article:saved');
+    EventBus.off('instagram:saved');
+    EventBus.off('lessonStatus:updated');
+    EventBus.off('error:critical');
+    EventBus.off('admin:load-lesson-status');
+    EventBus.off('admin:update-lesson-status');
+    EventBus.off('newsForm:changed');
+    EventBus.off('newsForm:autoSaved');
+    
+    // 状態リセット
+    this.initialized = false;
+    this.isAuthenticated = false;
+    this.systemStatus = {
+      articleService: false,
+      instagramService: false,
+      lessonService: false,
+      uiManagerService: false,
+      newsFormManager: false,
+      authManager: false
+    };
+    
+    console.log('✅ 管理システムクリーンアップ完了');
   }
 }
 
 // シングルトンインスタンス
-export const adminSystemService = new AdminSystemService(); 
+let adminSystemServiceInstance = null;
+
+/**
+ * AdminSystemServiceのシングルトンインスタンスを取得
+ * @returns {AdminSystemService}
+ */
+export function getAdminSystemService() {
+  if (!adminSystemServiceInstance) {
+    adminSystemServiceInstance = new AdminSystemService();
+  }
+  return adminSystemServiceInstance;
+}
+
+export const adminSystemService = getAdminSystemService();
+export default AdminSystemService; 

@@ -1,7 +1,7 @@
 /**
  * RBS陸上教室 メインエントリーポイント
  * アプリケーション全体の初期化とコーディネート
- * @version 2.2.0 - インラインCSS削除・重複統合版
+ * @version 3.0.0 - Supabase完全統合版（LocalStorage削除）
  */
 
 import Application from './Application.js';
@@ -9,6 +9,7 @@ import { debugPaths } from '../shared/constants/paths.js';
 import { CONFIG } from '../shared/constants/config.js';
 import { log } from '../shared/utils/logUtils.js';
 import { showApplicationError, showCriticalError, setupGlobalErrorHandlers } from '../shared/utils/errorUtils.js';
+import { getAuthSupabaseService } from '../shared/services/AuthSupabaseService.js';
 
 log.info('Main', 'RBS陸上教室 アプリケーション起動中...');
 
@@ -38,82 +39,121 @@ function setupBannerControl() {
   }
 }
 
-// === デバッグ・開発支援ツール ===
+// === デバッグ・開発支援ツール（Supabase版） ===
 
 /**
- * 認証状態をコンソールに表示（開発用）
+ * 認証状態をコンソールに表示（開発用・Supabase版）
  */
-window.showAuthStatus = function() {
+window.showAuthStatus = async function() {
   try {
-    const authData = localStorage.getItem(CONFIG.storage.keys.adminSession);
-    if (!authData) {
-      log.info('DevTools', '認証状態: 未ログイン');
-      return;
-    }
+    const authService = getAuthSupabaseService();
+    await authService.init();
     
-    const parsed = JSON.parse(authData);
-    const now = Date.now();
-    const isValid = now < parsed.expires;
+    const authInfo = authService.getAuthInfo();
     
-    log.info('DevTools', '認証状態詳細', {
-      status: isValid ? '✅ 有効' : '❌ 期限切れ',
-      token: parsed.token ? parsed.token.substring(0, 20) + '...' : 'なし',
-      created: parsed.created ? new Date(parsed.created) : 'N/A',
-      expires: parsed.expires ? new Date(parsed.expires) : 'N/A',
-      lastActivity: parsed.lastActivity ? new Date(parsed.lastActivity) : 'N/A',
-      remaining: isValid ? Math.round((parsed.expires - now) / 60000) + '分' : '期限切れ',
-      version: parsed.version || '不明'
+    log.info('DevTools', '認証状態詳細 (Supabase)', {
+      status: authInfo.isAuthenticated ? '✅ 認証済み' : '❌ 未認証',
+      isAdmin: authInfo.isAdmin ? '✅ 管理者' : '❌ 一般ユーザー',
+      isSessionValid: authInfo.isSessionValid ? '✅ 有効' : '❌ 無効',
+      user: authInfo.user ? {
+        id: authInfo.user.id,
+        email: authInfo.user.email,
+        created_at: authInfo.user.created_at
+      } : null,
+      session: authInfo.session ? {
+        expires_at: authInfo.session.expires_at,
+        token_type: authInfo.session.token_type
+      } : null
     });
   } catch (error) {
-    log.error('DevTools', '認証データ取得エラー', error);
+    log.error('DevTools', '認証状態取得エラー', error);
   }
 };
 
 /**
- * 認証データをクリア（開発用）
+ * サインアウト（開発用・Supabase版）
  */
-window.clearAuthData = function() {
+window.signOut = async function() {
   try {
-    localStorage.removeItem(CONFIG.storage.keys.adminSession);
-    log.info('DevTools', '認証データをクリアしました');
+    const authService = getAuthSupabaseService();
+    await authService.init();
     
-    // 現在のページがadmin系の場合は警告
-    if (window.location.pathname.includes('admin')) {
-      log.warn('DevTools', '管理画面から認証データをクリアしました。ページをリロードしてください。');
+    const result = await authService.signOut();
+    
+    if (result.success) {
+      log.info('DevTools', 'サインアウトしました');
+      
+      // 現在のページがadmin系の場合は警告
+      if (window.location.pathname.includes('admin')) {
+        log.warn('DevTools', '管理画面からサインアウトしました。ページをリロードしてください。');
+      }
+    } else {
+      log.error('DevTools', 'サインアウトエラー:', result.error);
     }
   } catch (error) {
-    log.error('DevTools', '認証データクリアエラー', error);
+    log.error('DevTools', 'サインアウトエラー', error);
   }
 };
 
 /**
- * テスト用セッションを作成（開発用）
+ * テスト用サインイン（開発用・Supabase版）
  */
-window.createTestSession = function(durationHours = 24) {
+window.testSignIn = async function(email = 'admin@rbs.com', password = 'rbs2025admin') {
   try {
-    const now = Date.now();
-    const testAuthData = {
-      token: 'test_' + now + '_' + Math.random().toString(36).substr(2, 9),
-      created: now,
-      expires: now + (durationHours * 60 * 60 * 1000),
-      lastActivity: now,
-      version: '2.0'
-    };
+    const authService = getAuthSupabaseService();
+    await authService.init();
     
-    localStorage.setItem(CONFIG.storage.keys.adminSession, JSON.stringify(testAuthData));
-    log.info('DevTools', 'テストセッションを作成しました', {
-      duration: durationHours + '時間',
-      expires: new Date(testAuthData.expires)
-    });
+    const result = await authService.signIn({ email, password });
+    
+    if (result.success) {
+      log.info('DevTools', 'テストサインインしました', {
+        email: result.user.email,
+        userId: result.user.id
+      });
+    } else {
+      log.error('DevTools', 'テストサインインエラー:', result.error);
+    }
   } catch (error) {
-    log.error('DevTools', 'テストセッション作成エラー', error);
+    log.error('DevTools', 'テストサインインエラー', error);
+  }
+};
+
+/**
+ * セッション更新（開発用・Supabase版）
+ */
+window.refreshSession = async function() {
+  try {
+    const authService = getAuthSupabaseService();
+    await authService.init();
+    
+    const result = await authService.refreshSession();
+    
+    if (result.success) {
+      log.info('DevTools', 'セッションを更新しました');
+    } else {
+      log.error('DevTools', 'セッション更新エラー:', result.error);
+    }
+  } catch (error) {
+    log.error('DevTools', 'セッション更新エラー', error);
   }
 };
 
 // エラーハンドリング機能は shared/utils/errorUtils.js に統合されました
 
 // アプリケーション開始
-app.init().catch(error => {
+app.init().then(() => {
+  // 初期化完了をマーク
+  if (window.RBSApp) {
+    window.RBSApp.initialized = true;
+  }
+  
+  // 初期化完了イベントを発火
+  window.dispatchEvent(new CustomEvent('RBSAppLoaded', {
+    detail: { timestamp: new Date().toISOString() }
+  }));
+  
+  log.info('Main', 'アプリケーション初期化完了');
+}).catch(error => {
   // フォールバック: logが利用できない場合
   if (typeof log !== 'undefined' && log.critical) {
     log.critical('Main', 'アプリケーション初期化失敗', error);
@@ -134,12 +174,15 @@ document.addEventListener('DOMContentLoaded', function() {
   }, 100);
 });
 
-// 開発用ヘルパーのエクスポート
+// 開発用ヘルパーのエクスポート（Supabase版）
 if (CONFIG.debug?.enabled) {
   window.rbsDevTools = {
+    // Supabase認証ツール
     showAuthStatus,
-    clearAuthData,
-    createTestSession,
+    signOut,
+    testSignIn,
+    refreshSession,
+    // エラー表示ツール
     showApplicationError,
     showCriticalError,
     // ログ管理ツール
@@ -152,4 +195,5 @@ if (CONFIG.debug?.enabled) {
   };
   
   log.info('Main', '開発者ツールが利用可能です: window.rbsDevTools');
+  log.info('Main', 'Supabase認証ツール: showAuthStatus(), signOut(), testSignIn(), refreshSession()');
 } 

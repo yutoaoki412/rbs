@@ -1,60 +1,48 @@
 /**
  * Instagram投稿取得・表示ユーティリティ（LP側用）
- * @description CONFIG統一ストレージキーを使用してInstagram投稿を取得・表示
- * @version 2.0.0 - 埋め込みコード対応
+ * @version 3.0.0 - Supabase完全統合版
  */
 
+import { getInstagramSupabaseService } from '../services/InstagramSupabaseService.js';
+
+// Supabaseサービスインスタンス
+let instagramService = null;
+
 /**
- * LP側でInstagram投稿を取得
+ * Supabaseサービス初期化
+ */
+async function initInstagramService() {
+  if (!instagramService) {
+    instagramService = getInstagramSupabaseService();
+    await instagramService.init();
+  }
+  return instagramService;
+}
+
+/**
+ * LP側でInstagram投稿を取得（Supabaseから）
  * @param {Object} options - 取得オプション
  * @param {number} options.limit - 最大取得数（デフォルト: 6）
  * @param {boolean} options.featuredFirst - 注目投稿を先頭に表示（デフォルト: true）
  * @param {boolean} options.shuffleOrder - 表示順をランダムにするか（デフォルト: false）
  * @returns {Array} アクティブなInstagram投稿配列
  */
-export function getInstagramPosts(options = {}) {
+export async function getInstagramPosts(options = {}) {
   try {
-    console.log('📊 Instagram投稿取得開始', { options });
+    console.log('📊 Instagram投稿取得開始 (Supabase)', { options });
     
-    // CONFIG統一キーを確認
-    if (!window.CONFIG || !window.CONFIG.storage || !window.CONFIG.storage.keys) {
-      console.warn('📷 CONFIG設定が見つかりません');
-      console.log('🔍 window.CONFIG:', window.CONFIG);
-      return [];
-    }
-
-    const storageKey = window.CONFIG.storage.keys.instagramPosts;
-    if (!storageKey) {
-      console.warn('📷 Instagram投稿用ストレージキーが設定されていません');
-      console.log('🔍 利用可能なキー:', window.CONFIG.storage.keys);
-      return [];
-    }
-
-    console.log('🔑 使用するストレージキー:', storageKey);
-
-    // ローカルストレージからデータ取得
-    const data = localStorage.getItem(storageKey);
-    console.log('💾 LocalStorageからの取得結果:', {
-      key: storageKey,
-      dataExists: !!data,
-      dataLength: data?.length || 0,
-      dataPreview: data?.substring(0, 100) + (data?.length > 100 ? '...' : '')
-    });
+    // Supabaseサービス初期化
+    const service = await initInstagramService();
     
-    if (!data) {
-      console.log('📷 Instagram投稿データが見つかりません');
-      // 全LocalStorageキーをデバッグ表示
-      console.log('🔍 全LocalStorageキー:', Object.keys(localStorage));
-      return [];
-    }
-
-    const posts = JSON.parse(data);
-    console.log('📊 パースされた投稿データ:', {
+    // Supabaseから投稿データを取得
+    const posts = await service.getAllPosts();
+    
+    console.log('📊 Supabaseから取得した投稿データ:', {
       isArray: Array.isArray(posts),
       length: Array.isArray(posts) ? posts.length : 'N/A',
       samplePost: Array.isArray(posts) && posts[0] ? {
         id: posts[0].id,
-        hasEmbedCode: !!posts[0].embedCode,
+        hasEmbedCode: !!posts[0].embed_code,
         status: posts[0].status,
         featured: posts[0].featured
       } : 'なし'
@@ -62,12 +50,11 @@ export function getInstagramPosts(options = {}) {
     
     if (!Array.isArray(posts)) {
       console.warn('📷 Instagram投稿データの形式が正しくありません');
-      console.log('🔍 実際のデータ型:', typeof posts, posts);
       return [];
     }
 
     const {
-      limit = window.CONFIG.instagram?.posts?.defaultDisplayPosts || 6,
+      limit = window.CONFIG?.instagram?.display?.defaultCount || 6,
       featuredFirst = true,
       shuffleOrder = false
     } = options;
@@ -87,13 +74,9 @@ export function getInstagramPosts(options = {}) {
         if (a.featured && !b.featured) return -1;
         if (!a.featured && b.featured) return 1;
         
-        // 表示順序でソート
-        const orderDiff = (a.order || 999) - (b.order || 999);
-        if (orderDiff !== 0) return orderDiff;
-        
         // 最終的に更新日時でソート
-        const dateA = new Date(a.updatedAt || a.createdAt || 0);
-        const dateB = new Date(b.updatedAt || b.createdAt || 0);
+        const dateA = new Date(a.updated_at || a.created_at || 0);
+        const dateB = new Date(b.updated_at || b.created_at || 0);
         return dateB - dateA;
       });
     }
@@ -120,21 +103,14 @@ export function getInstagramPosts(options = {}) {
  * @param {string} containerId - 表示先コンテナのID
  * @param {Object} options - 表示オプション
  */
-export function initInstagramPostsDisplay(containerId = 'instagram-posts-section', options = {}) {
+export async function initInstagramPostsDisplay(containerId = 'instagram-posts-section', options = {}) {
   try {
-    console.log('📷 Instagram投稿表示初期化開始');
+    console.log('📷 Instagram投稿表示初期化開始 (Supabase)');
     console.log('🔧 初期化パラメータ:', { containerId, options });
-    console.log('🌐 CONFIG状況:', { 
-      configExists: !!window.CONFIG, 
-      storageExists: !!window.CONFIG?.storage,
-      keysExists: !!window.CONFIG?.storage?.keys,
-      instagramKey: window.CONFIG?.storage?.keys?.instagramPosts
-    });
     
     const container = document.getElementById(containerId);
     if (!container) {
       console.warn(`📷 Instagram投稿コンテナが見つかりません: ${containerId}`);
-      console.log('🔍 利用可能なID一覧:', Array.from(document.querySelectorAll('[id]')).map(el => el.id));
       return;
     }
 
@@ -157,7 +133,6 @@ export function initInstagramPostsDisplay(containerId = 'instagram-posts-section
 
     if (!scrollContainer) {
       console.warn('📷 Instagram投稿スクロールコンテナが見つかりません');
-      console.log('🔍 コンテナ内要素:', container.innerHTML);
       return;
     }
 
@@ -165,10 +140,10 @@ export function initInstagramPostsDisplay(containerId = 'instagram-posts-section
     showLoading(loadingElement, emptyElement, scrollContainer);
     container.style.display = 'block';
 
-    // Instagram投稿データを取得
-    console.log('📊 Instagram投稿データ取得開始...');
-    const posts = getInstagramPosts({
-      limit: options.limit || window.CONFIG?.instagram?.posts?.defaultDisplayPosts || 6,
+    // Instagram投稿データを取得（Supabaseから）
+    console.log('📊 Instagram投稿データ取得開始 (Supabase)...');
+    const posts = await getInstagramPosts({
+      limit: options.limit || window.CONFIG?.instagram?.display?.defaultCount || 6,
       featuredFirst: true
     });
 
@@ -176,8 +151,8 @@ export function initInstagramPostsDisplay(containerId = 'instagram-posts-section
       postsCount: posts.length,
       posts: posts.map(p => ({ 
         id: p.id, 
-        hasEmbedCode: !!p.embedCode,
-        embedCodeLength: p.embedCode?.length || 0,
+        hasEmbedCode: !!p.embed_code,
+        embedCodeLength: p.embed_code?.length || 0,
         status: p.status,
         featured: p.featured
       }))
@@ -199,107 +174,62 @@ export function initInstagramPostsDisplay(containerId = 'instagram-posts-section
     // ローディングを非表示
     hideLoading(loadingElement, emptyElement, scrollContainer);
     
-    // Instagram埋め込みスクリプトを処理（シンプル版）
-    console.log('📜 Instagram埋め込みスクリプト処理開始...');
-    processInstagramEmbedsSimple();
-    
+    // Instagram埋め込みスクリプトを処理
+    setTimeout(() => {
+      processInstagramEmbeds();
+    }, 100);
+
     console.log('✅ Instagram投稿表示初期化完了');
 
   } catch (error) {
     console.error('❌ Instagram投稿表示初期化エラー:', error);
-    console.error('📋 エラー詳細:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
-    });
+    
+    // エラー時の表示
     const container = document.getElementById(containerId);
     if (container) {
       const loadingElement = container.querySelector('#instagram-posts-loading');
       const emptyElement = container.querySelector('#instagram-posts-empty');
       const scrollContainer = container.querySelector('#instagram-posts-scroll');
+      
       showEmpty(loadingElement, emptyElement, scrollContainer);
     }
   }
 }
 
 /**
- * Instagram投稿をHTML要素として描画（シンプル版）
+ * Instagram投稿をHTMLとして描画
  * @param {HTMLElement} container - 描画先コンテナ
- * @param {Array} posts - Instagram投稿データ配列
+ * @param {Array} posts - 投稿データ配列
  */
 function renderInstagramPosts(container, posts) {
-  if (!container || !Array.isArray(posts)) {
-    console.warn('📷 Instagram投稿描画: 無効なパラメータ');
-    console.log('🔍 パラメータ詳細:', { 
-      container: !!container, 
-      containerTag: container?.tagName,
-      posts: Array.isArray(posts) ? posts.length : typeof posts 
-    });
-    return;
-  }
-
-  console.log('🎨 Instagram投稿描画開始:', {
-    postsCount: posts.length,
-    containerElement: container.tagName + (container.id ? '#' + container.id : '') + (container.className ? '.' + container.className.split(' ').join('.') : '')
-  });
-
-  // Instagram埋め込みスクリプトを確実に読み込む
-  ensureInstagramScript();
-
-  const html = posts.map((post, index) => {
-    if (!post.embedCode) {
-      console.warn('📷 埋め込みコードが見つかりません:', post.id);
-      return '';
-    }
-
-    console.log(`🎨 投稿${index + 1}描画:`, {
-      id: post.id,
-      embedCodeLength: post.embedCode.length,
-      hasInstagramMedia: post.embedCode.includes('instagram-media'),
-      hasBlockquote: post.embedCode.includes('<blockquote'),
-      featured: post.featured
-    });
-
-    // 管理画面と同じシンプルな方法で表示
-    return `
-      <div class="instagram-post-item" data-post-id="${post.id}" data-featured="${post.featured || false}">
-        <div class="instagram-embed-wrapper">
-          ${post.embedCode}
+  try {
+    console.log('🎨 Instagram投稿描画開始:', posts.length + '件');
+    
+    const postsHTML = posts.map((post, index) => {
+      const embedCode = post.embed_code || '';
+      
+      return `
+        <div class="instagram-post-item" data-post-id="${post.id}" data-index="${index}">
+          <div class="instagram-embed-container">
+            ${embedCode}
+          </div>
+          ${post.featured ? '<div class="instagram-featured-badge">注目</div>' : ''}
         </div>
-      </div>
-    `;
-  }).filter(html => html.length > 0);
-
-  const finalHtml = html.join('');
-  console.log('🎨 最終HTML生成:', {
-    validItemsCount: html.length,
-    finalHtmlLength: finalHtml.length,
-    hasContent: finalHtml.length > 0
-  });
-
-  container.innerHTML = finalHtml;
-  
-  // 少し待機してからInstagram埋め込み処理を実行
-  setTimeout(() => {
-    processInstagramEmbedsSimple();
-  }, 500);
-  
-  // 描画後のDOM状況を確認
-  const renderedItems = container.querySelectorAll('.instagram-post-item');
-  const instagramBlockquotes = container.querySelectorAll('blockquote.instagram-media');
-  
-  console.log('🎨 描画後DOM状況:', {
-    renderedItems: renderedItems.length,
-    instagramBlockquotes: instagramBlockquotes.length,
-    containerChildren: container.children.length,
-    containerHTML: container.innerHTML.substring(0, 200) + (container.innerHTML.length > 200 ? '...' : '')
-  });
-  
-  console.log(`✅ Instagram投稿描画完了: ${posts.length}件 (有効: ${html.length}件)`);
+      `;
+    }).join('');
+    
+    container.innerHTML = postsHTML;
+    
+    console.log('✅ Instagram投稿描画完了');
+    
+  } catch (error) {
+    console.error('❌ Instagram投稿描画エラー:', error);
+    container.innerHTML = '<div class="instagram-error">投稿の表示に失敗しました</div>';
+  }
 }
 
 /**
- * スクロールナビゲーション機能を初期化
+ * スクロールナビゲーション初期化
  * @param {HTMLElement} scrollContainer - スクロールコンテナ
  * @param {HTMLElement} prevButton - 前へボタン
  * @param {HTMLElement} nextButton - 次へボタン
@@ -308,63 +238,41 @@ function renderInstagramPosts(container, posts) {
  */
 function initScrollNavigation(scrollContainer, prevButton, nextButton, indicatorsContainer, totalPosts) {
   if (!scrollContainer) return;
-
+  
   let currentIndex = 0;
-  const itemWidth = 320; // CSS の instagram-post-item width に合わせる
-  const gap = 20; // CSS の gap に合わせる
-
-  // インジケーターを生成
-  if (indicatorsContainer && totalPosts > 1) {
-    const indicators = Array.from({ length: totalPosts }, (_, index) => {
-      return `<div class="instagram-scroll-dot ${index === 0 ? 'active' : ''}" data-index="${index}"></div>`;
-    }).join('');
-    indicatorsContainer.innerHTML = indicators;
-
-    // インジケータークリックイベント
-    indicatorsContainer.addEventListener('click', (e) => {
-      if (e.target.classList.contains('instagram-scroll-dot')) {
-        const targetIndex = parseInt(e.target.dataset.index);
-        scrollToIndex(targetIndex);
-      }
-    });
-  }
-
-  // スクロール位置を更新
+  const itemWidth = 300; // 投稿アイテムの幅
+  const gap = 20; // アイテム間のギャップ
+  
   function scrollToIndex(index) {
-    if (index < 0 || index >= totalPosts) return;
-    
-    currentIndex = index;
-    const scrollPosition = (itemWidth + gap) * index;
+    const scrollLeft = index * (itemWidth + gap);
     scrollContainer.scrollTo({
-      left: scrollPosition,
+      left: scrollLeft,
       behavior: 'smooth'
     });
-    
+    currentIndex = index;
     updateIndicators();
     updateNavigationButtons();
   }
-
-  // インジケーターを更新
+  
   function updateIndicators() {
     if (!indicatorsContainer) return;
     
-    const dots = indicatorsContainer.querySelectorAll('.instagram-scroll-dot');
-    dots.forEach((dot, index) => {
-      dot.classList.toggle('active', index === currentIndex);
+    const indicators = indicatorsContainer.querySelectorAll('.scroll-indicator');
+    indicators.forEach((indicator, index) => {
+      indicator.classList.toggle('active', index === currentIndex);
     });
   }
-
-  // ナビゲーションボタンの状態を更新
+  
   function updateNavigationButtons() {
     if (prevButton) {
-      prevButton.classList.toggle('visible', currentIndex > 0);
+      prevButton.disabled = currentIndex === 0;
     }
     if (nextButton) {
-      nextButton.classList.toggle('visible', currentIndex < totalPosts - 1);
+      nextButton.disabled = currentIndex >= totalPosts - 1;
     }
   }
-
-  // 前へボタン
+  
+  // ボタンイベント
   if (prevButton) {
     prevButton.addEventListener('click', () => {
       if (currentIndex > 0) {
@@ -372,8 +280,7 @@ function initScrollNavigation(scrollContainer, prevButton, nextButton, indicator
       }
     });
   }
-
-  // 次へボタン
+  
   if (nextButton) {
     nextButton.addEventListener('click', () => {
       if (currentIndex < totalPosts - 1) {
@@ -381,37 +288,39 @@ function initScrollNavigation(scrollContainer, prevButton, nextButton, indicator
       }
     });
   }
-
-  // スクロールイベントを監視してインジケーターを更新
-  let scrollTimeout;
-  scrollContainer.addEventListener('scroll', () => {
-    clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(() => {
-      const scrollLeft = scrollContainer.scrollLeft;
-      const newIndex = Math.round(scrollLeft / (itemWidth + gap));
-      if (newIndex !== currentIndex && newIndex >= 0 && newIndex < totalPosts) {
-        currentIndex = newIndex;
-        updateIndicators();
-        updateNavigationButtons();
+  
+  // インジケーター生成
+  if (indicatorsContainer && totalPosts > 1) {
+    const indicatorsHTML = Array.from({ length: totalPosts }, (_, index) => 
+      `<button class="scroll-indicator ${index === 0 ? 'active' : ''}" data-index="${index}"></button>`
+    ).join('');
+    
+    indicatorsContainer.innerHTML = indicatorsHTML;
+    
+    // インジケータークリックイベント
+    indicatorsContainer.addEventListener('click', (e) => {
+      if (e.target.classList.contains('scroll-indicator')) {
+        const index = parseInt(e.target.dataset.index);
+        scrollToIndex(index);
       }
-    }, 100);
-  }, { passive: true });
-
-  // 初期状態を設定
+    });
+  }
+  
+  // 初期状態設定
   updateNavigationButtons();
 }
 
 /**
- * ローディング状態を表示
+ * ローディング表示
  */
 function showLoading(loadingElement, emptyElement, scrollContainer) {
-  if (loadingElement) loadingElement.style.display = 'flex';
+  if (loadingElement) loadingElement.style.display = 'block';
   if (emptyElement) emptyElement.style.display = 'none';
   if (scrollContainer) scrollContainer.style.display = 'none';
 }
 
 /**
- * 空状態を表示
+ * 空状態表示
  */
 function showEmpty(loadingElement, emptyElement, scrollContainer) {
   if (loadingElement) loadingElement.style.display = 'none';
@@ -420,250 +329,161 @@ function showEmpty(loadingElement, emptyElement, scrollContainer) {
 }
 
 /**
- * ローディングを非表示にしてコンテンツを表示
+ * ローディング非表示
  */
 function hideLoading(loadingElement, emptyElement, scrollContainer) {
   if (loadingElement) loadingElement.style.display = 'none';
   if (emptyElement) emptyElement.style.display = 'none';
-  if (scrollContainer) scrollContainer.style.display = 'flex';
+  if (scrollContainer) scrollContainer.style.display = 'block';
 }
 
 /**
- * Instagram埋め込みスクリプトを処理
+ * Instagram埋め込みスクリプト処理
  */
 function processInstagramEmbeds() {
   try {
-    console.log('📜 Instagram埋め込みスクリプト処理開始');
-    console.log('🔍 Instagram関連DOM要素:', {
-      instagramBlockquotes: document.querySelectorAll('blockquote.instagram-media').length,
-      instagramScripts: document.querySelectorAll('script[src*="instagram.com/embed.js"]').length,
-      instgramObject: typeof window.instgrm,
-      instgramEmbeds: !!(window.instgrm && window.instgrm.Embeds)
-    });
+    console.log('📸 Instagram埋め込み処理開始');
     
-    // Instagram埋め込みスクリプトが読み込まれているかチェック
-    if (typeof window.instgrm === 'undefined') {
-      console.log('📜 Instagramスクリプトが未読み込み、動的読み込み開始');
-      // スクリプトがない場合は動的に読み込み
-      loadInstagramScript();
-      return;
-    }
-
-    // 既にスクリプトがある場合は埋め込みを処理
+    // Instagram埋め込みスクリプトが既に読み込まれているかチェック
     if (window.instgrm && window.instgrm.Embeds) {
-      console.log('📜 Instagram埋め込み処理実行中...');
       window.instgrm.Embeds.process();
-      console.log('✅ Instagram埋め込み処理完了');
+      console.log('✅ Instagram埋め込み処理完了（既存スクリプト使用）');
     } else {
-      console.warn('⚠️ window.instgrm.Embedsが利用できません');
+      // スクリプトを動的に読み込み
+      ensureInstagramScript();
     }
+    
   } catch (error) {
     console.error('❌ Instagram埋め込み処理エラー:', error);
-    console.error('📋 エラー詳細:', {
-      message: error.message,
-      stack: error.stack
-    });
   }
 }
 
 /**
- * シンプルなInstagram埋め込み処理（管理画面と同じ方法）
+ * Instagram埋め込みスクリプトを確実に読み込み
  */
-function processInstagramEmbedsSimple() {
+function ensureInstagramScript() {
+  const existingScript = document.querySelector('script[src*="embed.js"]');
+  
+  if (!existingScript) {
+    console.log('📸 Instagram埋め込みスクリプトを動的読み込み');
+    loadInstagramScript();
+  } else {
+    // 既存スクリプトがある場合は処理を再実行
+    setTimeout(() => {
+      if (window.instgrm && window.instgrm.Embeds) {
+        window.instgrm.Embeds.process();
+        console.log('✅ Instagram埋め込み処理完了（再実行）');
+      }
+    }, 500);
+  }
+}
+
+/**
+ * Instagram埋め込みスクリプトを読み込み
+ */
+function loadInstagramScript() {
+  const script = document.createElement('script');
+  script.async = true;
+  script.defer = true;
+  script.src = 'https://www.instagram.com/embed.js';
+  
+  script.addEventListener('load', () => {
+    console.log('✅ Instagram埋め込みスクリプト読み込み完了');
+    setTimeout(() => {
+      if (window.instgrm && window.instgrm.Embeds) {
+        window.instgrm.Embeds.process();
+        console.log('✅ Instagram埋め込み処理完了');
+      }
+    }, 100);
+  });
+  
+  script.addEventListener('error', (e) => {
+    console.warn('⚠️ Instagram埋め込みスクリプト読み込み失敗:', e);
+  });
+  
+  document.head.appendChild(script);
+}
+
+/**
+ * Instagram投稿HTMLを生成（汎用）
+ * @param {Array} posts - 投稿データ配列
+ * @param {Object} options - 表示オプション
+ * @returns {string} HTML文字列
+ */
+export function generateInstagramHTML(posts, options = {}) {
+  const { showFeaturedBadge = true, containerClass = 'instagram-posts-grid' } = options;
+  
+  if (!posts || posts.length === 0) {
+    return '<div class="instagram-empty">Instagram投稿がありません</div>';
+  }
+  
+  const postsHTML = posts.map(post => `
+    <div class="instagram-post-item" data-post-id="${post.id}">
+      <div class="instagram-embed-container">
+        ${post.embed_code || ''}
+      </div>
+      ${showFeaturedBadge && post.featured ? '<div class="instagram-featured-badge">注目</div>' : ''}
+    </div>
+  `).join('');
+  
+  return `<div class="${containerClass}">${postsHTML}</div>`;
+}
+
+/**
+ * Instagram投稿を指定コンテナに埋め込み
+ * @param {HTMLElement|string} container - コンテナ要素またはID
+ * @param {Object} options - オプション
+ */
+export async function embedInstagramPosts(container, options = {}) {
   try {
-    console.log('📜 シンプルInstagram埋め込み処理開始');
-    
-    // DOM内のInstagram埋め込み要素を確認
-    const blockquotes = document.querySelectorAll('blockquote.instagram-media');
-    console.log(`🔍 発見されたInstagram埋め込み: ${blockquotes.length}個`);
-    
-    if (blockquotes.length === 0) {
-      console.warn('📷 Instagram埋め込み要素が見つかりません');
+    const targetContainer = typeof container === 'string' 
+      ? document.getElementById(container) 
+      : container;
+      
+    if (!targetContainer) {
+      console.warn('📷 Instagram埋め込み先コンテナが見つかりません');
       return;
     }
     
-    // Instagramスクリプトが存在し、ready状態であることを確認
-    if (window.instgrm && window.instgrm.Embeds && typeof window.instgrm.Embeds.process === 'function') {
-      console.log('📜 Instagram APIで埋め込み処理実行');
-      window.instgrm.Embeds.process();
-      console.log('✅ Instagram埋め込み処理完了');
-    } else {
-      console.log('📜 Instagramスクリプト読み込み中、2秒後に再試行');
-      setTimeout(() => {
-        if (window.instgrm && window.instgrm.Embeds) {
-          window.instgrm.Embeds.process();
-          console.log('✅ Instagram埋め込み処理完了（再試行）');
-        } else {
-          console.warn('⚠️ Instagramスクリプトの読み込みに失敗しました');
-        }
-      }, 2000);
-    }
-    
-  } catch (error) {
-    console.error('❌ シンプルInstagram埋め込み処理エラー:', error);
-  }
-}
-
-/**
- * Instagram埋め込みスクリプトを確実に読み込む
- */
-function ensureInstagramScript() {
-  // 既にスクリプトが存在する場合は何もしない
-  if (document.querySelector('script[src*="instagram.com/embed.js"]')) {
-    console.log('📜 Instagramスクリプトは既に存在します');
-    return;
-  }
-  
-  console.log('📜 Instagram埋め込みスクリプトを追加');
-  const script = document.createElement('script');
-  script.async = true;
-  script.src = '//www.instagram.com/embed.js';
-  script.onload = () => {
-    console.log('✅ Instagramスクリプト読み込み完了');
-  };
-  script.onerror = () => {
-    console.error('❌ Instagramスクリプト読み込み失敗');
-  };
-  
-  document.head.appendChild(script);
-}
-
-/**
- * Instagram埋め込みスクリプトを動的に読み込み
- */
-function loadInstagramScript() {
-  if (document.querySelector('script[src*="instagram.com/embed.js"]')) {
-    console.log('📷 Instagramスクリプトは既に読み込まれています');
-    return;
-  }
-
-  const script = document.createElement('script');
-  script.async = true;
-  script.src = '//www.instagram.com/embed.js';
-  script.onload = () => {
-    console.log('📷 Instagramスクリプト読み込み完了');
-    // スクリプト読み込み後に埋め込みを処理
-    setTimeout(processInstagramEmbeds, 100);
-  };
-  script.onerror = () => {
-    console.error('❌ Instagramスクリプト読み込みエラー');
-  };
-  
-  document.head.appendChild(script);
-}
-
-/**
- * Instagram投稿をHTMLとして生成
- * @param {Array} posts - Instagram投稿配列
- * @param {Object} options - 生成オプション
- * @param {string} options.containerClass - コンテナのCSSクラス
- * @param {string} options.itemClass - 個別投稿のCSSクラス
- * @param {boolean} options.loadScript - Instagram埋め込みスクリプトを読み込むか
- * @returns {string} 生成されたHTML
- */
-export function generateInstagramHTML(posts, options = {}) {
-  if (!Array.isArray(posts) || posts.length === 0) {
-    return `<div class="instagram-empty">Instagram投稿がありません</div>`;
-  }
-
-  const {
-    containerClass = 'instagram-posts-container',
-    itemClass = 'instagram-post-item',
-    loadScript = true
-  } = options;
-
-  let html = `<div class="${containerClass}">`;
-
-  posts.forEach(post => {
-    if (post.embedCode) {
-      html += `<div class="${itemClass}" data-post-id="${post.id}">`;
-      html += post.embedCode;
-      html += `</div>`;
-    }
-  });
-
-  html += `</div>`;
-
-  // Instagram埋め込みスクリプトの追加
-  if (loadScript && !document.querySelector('script[src*="instagram.com/embed.js"]')) {
-    html += `<script async defer src="//www.instagram.com/embed.js"></script>`;
-  }
-
-  return html;
-}
-
-/**
- * Instagram投稿をDOM要素に埋め込み
- * @param {string|HTMLElement} container - 埋め込み先のコンテナ
- * @param {Object} options - 表示オプション
- * @param {number} options.limit - 最大表示数
- * @param {boolean} options.featuredFirst - 注目投稿を先頭に
- * @param {string} options.containerClass - コンテナのCSSクラス
- * @param {string} options.itemClass - 個別投稿のCSSクラス
- * @returns {boolean} 成功・失敗
- */
-export function embedInstagramPosts(container, options = {}) {
-  try {
-    // コンテナの取得
-    const containerElement = typeof container === 'string' 
-      ? document.querySelector(container) 
-      : container;
-
-    if (!containerElement) {
-      console.warn('📷 Instagram投稿の埋め込み先が見つかりません:', container);
-      return false;
-    }
-
-    // Instagram投稿データを取得
-    const posts = getInstagramPosts(options);
-
-    if (posts.length === 0) {
-      containerElement.innerHTML = `<div class="instagram-empty">Instagram投稿がありません</div>`;
-      return true;
-    }
-
-    // HTMLを生成して埋め込み
+    const posts = await getInstagramPosts(options);
     const html = generateInstagramHTML(posts, options);
-    containerElement.innerHTML = html;
-
-    // Instagram埋め込みスクリプトの処理
-    loadInstagramScript();
-
-    console.log(`📷 Instagram投稿埋め込み完了: ${posts.length}件`);
-    return true;
-
+    
+    targetContainer.innerHTML = html;
+    
+    // 埋め込み処理
+    setTimeout(() => {
+      processInstagramEmbeds();
+    }, 100);
+    
+    console.log('✅ Instagram投稿埋め込み完了');
+    
   } catch (error) {
     console.error('❌ Instagram投稿埋め込みエラー:', error);
-    return false;
   }
 }
 
 /**
- * Instagram投稿の統計情報を取得
+ * Instagram投稿統計を取得（Supabaseから）
  * @returns {Object} 統計情報
  */
-export function getInstagramStats() {
+export async function getInstagramStats() {
   try {
-    const storageKey = window.CONFIG.storage.keys.instagramPosts;
-    const data = localStorage.getItem(storageKey);
+    const service = await initInstagramService();
+    const posts = await service.getAllPosts();
     
-    if (!data) return { total: 0, active: 0, featured: 0 };
-
-    const posts = JSON.parse(data);
-    if (!Array.isArray(posts)) return { total: 0, active: 0, featured: 0 };
-
     const stats = {
       total: posts.length,
       active: posts.filter(p => p.status === 'active').length,
       featured: posts.filter(p => p.featured).length,
       inactive: posts.filter(p => p.status === 'inactive').length
     };
-
+    
+    console.log('📊 Instagram統計:', stats);
     return stats;
-
+    
   } catch (error) {
     console.error('❌ Instagram統計取得エラー:', error);
-    return { total: 0, active: 0, featured: 0 };
+    return { total: 0, active: 0, featured: 0, inactive: 0 };
   }
 }
 
@@ -688,44 +508,42 @@ function shuffleArray(array) {
 /**
  * Instagram投稿のデバッグ情報をコンソールに出力
  */
-window.debugInstagramPosts = function() {
+window.debugInstagramPosts = async function() {
   console.log('🔍 Instagram投稿デバッグ開始');
   
-  // CONFIG確認
-  console.log('🌐 CONFIG状況:', {
-    configExists: !!window.CONFIG,
-    storageExists: !!window.CONFIG?.storage,
-    keysExists: !!window.CONFIG?.storage?.keys,
-    instagramKey: window.CONFIG?.storage?.keys?.instagramPosts
-  });
-  
-  // LocalStorage確認
-  const storageKey = window.CONFIG?.storage?.keys?.instagramPosts || 'rbs_instagram_posts';
-  const data = localStorage.getItem(storageKey);
-  console.log('💾 LocalStorage状況:', {
-    key: storageKey,
-    dataExists: !!data,
-    dataLength: data?.length || 0,
-    allKeys: Object.keys(localStorage)
-  });
-  
-  if (data) {
-    try {
-      const posts = JSON.parse(data);
+  try {
+    // InstagramSupabaseServiceを使用
+    const { getInstagramSupabaseService } = await import('../services/InstagramSupabaseService.js');
+    const instagramService = await getInstagramSupabaseService();
+    
+    console.log('🌐 Instagram Service状況:', {
+      serviceExists: !!instagramService,
+      initialized: instagramService?.initialized || false
+    });
+    
+    // Supabaseからデータ取得
+    const result = await instagramService.getAllPosts();
+    
+    if (result.success) {
+      const posts = result.data;
       console.log('📊 投稿データ:', {
         isArray: Array.isArray(posts),
         count: Array.isArray(posts) ? posts.length : 'N/A',
         posts: Array.isArray(posts) ? posts.map(p => ({
           id: p.id,
-          hasEmbedCode: !!p.embedCode,
-          embedLength: p.embedCode?.length || 0,
+          hasEmbedCode: !!p.embed_code,
+          embedLength: p.embed_code?.length || 0,
           status: p.status,
-          featured: p.featured
+          featured: p.featured,
+          createdAt: p.created_at
         })) : posts
       });
-    } catch (e) {
-      console.error('❌ データパースエラー:', e);
+    } else {
+      console.error('❌ データ取得エラー:', result.error);
     }
+    
+  } catch (error) {
+    console.error('❌ デバッグ処理エラー:', error);
   }
   
   // DOM要素確認
@@ -737,13 +555,6 @@ window.debugInstagramPosts = function() {
     emptyElement: !!container?.querySelector('#instagram-posts-empty'),
     renderedItems: container?.querySelectorAll('.instagram-post-item').length || 0,
     instagramBlockquotes: document.querySelectorAll('blockquote.instagram-media').length
-  });
-  
-  // Instagram埋め込みスクリプト確認
-  console.log('📜 Instagram埋め込み状況:', {
-    instgramObject: typeof window.instgrm,
-    instgramEmbeds: !!(window.instgrm && window.instgrm.Embeds),
-    instagramScripts: document.querySelectorAll('script[src*="instagram.com/embed.js"]').length
   });
 };
 

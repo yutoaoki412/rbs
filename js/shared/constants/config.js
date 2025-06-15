@@ -1,6 +1,7 @@
 /**
- * RBS陸上教室 アプリケーション設定（最適化版）
- * @version 4.0.0 - シンプル&クリーン統一版
+ * RBS陸上教室 アプリケーション設定
+ * Supabase完全対応版 - モダン・クリーン・シンプル
+ * @version 5.0.0 - Supabase統合版
  */
 
 const config = {
@@ -9,194 +10,327 @@ const config = {
   // ===================================
   app: {
     name: 'RBS陸上教室',
-    version: '4.0.0',
-    environment: location.hostname === 'localhost' ? 'development' : 'production'
+    version: '5.0.0',
+    environment: (typeof location !== 'undefined' && location.hostname === 'localhost') ? 'development' : 'production',
+    description: 'RBS陸上教室 公式サイト・管理システム'
   },
 
   // ===================================
-  // ストレージ設定（統一・簡素化）
+  // Supabaseデータベース設定
   // ===================================
-  storage: {
-    prefix: 'rbs_',
-    version: '4.0.0',
-    
-    // 統一ストレージキー（Instagram統合版）
-    keys: {
-      // コアデータ
-      articles: 'rbs_articles',           // 記事データ（統一）
-      settings: 'rbs_settings',           // アプリ設定
-      
-      // 管理画面
-      adminTab: 'rbs_admin_tab',          // 現在のタブ
-      adminSession: 'rbs_admin_session',  // セッション情報
-      
-      // 機能別データ
-      instagram: 'rbs_instagram_posts',   // Instagram投稿（統一キー）
-      lessons: 'rbs_lessons',             // レッスン状況（統一）
-      lessonStatus: 'rbs_lessons',        // レッスン状況（旧キー互換性）
-      
-      // Instagram関連（詳細）
-      instagramPosts: 'rbs_instagram_posts',    // Instagram投稿メイン
-      instagramSettings: 'rbs_instagram_settings', // Instagram設定
-      instagramBackup: 'rbs_instagram_backup',     // Instagramバックアップ
-      
-      // 一時データ
-      draft: 'rbs_draft',                 // 下書きデータ
-      cache: 'rbs_cache',                 // キャッシュデータ
-      
-      // エクスポート・インポート
-      exportHistory: 'rbs_export_history', // エクスポート履歴
-      newsDraft: 'rbs_news_draft',         // ニュース下書き
-      
-      // 追加設定
-      adminSettings: 'rbs_admin_settings', // 管理設定
-      adminAuth: 'rbs_admin_auth',         // 管理認証
-      notificationMode: 'rbs_notification_mode' // 通知モード
+  database: {
+    // テーブル定義
+    tables: {
+      articles: 'articles',
+      instagram_posts: 'instagram_posts', 
+      lesson_status: 'lesson_status',
+      admin_settings: 'admin_settings'
     },
     
-    // 自動保存・クリーンアップ
-    autoSave: 30000,        // 30秒
-    cleanup: 1800000,       // 30分
-    retention: 30           // 30日
-  },
-
-  // ===================================
-  // 記事管理設定（統一・簡素化）
-  // ===================================
-  articles: {
-    // 制限
-    maxCount: 1000,
-    excerptLength: 150,
-    
-    // カテゴリ（シンプル版）
-    categories: {
-      'announcement': { name: 'お知らせ', color: '#4299e1' },
-      'event': { name: '体験会', color: '#38b2ac' },
-      'media': { name: 'メディア', color: '#805ad5' },
-      'important': { name: '重要', color: '#e53e3e' }
+    // リアルタイム設定
+    realtime: {
+      enabled: true,
+      channels: ['articles', 'instagram_posts', 'lesson_status']
     },
     
-    // データ構造
-    schema: {
-      required: ['id', 'title', 'content', 'category', 'status'],
-      defaults: {
-        status: 'draft',
-        category: 'announcement',
-        featured: false,
-        publishedAt: null,
-        updatedAt: null
-      }
+    // キャッシュ設定
+    cache: {
+      articles: 3 * 60 * 1000,      // 3分
+      instagram: 5 * 60 * 1000,     // 5分
+      lessons: 1 * 60 * 1000,       // 1分（リアルタイム性重視）
+      settings: 10 * 60 * 1000      // 10分
     }
   },
 
   // ===================================
-  // Instagram管理設定（大幅簡素化）
+  // 記事管理設定（Supabase対応）
   // ===================================
-  instagram: {
-    // 基本設定
-    maxPosts: 100,
-    defaultDisplay: 6,
-    displayOptions: [3, 6, 9, 12],
+  articles: {
+    // データ制限
+    limits: {
+      maxCount: 1000,
+      titleMaxLength: 200,
+      contentMaxLength: 50000,
+      summaryMaxLength: 500
+    },
     
-    // データ構造（シンプル版）
-    schema: {
-      required: ['id', 'embedCode', 'status'],
-      defaults: {
-        status: 'active',
-        featured: false,
-        order: 0
+    // カテゴリー定義（schema.sql準拠）
+    categories: {
+      'general': {
+        id: 'general',
+        name: '一般',
+        description: '一般的なお知らせ',
+        color: '#3498db',
+        class: 'general'
+      },
+      'event': {
+        id: 'event', 
+        name: 'イベント',
+        description: '体験会・イベント情報',
+        color: '#e74c3c',
+        class: 'event'
+      },
+      'notice': {
+        id: 'notice',
+        name: 'お知らせ',
+        description: '重要なお知らせ',
+        color: '#f39c12', 
+        class: 'notice'
+      },
+      'lesson': {
+        id: 'lesson',
+        name: 'レッスン',
+        description: 'レッスン関連情報',
+        color: '#27ae60',
+        class: 'lesson'
+      },
+      'other': {
+        id: 'other',
+        name: 'その他',
+        description: 'その他の情報',
+        color: '#95a5a6',
+        class: 'other'
       }
     },
     
-    // バリデーション（最小限）
+    // ステータス定義
+    statuses: {
+      'draft': {
+        id: 'draft',
+        name: '下書き',
+        description: '編集中の記事',
+        color: '#f39c12',
+        class: 'draft'
+      },
+      'published': {
+        id: 'published', 
+        name: '公開',
+        description: '公開済みの記事',
+        color: '#27ae60',
+        class: 'published'
+      }
+    },
+
+    // 表示設定
+    display: {
+      homePageLimit: 6,        // ホームページ表示件数
+      listPageLimit: 12,       // 一覧ページ表示件数
+      excerptLength: 150,      // 抜粋文字数
+      dateFormat: 'ja-JP'      // 日付フォーマット
+    },
+
+    // 自動保存設定
+    autoSave: {
+      enabled: true,
+      interval: 30 * 1000,     // 30秒
+      maxDrafts: 10
+    }
+  },
+
+  // ===================================
+  // Instagram投稿管理（Supabase対応）
+  // ===================================
+  instagram: {
+    // データ制限
+    limits: {
+      maxPosts: 100,
+      embedCodeMaxLength: 15000,
+      captionMaxLength: 2000
+    },
+    
+    // 表示設定
+    display: {
+      defaultCount: 6,
+      options: [3, 6, 9, 12, 15],
+      aspectRatio: '1:1'
+    },
+    
+    // バリデーション
     validation: {
-      embedPattern: /<blockquote[^>]*class="instagram-media"/,
-      maxEmbedLength: 15000,
-      minEmbedLength: 50
+      embedPattern: /<blockquote[^>]*class="instagram-media"/i,
+      urlPattern: /^https:\/\/(www\.)?instagram\.com\/(p|reel)\/([a-zA-Z0-9_-]+)\/?/
     },
     
     // UI設定
     ui: {
-      messages: {
-        empty: 'Instagram投稿がまだ登録されていません',
-        loading: '読み込み中...',
-        saved: '保存しました',
-        error: '保存に失敗しました',
-        invalidEmbed: '正しい埋め込みコードを入力してください'
-      },
+      loadingText: 'Instagram投稿を読み込み中...',
+      emptyText: 'Instagram投稿がまだ登録されていません',
+      errorText: '投稿の読み込みに失敗しました',
       placeholder: 'Instagramの埋め込みコードをここに貼り付けてください...'
     }
   },
 
   // ===================================
-  // レッスン管理設定
+  // レッスン状況管理（Supabase対応）
   // ===================================
   lessons: {
-    schema: {
-      required: ['date', 'status', 'content'],
-      defaults: {
-        status: 'scheduled',
-        weather: 'unknown',
-        participants: 0
+    // ステータス定義
+    statuses: {
+      'scheduled': {
+        id: 'scheduled',
+        name: '通常開催',
+        adminText: '通常開催',
+        color: '#27ae60',
+        backgroundColor: 'var(--status-scheduled)',
+        icon: '✓'
+      },
+      'cancelled': {
+        id: 'cancelled', 
+        name: '中止',
+        adminText: '中止',
+        color: '#e74c3c',
+        backgroundColor: 'var(--status-cancelled)', 
+        icon: '✗'
+      },
+      'indoor': {
+        id: 'indoor',
+        name: '屋内開催',
+        adminText: '屋内開催',
+        color: '#f39c12',
+        backgroundColor: 'var(--status-indoor)',
+        icon: '🏠'
+      },
+      'postponed': {
+        id: 'postponed',
+        name: '延期',
+        adminText: '延期',
+        color: '#9b59b6',
+        backgroundColor: 'var(--status-postponed)',
+        icon: '📅'
       }
     },
     
-    statuses: {
-      'scheduled': { name: '予定', color: '#4299e1' },
-      'completed': { name: '実施', color: '#38b2ac' },
-      'cancelled': { name: '中止', color: '#e53e3e' },
-      'postponed': { name: '延期', color: '#f59e0b' }
+    // クラス定義  
+    classes: {
+      'basic': {
+        id: 'basic',
+        name: 'ベーシッククラス',
+        description: '年長〜小3対象',
+        color: '#3498db'
+      },
+      'advance': {
+        id: 'advance', 
+        name: 'アドバンスクラス',
+        description: '小4〜小6対象',
+        color: '#e67e22'
+      }
+    },
+
+    // 表示設定
+    display: {
+      daysToShow: 7,           // 表示日数
+      defaultMessage: 'レッスンは予定通り開催いたします。',
+      timeFormat: 'HH:mm',
+      dateFormat: 'ja-JP'
     }
   },
 
   // ===================================
-  // UI設定（統一）
-  // ===================================
-  ui: {
-    theme: 'default',
-    animations: true,
-    
-    // レスポンシブ設定
-    breakpoints: {
-      mobile: 768,
-      tablet: 1024,
-      desktop: 1200
-    },
-    
-    // 通知設定
-    notifications: {
-      duration: 3000,
-      position: 'top-right'
-    },
-    
-    // スクロール設定
-    scroll: {
-      headerOffset: 120,
-      smoothDuration: 800
-    }
-  },
-
-  // ===================================
-  // 管理画面設定
+  // 管理画面設定（Supabase完全統合）
   // ===================================
   admin: {
-    // 認証
+    // Supabase Auth統合認証
     auth: {
-      password: 'rbs2025admin',
-      sessionDuration: 86400000     // 24時間
+      // 管理者アカウント設定
+      adminCredentials: {
+        email: 'yaoki412rad@gmail.com',
+        password: 'rbs2025admin',
+        role: 'admin'
+      },
+      
+      // セッション設定
+      session: {
+        duration: 24 * 60 * 60 * 1000,  // 24時間
+        autoRefresh: true,
+        persistSession: true
+      },
+      
+      // RLSポリシー設定
+      rls: {
+        enabled: true,
+        requireAuthentication: true,
+        adminRole: 'authenticated'
+      },
+      
+      // 認証フロー設定
+      flow: {
+        loginRedirect: 'admin.html',
+        logoutRedirect: 'admin-login.html',
+        unauthorizedRedirect: 'admin-login.html'
+      }
+    },
+    
+    // ダッシュボード設定
+    dashboard: {
+      refreshInterval: 5 * 60 * 1000,  // 5分
+      statsWidgets: ['articles', 'instagram', 'lessons', 'storage'],
+      recentItemsLimit: 5
     },
     
     // タブ設定
-    tabs: {
-      default: 'dashboard',
-      available: ['dashboard', 'news-management', 'lesson-status', 'instagram-management', 'settings']
+    navigation: {
+      defaultTab: 'dashboard',
+      tabs: [
+        { id: 'dashboard', name: 'ダッシュボード', icon: 'fas fa-chart-line' },
+        { id: 'news-management', name: '記事管理', icon: 'fas fa-newspaper' },
+        { id: 'lesson-status', name: 'レッスン状況', icon: 'fas fa-calendar-check' },
+        { id: 'instagram-management', name: 'Instagram管理', icon: 'fab fa-instagram' },
+        { id: 'settings', name: '設定', icon: 'fas fa-cog' }
+      ]
     },
     
     // 機能設定
     features: {
       autoSave: true,
       notifications: true,
-      debug: false
+      realTimeUpdates: true,
+      dataExport: true,
+      dataImport: true,
+      backupReminders: true
+    }
+  },
+
+  // ===================================
+  // UI・UX設定
+  // ===================================
+  ui: {
+    // テーマ設定
+    theme: {
+      primary: '#3498db',
+      secondary: '#2c3e50', 
+      success: '#27ae60',
+      warning: '#f39c12',
+      danger: '#e74c3c',
+      info: '#3498db'
+    },
+    
+    // レスポンシブ設定
+    breakpoints: {
+      mobile: 768,
+      tablet: 1024,
+      desktop: 1200,
+      large: 1400
+    },
+    
+    // アニメーション設定
+    animations: {
+      enabled: true,
+      duration: 300,
+      easing: 'ease-in-out'
+    },
+    
+    // 通知設定
+    notifications: {
+      duration: 4000,
+      position: 'top-right',
+      maxVisible: 3
+    },
+    
+    // ローディング設定
+    loading: {
+      spinnerType: 'dots',
+      minDuration: 500,
+      timeout: 10000
     }
   },
 
@@ -204,71 +338,132 @@ const config = {
   // パフォーマンス設定
   // ===================================
   performance: {
-    // タイムアウト
-    moduleLoad: 10000,      // 10秒
-    apiRequest: 5000,       // 5秒
+    // API設定
+    api: {
+      timeout: 10000,           // 10秒
+      retryAttempts: 3,
+      retryDelay: 1000
+    },
     
-    // キャッシュ
-    cacheTimeout: 300000,   // 5分
+    // キャッシュ設定
+    cache: {
+      enabled: true,
+      defaultTTL: 5 * 60 * 1000,  // 5分
+      maxSize: 100                 // 最大100件
+    },
     
-    // リトライ
-    maxRetries: 3,
-    retryDelay: 1000
+    // 画像最適化
+    images: {
+      lazyLoading: true,
+      webpSupport: true,
+      maxWidth: 1200
+    }
   },
 
   // ===================================
-  // デバッグ設定
+  // 開発・デバッグ設定
   // ===================================
   debug: {
     enabled: false,
     verbose: false,
-    logLevel: 'info'        // 'debug', 'info', 'warn', 'error'
+    logLevel: 'info',
+    showPerformanceMetrics: false
+  },
+
+  // ===================================
+  // Supabase設定
+  // ===================================
+  supabase: {
+    enabled: true,
+    realTimeEnabled: true,
+    cacheEnabled: true,
+    fallbackToLocalStorage: false, // 完全Supabase移行
+    
+    // データ同期設定
+    syncSettings: {
+      autoSync: true,
+      syncInterval: 30000, // 30秒
+      conflictResolution: 'server-wins'
+    }
   }
 };
 
 // ===================================
-// 環境別設定
+// 環境別設定適用
 // ===================================
 if (config.app.environment === 'development') {
   config.debug.enabled = true;
   config.debug.verbose = true;
   config.debug.logLevel = 'debug';
-  config.performance.moduleLoad = 30000;
-  config.admin.features.debug = true;
+  config.debug.showPerformanceMetrics = true;
+  config.performance.api.timeout = 30000;
+  config.admin.features.realTimeUpdates = true;
 }
 
 // ===================================
-// ヘルパー関数
+// ヘルパー関数（Supabase対応版）
 // ===================================
 config.helpers = {
-  // ストレージキー生成
-  getStorageKey: (key) => config.storage.keys[key] || `${config.storage.prefix}${key}`,
-  
-  // カテゴリ情報取得
-  getCategoryInfo: (categoryId) => config.articles.categories[categoryId] || config.articles.categories.announcement,
-  
-  // デフォルト記事データ生成
-  createDefaultArticle: () => ({
-    id: Date.now().toString(),
-    ...config.articles.schema.defaults,
-    createdAt: new Date().toISOString()
-  }),
-  
-  // デフォルトInstagram投稿データ生成
-  createDefaultInstagramPost: () => ({
-    id: Date.now().toString(),
-    ...config.instagram.schema.defaults,
-    createdAt: new Date().toISOString()
-  }),
-  
-  // 日付フォーマット
-  formatDate: (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ja-JP');
+  // カテゴリー情報取得
+  getCategoryInfo: (categoryId) => {
+    return config.articles.categories[categoryId] || config.articles.categories.general;
   },
   
-  // ログ出力
+  // ステータス情報取得  
+  getStatusInfo: (statusId) => {
+    return config.articles.statuses[statusId] || config.articles.statuses.draft;
+  },
+  
+  // レッスンステータス情報取得
+  getLessonStatusInfo: (statusId) => {
+    return config.lessons.statuses[statusId] || config.lessons.statuses.scheduled;
+  },
+  
+  // 日付フォーマット
+  formatDate: (dateString, options = {}) => {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    const defaultOptions = {
+      year: 'numeric',
+      month: '2-digit', 
+      day: '2-digit',
+      ...options
+    };
+    
+    return date.toLocaleDateString('ja-JP', defaultOptions);
+  },
+  
+  // 時間フォーマット
+  formatDateTime: (dateString) => {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    return date.toLocaleString('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit', 
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  },
+  
+  // HTMLエスケープ
+  escapeHtml: (text) => {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  },
+  
+  // テキスト抜粋
+  excerpt: (text, length = 150) => {
+    if (!text) return '';
+    if (text.length <= length) return text;
+    return text.substring(0, length).trim() + '...';
+  },
+  
+  // ログ出力（開発用）
   log: (level, message, ...args) => {
     if (!config.debug.enabled) return;
     
@@ -277,8 +472,23 @@ config.helpers = {
     const messageLevel = levels[level] || 1;
     
     if (messageLevel >= currentLevel) {
-      console[level](`[RBS] ${message}`, ...args);
+      const timestamp = new Date().toISOString();
+      console[level](`[RBS ${timestamp}] ${message}`, ...args);
     }
+  },
+  
+  // パフォーマンス測定
+  measurePerformance: (name, fn) => {
+    if (!config.debug.showPerformanceMetrics) {
+      return fn();
+    }
+    
+    const start = performance.now();
+    const result = fn();
+    const end = performance.now();
+    
+    console.log(`[Performance] ${name}: ${(end - start).toFixed(2)}ms`);
+    return result;
   }
 };
 
@@ -288,6 +498,7 @@ config.helpers = {
 export { config as CONFIG };
 export default config;
 
-// 後方互換性
-window.CONFIG = config;
-window.DEBUG = config.debug.enabled; 
+// グローバル参照（Supabase統合版）
+if (typeof window !== 'undefined') {
+  window.CONFIG = config;
+} 
